@@ -1,15 +1,11 @@
 
 buildscript {
-    ext {
-        jdkVersion = "1.8"
-        kotlinVersion = "1.3.10"
-    }
     repositories {
         mavenLocal()
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.10"
     }
 }
 
@@ -22,7 +18,7 @@ subprojects {
     apply plugin: "kotlin"
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
-        kotlinOptions.jvmTarget = jdkVersion
+        kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.allWarningsAsErrors = true
     }
 
@@ -36,4 +32,3 @@ subprojects {
         compile "org.jetbrains.kotlin:kotlin-reflect"
     }
 }
-
