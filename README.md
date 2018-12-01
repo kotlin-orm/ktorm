@@ -1,2 +1,2 @@
 # KtOrm
-A lightweight ORM Framework for Kotlin with strong type SQL DSL. https://ktorm.liuwj.me
+A lightweight ORM Framework for Kotlin with strong typed SQL DSL. https://ktorm.liuwj.me
