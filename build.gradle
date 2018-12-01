@@ -1,34 +1,102 @@
 
 buildscript {
     repositories {
-        mavenLocal()
-        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.10"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
     }
 }
 
 allprojects {
     group = "me.liuwj.ktorm"
-    version = "1.0-SNAPSHOT"
+    version = "1.0-alpha"
 }
 
-subprojects {
+subprojects { project ->
     apply plugin: "kotlin"
+    apply plugin: "maven-publish"
+    apply plugin: "com.jfrog.bintray"
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+        compile "org.jetbrains.kotlin:kotlin-reflect"
+    }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.allWarningsAsErrors = true
     }
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = "sources"
+        from sourceSets.main.allSource
     }
 
-    dependencies {
-        compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-        compile "org.jetbrains.kotlin:kotlin-reflect"
+    publishing {
+        publications {
+            bintray(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+
+                groupId project.group
+                artifactId project.name
+                version project.version
+
+                pom {
+                    name = project.name
+                    description = "A lightweight ORM Framework for Kotlin with strong typed SQL DSL."
+                    url = "https://github.com/vincentlauvlwj/KtOrm"
+                    licenses {
+                        license {
+                            name = "The Apache Software License, Version 2.0"
+                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = "vincentlauvlwj"
+                            name = "vince"
+                            email = "me@liuwj.me"
+                        }
+                    }
+                    scm {
+                        url = "https://github.com/vincentlauvlwj/KtOrm.git"
+                    }
+                }
+            }
+        }
+    }
+
+    bintray {
+        user = System.getenv("BINTRAY_USER")
+        key = System.getenv("BINTRAY_KEY")
+        publications = ["bintray"]
+        publish = true
+
+        pkg {
+            repo = "maven"
+            name = project.name
+            licenses = ["Apache-2.0"]
+            vcsUrl = "https://github.com/vincentlauvlwj/KtOrm.git"
+            labels = ["Kotlin", "ORM", "SQL"]
+
+            version {
+                name = project.version
+                released = new Date()
+                vcsTag = project.version
+
+                mavenCentralSync {
+                    sync = true
+                    user = System.getenv("OSSRH_USER")
+                    password = System.getenv("OSSRH_PASSWORD")
+                }
+            }
+        }
     }
 }

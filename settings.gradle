@@ -5,6 +5,8 @@ include "ktorm-support-mysql"
 include "ktorm-support-oracle"
 include "ktorm-support-postgresql"
 
+enableFeaturePreview("STABLE_PUBLISHING")
+
 rootProject.name = "ktorm"
 rootProject.children.each { project ->
     project.buildFileName = "${project.name}.gradle"
