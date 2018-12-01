@@ -19,6 +19,16 @@ import kotlin.reflect.full.isSubclassOf
 interface Entity<E : Entity<E>> : Serializable {
 
     /**
+     * Return this entity's [KClass] instance, which must be an interface.
+     */
+    //val entityClass: KClass<E>
+
+    /**
+     * Return the immutable view of this entity's all properties.
+     */
+    //val properties: Map<String, Any?>
+
+    /**
      * 将实体对象中变化的字段保存到数据库，返回受影响的记录数
      */
     fun flushChanges(): Int

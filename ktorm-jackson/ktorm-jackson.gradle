@@ -1,0 +1,21 @@
+
+def generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
+
+task generatePackageVersion(type: Copy) {
+    from "src/main/kotlin/me/liuwj/ktorm/jackson/PackageVersion.kt.tmpl"
+    into "${generatedSourceDir}/me/liuwj/ktorm/jackson"
+
+    rename '(.+)\\.tmpl', '$1'
+    expand project.properties
+}
+
+sourceSets {
+    main.kotlin.srcDirs += generatedSourceDir
+}
+
+compileKotlin.dependsOn(generatePackageVersion)
+
+dependencies {
+    compile project(":ktorm-core")
+    compile "com.fasterxml.jackson.core:jackson-databind:2.9.7"
+}

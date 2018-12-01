@@ -27,8 +27,9 @@ import kotlin.reflect.jvm.kotlinFunction
 
 /**
  * Created by vince on Jun 18, 2018.
+ * todo: make this class internal
  */
-internal class EntityImpl(
+class EntityImpl(
     var entityClass: KClass<*>,
     @Transient var fromTable: Table<*>?,
     var holderFieldName: String?

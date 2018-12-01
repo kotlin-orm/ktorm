@@ -54,7 +54,10 @@ internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
     }
 }
 
-internal val Entity<*>.impl: EntityImpl get() {
+/**
+ * todo: make this extension internal
+ */
+val Entity<*>.impl: EntityImpl get() {
     if (this is EntityImpl) {
         return this
     } else {
