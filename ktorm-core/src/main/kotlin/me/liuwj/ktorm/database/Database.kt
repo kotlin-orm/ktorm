@@ -30,7 +30,7 @@ class Database(
         lastConnected.set(this)
     }
 
-    internal val logger: Logger = LoggerFactory.getLogger(Database::class.java)
+    val logger: Logger = LoggerFactory.getLogger(Database::class.java)
 
     /**
      * 数据库连接 URL

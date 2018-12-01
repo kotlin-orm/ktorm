@@ -1,6 +1,9 @@
 
 include "ktorm-core"
 include "ktorm-jackson"
+include "ktorm-support-mysql"
+include "ktorm-support-oracle"
+include "ktorm-support-postgresql"
 
 rootProject.name = "ktorm"
 rootProject.children.each { project ->
