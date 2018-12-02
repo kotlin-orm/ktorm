@@ -28,6 +28,7 @@ subprojects { project ->
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
         compile "org.jetbrains.kotlin:kotlin-reflect"
+        testCompile "junit:junit:4.12"
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
