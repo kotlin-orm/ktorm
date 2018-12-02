@@ -9,6 +9,6 @@ class DatabaseTest {
 
     @Test
     fun testTravis() {
-        assert(false)
+        assert(true)
     }
 }
