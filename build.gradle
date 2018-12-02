@@ -5,19 +5,21 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.10"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.9.17"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
     }
 }
 
 allprojects {
     group = "me.liuwj.ktorm"
-    version = "1.0-alpha"
+    version = "1.0-beta"
 }
 
 subprojects { project ->
     apply plugin: "kotlin"
     apply plugin: "maven-publish"
     apply plugin: "com.jfrog.bintray"
+    apply plugin: "org.jetbrains.dokka"
 
     repositories {
         jcenter()
@@ -33,16 +35,29 @@ subprojects { project ->
         kotlinOptions.allWarningsAsErrors = true
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
+    task generateSourcesJar(type: Jar) {
         classifier = "sources"
         from sourceSets.main.allSource
+    }
+
+    task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+        outputFormat = "javadoc"
+        jdkVersion = 8
+        reportUndocumented = false
+        outputDirectory = javadoc.destinationDir
+    }
+
+    task generateJavadoc(type: Jar, dependsOn: dokkaJavadoc) {
+        classifier = "javadoc"
+        from javadoc.destinationDir
     }
 
     publishing {
         publications {
             bintray(MavenPublication) {
                 from components.java
-                artifact sourcesJar
+                artifact generateSourcesJar
+                artifact generateJavadoc
 
                 groupId project.group
                 artifactId project.name
