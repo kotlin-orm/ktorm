@@ -5,66 +5,46 @@ import java.sql.ResultSet
 import java.util.*
 
 /**
- * SQL 数据类型的统一抽象，封装从 [ResultSet] 获取数据、往 [PreparedStatement] 设置参数等通用操作，
- * 数据类型抽象为统一接口易于扩展，用户可以继承 [AbstractSqlType] 提供自己定制的数据类型
+ * SQL 数据类型的统一抽象，封装从 [ResultSet] 获取数据、往 [PreparedStatement] 设置参数等通用操作
+ *
+ * @property typeCode 定义于 [java.sql.Types] 中的常量，用于标识该类型
+ * @property typeName 该类型在其数据库中的字符串表示形式，如 int, bigint, varchar 等
  */
-interface SqlType<T : Any> {
-
-    /**
-     * 定义于 [java.sql.Types] 中的常量，用于标识该类型
-     */
-    val typeCode: Int
-
-    /**
-     * 该类型在其数据库中的字符串表示形式，如 int, bigint, varchar 等
-     */
-    val typeName: String
-
-    /**
-     * 往 [PreparedStatement] 中设置参数
-     */
-    fun setParameter(ps: PreparedStatement, index: Int, parameter: T?)
-
-    /**
-     * 使用 index 从 [ResultSet] 中获取数据
-     */
-    fun getResult(rs: ResultSet, index: Int): T?
-
-    /**
-     * 使用 label 从 [ResultSet] 中获取数据
-     */
-    fun getResult(rs: ResultSet, columnLabel: String): T?
-}
-
-/**
- * [SqlType] 的模版实现，提供了通用的 SqlType 的代码结构，一般来说，子类应该继承此类，而不是直接实现接口
- */
-abstract class AbstractSqlType<T : Any>(override val typeCode: Int, override val typeName: String) : SqlType<T> {
+abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
 
     /**
      * 往 [PreparedStatement] 中设置参数，该参数不可能为 null
      */
-    protected abstract fun setNonNullParameter(ps: PreparedStatement, index: Int, parameter: T)
+    protected abstract fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T)
 
     /**
      * 使用 index 从 [ResultSet] 中获取参数，返回的结果可以为 null
      */
-    protected abstract fun getNullableResult(rs: ResultSet, index: Int): T?
+    protected abstract fun doGetResult(rs: ResultSet, index: Int): T?
 
-    override fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
+    /**
+     * 往 [PreparedStatement] 中设置参数
+     */
+    fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
         if (parameter == null) {
             ps.setNull(index, typeCode)
         } else {
-            setNonNullParameter(ps, index, parameter)
+            doSetParameter(ps, index, parameter)
         }
     }
 
-    override fun getResult(rs: ResultSet, index: Int): T? {
-        val result = getNullableResult(rs, index)
+    /**
+     * 使用 index 从 [ResultSet] 中获取数据
+     */
+    fun getResult(rs: ResultSet, index: Int): T? {
+        val result = doGetResult(rs, index)
         return if (rs.wasNull()) null else result
     }
 
-    override fun getResult(rs: ResultSet, columnLabel: String): T? {
+    /**
+     * 使用 label 从 [ResultSet] 中获取数据
+     */
+    fun getResult(rs: ResultSet, columnLabel: String): T? {
         return getResult(rs, rs.findColumn(columnLabel))
     }
 

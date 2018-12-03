@@ -3,7 +3,7 @@ package me.liuwj.ktorm.jackson
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
 import me.liuwj.ktorm.entity.Entity
-import me.liuwj.ktorm.schema.AbstractSqlType
+import me.liuwj.ktorm.schema.SqlType
 import me.liuwj.ktorm.schema.Table
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -24,13 +24,13 @@ fun <E : Entity<E>, C : Any> Table<E>.json(
 class JsonSqlType<T : Any>(
     val type: KClass<T>,
     val objectMapper: ObjectMapper
-) : AbstractSqlType<T>(Types.VARCHAR, "json") {
+) : SqlType<T>(Types.VARCHAR, "json") {
 
-    override fun setNonNullParameter(ps: PreparedStatement, index: Int, parameter: T) {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
         ps.setString(index, objectMapper.writeValueAsString(parameter))
     }
 
-    override fun getNullableResult(rs: ResultSet, index: Int): T? {
+    override fun doGetResult(rs: ResultSet, index: Int): T? {
         val json = rs.getString(index)
         if (json.isNullOrBlank()) {
             return null
@@ -54,15 +54,15 @@ fun <E : Entity<E>, C : Any> Table<E>.listJson(
 class ListJsonSqlType<T : Any>(
     val elementType: KClass<T>,
     val objectMapper: ObjectMapper
-) : AbstractSqlType<List<T>>(Types.VARCHAR, "json") {
+) : SqlType<List<T>>(Types.VARCHAR, "json") {
 
     val collectionType: JavaType = objectMapper.typeFactory.constructCollectionType(List::class.java, elementType.java)
 
-    override fun setNonNullParameter(ps: PreparedStatement, index: Int, parameter: List<T>) {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: List<T>) {
         ps.setString(index, objectMapper.writeValueAsString(parameter))
     }
 
-    override fun getNullableResult(rs: ResultSet, index: Int): List<T>? {
+    override fun doGetResult(rs: ResultSet, index: Int): List<T>? {
         val json = rs.getString(index)
         if (json.isNullOrBlank() || json == "[]") {
             return emptyList()
