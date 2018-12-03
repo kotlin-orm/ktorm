@@ -2,6 +2,7 @@ package me.liuwj.ktorm.schema
 
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.util.*
 
 /**
  * SQL 数据类型的统一抽象，封装从 [ResultSet] 获取数据、往 [PreparedStatement] 设置参数等通用操作，
@@ -11,7 +12,6 @@ interface SqlType<T : Any> {
 
     /**
      * 定义于 [java.sql.Types] 中的常量，用于标识该类型
-     * @see [java.sql.Types]
      */
     val typeCode: Int
 
@@ -41,6 +41,16 @@ interface SqlType<T : Any> {
  */
 abstract class AbstractSqlType<T : Any>(override val typeCode: Int, override val typeName: String) : SqlType<T> {
 
+    /**
+     * 往 [PreparedStatement] 中设置参数，该参数不可能为 null
+     */
+    protected abstract fun setNonNullParameter(ps: PreparedStatement, index: Int, parameter: T)
+
+    /**
+     * 使用 index 从 [ResultSet] 中获取参数，返回的结果可以为 null
+     */
+    protected abstract fun getNullableResult(rs: ResultSet, index: Int): T?
+
     override fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
         if (parameter == null) {
             ps.setNull(index, typeCode)
@@ -58,13 +68,15 @@ abstract class AbstractSqlType<T : Any>(override val typeCode: Int, override val
         return getResult(rs, rs.findColumn(columnLabel))
     }
 
-    /**
-     * 往 [PreparedStatement] 中设置参数，该参数不可能为 null
-     */
-    protected abstract fun setNonNullParameter(ps: PreparedStatement, index: Int, parameter: T)
+    override fun equals(other: Any?): Boolean {
+        if (other !is SqlType<*>) {
+            return false
+        } else {
+            return this.typeCode == other.typeCode && this.typeName == other.typeName
+        }
+    }
 
-    /**
-     * 使用 index 从 [ResultSet] 中获取参数，返回的结果可以为 null
-     */
-    protected abstract fun getNullableResult(rs: ResultSet, index: Int): T?
+    override fun hashCode(): Int {
+        return Objects.hash(typeCode, typeName)
+    }
 }
