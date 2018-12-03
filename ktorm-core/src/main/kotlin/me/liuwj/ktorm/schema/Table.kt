@@ -17,11 +17,11 @@ import kotlin.reflect.KProperty1
  * @property columns 获取该表中的所有列
  * @property primaryKey 获取该表的主键列
  */
-open class Table<T : Entity<T>>(
+open class Table<E : Entity<E>>(
     val tableName: String,
     val alias: String? = null,
-    entityClass: KClass<T>? = null
-) : EntityClassHolder<T>(entityClass) {
+    entityClass: KClass<E>? = null
+) : EntityClassHolder<E>(entityClass) {
 
     private val _refCounter = AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
@@ -41,7 +41,7 @@ open class Table<T : Entity<T>>(
     /**
      * 返回一个新的表对象，该对象与原表具有完全相同的数据和结构，但是赋予了新的 [alias] 属性
      */
-    open fun aliased(alias: String): Table<T> {
+    open fun aliased(alias: String): Table<E> {
         val result = Table(tableName, alias, entityClass)
         result.rewriteDefinitions(columns, _primaryKeyName, copyReferences = true)
         return result
@@ -127,12 +127,12 @@ open class Table<T : Entity<T>>(
     /**
      * 封装了对新注册的列添加更多修改的操作
      */
-    inner class ColumnRegistration<C : Any>(private val key: String) : ReadOnlyProperty<Table<*>, Column<C>> {
+    inner class ColumnRegistration<C : Any>(private val key: String) : ReadOnlyProperty<Table<E>, Column<C>> {
 
         /**
          * 获取该列，实现从 [ReadOnlyProperty] 来的 getValue 方法，以支持 by 语法
          */
-        override operator fun getValue(thisRef: Table<*>, property: KProperty<*>): Column<C> {
+        override operator fun getValue(thisRef: Table<E>, property: KProperty<*>): Column<C> {
             assert(thisRef === this@Table)
             return getColumn()
         }
@@ -164,7 +164,7 @@ open class Table<T : Entity<T>>(
          * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
          * @see me.liuwj.ktorm.entity.createEntity
          */
-        fun <E : Entity<E>> references(referenceTable: Table<E>, onProperty: KProperty1<T, E?>): ColumnRegistration<C> {
+        fun <R : Entity<R>> references(referenceTable: Table<R>, onProperty: KProperty1<E, R?>): ColumnRegistration<C> {
             if (!onProperty.isAbstract) {
                 throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $onProperty")
             }
@@ -175,7 +175,7 @@ open class Table<T : Entity<T>>(
         /**
          * 将列绑定到一个简单属性
          */
-        fun bindTo(property: KProperty1<T, C?>): ColumnRegistration<C> {
+        fun bindTo(property: KProperty1<E, C?>): ColumnRegistration<C> {
             if (!property.isAbstract) {
                 throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $property")
             }
@@ -186,7 +186,7 @@ open class Table<T : Entity<T>>(
         /**
          * 将列绑定到层级嵌套的属性，仅支持两级嵌套
          */
-        fun <E : Entity<E>> bindTo(property1: KProperty1<T, E?>, property2: KProperty1<E, C?>): ColumnRegistration<C> {
+        fun <R : Entity<R>> bindTo(property1: KProperty1<E, R?>, property2: KProperty1<R, C?>): ColumnRegistration<C> {
             if (!property1.isAbstract) {
                 throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $property1")
             }
