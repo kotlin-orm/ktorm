@@ -25,7 +25,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * 往 [PreparedStatement] 中设置参数
      */
-    fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
+    open fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
         if (parameter == null) {
             ps.setNull(index, typeCode)
         } else {
@@ -36,7 +36,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * 使用 index 从 [ResultSet] 中获取数据
      */
-    fun getResult(rs: ResultSet, index: Int): T? {
+    open fun getResult(rs: ResultSet, index: Int): T? {
         val result = doGetResult(rs, index)
         return if (rs.wasNull()) null else result
     }
@@ -44,7 +44,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * 使用 label 从 [ResultSet] 中获取数据
      */
-    fun getResult(rs: ResultSet, columnLabel: String): T? {
+    open fun getResult(rs: ResultSet, columnLabel: String): T? {
         return getResult(rs, rs.findColumn(columnLabel))
     }
 
