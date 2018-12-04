@@ -59,10 +59,17 @@ abstract class TypeReference<T> {
 }
 
 /**
+ * Create a [TypeReference] object which references the reified type argument T.
+ */
+inline fun <reified T> typeRef(): TypeReference<T> {
+    return object : TypeReference<T>() { }
+}
+
+/**
  * Obtain the full generic type information via the reified type argument T, usage: typeOf<List<String>>()
  */
 inline fun <reified T> typeOf(): Type {
-    return object : TypeReference<T>() { }.referencedType
+    return typeRef<T>().referencedType
 }
 
 /**
@@ -72,5 +79,5 @@ inline fun <reified T> typeOf(): Type {
  */
 @Deprecated("Do not use this function until the bug KT-28616 fixed", ReplaceWith("typeOf<T>()"))
 inline fun <reified T> kotlinTypeOf(): KType {
-    return object : TypeReference<T>() { }.referencedKotlinType
+    return typeRef<T>().referencedKotlinType
 }
