@@ -21,11 +21,14 @@ open class Table<E : Entity<E>>(
     val tableName: String,
     val alias: String? = null,
     entityClass: KClass<E>? = null
-) : EntityClassHolder<E>(entityClass) {
+) : TypeReference<E>() {
 
     private val _refCounter = AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
     private var _primaryKeyName: String? = null
+
+    @Suppress("UNCHECKED_CAST")
+    val entityClass: KClass<E>? = entityClass ?: (referencedKotlinType.classifier as? KClass<E>)?.takeIf { it != Nothing::class }
 
     val columns: List<Column<*>> get() = _columns.values.toList()
 

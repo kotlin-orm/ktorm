@@ -1,6 +1,6 @@
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.schema.EntityClassHolder
+import me.liuwj.ktorm.schema.TypeReference
 import me.liuwj.ktorm.schema.Table
 import java.io.Serializable
 import java.lang.reflect.Proxy
@@ -89,14 +89,14 @@ interface Entity<E : Entity<E>> : Serializable {
     /**
      * 用于方便创建实体类对象的抽象工厂，一般作为实体类的伴随对象声明，以支持 EntityClass() 类似普通对象创建的语法
      */
-    @Suppress("UNCHECKED_CAST")
-    abstract class Factory<E : Entity<E>>(entityClass: KClass<E>? = null) : EntityClassHolder<E>(entityClass) {
+    abstract class Factory<E : Entity<E>> : TypeReference<E>() {
 
         /**
          * 使用 EntityClass() 创建实体对象，虽然实体类接口没有构造方法，但是创建对象的语法却是相同的
          */
+        @Suppress("UNCHECKED_CAST")
         operator fun invoke(): E {
-            val entityClass = this.entityClass ?: error("No entity class configured for factory: $javaClass")
+            val entityClass = referencedKotlinType.classifier as KClass<E>
             return create(entityClass, null, null) as E
         }
 
