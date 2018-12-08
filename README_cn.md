@@ -1,6 +1,26 @@
 <p align="center">
     <a href="https://ktorm.liuwj.me">
-        <img src="logo.png" width="300" />
+        <img src="logo.png" alt="Ktorm" width="300" />
+    </a>
+</p>
+<p align="center">
+    <a href="https://www.travis-ci.org/vincentlauvlwj/KtOrm">
+        <img src="https://www.travis-ci.org/vincentlauvlwj/KtOrm.svg?branch=master" alt="Build Status" />
+    </a>
+    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    </a>
+    <a href="https://bintray.com/vincentlauvlwj/maven">
+        <img src="https://api.bintray.com/packages/vincentlauvlwj/maven/ktorm-core/images/download.svg" alt="Download" />
+    </a>
+    <a href="LICENSE">
+        <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
+    </a>
+    <a href="https://app.codacy.com/app/vincentlauvlwj/KtOrm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/KtOrm&utm_campaign=Badge_Grade_Dashboard">
+        <img src="https://api.codacy.com/project/badge/Grade/2cf0d4b81c3546809ad2f83a795c34c2" alt="Codacy Badge" />
+    </a>
+    <a href="https://www.liuwj.me">
+        <img src="https://img.shields.io/badge/author-vince-yellowgreen.svg" alt="Author" />
     </a>
 </p>
 
@@ -9,13 +29,6 @@
 Ktorm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL（领域特定语言）和许多方便的扩展函数，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me)。
 
 :cn: 简体中文 | :us: [English](README.md)
-
-[![Build Status](https://www.travis-ci.org/vincentlauvlwj/KtOrm.svg?branch=master)](https://www.travis-ci.org/vincentlauvlwj/KtOrm)
-[![Maven Central](https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22)
-[![Download](https://api.bintray.com/packages/vincentlauvlwj/maven/ktorm-core/images/download.svg)](https://bintray.com/vincentlauvlwj/maven)
-[![Apache License 2](https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000)](LICENSE)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2cf0d4b81c3546809ad2f83a795c34c2)](https://app.codacy.com/app/vincentlauvlwj/KtOrm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/KtOrm&utm_campaign=Badge_Grade_Dashboard)
-[![Author](https://img.shields.io/badge/author-vince-yellowgreen.svg)](https://www.liuwj.me)
 
 # 特性
 
