@@ -6,15 +6,12 @@ import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.schema.*
 import org.junit.After
 import org.junit.Before
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.LocalDate
 
 /**
  * Created by vince on Dec 07, 2018.
  */
 open class BaseTest {
-    val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     @Before
     fun init() {
