@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://ktorm.liuwj.me">
-        <img src="logo.png" style="max-width: 300px" />
+        <img src="logo.png" width="300" />
     </a>
 </p>
 
