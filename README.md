@@ -4,9 +4,9 @@
     </a>
 </p>
 
-# What's KtOrm?
+# What's Ktorm?
 
-KtOrm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong typed and flexiable SQL DSL and many convenient extension functions to reduce our duplicated effort on database operations. All the SQLs are generated automaticlly, of course. For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong typed and flexiable SQL DSL and many convenient extension functions to reduce our duplicated effort on database operations. All the SQLs are generated automaticlly, of course. For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
 
 :us: English | :cn: [简体中文](README_cn.md)
 
@@ -27,7 +27,7 @@ KtOrm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
 # Quick Start
 
-KtOrm was deployed to maven central and jcenter, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
+Ktorm was deployed to maven central and jcenter, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
 
 ````xml
 <dependency>
@@ -69,5 +69,5 @@ fun main() {
 }
 ````
 
-When you run this program, KtOrm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. 
+When you run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. 
 

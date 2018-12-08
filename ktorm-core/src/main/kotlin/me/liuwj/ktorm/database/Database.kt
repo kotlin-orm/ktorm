@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.sql.DataSource
 
 /**
- * KtOrm 入口类，用于连接数据库，统一管理连接以及事务
+ * Ktorm 入口类，用于连接数据库，统一管理连接以及事务
  *
  * @property transactionManager 事务管理器
  * @property dialect 数据库方言
@@ -182,7 +182,7 @@ class Database(
 
             val transactionManager = SpringManagedTransactionManager(dataSource, transactionTemplate)
             val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)
-            return Database(transactionManager, dialect) { exceptionTranslator.translate("KtOrm", null, it) }
+            return Database(transactionManager, dialect) { exceptionTranslator.translate("Ktorm", null, it) }
         }
     }
 }

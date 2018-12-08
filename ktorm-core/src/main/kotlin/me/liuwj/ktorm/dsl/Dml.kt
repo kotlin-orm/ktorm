@@ -165,9 +165,9 @@ fun Table<*>.deleteAll(): Int {
 }
 
 @DslMarker
-annotation class KtOrmDsl
+annotation class KtormDsl
 
-@KtOrmDsl
+@KtormDsl
 open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignmentExpression<*>>) {
 
     infix fun <C : Any> Column<C>.to(expr: ColumnDeclaring<C>) {
@@ -189,7 +189,7 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
     }
 }
 
-@KtOrmDsl
+@KtormDsl
 class UpdateStatementBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) : AssignmentsBuilder(assignments) {
     internal var where: ScalarExpression<Boolean>? = null
 
@@ -198,7 +198,7 @@ class UpdateStatementBuilder(assignments: MutableList<ColumnAssignmentExpression
     }
 }
 
-@KtOrmDsl
+@KtormDsl
 class BatchUpdateStatementBuilder<T : Table<*>>(internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
     internal val sqls = HashSet<String>()
@@ -221,7 +221,7 @@ class BatchUpdateStatementBuilder<T : Table<*>>(internal val table: T) {
     }
 }
 
-@KtOrmDsl
+@KtormDsl
 class BatchInsertStatementBuilder<T : Table<*>>(internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
     internal val sqls = HashSet<String>()

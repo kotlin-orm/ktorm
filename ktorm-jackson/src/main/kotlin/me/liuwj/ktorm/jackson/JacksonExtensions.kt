@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedMethod
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaGetter
 
-val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModule(KtOrmModule())
+val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModule(KtormModule())
 
 internal fun JsonGenerator.configureIndentOutputIfEnabled() {
     val codec = this.codec

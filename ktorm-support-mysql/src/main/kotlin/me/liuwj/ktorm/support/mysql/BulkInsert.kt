@@ -2,7 +2,7 @@ package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
-import me.liuwj.ktorm.dsl.KtOrmDsl
+import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.expression.TableExpression
@@ -38,7 +38,7 @@ fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit)
     }
 }
 
-@KtOrmDsl
+@KtormDsl
 class BulkInsertStatementBuilder<T : Table<*>>(internal val table: T) {
     internal val allAssignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
 

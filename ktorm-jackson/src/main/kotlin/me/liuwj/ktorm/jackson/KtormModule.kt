@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
  * @see ObjectMapper.registerModule
  * @see ObjectMapper.findAndRegisterModules
  */
-class KtOrmModule : Module() {
+class KtormModule : Module() {
     companion object {
         private const val serialVersionUID = 1L
     }

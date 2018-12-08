@@ -2,7 +2,7 @@ package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
-import me.liuwj.ktorm.dsl.KtOrmDsl
+import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.expression.TableExpression
@@ -36,7 +36,7 @@ fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) ->
     }
 }
 
-@KtOrmDsl
+@KtormDsl
 class InsertOrUpdateStatementBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) : AssignmentsBuilder(assignments) {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 

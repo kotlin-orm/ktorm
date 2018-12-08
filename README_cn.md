@@ -4,9 +4,9 @@
     </a>
 </p>
 
-# KtOrm 是什么？
+# Ktorm 是什么？
 
-KtOrm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL（领域特定语言）和许多方便的扩展函数，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me)。
+Ktorm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL（领域特定语言）和许多方便的扩展函数，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me)。
 
 :cn: 简体中文 | :us: [English](README.md)
 
@@ -27,7 +27,7 @@ KtOrm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM
 
 # 快速开始
 
-KtOrm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
+Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
 
 ````xml
 <dependency>
@@ -69,5 +69,5 @@ fun main() {
 }
 ````
 
-当你执行这个程序，KtOrm 就会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 
+当你执行这个程序，Ktorm 就会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 
 
