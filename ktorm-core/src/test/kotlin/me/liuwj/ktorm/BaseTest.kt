@@ -55,7 +55,10 @@ open class BaseTest {
         var department: Department
     }
 
-    object Departments : Table<Department>("t_department") {
+    open class Departments(alias: String?) : Table<Department>("t_department", alias) {
+        companion object : Departments(null)
+        override fun aliased(alias: String) = Departments(alias)
+
         val id by int("id").primaryKey().bindTo(Department::id)
         val name by varchar("name").bindTo(Department::name)
         val location by varchar("location").bindTo(Department::location)
