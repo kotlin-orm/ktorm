@@ -1,4 +1,4 @@
-# What's KtOrm?
+[![Logo](logo.png)](https://ktorm.liuwj.me)
 
 KtOrm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong typed and flexiable SQL DSL and many convenient extension functions to reduce our duplicated effort on database operations. All the SQLs are generated automaticlly, of course. For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
 
