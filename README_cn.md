@@ -1,4 +1,10 @@
-[![Logo](logo.png)](https://ktorm.liuwj.me)
+<p align="center">
+    <a href="https://ktorm.liuwj.me">
+        <img src="logo.png" style="max-width: 300px" />
+    </a>
+</p>
+
+# KtOrm 是什么？
 
 KtOrm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL（领域特定语言）和许多方便的扩展函数，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me)。
 
