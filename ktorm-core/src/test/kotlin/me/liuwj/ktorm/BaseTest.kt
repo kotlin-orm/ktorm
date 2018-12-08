@@ -61,7 +61,10 @@ open class BaseTest {
         val location by varchar("location").bindTo(Department::location)
     }
 
-    object Employees : Table<Employee>("t_employee") {
+    open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
+        companion object : Employees(null)
+        override fun aliased(alias: String) = Employees(alias)
+
         val id by int("id").primaryKey().bindTo(Employee::id)
         val name by varchar("name").bindTo(Employee::name)
         val job by varchar("job").bindTo(Employee::job)

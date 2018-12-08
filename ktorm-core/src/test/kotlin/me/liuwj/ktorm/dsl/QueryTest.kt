@@ -19,6 +19,18 @@ class QueryTest : BaseTest() {
     }
 
     @Test
+    fun testSelectDistinct() {
+        val ids = Employees
+            .selectDistinct(Employees.departmentId)
+            .map { it.getInt(1) }
+            .sortedDescending()
+
+        assert(ids.size == 2)
+        assert(ids[0] == 2)
+        assert(ids[1] == 1)
+    }
+
+    @Test
     fun testWhere() {
         val name = Employees
             .select(Employees.name)
@@ -31,15 +43,124 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testWhereWithConditions() {
-        val name = Employees
-            .select(Employees.name)
+        val t = Employees.aliased("t")
+
+        val name = t
+            .select(t.name)
             .whereWithConditions {
-                it += Employees.managerId.isNull()
-                it += Employees.departmentId eq 1
+                it += t.managerId.isNull()
+                it += t.departmentId eq 1
             }
             .map { it.getString(1) }
             .first()
 
         assert(name == "vince")
+    }
+
+    @Test
+    fun testOrderBy() {
+        val names = Employees
+            .select(Employees.name)
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .map { it.getString(1) }
+
+        assert(names.size == 2)
+        assert(names[0] == "vince")
+        assert(names[1] == "marry")
+    }
+
+    @Test
+    fun testAggregation() {
+        val t = Employees
+
+        val salaries = t
+            .select(t.departmentId, sum(t.salary))
+            .groupBy(t.departmentId)
+            .associate { it.getInt(1) to it.getLong(2) }
+
+        assert(salaries.size == 2)
+        assert(salaries[1]!! == 150L)
+        assert(salaries[2]!! == 300L)
+    }
+
+    @Test
+    fun testHaving() {
+        val t = Employees
+
+        val salaries = t
+            .select(t.departmentId, avg(t.salary))
+            .groupBy(t.departmentId)
+            .having { avg(t.salary) greater 100.0 }
+            .associate { it.getInt(1) to it.getDouble(2) }
+
+        println(salaries)
+        assert(salaries.size == 1)
+        assert(salaries.keys.first() == 2)
+    }
+
+    @Test
+    fun testLimit() {
+        try {
+            val query = Employees.select().orderBy(Employees.id.desc()).limit(0, 2)
+            assert(query.totalRecords == 4)
+
+            val ids = query.map { it[Employees.id] }
+            assert(ids[0] == 4)
+            assert(ids[1] == 3)
+
+        } catch (e: UnsupportedOperationException) {
+            // Expected, pagination should be provided by dialects...
+        }
+    }
+
+    @Test
+    fun testBetween() {
+        val names = Employees
+            .select(Employees.name)
+            .where { Employees.salary between 100L..200L }
+            .map { it.getString(1) }
+
+        assert(names.size == 3)
+        println(names)
+    }
+
+    @Test
+    fun testInList() {
+        val query = Employees
+            .select()
+            .where { Employees.id inList listOf(1, 2, 3) }
+
+        assert(query.count() == 3)
+    }
+
+    @Test
+    fun testInNestedQuery() {
+        val departmentIds = Departments.selectDistinct(Departments.id)
+
+        val query = Employees
+            .select()
+            .where { Employees.departmentId inList departmentIds }
+
+        assert(query.count() == 4)
+
+        println(query.sql)
+    }
+
+    @Test
+    fun testUnion() {
+        val query = Employees
+            .select(Employees.id)
+            .unionAll(
+                Departments.select(Departments.id)
+            )
+            .unionAll(
+                Departments.select(Departments.id)
+            )
+            .orderBy(Employees.id.desc())
+
+        assert(query.count() == 8)
+
+        println(query.sql)
     }
 }
