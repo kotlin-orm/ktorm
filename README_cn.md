@@ -4,8 +4,8 @@
     </a>
 </p>
 <p align="center">
-    <a href="https://www.travis-ci.org/vincentlauvlwj/KtOrm">
-        <img src="https://www.travis-ci.org/vincentlauvlwj/KtOrm.svg?branch=master" alt="Build Status" />
+    <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">
+        <img src="https://www.travis-ci.org/vincentlauvlwj/Ktorm.svg?branch=master" alt="Build Status" />
     </a>
     <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
         <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
@@ -16,8 +16,8 @@
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
     </a>
-    <a href="https://app.codacy.com/app/vincentlauvlwj/KtOrm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/KtOrm&utm_campaign=Badge_Grade_Dashboard">
-        <img src="https://api.codacy.com/project/badge/Grade/2cf0d4b81c3546809ad2f83a795c34c2" alt="Codacy Badge" />
+    <a href="https://app.codacy.com/app/vincentlauvlwj/Ktorm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/Ktorm&utm_campaign=Badge_Grade_Dashboard">
+        <img src="https://api.codacy.com/project/badge/Grade/65d4931bfbe14fe986e1267b572bed53" alt="Codacy Badge" />
     </a>
     <a href="https://www.liuwj.me">
         <img src="https://img.shields.io/badge/author-vince-yellowgreen.svg" alt="Author" />
