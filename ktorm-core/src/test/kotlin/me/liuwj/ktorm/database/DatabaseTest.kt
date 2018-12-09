@@ -6,6 +6,7 @@ import me.liuwj.ktorm.entity.count
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.varchar
 import org.junit.Test
+import java.lang.Exception
 
 /**
  * Created by vince on Dec 02, 2018.
@@ -47,5 +48,46 @@ class DatabaseTest : BaseTest() {
         assert(configs.count { it.key eq "test" } == 1)
 
         configs.delete { it.key eq "test" }
+    }
+
+    @Test
+    fun testTransaction() {
+        class DummyException : Exception()
+
+        try {
+            transactional {
+                Departments.insert {
+                    it.name to "administration"
+                    it.location to "Hong Kong"
+                }
+
+                assert(Departments.count() == 3)
+
+                throw DummyException()
+            }
+
+        } catch (e: DummyException) {
+            assert(Departments.count() == 2)
+        }
+    }
+
+    @Test
+    fun testRawSql(){
+        val names = useConnection { conn ->
+            val sql = """
+                select name from t_employee
+                where department_id = ?
+                order by id
+            """
+
+            conn.prepareStatement(sql).use { statement ->
+                statement.setInt(1, 1)
+                statement.executeQuery().iterable().map { it.getString(1) }
+            }
+        }
+
+        assert(names.size == 2)
+        assert(names[0] == "vince")
+        assert(names[1] == "marry")
     }
 }

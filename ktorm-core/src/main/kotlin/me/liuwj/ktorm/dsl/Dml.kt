@@ -107,7 +107,7 @@ fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Uni
 /**
  * 往表中插入记录，并且返回主键
  */
-fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any? {
+fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     AssignmentsBuilder(assignments).apply { block(this@insertAndGenerateKey) }
 
@@ -121,7 +121,7 @@ fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit)
                 val sqlType = primaryKey?.sqlType ?: error("Table $tableName must have a primary key.")
                 return sqlType.getResult(rs, 1) ?: error("Generated key is null.")
             } else {
-                return null
+                error("No generated key returns by database.")
             }
         }
     }

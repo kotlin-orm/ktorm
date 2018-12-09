@@ -46,10 +46,10 @@ open class BaseTest {
     }
 
     interface Employee : Entity<Employee> {
-        val id: Int
+        val id: Int?
         var name: String
         var job: String
-        var manager: Employee
+        var manager: Employee?
         var hireDate: LocalDate
         var salary: Long
         var department: Department
