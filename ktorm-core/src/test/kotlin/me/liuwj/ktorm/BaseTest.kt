@@ -40,12 +40,14 @@ open class BaseTest {
     }
 
     interface Department : Entity<Department> {
+        companion object : Entity.Factory<Department>()
         val id: Int
         var name: String
         var location: String
     }
 
     interface Employee : Entity<Employee> {
+        companion object : Entity.Factory<Employee>()
         val id: Int?
         var name: String
         var job: String
