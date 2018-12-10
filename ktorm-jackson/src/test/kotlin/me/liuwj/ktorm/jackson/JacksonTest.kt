@@ -273,7 +273,7 @@ class JacksonTest {
                 "int" : 123
               }
             }
-        """.trimIndent()
+        """
 
         val bar = objectMapper.readValue(json, Bar::class.java)
         println(bar)

@@ -1,1 +1,9 @@
+
 language: java
+
+notifications:
+  email:
+    recipients:
+      - me@liuwj.me
+    on_success: change
+    on_failure: always
