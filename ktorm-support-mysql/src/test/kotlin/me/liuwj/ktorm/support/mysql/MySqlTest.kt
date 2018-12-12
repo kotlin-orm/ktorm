@@ -15,7 +15,7 @@ class MySqlTest : BaseTest() {
 
     override fun connect() {
         Database.connect(
-            url = "jdbc:mysql://localhost:3306/ktorm",
+            url = "jdbc:mysql://127.0.0.1:3306/ktorm",
             driver = "com.mysql.jdbc.Driver",
             user = "root",
             dialect = MySqlDialect

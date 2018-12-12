@@ -1,6 +1,9 @@
 
 language: java
 
+services:
+  - mysql
+
 notifications:
   email:
     recipients:
