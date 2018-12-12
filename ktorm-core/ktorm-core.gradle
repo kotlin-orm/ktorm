@@ -4,6 +4,19 @@ dependencies {
     compileOnly "org.springframework:spring-context:5.0.10.RELEASE"
     compileOnly "org.springframework:spring-jdbc:5.0.10.RELEASE"
 
-    testRuntime "com.h2database:h2:1.4.197"
-    testRuntime "org.slf4j:slf4j-simple:1.7.25"
+    testCompile "com.h2database:h2:1.4.197"
+    testCompile "org.slf4j:slf4j-simple:1.7.25"
+}
+
+configurations {
+    testOutput.extendsFrom(testCompile)
+}
+
+task testJar(type: Jar, dependsOn: testClasses) {
+    from sourceSets.test.output
+    classifier = "test"
+}
+
+artifacts {
+    testOutput testJar
 }

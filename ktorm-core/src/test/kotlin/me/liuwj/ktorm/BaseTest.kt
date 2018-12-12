@@ -13,9 +13,13 @@ import java.time.LocalDate
  */
 open class BaseTest {
 
+    open fun connect() {
+        Database.connect(url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+    }
+
     @Before
     fun init() {
-        Database.connect(url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+        connect()
         execSqlScript("init-data.sql")
     }
 
@@ -32,7 +36,9 @@ open class BaseTest {
                     .bufferedReader()
                     .use { reader ->
                         for (sql in reader.readText().split(';')) {
-                            statement.executeUpdate(sql)
+                            if (sql.any { it.isLetterOrDigit() }) {
+                                statement.executeUpdate(sql)
+                            }
                         }
                     }
             }
