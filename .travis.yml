@@ -4,6 +4,9 @@ language: java
 services:
   - mysql
 
+before_install:
+  - mysql -e 'create database if not exists ktorm;'
+
 notifications:
   email:
     recipients:
