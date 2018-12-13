@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.expression.ScalarExpression
 import org.junit.Test
 
 /**
@@ -55,6 +56,21 @@ class QueryTest : BaseTest() {
             .first()
 
         assert(name == "vince")
+    }
+
+    @Test
+    fun testCombineConditions() {
+        val t = Employees.aliased("t")
+
+        val names = t
+            .select(t.name)
+            .where { emptyList<ScalarExpression<Boolean>>().combineConditions() }
+            .orderBy(t.id.asc())
+            .map { it.getString(1) }
+
+        assert(names.size == 4)
+        assert(names[0] == "vince")
+        assert(names[1] == "marry")
     }
 
     @Test

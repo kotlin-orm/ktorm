@@ -3,10 +3,7 @@ package me.liuwj.ktorm.dsl
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.DoubleSqlType
-import me.liuwj.ktorm.schema.IntSqlType
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.*
 import java.sql.ResultSet
 import javax.sql.rowset.RowSetProvider
 
@@ -189,6 +186,14 @@ inline fun Query.whereWithOrConditions(block: (MutableList<ScalarExpression<Bool
         return this
     } else {
         return this.where { conditions.reduce { a, b -> a or b } }
+    }
+}
+
+fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Boolean> {
+    if (this.any()) {
+        return this.reduce { a, b -> a and b }
+    } else {
+        return ArgumentExpression(true, BooleanSqlType)
     }
 }
 
