@@ -7,6 +7,10 @@ services:
 before_install:
   - mysql -e 'create database if not exists ktorm;'
 
+after_success: 
+  - chmod +x auto-upload.sh
+  - ./auto-upload.sh
+
 notifications:
   email:
     recipients:
