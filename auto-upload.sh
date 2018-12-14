@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-last_commit=$(git log --pretty=format:'%d' | grep origin/master)
+last_commit=$(git log --pretty=format:'%d' | grep HEAD)
 
 if [[ ${last_commit} =~ "tag: " ]]
 then 
