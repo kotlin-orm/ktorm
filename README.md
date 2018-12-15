@@ -34,7 +34,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
  - No configuration files, no xml, lightweight, easy to use.
  - Strong typed SQL DSL, exposing low-level bugs at compile time.
- - Flexiable query, exactly control the generated SQLs as you wish.
+ - Flexible query, exactly control the generated SQLs as you wish.
  - Extensible design, write your own extensions to support more data types, SQL functions, etc.
  - Dialects supports, MySQL, Oracle, PostgreSQL, or you can write your own dialect support by implementing the `SqlDialect` interface.
 
@@ -137,6 +137,19 @@ val salaries = t
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
     .associate { it.getInt(1) to it.getDouble(2) }
+```
+
+Some other convenient aggregation functions: 
+
+```kotlin
+Employees.count { it.departmentId eq 1 }
+Employees.sumBy { it.salary }
+Employees.maxBy { it.salary }
+Employees.minBy { it.salary }
+Employees.avgBy { it.salary }
+Employees.any { it.salary greater 200L }
+Employees.none { it.salary greater 200L }
+Employees.all { it.salary lessEq 1000L }
 ```
 
 Union: 
@@ -269,6 +282,8 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where t_employee.name = ?
 ````
 
+> Naming Strategy: It's highly recommended to name your entity classes by singular nouns, name table objects by plurals (eg. Employee/Employees, Department/Departments). 
+
 Some other `find*` functions: 
 
 ```kotlin
@@ -313,7 +328,7 @@ var employee = Employee {
 Employees.add(employee)
 ```
 
-Flush changes: 
+Flush property changes in memory to database: 
 
 ```kotlin
 var employee = Employees.findById(2) ?: throw AssertionError()
@@ -322,7 +337,7 @@ employee.salary = 100
 employee.flushChanges()
 ```
 
-Delete: 
+Delete a entity from database: 
 
 ```kotlin
 val employee = Employees.findById(2) ?: throw AssertionError()

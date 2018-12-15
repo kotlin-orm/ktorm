@@ -56,9 +56,15 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 ````
 
-首先，创建一个 Kotlin object，描述你的表结构： 
+首先，创建 Kotlin object，描述你的表结构： 
 
 ````kotlin
+object Departments : Table<Nothing>("t_department") {
+    val id by int("id").primaryKey()
+    val name by varchar("name")
+    val location by varchar("location")
+}
+
 object Employees : Table<Nothing>("t_employee") {
     val id by int("id").primaryKey()
     val name by varchar("name")
@@ -83,4 +89,260 @@ fun main() {
 ````
 
 现在，你可以执行这个程序了，Ktorm 就会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 
+
+# SQL DSL
+
+让我们在上面的查询里再增加一点筛选条件： 
+
+```kotlin
+val names = Employees
+    .select(Employees.name)
+    .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
+    .map { row -> row[Employees.name] }
+println(names)
+```
+
+生成的 SQL 如下: 
+
+```sql
+select t_employee.name as t_employee_name 
+from t_employee 
+where (t_employee.department_id = ?) and (t_employee.name like ?) 
+```
+
+这就是 Kotlin 的魔法，使用 Ktorm 写查询十分地简单和自然，所生成的 SQL 几乎和 Kotlin 代码一一对应。并且，Ktorm 是强类型的，编译器会在你的代码运行之前对它进行检查，IDEA 也能对你的代码进行智能提示和自动补全。
+
+基于条件的动态查询：
+
+```kotlin
+val names = Employees
+    .select(Employees.name)
+    .whereWithConditions {
+        if (someCondition) {
+            it += Employees.managerId.isNull()
+        }
+        if (otherCondition) {
+            it += Employees.departmentId eq 1
+        }
+    }
+    .map { it.getString(1) }
+```
+
+聚合查询：
+
+```kotlin
+val t = Employees
+val salaries = t
+    .select(t.departmentId, avg(t.salary))
+    .groupBy(t.departmentId)
+    .having { avg(t.salary) greater 100.0 }
+    .associate { it.getInt(1) to it.getDouble(2) }
+```
+
+一些方便的聚合函数：
+
+```kotlin
+Employees.count { it.departmentId eq 1 }
+Employees.sumBy { it.salary }
+Employees.maxBy { it.salary }
+Employees.minBy { it.salary }
+Employees.avgBy { it.salary }
+Employees.any { it.salary greater 200L }
+Employees.none { it.salary greater 200L }
+Employees.all { it.salary lessEq 1000L }
+```
+
+Union：
+
+```kotlin
+Employees
+    .select(Employees.id)
+    .unionAll(
+        Departments.select(Departments.id)
+    )
+    .unionAll(
+        Departments.select(Departments.id)
+    )
+    .orderBy(Employees.id.desc())
+```
+
+多表连接查询：
+
+```kotlin
+data class Names(val name: String, val managerName: String?, val departmentName: String)
+
+val emp = Employees.aliased("emp")
+val mgr = Employees.aliased("mgr")
+val dept = Departments.aliased("dept")
+
+val results = emp
+    .leftJoin(dept, on = emp.departmentId eq dept.id)
+    .leftJoin(mgr, on = emp.managerId eq mgr.id)
+    .select(emp.name, mgr.name, dept.name)
+    .orderBy(emp.id.asc())
+    .map {
+        Names(
+            name = it.getString(1),
+            managerName = it.getString(2),
+            departmentName = it.getString(3)
+        )
+    }
+```
+
+插入：
+
+```kotlin
+Employees.insert {
+    it.name to "jerry"
+    it.job to "trainee"
+    it.managerId to 1
+    it.hireDate to LocalDate.now()
+    it.salary to 50
+    it.departmentId to 1
+}
+```
+
+更新：
+
+```kotlin
+Employees.update {
+    it.job to "engineer"
+    it.managerId to null
+    it.salary to 100
+
+    where {
+        it.id eq 2
+    }
+}
+```
+
+删除：
+
+```kotlin
+Employees.delete { it.id eq 4 }
+```
+
+更多 SQL DSL 的用法，参考[具体文档](https://ktorm.liuwj.me)。
+
+# Entity
+
+跟其他 ORM 框架一样，Ktorm 也支持实体对象。在 Ktorm 里面，我们使用接口定义实体类，继承 `Entity<E>` 接口即可：
+
+```kotlin
+interface Department : Entity<Department> {
+    val id: Int
+    var name: String
+    var location: String
+}
+
+interface Employee : Entity<Employee> {
+    val id: Int?
+    var name: String
+    var job: String
+    var manager: Employee?
+    var hireDate: LocalDate
+    var salary: Long
+    var department: Department
+}
+```
+
+修改前面的表对象，把数据库中的列绑定到实体类的属性上：
+
+```kotlin
+object Departments : Table<Department>("t_department") {
+    val id by int("id").primaryKey().bindTo(Department::id)
+    val name by varchar("name").bindTo(Department::name)
+    val location by varchar("location").bindTo(Department::location)
+}
+
+object Employees : Table<Employee>("t_employee") {
+    val id by int("id").primaryKey().bindTo(Employee::id)
+    val name by varchar("name").bindTo(Employee::name)
+    val job by varchar("job").bindTo(Employee::job)
+    val managerId by int("manager_id").bindTo(Employee::manager, Employee::id)
+    val hireDate by date("hire_date").bindTo(Employee::hireDate)
+    val salary by long("salary").bindTo(Employee::salary)
+    val departmentId by int("department_id").references(Departments, onProperty = Employee::department)
+}
+```
+
+根据名字获取 Employee 对象： 
+
+```kotlin
+val vince = Employees.findOne { it.name eq "vince" }
+println(vince)
+```
+
+`findOne` 函数接受一个 lambda 表达式作为参数，使用该 lambda 的返回值作为条件，生成一条查询 SQL，自动 left jion 了关联表 `t_department`。生成的 SQL 如下：
+
+```sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+where t_employee.name = ?
+```
+
+> 命名规约：强烈建议使用单数名词命名实体类，使用名词的复数形式命名表对象，如：Employee/Employees、Department/Departments。
+
+其他 `find*` 系列函数：
+
+```kotlin
+Employees.findAll()
+Employees.findById(1)
+Employees.findListByIds(listOf(1))
+Employees.findMapByIds(listOf(1))
+Employees.findList { it.departmentId eq 1 }
+Employees.findOne { it.name eq "vince" }
+```
+
+从查询 DSL 中返回实体对象：
+
+```kotlin
+val employees = Employees
+    .joinReferencesAndSelect()
+    .whereWithConditions {
+        if (someCondition) {
+            it += Employees.managerId.isNull()
+        }
+        if (otherCondition) {
+            it += Employees.departmentId eq 1
+        }
+    }
+    .orderBy(Employees.id.asc())
+    .limit(0, 10)
+    .map { Employees.createEntity(it) }
+```
+
+将实体对象保存到数据库：
+
+```kotlin
+var employee = Employee {
+    name = "jerry"
+    job = "trainee"
+    manager = Employees.findOne { it.name eq "vince" }
+    hireDate = LocalDate.now()
+    salary = 50
+    department = Departments.findOne { it.name eq "tech" } ?: throw AssertionError()
+}
+
+Employees.add(employee)
+```
+
+将内存中实体对象的变化更新到数据库：
+
+```kotlin
+var employee = Employees.findById(2) ?: throw AssertionError()
+employee.job = "engineer"
+employee.salary = 100
+employee.flushChanges()
+```
+
+从数据库中删除实体对象：
+
+```kotlin
+val employee = Employees.findById(2) ?: throw AssertionError()
+employee.delete()
+```
+
+更多实体 API 的用法，参考[具体文档](https://ktorm.liuwj.me)。
 
