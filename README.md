@@ -88,7 +88,7 @@ fun main() {
 }
 ````
 
-Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. 
+Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` is also available, eg. map/filter/reduce provided by Kotlin standard lib.
 
 # SQL DSL
 
@@ -316,7 +316,7 @@ val employees = Employees
 Save entities to database: 
 
 ```kotlin
-var employee = Employee {
+val employee = Employee {
     name = "jerry"
     job = "trainee"
     manager = Employees.findOne { it.name eq "vince" }
@@ -331,7 +331,7 @@ Employees.add(employee)
 Flush property changes in memory to database: 
 
 ```kotlin
-var employee = Employees.findById(2) ?: throw AssertionError()
+val employee = Employees.findById(2) ?: throw AssertionError()
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()

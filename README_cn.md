@@ -88,7 +88,7 @@ fun main() {
 }
 ````
 
-现在，你可以执行这个程序了，Ktorm 就会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 
+现在，你可以执行这个程序了，Ktorm 会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 因为 `select` 函数返回的查询对象实现了 `Iterable<T>` 接口，所以你可以在这里使用 for-each 循环语法。当然，任何针对 `Iteralble<T>` 的扩展函数也都可用，比如 Kotlin 标准库提供的 map/filter/reduce 系列函数。
 
 # SQL DSL
 
@@ -316,7 +316,7 @@ val employees = Employees
 将实体对象保存到数据库：
 
 ```kotlin
-var employee = Employee {
+val employee = Employee {
     name = "jerry"
     job = "trainee"
     manager = Employees.findOne { it.name eq "vince" }
@@ -331,7 +331,7 @@ Employees.add(employee)
 将内存中实体对象的变化更新到数据库：
 
 ```kotlin
-var employee = Employees.findById(2) ?: throw AssertionError()
+val employee = Employees.findById(2) ?: throw AssertionError()
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()
