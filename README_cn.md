@@ -56,7 +56,7 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 ````
 
-然后，创建一个 Kotlin object，描述你的表结构： 
+首先，创建一个 Kotlin object，描述你的表结构： 
 
 ````kotlin
 object Employees : Table<Nothing>("t_employee") {
@@ -70,7 +70,7 @@ object Employees : Table<Nothing>("t_employee") {
 }
 ````
 
-现在，可以编写代码连接数据库，执行一个简单的查询了：
+然后，连接到数据库，执行一个简单的查询：
 
 ````kotlin
 fun main() {
@@ -82,5 +82,5 @@ fun main() {
 }
 ````
 
-当你执行这个程序，Ktorm 就会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 
+现在，你可以执行这个程序了，Ktorm 就会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 
 
