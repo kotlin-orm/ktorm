@@ -1,0 +1,35 @@
+.hexo-swagger-ui-v2 {
+  // "namespace" required vendors
+  @import "./swagger-ui-v2-vendors";
+
+  $font-size-small: 14px;
+  $font-weight-big: 800;
+  $font-weight-small: 300;
+
+  .swagger-wrap.bootstrap {
+    font-size: $font-size-small;
+    font-weight: $font-weight-small;
+
+    .api-infos-contact-url, li a {
+      font-weight: $font-weight-small;
+    }
+    .content {
+      margin-left: initial;
+    }
+    .endpoint-actions a {
+      font-weight: $font-weight-small;
+      font-size: $font-size-small;
+    }
+    .endpoint-heading a {
+      font-weight: $font-weight-big;
+    }
+
+    .endpoint-heading >  li, .endpoint-actions > li {
+      margin-bottom: 0;
+    }
+
+    .api-version .h4 {
+      font-weight: $font-weight-big;
+    }
+  }
+}

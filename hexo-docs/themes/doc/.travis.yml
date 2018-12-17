@@ -1,0 +1,43 @@
+sudo: required
+dist: trusty
+group: deprecated-2017Q4
+
+cache:
+  directories:
+    - node_modules
+
+language: node_js
+
+node_js:
+  - '7'
+
+addons:
+  chrome: stable
+
+before_script:
+  - npm link
+
+  # prepare e2e test environment
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start" # the starting the virtual X frame buffer: Xvfb process
+
+  - git clone --depth=50 --branch=gh-pages-source https://github.com/zalando-incubator/hexo-theme-doc ../hexo-theme-doc-site
+  - cd ../hexo-theme-doc-site && npm install -q && npm link hexo-theme-doc
+  - cd $TRAVIS_BUILD_DIR
+
+script:
+  # quality checks, unit test and compiling fe artifacts
+  - npm run lint -s
+  - npm run lint:report -s
+  - npm run test:coverage -s
+  - npm run compile -s
+
+  # run e2e tests
+  - cd ../hexo-theme-doc-site && npm run generate
+  - npm run serve &>/dev/null &
+  - sleep 5 # give server some time to start
+  - npm test
+  - cd $TRAVIS_BUILD_DIR
+
+after_success:
+  cat target/coverage/lcov.info | ./node_modules/.bin/codacy-coverage

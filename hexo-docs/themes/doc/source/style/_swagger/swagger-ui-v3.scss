@@ -1,0 +1,42 @@
+.hexo-swagger-ui-v3 {
+  // "namespace" required vendors
+  @import "./swagger-ui-v3-vendors.scss";
+
+  .swagger-ui {
+
+    .wrapper {
+      padding: 0;
+    }
+
+    .information-container .info {
+      margin: 0;
+    }
+
+    .info .title {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .info a {
+      font-weight: 600;
+    }
+
+    .info .title small {
+      display: none;
+    }
+
+    .info .base-url {
+      padding: 0;
+      background: transparent;
+    }
+
+    .scheme-container {
+      padding-right: 12px;
+      padding-left: 12px;
+    }
+
+    .markdown p {
+      margin-bottom: 0;
+    }
+  }
+}

@@ -1,0 +1,12 @@
+a { @include dc-link }
+p { @extend .dc-p }
+
+h1 { @include dc-h1 }
+h2 { @include dc-h2 }
+h3 { @include dc-h3 }
+h4 { @include dc-h4 }
+
+hr {
+  @include dc-divider;
+  @include dc-divider--secondary;
+}

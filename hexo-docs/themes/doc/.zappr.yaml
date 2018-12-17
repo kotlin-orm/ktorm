@@ -1,0 +1,15 @@
+approvals:
+  minimum: 2              # PR needs at least 2 approval for compliant reasons
+  pattern: "^(:\\+1:|👍|approved)$"   # write a comment to the PR with "approved" or ":+1"
+  veto:
+    pattern: "^(:\\-1:|👎|rejected)$" # write a comment to the PR with "rejected" or ":-1"
+  from:
+    collaborators: true
+commit:
+  message:
+    patterns:
+      # Follow MC commit conventions.
+      # CONTRIBUTING.md#-git-commit-guidelines
+      - "^(feat|fix|docs|style|refactor|perf|test|chore)(|\\([a-zA-Z0-9-._]+\\)):.{3,}"
+
+X-Zalando-Type: code

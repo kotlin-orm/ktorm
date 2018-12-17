@@ -1,0 +1,28 @@
+<% params.forEach((param) => {%>
+  <div class="reference-card__content ">
+    <div class="reference-card__content__info">
+      <div class="reference-card__content__info__name">
+        <%= param.name %>
+      </div>
+      <div class="reference-card__content__info__type">
+        <%=  param.type %> <% if(param.format){ %> (<%= param.format %>) <% } %>
+      </div>
+      <% if ( param.required ) {%>
+        <div class="reference-card__content__info__required">
+          required
+        </div>
+      <% } %>
+    </div>
+    <div class="reference-card__content__usage">
+      <%= `Used in ${param.in}` %>
+    </div>
+    <div class="reference-card__content__description">
+      <%=  param.description %>
+    </div>
+    <% if ( param.example ) { %>
+      <div class="reference-card__content__example">
+        <strong>Eg: </strong><%= param.example %>
+      </div>
+    <% } %>
+  </div>
+<% }) %>

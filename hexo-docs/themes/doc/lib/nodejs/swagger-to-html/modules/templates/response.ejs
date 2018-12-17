@@ -1,0 +1,28 @@
+<div class="reference">
+
+  <div class="reference__response-code">
+    <% if('default' === responseCode){ %>
+      This is a default response for the request.
+    <% }else{ %>
+      Status Code: <code><%- responseCode %></code>
+    <% } %>
+  </div>
+
+  <% if(response.description){ %>
+    <div class="reference__description">
+      <%- response.description %>
+    </div>
+  <% } %>
+
+  <div class="reference-card">
+    <div class="reference-card__title">
+      Reference
+    </div>
+    <% if(response.data['__noData']){ %>
+      <%- include_module('emptyResponse', { response: response.data }) %>
+    <% } else { %>
+      <%- include_module('responseBody', { response: response.data }) %>
+    <% } %>
+  </div>
+
+</div>

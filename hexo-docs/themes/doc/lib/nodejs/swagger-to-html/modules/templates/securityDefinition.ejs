@@ -1,0 +1,47 @@
+<div class="security_definition">
+  <h3 class="security_definition__name">
+      <%= key %>
+  </h3>
+  <% if(definition.description){ %>
+    <div class="security_definition__info">
+      <%=  definition.description %>
+    </div>
+  <% } %>
+  <% if(definition.type){ %>
+    <div class="security_definition__info">
+      The type of security scheme is <code class="inline-code"><%=  definition.type %></code>.
+    </div>
+  <% } %>
+  <% if(definition.name){ %>
+    <div class="security_definition__info">
+      The name of the <code class="inline-code"><% if(definition.in === 'header'){ %>header<% }else{ %>query parameter<% } %></code> to be used is <code class="inline-code"><%=  definition.name %></code>.
+    </div>
+  <% } %>
+  <% if(definition.flow){ %>
+    <div class="security_definition__info">
+      The flow used by the OAuth2 security scheme is <code class="inline-code"> <%=  definition.flow %></code>.
+    </div>
+  <% } %>
+  <% if(definition.authorizationUrl){ %>
+    <div class="security_definition__info">
+      The authorization URL to be used for this flow is <code class="inline-code"><%=  definition.authorizationUrl %></code>.
+    </div>
+  <% } %>
+  <% if(definition.tokenUrl){ %>
+    <div class="security_definition__info">
+      The token URL to be used for this flow is <code class="inline-code"> <%=  definition.tokenUrl %></code>.
+    </div>
+  <% } %>
+  <% if(definition.scopes){ %>
+    <div class="security_definition__scopes">
+      The available scopes for the OAuth2 security scheme are as follows.
+      <div class="security_definition__scopes__scope">
+        <% Object.keys(definition.scopes).forEach((key) => { %>
+          <div>
+            <code class="inline-code"><%- key %></code>: <%-definition.scopes[key]%>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+</div>

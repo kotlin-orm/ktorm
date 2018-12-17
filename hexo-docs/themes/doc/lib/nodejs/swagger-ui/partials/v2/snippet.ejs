@@ -1,0 +1,35 @@
+<div class="swagger-wrap bootstrap"
+    id="swagger-wrap-<%- id %>">
+  <div
+    swagger-ui
+    url="'<%- swaggerUrl %>'"
+    api-explorer="<%- options.api_explorer %>"
+    parser="auto"
+    trusted-sources="true"
+    validator-url="false"
+    permalinks="<%- options.permalinks %>"
+    <%if (options.download) { %>
+    download="<%- options.download %>"
+    <% } %>
+    >
+  </div>
+</div>
+<script type="text/javascript">
+  angular
+  .module('swagger-module-<%- id %>', ['ngSanitize', 'swaggerUi'])
+  .config([
+    '$provide',
+    '$locationProvider',
+    function($provide, $locationProvider) {
+      $provide.decorator('$anchorScroll', [
+        '$delegate',
+        function anchorScrollDecorator($delegate){
+          return function () { /* Just not doing anything to prevent $anchorScrool default behaviour  */}
+        }
+      ]);
+
+      $locationProvider.hashPrefix('');
+    }
+  ]);
+  angular.bootstrap(document.getElementById('swagger-wrap-<%- id %>'), ['swagger-module-<%- id %>'])
+</script>

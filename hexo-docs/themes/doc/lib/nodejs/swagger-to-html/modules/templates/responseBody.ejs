@@ -1,0 +1,38 @@
+<%
+  Object.keys(response).forEach((key) => {
+    const value = response[key];
+    value.name = key;
+%>
+  <div class="reference-card__content ">
+    <div class="reference-card__content__info">
+      <div class="reference-card__content__info__name">
+        <%= value.name %>
+      </div>
+      <% if(value.type){ %>
+        <div class="reference-card__content__info__type">
+          <%=  value.type %> <% if(value.format){ %> (<%= value.format %>) <% } %>
+        </div>
+      <% } %>
+      <% if ( value.required ) {%>
+        <div class="reference-card__content__info__required">
+          required
+        </div>
+      <% } %>
+    </div>
+    <% if(value.description){ %>
+      <div class="reference-card__content__description">
+        <%=  value.description %>
+      </div>
+    <% } %>
+    <% if(value.values){ %>
+      <div class="reference-card__content__values">
+        <%-  'Allowed values: <code class="inline-code">' + value.values.join('</code>, <code class="inline-code">') + '</code>.' %>
+      </div>
+    <% } %>
+    <% if(value.example){ %>
+      <div class="reference-card__content__example">
+        Eg. <%=  value.example %>
+      </div>
+    <% } %>
+  </div>
+<% }); %>

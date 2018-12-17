@@ -1,0 +1,35 @@
+<div class="reference-card">
+  <div class="reference-card__title">
+    Header
+  </div>
+  <% header.forEach((param) => {%>
+    <div class="reference-card__content ">
+      <div class="reference-card__content__info">
+        <div class="reference-card__content__info__name">
+          <%= param.name %>
+        </div>
+        <% if ( param.type ) {%>
+          <div class="reference-card__content__info__type">
+            <%=  param.type %> <% if(param.format){ %> (<%= param.format %>) <% } %>
+          </div>
+        <% } %>
+        <% if ( param.required ) {%>
+          <div class="reference-card__content__info__required">
+            required
+          </div>
+        <% } %>
+      </div>
+      <% if ( param.description ) { %>
+        <div class="reference-card__content__description">
+          <%=  param.description %>
+        </div>
+      <% } %>
+      <% if ( param.example ) { %>
+        <div class="reference-card__content__example">
+          <strong>Eg: </strong><%= param.example %>
+        </div>
+      <% } %>
+    </div>
+  <% }) %>
+</div>
+

@@ -1,0 +1,9 @@
+<% securityRequirement.forEach((security) => {
+  Object.keys(security).forEach((key) => {
+%>
+  <div class="security-requirement">
+    <% if(key && security[key].length){ %>
+      <code class="inline-code"><%- security[key].join('</code>, <code class="inline-code">').replace(/,([^,]*)$/, ' and$1') %></code> <% if(security[key].length > 1){ %>scopes are<%}else{ %>scope is<% } %> required for <code class="inline-code"><%- key %></code>.
+    <% } %>
+  </div>
+<% })}) %>

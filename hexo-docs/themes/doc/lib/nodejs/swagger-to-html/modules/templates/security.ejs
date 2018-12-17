@@ -1,0 +1,12 @@
+<% if(securityDefinitions){ %>
+  <div class="security">
+    <h2 id="security__title"> Security Definitions</h2>
+    <div class="security__definitions">
+      <% Object.keys(securityDefinitions).forEach((key) => {
+          const definition = securityDefinitions[key];
+      %>
+        <%- include_module('securityDefinition', { key, definition }) %>
+      <% }) %>
+    </div>
+  </div>
+<% } %>

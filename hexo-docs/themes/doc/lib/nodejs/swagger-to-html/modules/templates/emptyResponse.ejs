@@ -1,0 +1,33 @@
+<% if(response.headers){ %>
+  <h3>Headers</h3>
+  <%
+    const headers = response.headers;
+    Object.keys(headers).forEach((key) => {
+      const header = headers[key];
+      header.name = key;
+  %>
+    <div class="reference-card__content ">
+      <div class="reference-card__content__info">
+        <div class="reference-card__content__info__name">
+          <%= header.name %>
+        </div>
+        <% if(header.type){ %>
+          <div class="reference-card__content__info__type">
+            <%=  header.type %> <% if(header.format){ %> (<%= header.format %>) <% } %>
+          </div>
+        <% } %>
+      </div>
+      <% if(header.description){ %>
+        <div class="reference-card__content__description">
+          <%=  header.description %>
+        </div>
+      <% } %>
+      <% if(header.format){ %>
+        <div class="reference-card__content__description">
+          <%=  header.format %>
+        </div>
+      <% } %>
+
+    </div>
+  <% }) %>
+<% } %>

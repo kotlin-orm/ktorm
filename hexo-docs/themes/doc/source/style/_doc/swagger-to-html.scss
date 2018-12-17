@@ -1,0 +1,223 @@
+.doc-swagger-to-html{
+
+  .inline-code{
+    background: #f5f7fa;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid #e4e4e4;
+  }
+
+  .download-btn{
+    overflow: hidden;
+
+    &__link{
+      float: right;
+      font-weight: initial;
+    }
+  }
+
+  .head{
+
+    margin: 15px 0;
+    overflow: hidden;
+    $head-height: 34px;
+
+    &__title{
+      overflow: hidden;
+
+      &__text{
+        float: left;
+        color: #4a4a4a;
+        margin-top: 0px;
+        margin-bottom: 5px;
+        line-height: $head-height;
+      }
+      &__version{
+        float: right;
+        line-height: $head-height;
+        margin-top: 0px;
+      }
+    }
+
+    &__description{
+      float: left;
+      margin-top: 50px;
+    }
+  }
+
+  .operation-info{
+
+    &__title{
+      border-bottom: 2px solid #d8d8d8;
+      padding-bottom: 10px;
+      position: relative;
+    }
+
+    &__verb{
+      overflow: hidden;
+      margin-top: 30px;
+    }
+
+    &__verb__name{
+      font-size: 14px;
+      font-weight: bold;
+      float: left;
+      color: #f7f7f7;
+      padding: 10px 15px;
+
+      &--get{
+        $verb-color: #1fb3cb;
+        background: $verb-color;
+        border: 1px solid $verb-color;
+      }
+
+      &--post{
+        $verb-color: #65cb1c;
+        background: $verb-color;
+        border: 1px solid $verb-color;
+      }
+
+      &--patch{
+        $verb-color: #bb5cba;
+        background: $verb-color;
+        border: 1px solid $verb-color;
+      }
+
+      &--delete{
+        $verb-color: #cc3a1d;
+        background: $verb-color;
+        border: 1px solid $verb-color;
+      }
+
+      &--put{
+        $verb-color: #cc711d;
+        background: $verb-color;
+        border: 1px solid $verb-color;
+      }
+    }
+
+    &__verb__path{
+      font-size: 16px;
+      color: #646464;
+      padding: 10px 5px 10px 20px;
+      border: solid 1px #d1d1d1;
+      border-left: none;
+      overflow: hidden;
+    }
+  }
+
+  .request, .response{
+    overflow: hidden;
+
+    &__title{
+      overflow: hidden;
+
+      &__sample, &__reference{
+        float: left;
+        width: 50%;
+      }
+    }
+
+    &__content{
+      border: solid 1px #ededed;
+      width: 100%;
+      table-layout: fixed;
+
+      &__sample, &__reference{
+        width: 50%;
+        padding: 15px;
+        vertical-align: top;
+      }
+
+      &__sample{
+        background: #ededed;
+      }
+    }
+  }
+
+  .reference-card{
+
+    margin-top: 40px;
+
+    &:first-of-type{
+      margin-top: initial;
+    }
+
+    &__title{
+      border-bottom: 2px solid #ededed;
+      padding-bottom: 10px;
+      color: #4a4a4a;
+    }
+
+    &__content{
+      margin-top: 15px;
+
+      &__info{
+        overflow: hidden;
+
+        &__name, &__type, &__required{
+          float: left;
+          border-left: 2px solid #ededed;
+          font-size: 14px;
+          padding: 0 15px;
+
+          &:first-child{
+            border-left: initial;
+          }
+        }
+
+        &__name{
+          font-weight: bold;
+          font-size: 14px;
+          padding-left: initial;
+        }
+
+        &__type{
+          color: #b6b6b6;
+        }
+
+        &__required{
+          color: #ff917d;
+        }
+      }
+
+      &__description, &__example, &__usage, &__values{
+        margin-top: 10px;
+      }
+    }
+
+  }
+
+  .sample-snippet{
+
+      &__copy-btn{
+        margin-top: 10px;
+
+        &.dc--has-tooltip:after{
+          text-transform: initial;
+        }
+      }
+
+      .highlight{
+        margin: 0;
+        overflow: hidden;
+
+        table{
+          table-layout: fixed;
+          width: 100%;
+
+          .code{
+            pre{
+              background: initial;
+              padding: initial;
+            }
+
+            .line{
+              white-space: pre-wrap;
+            }
+          }
+        }
+      }
+  }
+
+}

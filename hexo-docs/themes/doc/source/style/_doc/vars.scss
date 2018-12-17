@@ -1,0 +1,62 @@
+// breakpoints
+// -----------
+$doc-breakpoint: 800px !default;
+$doc-breakpoint-small: 480px !default;
+
+// colors
+// -------------
+$doc-color-primary: #fe6d05 !default;
+$doc-color-lightest: #fff !default;
+$doc-color-lighter: $dc-gray80 !default;
+$doc-color-light: #f3f3f3 !default;
+$doc-color-mediumlight: #eee !default;
+$doc-color-medium: #ccc !default;
+$doc-color-mediumdark: #999 !default;
+$doc-color-dark: #666 !default;
+$doc-color-darker: #444 !default;
+$doc-color-darkest: #333 !default;
+
+// navbar
+// -----
+$doc-navbar-height: 50px !default;
+$doc-navbar-background-color: $doc-color-lightest !default;
+$doc-navbar-border-color: #e1e1e1 !default;
+$doc-navbar-logo-text-color: $doc-color-primary !default;
+$doc-navbar-width-collapsed: $doc-navbar-height !default;
+
+// sidebar
+// ------
+$doc-sidebar-width: 230px !default;
+$doc-sidebar-width-collapsed: $doc-navbar-width-collapsed !default;
+$doc-sidebar-left-margin: 40px !default;
+$doc-sidebar-background-color: $doc-navbar-background-color !default;
+$doc-sidebar-color: $dc-gray30 !default;
+$doc-sidebar-label-color: $dc-gray20 !default;
+$doc-sidebar-current-color: $doc-color-primary !default;
+$doc-sidebar-item-border: 1px solid #ededed !default;
+$doc-sidebar-font-weight-normal: 300 !default;
+$doc-sidebar-font-weight-bold: 500 !default;
+$doc-sidebar-font-size-small: 12px !default;
+$doc-sidebar-font-size-normal: 14px !default;
+
+// support
+// -------
+$doc-support-footer-border-color: $dc-gray60 !default;
+$doc-support-footer-color: $dc-gray50 !default;
+
+// formatting
+// ----------
+
+// anchor
+$doc-anchor-color: $doc-color-medium !default;
+$doc-anchor-color-hover: $doc-color-primary !default;
+
+// blockquote
+$doc-blockquote-border-color: $doc-color-primary !default;
+
+// table
+$doc-table-border-color: $dc-gray60 !default;
+$doc-table-row-background-color: $dc-gray80 !default;
+
+// code
+$doc-inline-background-color: $dc-gray70 !default;

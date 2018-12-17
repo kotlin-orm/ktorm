@@ -1,0 +1,24 @@
+<div class="response">
+  <div class="response__title">
+    <div class="response__title__reference">
+      <h3>Response</h3>
+    </div>
+    <div class="response__title__sample">
+      <h3>Sample Response</h3>
+    </div>
+  </div>
+  <% Object.keys(responses).forEach((responseCode) => {
+    const response = responses[responseCode];
+  %>
+    <table class="response__content">
+      <tr>
+        <td class="response__content__reference">
+          <%- include_module('response', { responseCode, response }) %>
+        </td>
+        <td class="response__content__sample">
+          <%- include_module('responseSample', { sample: response['examples']}) %>
+        </td>
+      </tr>
+    </table>
+  <% }) %>
+</div>

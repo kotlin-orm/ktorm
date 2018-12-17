@@ -1,0 +1,344 @@
+.doc-formatting {
+
+  h1:first-child {
+    margin-top: 0;
+    line-height: 3.4rem;
+  }
+
+  a {
+    font-weight: 500;
+  }
+
+  h2,
+  h3 {
+    position: relative;
+    .doc-anchor {
+      transform: translateY(-50%);
+      color: $doc-anchor-color;
+      margin-right: 6px;
+      @media screen and (min-width: $doc-breakpoint) {
+        position: absolute;
+        top: 50%;
+        right: auto;
+        bottom: auto;
+        left: -18px;
+        width: auto;
+        height: auto;
+      }
+      @include dc-icon;
+      @include dc-icon--link;
+
+      &:before {
+        font-size: 12px;
+      }
+
+      &:hover {
+        color: $doc-anchor-color-hover !important;
+      }
+    }
+  }
+
+  dl {
+    padding-left: 30px;
+    margin: 0;
+  }
+
+  dl:not(:last-of-type) {
+    margin-bottom: 1.5em;
+    margin-top: 1.5em;
+  }
+
+  dl dt {
+    font-weight: 600;
+  }
+
+  dl dt:not(:first-child) {
+    margin-top: 1em;
+  }
+
+  dl dt code {
+    line-height: inherit;
+  }
+
+  dl dd {
+    margin: 0;
+  }
+
+  img {
+    display: inline-block;
+    padding: 0 20px;
+    max-width: 100%;
+    position: relative;
+    vertical-align: top;
+  }
+
+  img.alignright {
+    float: right;
+    margin-right: 0;
+  }
+
+  img.alignleft {
+    float: left;
+    margin-left: 0;
+  }
+
+  img.aligncenter {
+    display: block;
+    margin: 1.5em auto;
+  }
+
+  blockquote {
+    border-left: 2px solid $doc-blockquote-border-color;
+    color: #666;
+    margin: 1.5em 0;
+    padding: 0.75em 20px 0.75em 30px;
+  }
+
+  blockquote p:only-of-type {
+    margin: 0;
+  }
+
+  ol,
+  ul {
+    list-style-position: outside;
+    margin-bottom: 0.75em;
+    margin-top: 0.75em;
+    padding-left: 30px;
+  }
+
+  ol li,
+  ul li {
+    margin-bottom: 0.5rem;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+  // inline code
+  p code {
+    @include doc-inline-code;
+  }
+  // just table direct children to don't collide
+  // with code highlight markup
+  > table {
+    margin: 10px 0;
+
+    thead {
+      color: #000;
+      text-align: left;
+      vertical-align: bottom;
+      white-space: nowrap;
+    }
+
+    td,
+    th {
+      margin: 0;
+      overflow: visible;
+      padding: 8px 16px;
+      border: 1px solid $doc-table-border-color !important;
+      border-collapse: collapse;
+      font-size: 90%;
+    }
+
+    th {
+      font-weight: bold;
+      border-bottom: solid 2px $doc-table-border-color;
+    }
+
+    td {
+      border-bottom: 1px solid $doc-table-border-color;
+      border-left: 1px solid $doc-table-border-color;
+      background-color: transparent;
+      vertical-align: middle;
+    }
+
+    td:first-child,
+    th:first-child {
+      border-left-width: 0;
+    }
+
+    tr:nth-child(2n-1) td {
+      background-color: $doc-table-row-background-color;
+    }
+  }
+}
+
+
+//
+// "highlight.js" (built-in hexo code highlight plugin)
+// ---------------------------------------------------
+
+.doc-formatting {
+  figure {
+    clear: both;
+    margin: 1.5em 0;
+  }
+
+  figure figcaption {
+    font-size: 12px;
+    line-height: 16px;
+    color: $doc-color-mediumdark;
+  }
+
+  pre {
+    padding: 1em 1.25em;
+    white-space: pre-wrap;
+    color: $doc-color-darkest;
+    background: $doc-color-lighter;
+  }
+
+  *:not(figure.highlight) pre {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+
+  *:not(figure.highlight) pre code {
+    border: none;
+    box-shadow: none;
+    color: $doc-color-darkest;
+    margin: 0;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .highlight {
+    clear: both;
+    margin: 1.5em 0;
+    font-size: 14px;
+    line-height: 20px;
+    overflow-x: auto;
+
+    table {
+      width: 100%;
+    }
+
+    figcaption {
+      font-size: 12px;
+      line-height: 16px;
+      color: $doc-color-mediumdark;
+    }
+
+    .gutter {
+      width: 40px;
+    }
+
+    .gutter pre {
+      margin: 0;
+      padding: 1.5em 10px;
+      text-align: right;
+    }
+
+    .code pre {
+      overflow-y: auto;
+      overflow-x: auto;
+      padding: 1.5em 15px 1.5em 20px;
+      margin: 0;
+      white-space: pre;
+    }
+
+    .code pre .line:empty::after {
+      content: '\200b';
+    }
+    // syntax
+    // Grabbed from legacy docs theme
+    .gutter pre {
+      color: $dc-gray60;
+    }
+
+    pre {
+      color: $dc-gray10;
+
+      .constant,
+      .function .keyword {
+        color: $dc-blue30;
+      }
+
+      .attribute,
+      .built_in,
+      .keyword {
+        color: $dc-blue30;
+      }
+
+      .title {
+        color: $dc-green20;
+      }
+
+      .change,
+      .clojure .built_in,
+      .flow,
+      .lisp .title,
+      .nginx .title,
+      .tag,
+      .tag .title,
+      .tex .special,
+      .winutils {
+        color: $dc-blue30;
+      }
+
+      .regexp,
+      .symbol,
+      .symbol .string,
+      .value {
+        color: $dc-orange40;
+      }
+
+      .literal,
+      .number {
+        color: $dc-orange40;
+      }
+
+      .addition,
+      .apache .cbracket,
+      .apache .tag,
+      .attr_selector,
+      .django .filter .argument,
+      .django .template_tag,
+      .django .variable,
+      .envvar,
+      .haskell .type,
+      .javadoc,
+      .preprocessor,
+      .prompt,
+      .pseudo,
+      .ruby .class .parent,
+      .smalltalk .array,
+      .smalltalk .class,
+      .smalltalk .localvars,
+      .sql .aggregate,
+      .stream,
+      .string,
+      .subst,
+      .tag .value,
+      .tex .command {
+        color: $dc-orange40;
+      }
+
+      .apache .sqbracket,
+      .comment,
+      .deletion,
+      .doctype,
+      .java .annotation,
+      .pi,
+      .python .decorator,
+      .shebang,
+      .template_comment,
+      .tex .formula {
+        color: $dc-gray40;
+      }
+
+      .coffeescript .javascript,
+      .javascript .xml,
+      .tex .formula,
+      .xml .cdata,
+      .xml .css,
+      .xml .javascript,
+      .xml .vbscript {
+        opacity: 0.5;
+      }
+    }
+  }
+}

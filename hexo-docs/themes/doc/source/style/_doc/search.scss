@@ -1,0 +1,59 @@
+.doc-search-form {
+  max-width: 186px;
+
+  &__input[type="search"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__input:focus + &__btn {
+    color: $dc-blue30;
+    cursor: default;
+  }
+
+  &__btn {
+    &:hover {
+      color: $dc-gray40;
+      cursor: default;
+    }
+  }
+}
+
+.doc-search-results {
+  &__title {
+		margin-top: 0;
+		line-height: 3.4rem;
+
+    &__query {
+      font-weight: 500;
+    }
+	}
+
+  &__list {
+    list-style: none;
+    padding: 0;
+
+    &__item {
+      display: block;
+    }
+
+    &__link {
+      display: inline-block;
+      font-weight: 500;
+    }
+
+    &__score-divider {
+      display: inline-block;
+      padding: 0 0.8rem;
+      color: $dc-gray70;
+    }
+
+    &__score {
+      color: $dc-gray50;
+    }
+  }
+
+  .doc-highlight {
+    font-weight: 500;
+  }
+}

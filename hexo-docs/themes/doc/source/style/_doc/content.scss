@@ -1,0 +1,34 @@
+//
+// content
+//
+.doc-content {
+  position: relative;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  min-height: 100vh;
+  padding-top: $doc-navbar-height;
+  padding-bottom: 420px;
+  z-index: 2;
+  transition: 0.1s ease-in-out;
+
+  transform: translateX($doc-sidebar-width);
+  margin-right: $doc-sidebar-width;
+
+  .dc-page {
+    overflow: auto;
+    padding-top: 0;
+
+    @media screen and (max-width: $doc-breakpoint) {
+      padding-top: 0.8rem;
+    }
+  }
+
+  @media screen and (max-width: $doc-breakpoint) {
+    transform: translateX(0);
+    margin-right: 0;
+  }
+}

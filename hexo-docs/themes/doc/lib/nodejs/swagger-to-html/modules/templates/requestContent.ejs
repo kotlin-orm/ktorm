@@ -1,0 +1,12 @@
+<div class="reference-card">
+  <div class="reference-card__title">
+    Request Body
+  </div>
+  <% if(request.formData.length){ %>
+    <%- include_module('formData', { params: request.formData }) %>
+  <% } %>
+  <% if(request.body.length){ %>
+    <%- include_module('requestBody', { body: request.body }) %>
+  <% } %>
+</div>
+

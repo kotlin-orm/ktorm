@@ -1,0 +1,19 @@
+@import "dress-code/dist/sass/dress-code";
+
+@import "./vars";
+@import "./mixins";
+
+// include dc-* selectors after variables to allow customization
+@include dc-everything;
+
+// core
+@import "./typography";
+@import "./layout";
+@import "./navigation";
+@import "./content";
+@import "./formatting";
+
+// components
+@import "./search";
+@import "./swagger-to-html";
+@import "./support";

@@ -1,0 +1,23 @@
+{
+  "verbose": true,
+  "clearMocks": true,
+  "testRegex": "(/__tests__/.*\\.(test|spec))\\.(js|jsx)$",
+  "setupFiles": [
+    "raf/polyfill",
+    "./jest.setup.js"
+  ],
+  "collectCoverageFrom": [
+    "!**/__tests__/*.{js,jsx}",
+    "lib/browser/**/*.{js,jsx}",
+    "lib/nodejs/**/*.js",
+    "!lib/browser/sidebar/index.js"
+  ],
+  "testResultsProcessor": "./node_modules/jest-junit",
+  "coverageDirectory": "target/coverage",
+  "coverageReporters": [
+    "json",
+    "lcov",
+    "html",
+    "cobertura"
+  ]
+}

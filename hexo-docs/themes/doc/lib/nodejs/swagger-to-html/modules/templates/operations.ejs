@@ -1,0 +1,7 @@
+<div class="body">
+  <div class="definitions">
+    <% operations.forEach((operation) => {%>
+      <%- include_module('operation', { operation, baseUrl, globalSecurity }) %>
+    <% }) %>
+  </div>
+</div>

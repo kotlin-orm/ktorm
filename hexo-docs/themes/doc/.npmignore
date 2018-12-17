@@ -1,0 +1,21 @@
+# dotfiles
+.*
+
+# tests
+*__tests__
+
+# tools
+banner.js
+webpack.config.js
+jest*
+zappr.*
+.travis*
+
+# misc
+mockup*
+CONTRIBUTING.md
+ISSUE_TEMPLATE.md
+CODE_OF_CONDUCT.md
+*.log
+target
+public

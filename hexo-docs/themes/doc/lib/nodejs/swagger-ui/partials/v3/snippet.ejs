@@ -1,0 +1,21 @@
+<div class="swagger-ui-wrap" id="swagger-ui-<%- id %>"></div>
+<script>
+window.onload = function() {
+  var swaggerUrl = '<%- swaggerUrl %>';
+  var url = window.location.origin + swaggerUrl;
+  var ui = SwaggerUIBundle({
+    url: url,
+    dom_id: '#swagger-ui-<%- id %>',
+    deepLinking: <%- options.deep_linking %>,
+    showExtensions: <%- options.show_extensions %>,
+    displayOperationId: <%- options.display_operation_id %>,
+    docExpansion: '<%- options.doc_expansion %>',
+    presets: [
+      SwaggerUIBundle.presets.apis
+    ],
+    plugins: [
+      SwaggerUIBundle.plugins.DownloadUrl
+    ]
+  })
+}
+</script>

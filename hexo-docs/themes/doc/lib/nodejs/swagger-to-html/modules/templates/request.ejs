@@ -1,0 +1,34 @@
+<div class="request">
+  <div class="request__title">
+    <div class="request__title__reference">
+      <h3>Request</h3>
+    </div>
+    <div class="request__title__sample">
+      <h3>Sample Request</h3>
+    </div>
+  </div>
+  <table class="request__content">
+    <tr>
+      <td class="request__content__reference">
+        <div class="reference">
+
+          <% if( request.header.length ) {%>
+            <%- include_module('header', { header: request.header }) %>
+          <% } %>
+
+          <% if( request.path.length || request.query.length ) {%>
+            <%- include_module('requestParams', { params: request.path.concat(request.query) }) %>
+          <% } %>
+
+          <% if( request.formData.length || request.body.length) {%>
+            <%- include_module('requestContent', {request}) %>
+          <% } %>
+
+        </div>
+      </td>
+      <td class="request__content__sample">
+        <%- include_module('requestSample', {request, path, verb, baseUrl}) %>
+      </td>
+    </tr>
+  </table>
+</div>

@@ -1,0 +1,23 @@
+<div class="operation">
+  <div class="operation-info">
+    <h2 id="<%= operation.id  %>" class="operation-info__title"><%= operation.title  %></h2>
+
+    <div class="operation-info__description"><%= operation.description %></div>
+
+    <div class="operation-info__verb">
+      <div class="operation-info__verb__name operation-info__verb__name--<%= operation.verb %>">
+        <%=operation.verb.toUpperCase()%>
+      </div>
+      <div class="operation-info__verb__path">
+        <%=operation.path%>
+      </div>
+    </div>
+  </div>
+  <% if(operation.security){ %>
+    <h3> Security Requirement </h3>
+    <%- include_module('securityRequirement', { securityRequirement: operation.security }) %>
+  <% } %>
+  <%- include_module('request', { operation, baseUrl }) %>
+
+  <%- include_module('responses', { operation }) %>
+</div>
