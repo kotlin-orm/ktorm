@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://ktorm.liuwj.me">
-        <img src="logo.png" alt="Ktorm" width="300" />
+        <img src="hexo-docs/source/images/logo-full.png" alt="Ktorm" width="300" />
     </a>
 </p>
 <p align="center">
@@ -9,9 +9,6 @@
     </a>
     <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
         <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
-    </a>
-    <a href="https://bintray.com/vincentlauvlwj/maven">
-        <img src="https://api.bintray.com/packages/vincentlauvlwj/maven/ktorm-core/images/download.svg" alt="Download" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
