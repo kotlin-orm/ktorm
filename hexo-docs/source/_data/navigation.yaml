@@ -1,0 +1,15 @@
+logo:
+  text: KTORM FRAMEWORK
+  type: link
+  path: /
+
+main:
+  - text: PROJECTS
+    type: label
+  - text: My Awesome Projects
+    type: link
+    path: projects/my-awesome-project.html
+    children:
+    - text: My Awesome Projects Page 1
+      type: link
+      path: projects/my-awesome-project-page-1.html
