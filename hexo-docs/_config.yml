@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
+title: Ktorm
 subtitle:
-description:
+description: Kotlin ORM lib with SQL DSL
 keywords:
-author: John Doe
+author: Vincent Lau
 language:
 timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://ktorm.liuwj.me
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -79,6 +79,10 @@ theme: doc
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type:
+
+node_sass:
+  includePaths:
+   - node_modules
 
 theme_config: 
   favicon: images/favicon.ico

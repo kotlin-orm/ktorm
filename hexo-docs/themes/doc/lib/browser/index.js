@@ -7,8 +7,6 @@ const {SearchResults} = require('./search/containers.jsx');
 const {SupportFooter} = require('./support/containers.jsx');
 const PROPS = Object.assign({}, window.__INITIAL_STATE__, {log: console});
 
-require('./swagger-to-html');
-
 ReactDOM.hydrate(
   React.createFactory(Navigation)(PROPS),
   document.getElementById('react-navigation-root')

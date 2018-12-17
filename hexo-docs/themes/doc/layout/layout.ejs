@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<%- page.lang %>>">
   <head>
     <meta charset="utf-8">
 
     <title><%- config.title %> | <%- page.title %> </title>
     <meta name="description" content="<%- page.description %>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <%- project_partial('head_start') %>
 
     <!-- fonts -->
     <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
@@ -18,19 +16,14 @@
 
     <!-- favicon -->
     <link rel="icon" href="<%- url_for(config.theme_config.favicon) %>">
-
-    <%- project_partial('head_end') %>
-
   </head>
   <body>
 
    <script>window.__INITIAL_STATE__ = <%- JSON.stringify(initial_state) %></script>
 
-    <%- partial('_partial/navigation') -%>
+    <div id="react-navigation-root"><%- react_component('Navigation', initial_state) %></div>
+    
     <%- body %>
-    <%- partial('_partial/google_analytics') %>
-
-    <%- project_partial('footer_start') %>
 
     <!-- js vendors -->
     <script src="//code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
@@ -38,8 +31,5 @@
 
     <!-- js source  -->
     <script src="<%- url_for('script/doc.js') %>"></script>
-
-    <%- project_partial('footer_end') %>
-
   </body>
 </html>
