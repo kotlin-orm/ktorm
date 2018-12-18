@@ -4,9 +4,7 @@ import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.count
 import me.liuwj.ktorm.entity.findById
-import me.liuwj.ktorm.entity.sumBy
 import org.junit.Test
 import java.time.LocalDate
 

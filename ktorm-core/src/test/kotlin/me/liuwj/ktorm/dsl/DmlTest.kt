@@ -1,7 +1,6 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.entity.count
 import me.liuwj.ktorm.entity.findAll
 import me.liuwj.ktorm.entity.findById
 import org.junit.Test

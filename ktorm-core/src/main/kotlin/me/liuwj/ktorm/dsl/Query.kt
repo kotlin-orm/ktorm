@@ -256,46 +256,6 @@ fun ColumnDeclaring<*>.desc(): OrderByExpression {
     return OrderByExpression(asExpression(), OrderType.DESCENDING)
 }
 
-fun <C : Number> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
-    return AggregateExpression(AggregateType.MIN, column.asExpression(), false, column.sqlType)
-}
-
-fun <C : Number> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
-    return AggregateExpression(AggregateType.MIN, column.asExpression(), true, column.sqlType)
-}
-
-fun <C : Number> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
-    return AggregateExpression(AggregateType.MAX, column.asExpression(), false, column.sqlType)
-}
-
-fun <C : Number> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
-    return AggregateExpression(AggregateType.MAX, column.asExpression(), true, column.sqlType)
-}
-
-fun <C : Number> avg(column: ColumnDeclaring<C>): AggregateExpression<Double> {
-    return AggregateExpression(AggregateType.AVG, column.asExpression(), false, DoubleSqlType)
-}
-
-fun <C : Number> avgDistinct(column: ColumnDeclaring<C>): AggregateExpression<Double> {
-    return AggregateExpression(AggregateType.AVG, column.asExpression(), true, DoubleSqlType)
-}
-
-fun <C : Number> sum(column: ColumnDeclaring<C>): AggregateExpression<C> {
-    return AggregateExpression(AggregateType.SUM, column.asExpression(), false, column.sqlType)
-}
-
-fun <C : Number> sumDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
-    return AggregateExpression(AggregateType.SUM, column.asExpression(), true, column.sqlType)
-}
-
-fun <C : Any> count(column: ColumnDeclaring<C>): AggregateExpression<Int> {
-    return AggregateExpression(AggregateType.COUNT, column.asExpression(), false, IntSqlType)
-}
-
-fun <C : Any> countDistinct(column: ColumnDeclaring<C>): AggregateExpression<Int> {
-    return AggregateExpression(AggregateType.COUNT, column.asExpression(), true, IntSqlType)
-}
-
 fun Query.limit(offset: Int, limit: Int): Query {
     if (offset == 0 && limit == 0) {
         return this

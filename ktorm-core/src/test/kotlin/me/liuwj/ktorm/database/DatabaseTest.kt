@@ -2,7 +2,6 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.count
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.varchar
 import org.junit.Test

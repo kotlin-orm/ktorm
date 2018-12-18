@@ -1,12 +1,52 @@
-package me.liuwj.ktorm.entity
+package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
-import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.ColumnDeclaring
+import me.liuwj.ktorm.schema.DoubleSqlType
 import me.liuwj.ktorm.schema.IntSqlType
 import me.liuwj.ktorm.schema.Table
+
+fun <C : Number> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
+    return AggregateExpression(AggregateType.MIN, column.asExpression(), false, column.sqlType)
+}
+
+fun <C : Number> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+    return AggregateExpression(AggregateType.MIN, column.asExpression(), true, column.sqlType)
+}
+
+fun <C : Number> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
+    return AggregateExpression(AggregateType.MAX, column.asExpression(), false, column.sqlType)
+}
+
+fun <C : Number> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+    return AggregateExpression(AggregateType.MAX, column.asExpression(), true, column.sqlType)
+}
+
+fun <C : Number> avg(column: ColumnDeclaring<C>): AggregateExpression<Double> {
+    return AggregateExpression(AggregateType.AVG, column.asExpression(), false, DoubleSqlType)
+}
+
+fun <C : Number> avgDistinct(column: ColumnDeclaring<C>): AggregateExpression<Double> {
+    return AggregateExpression(AggregateType.AVG, column.asExpression(), true, DoubleSqlType)
+}
+
+fun <C : Number> sum(column: ColumnDeclaring<C>): AggregateExpression<C> {
+    return AggregateExpression(AggregateType.SUM, column.asExpression(), false, column.sqlType)
+}
+
+fun <C : Number> sumDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+    return AggregateExpression(AggregateType.SUM, column.asExpression(), true, column.sqlType)
+}
+
+fun <C : Any> count(column: ColumnDeclaring<C>): AggregateExpression<Int> {
+    return AggregateExpression(AggregateType.COUNT, column.asExpression(), false, IntSqlType)
+}
+
+fun <C : Any> countDistinct(column: ColumnDeclaring<C>): AggregateExpression<Int> {
+    return AggregateExpression(AggregateType.COUNT, column.asExpression(), true, IntSqlType)
+}
 
 /**
  * 如果表中的所有行都符合指定条件，返回 true，否则 false
@@ -115,7 +155,7 @@ fun <T : Table<*>> T.avgBy(block: (T) -> ColumnDeclaring<out Number>): Double? {
 
 private fun <R : Number> Table<*>.doAggregation(aggregation: AggregateExpression<R>): R? {
     val expression = SelectExpression(
-        columns = kotlin.collections.listOf(
+        columns = listOf(
             ColumnDeclaringExpression(
                 expression = aggregation.asExpression()
             )

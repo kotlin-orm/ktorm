@@ -1,16 +1,12 @@
-package me.liuwj.ktorm.entity
+package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.greater
-import me.liuwj.ktorm.dsl.minus
-import me.liuwj.ktorm.dsl.plus
 import org.junit.Test
 
 /**
  * Created by vince on Dec 09, 2018.
  */
-class EntityAggregationTest : BaseTest() {
+class AggregationTest : BaseTest() {
 
     @Test
     fun testCount() {
