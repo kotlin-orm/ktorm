@@ -27,7 +27,7 @@ class DmlTest : BaseTest() {
         val employee = Employees.findById(2) ?: throw AssertionError()
         assert(employee.name == "marry")
         assert(employee.job == "engineer")
-        assert(employee.manager?.id == null)
+        assert(employee.manager == null)
         assert(employee.salary == 100L)
     }
 

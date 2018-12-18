@@ -68,7 +68,7 @@ private fun List<SqlExpression>.executeBatch(): IntArray {
             val effects = statement.executeBatch()
 
             if (logger.isDebugEnabled) {
-                logger.debug("Effects: {}", Arrays.toString(effects))
+                logger.debug("Effects: {}", effects?.contentToString())
             }
 
             return effects

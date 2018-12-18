@@ -105,7 +105,7 @@ class EntityImpl(
         } catch (e: Throwable) {
             logger.error("proxy: ${proxy.javaClass}: $proxy")
             logger.error("method: $method")
-            logger.error("args: ${Arrays.toString(args)}")
+            logger.error("args: ${args?.contentToString()}")
             logger.error("arg types: ${args?.map { it.javaClass }}")
             logger.error("impl: $impl")
             logger.error("cache: $defaultImplsCache")

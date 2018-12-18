@@ -137,19 +137,24 @@ private fun Table<*>.retrieveColumn(row: QueryRowSet, column: Column<*>, intoEnt
             intoEntity[binding.property.name] = row[column]
         }
         is NestedBinding -> {
-            var child = intoEntity[binding.property1.name] as Entity<*>?
-            if (child == null) {
-                child = Entity.create(binding.property1.returnType.classifier as KClass<*>, this, binding.property1.name)
-                intoEntity[binding.property1.name] = child
-            }
+            val columnValue = row[column]
+            if (columnValue != null) {
+                var child = intoEntity[binding.property1.name] as Entity<*>?
+                if (child == null) {
+                    child = Entity.create(binding.property1.returnType.classifier as KClass<*>, this, binding.property1.name)
+                    intoEntity[binding.property1.name] = child
+                }
 
-            child[binding.property2.name] = row[column]
-            child.discardChanges()
+                child[binding.property2.name] = columnValue
+                child.discardChanges()
+            }
         }
         is ReferenceBinding -> {
-            val child = binding.referenceTable.doCreateEntity(row)
-            if (child.getPrimaryKeyValue(binding.referenceTable) != null) {
-                intoEntity[binding.onProperty.name] = child
+            val rightTable = binding.referenceTable
+            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} dosen't have a primary key.")
+
+            if (row.hasColumn(primaryKey) && row[primaryKey] != null) {
+                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(row)
             }
         }
     }

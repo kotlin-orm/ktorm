@@ -1,5 +1,6 @@
 package me.liuwj.ktorm.dsl
 
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.expression.ColumnExpression
 import me.liuwj.ktorm.expression.findDeclaringColumns
 import me.liuwj.ktorm.schema.Column
@@ -58,7 +59,7 @@ internal constructor(
         // Try to find labels by name.
         val labels = queryLabels.filterValues { it == column.name }
         if (labels.size > 1) {
-            throw IllegalArgumentException("There are more than one column named '${column.name}' in query: \n\n${query.sql}")
+            throw IllegalArgumentException(warningConfusedColumnName(column.name))
         }
         if (labels.size == 1) {
             return column.sqlType.getResult(this, labels.keys.first())
@@ -74,15 +75,29 @@ internal constructor(
      * Note: 如果结果集中有此列，但是值为 NULL，此方法也返回 true
      */
     fun hasColumn(column: Column<*>): Boolean {
+        // Try to find by label first.
         if (column.label in queryLabels) {
             return true
         }
 
-        if (queryLabels.values.count { it == column.name } == 1) {
-            return true
+        // Try to find labels by name.
+        val labels = queryLabels.filterValues { it == column.name }
+        val found = when (labels.size) {
+            0 -> false
+            1 -> true
+            else -> true.also { Database.global.logger.warn(warningConfusedColumnName(column.name)) }
         }
 
-        return column.name.toUpperCase() in resultLabels
+        if (found) {
+            return true
+        } else {
+            // Falling through, search column name in resultLabels directly(select *).
+            return column.name.toUpperCase() in resultLabels
+        }
+    }
+
+    private fun warningConfusedColumnName(name: String): String {
+        return "Confused column name, there are more than one column named '$name' in query: \n\n${query.sql}\n"
     }
 
     /**
