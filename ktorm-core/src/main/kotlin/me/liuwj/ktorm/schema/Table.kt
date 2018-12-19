@@ -2,6 +2,7 @@ package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
@@ -172,7 +173,28 @@ open class Table<E : Entity<E>>(
                 throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $onProperty")
             }
 
+            checkCircularReference(referenceTable)
             return doBinding(ReferenceBinding(copyReference(referenceTable), onProperty))
+        }
+
+        /**
+         * Check if the [root] table has the reference to current table.
+         */
+        private fun checkCircularReference(root: Table<*>, stack: LinkedList<String> = LinkedList()) {
+            stack.push(root.tableName)
+
+            if (tableName == root.tableName) {
+                throw IllegalArgumentException("Circular reference detected, current table: $tableName, reference route: ${stack.asReversed()}")
+            }
+
+            for (column in root.columns) {
+                val ref = column.referenceTable
+                if (ref != null) {
+                    checkCircularReference(ref, stack)
+                }
+            }
+
+            stack.pop()
         }
 
         /**
