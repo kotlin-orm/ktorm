@@ -54,9 +54,14 @@ class Navigation extends React.Component {
     });
   }
 
+  getNavigationConfig() {
+    const lang = this.props.page.lang;
+    return this.props.data["navigation-" + lang];
+  }
+
   getItems () {
     const {page} = this.props;
-    const {navigation} = Object.assign({}, { navigation: {} }, this.props.data);
+    const navigation = this.getNavigationConfig();
     const items = navigation.main || [];
 
     (function recurse (items, parent) {
@@ -199,7 +204,7 @@ class Navigation extends React.Component {
   }
 
   render () {
-    const {navigation} = Object.assign({}, { navigation: {} }, this.props.data);
+    const navigation = this.getNavigationConfig();
     return (
       <div className="doc-navigation">
         <Navbar

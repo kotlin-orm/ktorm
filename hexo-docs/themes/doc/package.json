@@ -7,7 +7,6 @@
     "hexo",
     "documentation",
     "theme",
-    "swagger",
     "open-api"
   ],
   "license": "MIT",
@@ -25,7 +24,7 @@
     "compile:sass:doc": "node-sass _doc.scss source/style/doc.css --include-path node_modules --output-style='compressed'",
     "compile:sass:swagger-v2": "node-sass source/style/_swagger/swagger-ui-v2.scss source/style/swagger-ui-v2.css --output-style='compressed'",
     "compile:sass:swagger-v3": "node-sass source/style/_swagger/swagger-ui-v3.scss source/style/swagger-ui-v3.css --output-style='compressed'",
-    "compile:js": "webpack -p",
+    "compile:js": "npx webpack -p",
     "compile": "npm run compile:sass && npm run compile:js && node banner.js",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "prerelease": "npm run lint && npm run test && npm run compile && npm run changelog",
@@ -61,7 +60,6 @@
     "smooth-scroll": "^12.1.5",
     "strip-indent": "^2.0.0",
     "striptags": "^3.0.1",
-    "swagger-parser": "^4.0.0",
     "touch": "^3.1.0",
     "url-join": "^2.0.2",
     "valid-url": "^1.0.9"
@@ -75,8 +73,6 @@
     "eslint": "^4.1.1",
     "eslint-plugin-jest": "^20.0.3",
     "eslint-plugin-react": "^7.2.1",
-    "hexo": "^3.3.7",
-    "hexo-renderer-ejs": "^0.3.0",
     "jest": "^20.0.4",
     "jest-junit": "^2.1.0",
     "node-sass": "^4.5.3",
@@ -84,8 +80,8 @@
     "promise-polyfill": "^6.0.2",
     "raf": "^3.4.0",
     "react-test-renderer": "^16.0.0",
-    "swagger-ui-dist": "^3.16.0",
-    "webpack": "^3.0.0",
+    "webpack": "^3.12.0",
+    "webpack-cli": "^3.1.2",
     "whatwg-fetch": "^2.0.3"
   },
   "jest-junit": {

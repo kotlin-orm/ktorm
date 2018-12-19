@@ -1,43 +1,11 @@
-<p align="center">
-    <a href="https://ktorm.liuwj.me">
-        <img src="hexo-docs/source/images/logo-full.png" alt="Ktorm" width="300" />
-    </a>
-</p>
-<p align="center">
-    <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">
-        <img src="https://www.travis-ci.org/vincentlauvlwj/Ktorm.svg?branch=master" alt="Build Status" />
-    </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
-    </a>
-    <a href="LICENSE">
-        <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
-    </a>
-    <a href="https://app.codacy.com/app/vincentlauvlwj/Ktorm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/Ktorm&utm_campaign=Badge_Grade_Dashboard">
-        <img src="https://api.codacy.com/project/badge/Grade/65d4931bfbe14fe986e1267b572bed53" alt="Codacy Badge" />
-    </a>
-    <a href="https://www.liuwj.me">
-        <img src="https://img.shields.io/badge/author-vince-yellowgreen.svg" alt="Author" />
-    </a>
-</p>
+---
+title: Quick Start
+lang: en
+---
 
-# Ktorm 是什么？
+# Quick Start
 
-Ktorm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL 和许多方便的扩展函数，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me)。
-
-:cn: 简体中文 | :us: [English](README.md)
-
-# 特性
-
- - 没有配置文件、没有 xml、轻量级、简洁易用
- - 强类型 SQL DSL，将低级 bug 暴露在编译期
- - 灵活的查询，随心所欲地精确控制所生成的 SQL
- - 易扩展的设计，可以灵活编写扩展，支持更多数据类型和 SQL 函数等
- - 方言支持，MySQL、Oracle、PostgreSQL，你也可以自己编写方言支持，只需要实现 `SqlDialect` 接口即可
-
-# 快速开始
-
-Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
+Ktorm was deployed to maven central and jcenter, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
 
 ````xml
 <dependency>
@@ -47,13 +15,13 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 </dependency>
 ````
 
-或者 gradle： 
+Or Gradle: 
 
 ````groovy
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 ````
 
-首先，创建 Kotlin object，描述你的表结构： 
+Firstly, create Kotlin objects to describe your table schema: 
 
 ````kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -73,7 +41,7 @@ object Employees : Table<Nothing>("t_employee") {
 }
 ````
 
-然后，连接到数据库，执行一个简单的查询：
+Then, connect to your database and write a simple query: 
 
 ````kotlin
 fun main() {
@@ -85,31 +53,31 @@ fun main() {
 }
 ````
 
-现在，你可以执行这个程序了，Ktorm 会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 因为 `select` 函数返回的查询对象实现了 `Iterable<T>` 接口，所以你可以在这里使用 for-each 循环语法。当然，任何针对 `Iteralble<T>` 的扩展函数也都可用，比如 Kotlin 标准库提供的 map/filter/reduce 系列函数。
+Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` is also available, eg. map/filter/reduce provided by Kotlin standard lib.
 
 ## SQL DSL
 
-让我们在上面的查询里再增加一点筛选条件： 
+Let's add some filter conditions to the query: 
 
-```kotlin
+````kotlin
 val names = Employees
     .select(Employees.name)
     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
     .map { row -> row[Employees.name] }
 println(names)
-```
+````
 
-生成的 SQL 如下: 
+Generated SQL: 
 
-```sql
+````sql
 select t_employee.name as t_employee_name 
 from t_employee 
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
-```
+````
 
-这就是 Kotlin 的魔法，使用 Ktorm 写查询十分地简单和自然，所生成的 SQL 几乎和 Kotlin 代码一一对应。并且，Ktorm 是强类型的，编译器会在你的代码运行之前对它进行检查，IDEA 也能对你的代码进行智能提示和自动补全。
+That's the magic of Kotlin, writing a query with Ktorm is easy and natural, the generated SQL is exactly corresponding to the origin Kotlin code. And moreover, it's strong typed, the compiler will check your codes before it runs, and you will be benefit from the IDE's intelligent sense and code completion.
 
-基于条件的动态查询：
+Dynamic query based on conditions: 
 
 ```kotlin
 val names = Employees
@@ -125,7 +93,7 @@ val names = Employees
     .map { it.getString(1) }
 ```
 
-聚合查询：
+Aggregation: 
 
 ```kotlin
 val t = Employees
@@ -136,7 +104,7 @@ val salaries = t
     .associate { it.getInt(1) to it.getDouble(2) }
 ```
 
-一些方便的聚合函数：
+Some other convenient aggregation functions: 
 
 ```kotlin
 Employees.count { it.departmentId eq 1 }
@@ -149,7 +117,7 @@ Employees.none { it.salary greater 200L }
 Employees.all { it.salary lessEq 1000L }
 ```
 
-Union：
+Union: 
 
 ```kotlin
 Employees
@@ -163,7 +131,7 @@ Employees
     .orderBy(Employees.id.desc())
 ```
 
-多表连接查询：
+Joining: 
 
 ```kotlin
 data class Names(val name: String, val managerName: String?, val departmentName: String)
@@ -186,7 +154,7 @@ val results = emp
     }
 ```
 
-插入：
+Insert: 
 
 ```kotlin
 Employees.insert {
@@ -199,7 +167,7 @@ Employees.insert {
 }
 ```
 
-更新：
+Update: 
 
 ```kotlin
 Employees.update {
@@ -213,19 +181,19 @@ Employees.update {
 }
 ```
 
-删除：
+Delete: 
 
 ```kotlin
 Employees.delete { it.id eq 4 }
 ```
 
-更多 SQL DSL 的用法，参考[具体文档](https://ktorm.liuwj.me)。
+Refer to [documentation](https://ktorm.liuwj.me) for more usage about SQL DSL.
 
 ## Entity
 
-跟其他 ORM 框架一样，Ktorm 也支持实体对象。在 Ktorm 里面，我们使用接口定义实体类，继承 `Entity<E>` 接口即可：
+Entity objects is also supported just like other ORM frameworks do. In Ktorm, we define entities as interfaces extending from `Entity<E>`: 
 
-```kotlin
+````kotlin
 interface Department : Entity<Department> {
     val id: Int
     var name: String
@@ -241,11 +209,11 @@ interface Employee : Entity<Employee> {
     var salary: Long
     var department: Department
 }
-```
+````
 
-修改前面的表对象，把数据库中的列绑定到实体类的属性上：
+Modify the table objects above, binding database columns to entity properties:  
 
-```kotlin
+````kotlin
 object Departments : Table<Department>("t_department") {
     val id by int("id").primaryKey().bindTo(Department::id)
     val name by varchar("name").bindTo(Department::name)
@@ -261,27 +229,27 @@ object Employees : Table<Employee>("t_employee") {
     val salary by long("salary").bindTo(Employee::salary)
     val departmentId by int("department_id").references(Departments, onProperty = Employee::department)
 }
-```
+````
 
-根据名字获取 Employee 对象： 
+Finding an employee by name: 
 
 ```kotlin
 val vince = Employees.findOne { it.name eq "vince" }
 println(vince)
 ```
 
-`findOne` 函数接受一个 lambda 表达式作为参数，使用该 lambda 的返回值作为条件，生成一条查询 SQL，自动 left jion 了关联表 `t_department`。生成的 SQL 如下：
+The `findOne` function accepts a lambda expression, generating a select sql with the condition returned by the lambda, auto left joining the referenced table `t_department` . Generated SQL: 
 
-```sql
+````sql
 select * 
 from t_employee 
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 where t_employee.name = ?
-```
+````
 
-> 命名规约：强烈建议使用单数名词命名实体类，使用名词的复数形式命名表对象，如：Employee/Employees、Department/Departments。
+> Naming Strategy: It's highly recommended to name your entity classes by singular nouns, name table objects by plurals (eg. Employee/Employees, Department/Departments). 
 
-其他 `find*` 系列函数：
+Some other `find*` functions: 
 
 ```kotlin
 Employees.findAll()
@@ -292,7 +260,7 @@ Employees.findList { it.departmentId eq 1 }
 Employees.findOne { it.name eq "vince" }
 ```
 
-从查询 DSL 中返回实体对象：
+Return entity instances by query DSL: 
 
 ```kotlin
 val employees = Employees
@@ -310,7 +278,7 @@ val employees = Employees
     .map { Employees.createEntity(it) }
 ```
 
-将实体对象保存到数据库：
+Save entities to database: 
 
 ```kotlin
 val employee = Employee {
@@ -325,7 +293,7 @@ val employee = Employee {
 Employees.add(employee)
 ```
 
-将内存中实体对象的变化更新到数据库：
+Flush property changes in memory to database: 
 
 ```kotlin
 val employee = Employees.findById(2) ?: throw AssertionError()
@@ -334,12 +302,11 @@ employee.salary = 100
 employee.flushChanges()
 ```
 
-从数据库中删除实体对象：
+Delete a entity from database: 
 
 ```kotlin
 val employee = Employees.findById(2) ?: throw AssertionError()
 employee.delete()
 ```
 
-更多实体 API 的用法，参考[具体文档](https://ktorm.liuwj.me)。
-
+Refer to [documentation](https://ktorm.liuwj.me) for more usage about entity APIs.

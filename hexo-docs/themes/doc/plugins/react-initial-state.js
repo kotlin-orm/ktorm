@@ -12,7 +12,8 @@ module.exports = ({hexo}) => {
     page: [
       'path',
       'title',
-      'support'
+      'support',
+      'lang'
     ]
   };
 

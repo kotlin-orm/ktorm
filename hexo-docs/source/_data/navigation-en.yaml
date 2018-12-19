@@ -1,0 +1,11 @@
+logo:
+  text: KTORM FRAMEWORK
+  type: link
+
+main:
+  - text: Overview
+    type: link
+    path: index.html
+  - text: Quick Start
+    type: link
+    path: en/quick-start.html

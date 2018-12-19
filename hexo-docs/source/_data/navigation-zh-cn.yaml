@@ -1,0 +1,12 @@
+logo:
+  text: KTORM FRAMEWORK
+  type: link
+  path: zh-cn/
+
+main:
+  - text: 概述
+    type: link
+    path: zh-cn/index.html
+  - text: 快速开始
+    type: link
+    path: zh-cn/quick-start.html
