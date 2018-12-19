@@ -7,6 +7,17 @@
     <meta name="description" content="<%- page.description %>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- 站内所有 HTTP 资源，一律替换为 HTTPS -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> -->
+    <!-- 协议降级，跳转到非 HTTPS 的站点时，仍然携带 referrer 请求头 -->
+    <meta name="referrer" content="always" />
+
+    <!-- Disable Baidu tranformation -->
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <meta name="keywords" content="Kotlin, ORM, SQL, DSL, vince" />
+
     <!-- fonts -->
     <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <link href="//fonts.googleapis.com/css?family=Ubuntu:300,400,500,600,700" rel="stylesheet">
@@ -15,11 +26,13 @@
     <link rel="stylesheet" href="<%- url_for('style/doc.css') %>">
 
     <!-- favicon -->
-    <link rel="icon" href="<%- url_for(config.theme_config.favicon) %>">
+    <link rel="shortcut icon" type="image/x-icon" href="<%- url_for(config.theme_config.favicon) %>">
+
+    <link rel="canonical" href="<%- theme.url + theme.root + page.canonical_path %>">
   </head>
   <body>
 
-   <script>window.__INITIAL_STATE__ = <%- JSON.stringify(initial_state) %></script>
+    <script>window.__INITIAL_STATE__ = <%- JSON.stringify(initial_state) %></script>
 
     <div id="react-navigation-root"><%- react_component('Navigation', initial_state) %></div>
     

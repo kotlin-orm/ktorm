@@ -1,6 +1,7 @@
 ---
 title: 快速开始
 lang: zh-cn
+related_path: en/quick-start.html
 ---
 
 # 快速开始

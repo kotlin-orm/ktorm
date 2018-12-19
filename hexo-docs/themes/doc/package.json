@@ -24,7 +24,7 @@
     "compile:sass:doc": "node-sass _doc.scss source/style/doc.css --include-path node_modules --output-style='compressed'",
     "compile:sass:swagger-v2": "node-sass source/style/_swagger/swagger-ui-v2.scss source/style/swagger-ui-v2.css --output-style='compressed'",
     "compile:sass:swagger-v3": "node-sass source/style/_swagger/swagger-ui-v3.scss source/style/swagger-ui-v3.css --output-style='compressed'",
-    "compile:js": "npx webpack -p",
+    "compile:js": "npx webpack",
     "compile": "npm run compile:sass && npm run compile:js && node banner.js",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "prerelease": "npm run lint && npm run test && npm run compile && npm run changelog",

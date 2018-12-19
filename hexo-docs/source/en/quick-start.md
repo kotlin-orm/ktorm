@@ -1,6 +1,7 @@
 ---
 title: Quick Start
 lang: en
+related_path: zh-cn/quick-start.html
 ---
 
 # Quick Start
