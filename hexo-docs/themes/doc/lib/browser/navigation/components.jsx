@@ -1,6 +1,5 @@
 const React = require('react');
 const {dispatch, classNames} = require('../utils');
-const {HIDE_SEARCH_RESULTS} = require('../search/actions');
 const {SearchForm} = require('../search/components.jsx');
 
 function Navbar (props) {
@@ -204,7 +203,9 @@ function SidebarChildrenList ({item, page, config, tocItems, visibleHeaderId, ur
 }
 
 function SidebarTocItem ({item, visibleHeaderId}) {
-  const handleOnClick = () => dispatch(HIDE_SEARCH_RESULTS);
+  const handleOnClick = () => {
+    // todo: hide search results...
+  };
 
   return (
     <li className={`doc-sidebar-list__toc-item ${item.id === visibleHeaderId ? 'doc-sidebar-list__toc-item--current' : '' }`}>

@@ -3,11 +3,10 @@ const path = require('path');
 
 module.exports = {
   externals: {
-    jquery: '$',
-    lunr: true,
+    jquery: '$'
   },
   entry:  {
-    'doc': './lib/browser/index.js',
+    'doc': './lib/browser/index.js'
   },
   output: {
     path: path.resolve(__dirname, 'source/script'),

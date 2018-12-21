@@ -1,7 +1,26 @@
 'use strict';
 
-const {filter} = require('../lib/nodejs/support');
+const DEFAULT_CONFIG =  {
+  link_url: '',
+  link_text: 'Contact Us',
+  text: 'Didn\'t you find what are you looking for? <br /> Try searching again on the left menu or',
+  navigation: true,
+  navigation_label: 'SUPPORT'
+};
 
 module.exports = ({hexo}) => {
-  hexo.extend.filter.register('template_locals', filter);
+  hexo.extend.filter.register('template_locals', function(locals) {
+  	if (locals.page.support === false) {
+	    return locals;
+	  }
+	  if (locals.config.theme_config.support) {
+	    locals.config.theme_config.support = Object.assign({}, DEFAULT_CONFIG, locals.config.theme_config.support);
+	    locals.page.support = Object.assign(
+	      {},
+	      locals.config.theme_config.support,
+	      locals.page.support || {}
+	    );
+	  }
+	  return locals;
+  });
 };

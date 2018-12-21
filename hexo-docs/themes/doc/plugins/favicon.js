@@ -1,6 +1,6 @@
 'use strict';
 
-const util = require('../lib/nodejs/hexo-util');
+const util = require('./hexo-util');
 
 module.exports = ({hexo}) => {
   const {themeConfig} = util({hexo});

@@ -1,6 +1,5 @@
 const React = require('react');
 const $ = require('jquery');
-const {SHOW_SEARCH_RESULTS, HIDE_SEARCH_RESULTS} = require('./actions');
 const {subscribeOn} = require('../utils');
 const {SearchResultsTitle, SearchResultsList} = require('./components.jsx');
 const {SupportFooter} = require('../support/components.jsx');
@@ -18,7 +17,7 @@ class SearchResults extends React.Component {
 
   componentDidMount () {
 
-    subscribeOn(SHOW_SEARCH_RESULTS, (e) => {
+    /*subscribeOn(SHOW_SEARCH_RESULTS, (e) => {
       this.$page.hide();
       this.setState({
         query: e.query,
@@ -35,7 +34,7 @@ class SearchResults extends React.Component {
         visible: false,
         results: []
       });
-    });
+    });*/
   }
 
   render () {

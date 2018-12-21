@@ -4,7 +4,6 @@ const $ = require('jquery');
 const {url_for, getTOCHeaders} = require('../utils');
 const {Sidebar, SidebarToggle, SidebarClose, Navbar, Logo} = require('./components.jsx');
 const {SearchForm} = require('../search/components.jsx');
-const searchLoad = require('../search/load');
 
 const SIDEBAR_IS_VISIBLE_CLASS = 'doc-sidebar--is-visible';
 const NAVIGATION_IS_COLLASPED_CLASS = 'doc-navigation--is-collapsed';
@@ -37,7 +36,6 @@ class Navigation extends React.Component {
     // we have to access the DOM everytime, we can't keep a reference
     this.$searchFormInput = () => $('.dc-search-form__input');
 
-    this.loadSearchIndex();
     this.addAnchorToHeaders($headers);
     this.listenContentClick();
     this.listenVisibleHeaderChanges($headers);
@@ -170,12 +168,6 @@ class Navigation extends React.Component {
     return listener;
   }
 
-  loadSearchIndex () {
-    const route = this.props.config.theme_config.search.route || '/lunr.json';
-    searchLoad(this.url_for(route))
-      .then((search) => this.setState({ search }));
-  }
-
   listenContentClick () {
     this.$content.on('click', this.onContentClick.bind(this));
   }
@@ -219,8 +211,7 @@ class Navigation extends React.Component {
             className="doc-navbar__sidebar-toggle"
             onClick={this.toggleSidebar.bind(this)} />
           <SearchForm
-            search={this.state.search}
-            onSearch={this.hideSidebar.bind(this)} />
+            search={this.state.search} />
         </Navbar>
 
         <Sidebar

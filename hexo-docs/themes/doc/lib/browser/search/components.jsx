@@ -1,5 +1,4 @@
 const React = require('react');
-const {SHOW_SEARCH_RESULTS, HIDE_SEARCH_RESULTS} = require('./actions');
 const {dispatch} = require('../utils');
 
 class SearchForm extends React.Component {
@@ -12,7 +11,7 @@ class SearchForm extends React.Component {
     const query = (e.target.value || '').trim();
 
     if (!query) {
-      dispatch(HIDE_SEARCH_RESULTS);
+      // todo: hide search results...
       return;
     }
 
@@ -20,16 +19,12 @@ class SearchForm extends React.Component {
 
     const results = this.props.search(query);
 
-    dispatch(SHOW_SEARCH_RESULTS, {results, query});
-
-    if (typeof this.props.onSearch === 'function') {
-      this.props.onSearch();
-    }
+    // todo: show search results...
   }
 
   render () {
 
-    if (!this.props.search) { return null; }
+    // if (!this.props.search) { return null; }
 
     return (
       <div className="dc-search-form doc-search-form">
@@ -63,7 +58,9 @@ function SearchResultsList ({results}) {
     return null;
   }
 
-  const handleSearchResultLinkClick = () => dispatch(HIDE_SEARCH_RESULTS);
+  const handleSearchResultLinkClick = () => {
+    // todo: hide search results...
+  };
 
   const createMarkup = (html) => ({ __html: html });
 
