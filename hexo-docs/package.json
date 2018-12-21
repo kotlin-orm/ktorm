@@ -6,6 +6,8 @@
     "version": "3.8.0"
   },
   "dependencies": {
+    "algoliasearch": "^3.32.0",
+    "async": "^2.6.1",
     "dress-code": "^2.4.0",
     "hexo": "^3.7.0",
     "hexo-generator-archive": "^0.1.5",
@@ -16,6 +18,8 @@
     "hexo-renderer-marked": "^0.3.2",
     "hexo-renderer-sass": "^0.3.2",
     "hexo-renderer-stylus": "^0.3.3",
-    "hexo-server": "^0.3.1"
+    "hexo-server": "^0.3.1",
+    "hexo-util": "^0.6.3",
+    "lodash": "^4.17.11"
   }
 }

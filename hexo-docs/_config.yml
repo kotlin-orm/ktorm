@@ -87,3 +87,21 @@ node_sass:
 
 theme_config: 
   favicon: images/favicon.ico
+
+# npm install algoliasearch --save
+# npm install async --save
+# npm install hexo-util --save
+# npm install lodash --save
+algolia:
+  appId: 2W81KMSLOD
+  apiKey: 2a146a809de068d9b7a07ba3fb70b4e5
+  # adminApiKey: ALGOLIA_ADMIN_API_KEY
+  indexName: ktorm
+  chunkSize: 5000
+  fields: 
+    - title
+    - lang
+    - date
+    - updated
+    - raw:truncate,0,1000000
+    - permalink
