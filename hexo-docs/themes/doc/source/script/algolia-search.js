@@ -13,6 +13,7 @@ $(document).ready(function () {
     appId: algoliaSettings.appId,
     apiKey: algoliaSettings.apiKey,
     indexName: algoliaSettings.indexName,
+    // urlSync: true,
     searchParameters: {
       facets: ['lang'],
       facetsRefinements: {
