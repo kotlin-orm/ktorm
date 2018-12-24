@@ -67,7 +67,7 @@ function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHe
             <input type="search"
               id="doc-search-input"
               className="dc-input dc-search-form__input doc-search-form__input"
-              placeholder="Search documents"
+              placeholder={page.lang === 'en' ? 'Search documents' : '搜索文档'}
               autoFocus={true} />
             <button className="dc-btn dc-search-form__btn doc-search-form__btn" aria-label="Search">
               <i className="dc-icon dc-icon--search"></i>

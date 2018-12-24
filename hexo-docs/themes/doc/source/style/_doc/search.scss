@@ -5,6 +5,8 @@
     width: 100%;
     box-sizing: border-box;
     border-radius: 16px;
+    padding-left: 18px;
+    padding-right: 30px;
   }
 
   &__input:focus + &__btn {

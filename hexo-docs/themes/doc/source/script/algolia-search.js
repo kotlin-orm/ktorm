@@ -1,5 +1,6 @@
 
 $(document).ready(function () {
+  var lang = window.__INITIAL_STATE__.page.lang;
   var algoliaSettings = window.__INITIAL_STATE__.config.algolia;
   var isAlgoliaSettingsValid = algoliaSettings.appId && algoliaSettings.apiKey && algoliaSettings.indexName;
 
@@ -15,7 +16,7 @@ $(document).ready(function () {
     searchParameters: {
       facets: ['lang'],
       facetsRefinements: {
-        lang: [window.__INITIAL_STATE__.page.lang]
+        lang: [lang]
       }
     },
     searchFunction: function (helper) {
@@ -35,8 +36,7 @@ $(document).ready(function () {
   // Registering Widgets
   [
     instantsearch.widgets.searchBox({
-      container: '#doc-search-input',
-      placeholder: undefined
+      container: '#doc-search-input'
     }),
 
     instantsearch.widgets.hits({
@@ -45,13 +45,7 @@ $(document).ready(function () {
       templates: {
         item: function (data) {
           var rawContent = data._highlightResult._contentTruncate.value;
-          var content = rawContent
-              .replace(/[\t\n\s]+/g, ' ')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/&lt;em&gt;/g, '<em>')
-              .replace(/&lt;\/em&gt;/g, '</em>')
-          var startIndex = Math.max(0, content.indexOf('<em>') - 50);
+          var startIndex = Math.max(0, rawContent.indexOf('<em>') - 50);
 
           var matchedCount = 0;
           for (var field in data._highlightResult) {
@@ -69,16 +63,33 @@ $(document).ready(function () {
             '</a>' +
             '<span class="doc-search-results__list__score-divider">|</span>' +
             '<span class="doc-search-results__list__score">' + matchedCount + ' matches</span>' +
-            '<p>' + content.substr(startIndex, 120) + '...</p>'
+            '<p>' + 
+              rawContent.substr(startIndex, 120)
+                .replace(/[\t\n\s]+/g, ' ')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/&lt;em&gt;/g, '<em>')
+                .replace(/&lt;\/em&gt;/g, '</em>') +
+              '...' + 
+            '</p>'
           );
         },
         empty: function (data) {
-          return (
-            '<h1 className="doc-search-results__title">' +
-              'No results for <span className="doc-search-results__title__query">"' + data.query + '"</span>' +
-            '</h1>' +
-            '<p>There are no results for "' + data.query + '". Why not <strong>try typing another keyword?</strong></p>'
-          );
+          if (lang === 'en') {
+            return (
+              '<h1 className="doc-search-results__title">' +
+                'No results for <span className="doc-search-results__title__query">"' + data.query + '".</span>' +
+              '</h1>' +
+              '<p>There are no results for "' + data.query + '". Why not <strong>try typing another keyword?</strong></p>'
+            );
+          } else {
+            return (
+              '<h1 className="doc-search-results__title">' +
+                '未找到与 <span className="doc-search-results__title__query">"' + data.query + '"</span> 相关的内容' +
+              '</h1>' +
+              '<p>未找到与 "' + data.query + '" 相关的内容，请 <strong>尝试其他关键字</strong></p>'
+            );
+          }
         }
       },
       cssClasses: {
@@ -91,11 +102,19 @@ $(document).ready(function () {
       container: '#doc-search-stats',
       templates: {
         body: function (data) {
-          return (
-            '<h1 className="doc-search-results__title">' +
-              data.nbHits + ' results for <span className="doc-search-results__title__query">"' + data.query + '"</span>' +
-            '</h1>'
-          );
+          if (lang === 'en') {
+            return (
+              '<h1 className="doc-search-results__title">' +
+                data.nbHits + ' results found in ' + data.processingTimeMS + 'ms.' + 
+              '</h1>'
+            );
+          } else {
+            return (
+              '<h1 className="doc-search-results__title">' +
+                '找到 ' + data.nbHits + ' 条结果，耗时 ' + data.processingTimeMS + ' 毫秒' + 
+              '</h1>'
+            );
+          }
         }
       }
     }),
