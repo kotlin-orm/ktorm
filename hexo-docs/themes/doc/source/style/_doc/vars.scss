@@ -60,3 +60,28 @@ $doc-table-row-background-color: $dc-gray80 !default;
 
 // code
 $doc-inline-background-color: $dc-gray70 !default;
+
+// highlight
+$code-font-size: 13px;
+$code-font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+$code-foreground: #222;
+$code-background: #eee;
+$line-height-code-block: 1.6;
+$code-border-radius: 4px;
+
+$highlight-background: #f7f7f7;
+$highlight-current-line: #efefef;
+$highlight-selection: #d6d6d6;
+$highlight-foreground: #4d4d4c;
+$highlight-comment: #8e908c;
+$highlight-red: #c82829;
+$highlight-orange: #f5871f;
+$highlight-yellow: #eab700;
+$highlight-green: #718c00;
+$highlight-aqua: #3e999f;
+$highlight-blue: #4271ae;
+$highlight-purple: #8959a8;
+$highlight-gutter-color: #869194;
+$highlight-gutter-bg-color:  #eff2f3;
+$highlight-deletion: #fdd;
+$highlight-addition: #dfd;
