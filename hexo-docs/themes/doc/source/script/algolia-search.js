@@ -57,9 +57,9 @@ $(document).ready(function () {
           }
 
           return (
-            '<a ' + 
-              'href="' + window.__INITIAL_STATE__.config.root + data.path + '"' +
-              'class="doc-search-results__list__link">' +
+            '<a' +
+              ' href="' + window.__INITIAL_STATE__.config.root + data.path + '"' +
+              ' class="doc-search-results__list__link">' +
               data.title +
             '</a>' +
             '<span class="doc-search-results__list__score-divider">|</span>' +
@@ -78,15 +78,15 @@ $(document).ready(function () {
         empty: function (data) {
           if (lang === 'en') {
             return (
-              '<h1 className="doc-search-results__title">' +
-                'No results for <span className="doc-search-results__title__query">"' + data.query + '".</span>' +
+              '<h1 class="doc-search-results__title">' +
+                'No results for <span class="doc-search-results__title__query">"' + data.query + '".</span>' +
               '</h1>' +
               '<p>There are no results for "' + data.query + '". Why not <strong>try typing another keyword?</strong></p>'
             );
           } else {
             return (
-              '<h1 className="doc-search-results__title">' +
-                '未找到与 <span className="doc-search-results__title__query">"' + data.query + '"</span> 相关的内容' +
+              '<h1 class="doc-search-results__title">' +
+                '未找到与 <span class="doc-search-results__title__query">"' + data.query + '"</span> 相关的内容' +
               '</h1>' +
               '<p>未找到与 "' + data.query + '" 相关的内容，请 <strong>尝试其他关键字</strong></p>'
             );
@@ -105,13 +105,13 @@ $(document).ready(function () {
         body: function (data) {
           if (lang === 'en') {
             return (
-              '<h1 className="doc-search-results__title">' +
+              '<h1 class="doc-search-results__title">' +
                 data.nbHits + ' results found in ' + data.processingTimeMS + 'ms.' + 
               '</h1>'
             );
           } else {
             return (
-              '<h1 className="doc-search-results__title">' +
+              '<h1 class="doc-search-results__title">' +
                 '找到 ' + data.nbHits + ' 条结果，耗时 ' + data.processingTimeMS + ' 毫秒' + 
               '</h1>'
             );

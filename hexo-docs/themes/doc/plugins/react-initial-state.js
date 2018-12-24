@@ -14,7 +14,8 @@ module.exports = ({hexo}) => {
       'path',
       'title',
       'support',
-      'lang'
+      'lang',
+      'related_path'
     ]
   };
 

@@ -10,17 +10,17 @@ const DEFAULT_CONFIG =  {
 
 module.exports = ({hexo}) => {
   hexo.extend.filter.register('template_locals', function(locals) {
-  	if (locals.page.support === false) {
-	    return locals;
-	  }
-	  if (locals.config.theme_config.support) {
-	    locals.config.theme_config.support = Object.assign({}, DEFAULT_CONFIG, locals.config.theme_config.support);
-	    locals.page.support = Object.assign(
-	      {},
-	      locals.config.theme_config.support,
-	      locals.page.support || {}
-	    );
-	  }
-	  return locals;
+    if (locals.page.support === false) {
+      return locals;
+    }
+    if (locals.config.theme_config.support) {
+      locals.config.theme_config.support = Object.assign({}, DEFAULT_CONFIG, locals.config.theme_config.support);
+      locals.page.support = Object.assign(
+        {},
+        locals.config.theme_config.support,
+        locals.page.support || {}
+      );
+    }
+    return locals;
   });
 };

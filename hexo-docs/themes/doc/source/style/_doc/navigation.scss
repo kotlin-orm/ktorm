@@ -2,7 +2,7 @@
 // Navbar
 //
 .doc-navbar {
-  position: fixed;
+  position: absolute;
   display: flex;
   top: 0;
   right: 0;
@@ -10,11 +10,16 @@
   left: 0;
   width: auto;
   height: $doc-navbar-height;
-  padding: 0 10px;
+  padding-left: 10px;
+  padding-right: 0px;
   z-index: 3;
   background: $doc-navbar-background-color;
   border-bottom: 1px solid $doc-navbar-border-color;
   transition: 0.1s ease-in-out;
+
+  @media screen and (min-width: $doc-breakpoint) {
+    padding-right: 10px;
+  }
 
   @media screen and (min-width: $doc-breakpoint) {
     width: $doc-sidebar-width;
@@ -162,7 +167,7 @@
     margin: 24px 0 0 22px;
 
     @media screen and (max-width: $doc-breakpoint) {
-      // display: none;
+      display: none;
     }
   }
 }

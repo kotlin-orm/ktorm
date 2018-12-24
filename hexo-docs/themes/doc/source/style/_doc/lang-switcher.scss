@@ -1,0 +1,46 @@
+
+.lang-switcher-container {
+  height: $doc-navbar-height;
+  display: flex;
+
+  .lang-switcher {
+    @media screen and (max-width: $doc-breakpoint) {
+      display: none
+    }
+  }
+}
+
+.doc-navbar .lang-switcher {
+  @media screen and (min-width: $doc-breakpoint) {
+    display: none
+  }
+}
+
+.lang-switcher {
+  margin-left: auto;
+  margin-right: 0.8rem;
+  display: flex;
+  align-items: center;
+
+  @media screen and (min-width: 37.5em) {
+    margin-right: 1.2rem;
+  }
+
+  @media screen and (min-width: 64em) {
+    margin-right: 2.4rem;
+  }
+
+  @media screen and (min-width: 80em) {
+    margin-right: 4.8rem;
+  }
+}
+
+.lang-switcher img {
+  height: 24px;
+  vertical-align: bottom;
+  margin-right: 5px;
+}
+
+.lang-switcher .lang-divider {
+  margin: 0 5px;
+}

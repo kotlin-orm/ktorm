@@ -3,6 +3,7 @@ const ReactDOM = require('react-dom');
 const $ = require('jquery');
 const {url_for, getTOCHeaders} = require('../utils');
 const {Sidebar, SidebarToggle, SidebarClose, Navbar, Logo} = require('./components.jsx');
+const {LangSwitcher} = require('../lang-switcher/components.jsx');
 
 const SIDEBAR_IS_VISIBLE_CLASS = 'doc-sidebar--is-visible';
 const NAVIGATION_IS_COLLASPED_CLASS = 'doc-navigation--is-collapsed';
@@ -12,6 +13,7 @@ class Navigation extends React.Component {
     super(props);
 
     this.url_for = url_for(this.props);
+    this.items = this.getItems();
 
     this.state = {
       collapsed: false,
@@ -27,7 +29,6 @@ class Navigation extends React.Component {
 
     this.$body = $('body');
     this.$content = $('.doc-content');
-    this.items = this.getItems();
 
     // this selector is wrapped in a function
     // since the selected element can be removed and recreated depending on the state
@@ -208,6 +209,9 @@ class Navigation extends React.Component {
           <SidebarToggle
             className="doc-navbar__sidebar-toggle"
             onClick={this.toggleSidebar.bind(this)} />
+          <LangSwitcher 
+            page={this.props.page}
+            url_for={this.url_for} />
         </Navbar>
 
         <Sidebar
