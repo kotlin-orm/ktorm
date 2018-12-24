@@ -1,6 +1,5 @@
 const React = require('react');
 const {dispatch, classNames} = require('../utils');
-const {SearchForm} = require('../search/components.jsx');
 
 function Navbar (props) {
   return (
@@ -21,7 +20,7 @@ function Logo ({url_for, navigation}) {
   );
 }
 
-function Sidebar ({items, page, url_for, config, search, uncollapse, tocItems, visibleHeaderId, support}) {
+function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHeaderId, support}) {
 
   const renderItems = () => {
     const supportItems = support && support.navigation === true ? [{
@@ -61,9 +60,19 @@ function Sidebar ({items, page, url_for, config, search, uncollapse, tocItems, v
         onClick={uncollapse}>
         </i>
       </div>
+
       <div className="doc-sidebar-content">
         <div className="doc-sidebar__search-form">
-          <SearchForm search={search} autoFocus={true} />
+          <div className="dc-search-form doc-search-form">
+            <input type="search"
+              id="doc-search-input"
+              className="dc-input dc-search-form__input doc-search-form__input"
+              placeholder="Search documents"
+              autoFocus={true} />
+            <button className="dc-btn dc-search-form__btn doc-search-form__btn" aria-label="Search">
+              <i className="dc-icon dc-icon--search"></i>
+            </button>
+          </div>
         </div>
         <ul className="doc-sidebar-list">
           { renderItems() }
@@ -204,7 +213,8 @@ function SidebarChildrenList ({item, page, config, tocItems, visibleHeaderId, ur
 
 function SidebarTocItem ({item, visibleHeaderId}) {
   const handleOnClick = () => {
-    // todo: hide search results...
+    $('#doc-search-results').hide();
+    $('#page-content').show();
   };
 
   return (

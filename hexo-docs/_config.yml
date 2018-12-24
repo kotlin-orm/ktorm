@@ -103,5 +103,6 @@ algolia:
     - lang
     - date
     - updated
-    - raw:truncate,0,1000000
+    - _content:truncate,0,1000000
+    - path
     - permalink

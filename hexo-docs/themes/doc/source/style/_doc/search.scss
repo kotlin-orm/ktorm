@@ -4,6 +4,7 @@
   &__input[type="search"] {
     width: 100%;
     box-sizing: border-box;
+    border-radius: 16px;
   }
 
   &__input:focus + &__btn {
@@ -53,7 +54,12 @@
     }
   }
 
-  .doc-highlight {
-    font-weight: 500;
+  em {
+    font-style: normal;
+    color: red;
   }
+}
+
+#doc-search-pagination {
+  display: none;
 }

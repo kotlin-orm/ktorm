@@ -7,7 +7,8 @@ module.exports = ({hexo}) => {
       'theme',
       'theme_config',
       'time_format',
-      'timezone'
+      'timezone',
+      'algolia'
     ],
     page: [
       'path',

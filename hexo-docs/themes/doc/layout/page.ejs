@@ -1,45 +1,50 @@
 <div class="doc-content">
   <div class="dc-page">
     <div class="dc-card">
-      <div id="react-search-results-root"></div>
 
-      <% if (page.lang == "en") { %>
-	    	<div id="lang-switcher">
-	    		<span>
-	    			<img src="<%- url_for('/images/us.png') %>">
-	    			<span>English</span>
-	    		</span>
-	    		<span> | </span>
-	    		<span>
-	    			<img src="<%- url_for('/images/cn.png') %>">
-	    			<a href="<%- url_for(page.related_path) %>">简体中文</a>
-	    		</span>
-	    	</div>
-    	<% } else { %>
-	    	<div id="lang-switcher">
-	    		<span>
-	    			<img src="<%- url_for('/images/cn.png') %>">
-	    			<span>简体中文</span>
-	    		</span>
-	    		<span> | </span>
-	    		<span>
-	    			<img src="<%- url_for('/images/us.png') %>">
-	    			<a href="<%- url_for(page.related_path) %>">English</a>
-	    		</span>
-	    	</div>
-    	<% } %>
-
-    	<style type="text/css">
-    		#lang-switcher {
-    			text-align: right;
-    		}
-    		#lang-switcher img {
-    			height: 23px;
-    			vertical-align: bottom;
-    		}
-    	</style>
+      <div id="doc-search-results" class="doc-search-results">
+      	<div id="doc-search-stats"></div>
+      	<div id="doc-search-hits"></div>
+      	<div id="doc-search-pagination"></div>
+      </div>
 
       <article id="page-content" class="doc-formatting">
+        <% if (page.lang == "en") { %>
+          <div id="lang-switcher">
+            <span>
+              <img src="<%- url_for('/images/us.png') %>">
+              <span>English</span>
+            </span>
+            <span> | </span>
+            <span>
+              <img src="<%- url_for('/images/cn.png') %>">
+              <a href="<%- url_for(page.related_path) %>">简体中文</a>
+            </span>
+          </div>
+        <% } else { %>
+          <div id="lang-switcher">
+            <span>
+              <img src="<%- url_for('/images/cn.png') %>">
+              <span>简体中文</span>
+            </span>
+            <span> | </span>
+            <span>
+              <img src="<%- url_for('/images/us.png') %>">
+              <a href="<%- url_for(page.related_path) %>">English</a>
+            </span>
+          </div>
+        <% } %>
+
+        <style type="text/css">
+          #lang-switcher {
+            text-align: right;
+          }
+          #lang-switcher img {
+            height: 23px;
+            padding: 0 !important;
+            vertical-align: bottom;
+          }
+        </style>
         <%- page.content %>
         <div id="react-support-footer-root"></div>
       </article>

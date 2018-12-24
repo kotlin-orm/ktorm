@@ -43,5 +43,10 @@
 
     <!-- js source  -->
     <script src="<%- url_for('script/doc.js') %>"></script>
+
+    <!-- algolia instant search -->
+    <link rel="stylesheet" type="text/css" href="<%- url_for('vendors/algolia-instant-search/instantsearch.min.css') %>">
+    <script type="text/javascript" src="<%- url_for('vendors/algolia-instant-search/instantsearch.min.js') %>"></script>
+    <script type="text/javascript" src="<%- url_for('script/algolia-search.js') %>"></script>
   </body>
 </html>

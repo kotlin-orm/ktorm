@@ -3,7 +3,6 @@ const ReactDOM = require('react-dom');
 const $ = require('jquery');
 const {url_for, getTOCHeaders} = require('../utils');
 const {Sidebar, SidebarToggle, SidebarClose, Navbar, Logo} = require('./components.jsx');
-const {SearchForm} = require('../search/components.jsx');
 
 const SIDEBAR_IS_VISIBLE_CLASS = 'doc-sidebar--is-visible';
 const NAVIGATION_IS_COLLASPED_CLASS = 'doc-navigation--is-collapsed';
@@ -15,7 +14,6 @@ class Navigation extends React.Component {
     this.url_for = url_for(this.props);
 
     this.state = {
-      search: null,
       collapsed: false,
       tocItems: [],
       visibleHeaderId: null
@@ -210,8 +208,6 @@ class Navigation extends React.Component {
           <SidebarToggle
             className="doc-navbar__sidebar-toggle"
             onClick={this.toggleSidebar.bind(this)} />
-          <SearchForm
-            search={this.state.search} />
         </Navbar>
 
         <Sidebar
@@ -219,7 +215,6 @@ class Navigation extends React.Component {
           items={this.items}
           page={this.props.page}
           config={this.props.config}
-          search={this.state.search}
           hide={this.hideSidebar.bind(this)}
           uncollapse={this.uncollapseSidebar.bind(this)}
           tocItems={this.state.tocItems}
