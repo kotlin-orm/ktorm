@@ -9,14 +9,17 @@ function Navbar (props) {
   );
 }
 
-function Logo ({url_for, navigation}) {
-  if (!navigation.logo) { return null; }
+function Logo ({page, url_for}) {
+  var homePath = page.lang === 'en' ? '/' : 'zh-cn/'; 
 
   return (
-    <a href={url_for(navigation.logo.path)} className="doc-navbar__logo">
-      <img src={url_for('images/logo.png')} className="doc-navbar__logo__img"/>
-      <span className="doc-navbar__logo__text">{navigation.logo.text}</span>
-    </a>
+    <span className="doc-navbar__logo">
+      <a href={url_for(homePath)}>
+        <img src={url_for('images/logo.png')} className="doc-navbar__logo__img"/>
+        <img src={url_for('images/logo-middle.png')} className="doc-navbar__logo__img-full"/>
+        {/* <span className="doc-navbar__logo__text">{navigation.logo.text}</span> */}
+      </a>
+    </span>
   );
 }
 

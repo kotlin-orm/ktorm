@@ -21,9 +21,14 @@ body {
       }
 
       .doc-navbar__logo__text,
+      .doc-navbar__logo__img-full,
       .doc-sidebar-content,
       .doc-navbar__sidebar-close {
         display: none;
+      }
+
+      .doc-navbar__logo__img {
+        display: initial;
       }
 
       .doc-sidebar__vertical-menu {

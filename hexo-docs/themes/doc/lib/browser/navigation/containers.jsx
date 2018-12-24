@@ -202,7 +202,7 @@ class Navigation extends React.Component {
           config={this.props.config}
           data={this.props.data}
           url_for={this.url_for}>
-          <Logo url_for={this.url_for} navigation={navigation} />
+          <Logo page={this.props.page} url_for={this.url_for} />
           <SidebarClose
             className="doc-navbar__sidebar-close doc-navbar__sidebar-close--desktop"
             onClick={this.collapseSidebar.bind(this)} />

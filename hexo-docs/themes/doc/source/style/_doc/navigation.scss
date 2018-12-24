@@ -47,9 +47,23 @@
   }
 
   &__logo__img {
-    width: 30px;
-    height: 30px;
-    margin-right: 6px;
+    width: 20px;
+    margin-left: 6px;
+    vertical-align: text-bottom;
+
+    @media screen and (min-width: $doc-breakpoint) {
+      display: none
+    }
+  }
+
+  &__logo__img-full {
+    width: 100px;
+    margin-left: 12px;
+    vertical-align: text-bottom;
+
+    @media screen and (max-width: $doc-breakpoint) {
+      display: none
+    }
   }
 
   &__logo__text {
