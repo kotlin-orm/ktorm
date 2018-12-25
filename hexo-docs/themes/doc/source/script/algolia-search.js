@@ -58,7 +58,7 @@ $(document).ready(function () {
 
           return (
             '<a' +
-              ' href="' + window.__INITIAL_STATE__.config.root + data.path + '"' +
+              ' href="' + window.__INITIAL_STATE__.config.root + data.path.replace('index.html', '') + '"' +
               ' class="doc-search-results__list__link">' +
               data.title +
             '</a>' +
