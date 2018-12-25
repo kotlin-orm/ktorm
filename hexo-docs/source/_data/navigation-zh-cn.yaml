@@ -3,6 +3,14 @@ main:
   - text: 概述
     type: link
     path: zh-cn/
+
   - text: 快速开始
     type: link
     path: zh-cn/quick-start.html
+
+  - text: 连接管理
+    type: label
+
+  - text: 连接数据库
+    type: link
+    path: zh-cn/connecting-to-databases.html

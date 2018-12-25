@@ -3,6 +3,14 @@ main:
   - text: Overview
     type: link
     path: ''
+
   - text: Quick Start
     type: link
     path: en/quick-start.html
+
+  - text: Connection Management
+    type: label
+
+  - text: Connecting to Databases
+    type: link
+    path: en/connecting-to-databases.html
