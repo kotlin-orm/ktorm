@@ -2,7 +2,7 @@
 main:
   - text: 概述
     type: link
-    path: zh-cn/index.html
+    path: zh-cn/
   - text: 快速开始
     type: link
     path: zh-cn/quick-start.html

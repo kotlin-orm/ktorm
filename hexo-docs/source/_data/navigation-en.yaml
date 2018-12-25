@@ -2,7 +2,7 @@
 main:
   - text: Overview
     type: link
-    path: index.html
+    path: ''
   - text: Quick Start
     type: link
     path: en/quick-start.html

@@ -28,7 +28,7 @@
     <!-- favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="<%- url_for(config.theme_config.favicon) %>">
 
-    <link rel="canonical" href="<%- theme.url + theme.root + page.canonical_path %>">
+    <link rel="canonical" href="<%- theme.url + theme.root + page.canonical_path.replace('index.html', '') %>">
   </head>
   <body>
 

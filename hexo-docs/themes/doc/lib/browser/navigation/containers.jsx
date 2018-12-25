@@ -71,7 +71,7 @@ class Navigation extends React.Component {
 
         // check if the item represents the current page,
         // and traverse ancestors
-        if (item.path === page.path) {
+        if (item.path === page.path.replace('index.html', '')) {
           item.isCurrent = true;
           (function walk (p) {
             if (p) {
