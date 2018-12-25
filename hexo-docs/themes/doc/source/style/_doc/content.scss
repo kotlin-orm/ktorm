@@ -31,4 +31,17 @@
     transform: translateX(0);
     margin-right: 0;
   }
+
+  .logo-paragraph {
+    text-align: center;
+
+    .full-logo {
+      width: 300px;
+      margin-top: 20px;
+    }
+
+    .badge {
+      padding: 0 2px;
+    }
+  }
 }
