@@ -80,9 +80,6 @@ theme: doc
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type:
-    
-theme_config: 
-  favicon: images/favicon.ico
 
 # npm install hexo-neat --save
 neat_enable: true

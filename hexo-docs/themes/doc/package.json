@@ -52,7 +52,6 @@
     "js-crawler": "^0.3.19",
     "js-yaml": "^3.8.4",
     "jsx-loader": "^0.13.2",
-    "lodash": "^4.17.4",
     "node-jsx": "^0.13.3",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",

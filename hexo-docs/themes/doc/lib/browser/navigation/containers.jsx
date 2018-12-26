@@ -195,7 +195,8 @@ class Navigation extends React.Component {
   }
 
   render () {
-    const navigation = this.getNavigationConfig();
+    const theme_config = this.props.config.theme_config || {};
+
     return (
       <div className="doc-navigation">
         <Navbar
@@ -223,7 +224,7 @@ class Navigation extends React.Component {
           uncollapse={this.uncollapseSidebar.bind(this)}
           tocItems={this.state.tocItems}
           visibleHeaderId={this.state.visibleHeaderId}
-          support={this.props.config.theme_config.support}
+          support={theme_config.support}
         />
       </div>
     );
