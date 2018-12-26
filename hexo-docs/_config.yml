@@ -81,9 +81,28 @@ theme: doc
 deploy:
   type:
 
+# npm install hexo-neat --save
+neat_enable: true
+
+neat_html:
+  enable: true
+  exclude:
+
+neat_css:
+  enable: true
+  exclude:
+    - '*.min.css'
+
+neat_js:
+  enable: false
+  mangle: true
+  output:
+  compress:
+  exclude:
+    - '*.min.js'
+
 # npm install hexo-renderer-sass --save
 node_sass:
-  outputStyle: compressed
   includePaths:
    - node_modules
 
