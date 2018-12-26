@@ -101,7 +101,10 @@ function algolia(args, callback) {
     var hexoPages = hexo.database.model('Page').find({});
 
     for (var i = 0; i < hexoPages.length; i++) {
-      posts.push(processPost(hexoPages.data[i]));
+      var algoliaIndex = hexoPages.data[i].algoliaIndex;
+      if (algoliaIndex === undefined || algoliaIndex === null || algoliaIndex === true) {
+          posts.push(processPost(hexoPages.data[i]));
+      }
     }
 
     log.info(posts.length + ' posts collected');
