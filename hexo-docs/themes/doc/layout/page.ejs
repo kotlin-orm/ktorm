@@ -1,7 +1,7 @@
 <div class="doc-content">
 
   <div id="lang-switcher-container" class="lang-switcher-container">
-      <%- react_component('LangSwitcher', {page, url_for}) %>
+    <%- react_component('LangSwitcher', {page, url_for}) %>
   </div>
 
   <div class="dc-page">
@@ -23,5 +23,10 @@
         </div>
       </article>
     </div>
+  </div>
+
+  <div class="doc-footer">
+    <% var year = new Date().getFullYear() %>
+    &copy; <%- year %> Vince. Hosted by <a href="https://github.com/vincentlauvlwj/Ktorm">GitHub</a>
   </div>
 </div>

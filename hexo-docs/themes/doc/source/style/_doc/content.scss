@@ -52,3 +52,11 @@
   padding: 2.4rem 0;
   color: $doc-support-footer-color;
 }
+
+.doc-footer {
+  color: #666;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  margin-bottom: 2.4rem;
+}
