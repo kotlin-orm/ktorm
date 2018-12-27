@@ -103,7 +103,7 @@ function algolia(args, callback) {
     for (var i = 0; i < hexoPages.length; i++) {
       var algoliaIndex = hexoPages.data[i].algoliaIndex;
       if (algoliaIndex === undefined || algoliaIndex === null || algoliaIndex === true) {
-          posts.push(processPost(hexoPages.data[i]));
+        posts.push(processPost(hexoPages.data[i]));
       }
     }
 
