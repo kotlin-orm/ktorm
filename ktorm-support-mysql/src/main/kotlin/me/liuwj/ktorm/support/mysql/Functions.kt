@@ -10,11 +10,11 @@ fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): Fu
     // json_contains(column, json_array(item))
     return FunctionExpression(
         functionName = "json_contains",
-        arguments = kotlin.collections.listOf(
+        arguments = listOf(
             asExpression(),
             FunctionExpression(
                 functionName = "json_array",
-                arguments = kotlin.collections.listOf(ArgumentExpression(item, itemSqlType)),
+                arguments = listOf(ArgumentExpression(item, itemSqlType)),
                 sqlType = listSqlType
             )
         ),
@@ -47,7 +47,7 @@ fun <T : Any> Column<*>.jsonExtract(path: String, sqlType: SqlType<T>): Function
     // json_extract(column, path)
     return FunctionExpression(
         functionName = "json_extract",
-        arguments = kotlin.collections.listOf(asExpression(), ArgumentExpression(path, VarcharSqlType)),
+        arguments = listOf(asExpression(), ArgumentExpression(path, VarcharSqlType)),
         sqlType = sqlType
     )
 }

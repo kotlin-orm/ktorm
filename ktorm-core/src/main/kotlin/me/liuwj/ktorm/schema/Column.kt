@@ -14,12 +14,26 @@ sealed class ColumnBinding
 /**
  * 将列绑定到一个简单属性
  */
-data class SimpleBinding(val property: KProperty1<*, *>) : ColumnBinding()
+data class SimpleBinding(
+    val property: KProperty1<*, *>
+) : ColumnBinding()
 
 /**
  * 将列绑定到层级嵌套的属性，仅支持两级嵌套
  */
-data class NestedBinding(val property1: KProperty1<*, *>, val property2: KProperty1<*, *>) : ColumnBinding()
+data class NestedBinding(
+    val property1: KProperty1<*, *>,
+    val property2: KProperty1<*, *>
+) : ColumnBinding()
+
+/**
+ * Binding the column to triple nested properties
+ */
+data class TripleNestedBinding(
+    val property1: KProperty1<*, *>,
+    val property2: KProperty1<*, *>,
+    val property3: KProperty1<*, *>
+): ColumnBinding()
 
 /**
  * 将列绑定到一个引用表，对应 SQL 中的外键引用，在使用 find* 系列 Entity 扩展函数时，引用表会自动被 left join 联接
@@ -27,7 +41,10 @@ data class NestedBinding(val property1: KProperty1<*, *>, val property2: KProper
  * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
  * @see me.liuwj.ktorm.entity.createEntity
  */
-data class ReferenceBinding(val referenceTable: Table<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
+data class ReferenceBinding(
+    val referenceTable: Table<*>,
+    val onProperty: KProperty1<*, *>
+) : ColumnBinding()
 
 /**
  * 列声明

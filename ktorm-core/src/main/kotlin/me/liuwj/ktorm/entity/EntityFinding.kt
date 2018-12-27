@@ -22,7 +22,7 @@ fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
-        return kotlin.collections.emptyList()
+        return emptyList()
     } else {
         val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName dosen't have a primary key.")
         return findList { primaryKey inList ids }
@@ -146,7 +146,24 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>)
                 }
 
                 child[binding.property2.name] = columnValue
-                child.discardChanges()
+            }
+        }
+        is TripleNestedBinding -> {
+            val columnValue = this[column]
+            if (columnValue != null) {
+                var child = intoEntity[binding.property1.name] as Entity<*>?
+                if (child == null) {
+                    child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = intoEntity)
+                    intoEntity[binding.property1.name] = child
+                }
+
+                var grandChild = child[binding.property2.name] as Entity<*>?
+                if (grandChild == null) {
+                    grandChild = Entity.create(binding.property2.returnType.classifier as KClass<*>, parent = child)
+                    child[binding.property2.name] = grandChild
+                }
+
+                grandChild[binding.property3.name] = columnValue
             }
         }
         is ReferenceBinding -> {

@@ -1,9 +1,6 @@
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.schema.NestedBinding
-import me.liuwj.ktorm.schema.ReferenceBinding
-import me.liuwj.ktorm.schema.SimpleBinding
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.*
 import kotlin.reflect.KClass
 
 internal fun Entity<*>.getPrimaryKeyValue(fromTable: Table<*>): Any? {
@@ -18,6 +15,11 @@ internal fun Entity<*>.getPrimaryKeyValue(fromTable: Table<*>): Any? {
             val child = this[binding.property1.name] as Entity<*>?
             return child?.get(binding.property2.name)
         }
+        is TripleNestedBinding -> {
+            val child = this[binding.property1.name] as Entity<*>?
+            val grandChild = child?.get(binding.property2.name) as Entity<*>?
+            return grandChild?.get(binding.property3.name)
+        }
         is ReferenceBinding -> {
             val child = this[binding.onProperty.name] as Entity<*>?
             return child?.getPrimaryKeyValue(binding.referenceTable)
@@ -25,7 +27,7 @@ internal fun Entity<*>.getPrimaryKeyValue(fromTable: Table<*>): Any? {
     }
 }
 
-internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
+internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any) {
     val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
     val binding = primaryKey.binding ?: kotlin.error("Primary key $primaryKey has no bindings to any entity field.")
 
@@ -41,6 +43,21 @@ internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
             }
 
             child[binding.property2.name] = value
+        }
+        is TripleNestedBinding -> {
+            var child = this[binding.property1.name] as Entity<*>?
+            if (child == null) {
+                child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = this, fromTable = fromTable)
+                this[binding.property1.name] = child
+            }
+
+            var grandChild = child[binding.property2.name] as Entity<*>?
+            if (grandChild == null) {
+                grandChild = Entity.create(binding.property2.returnType.classifier as KClass<*>, parent = child, fromTable = fromTable)
+                child[binding.property2.name] = grandChild
+            }
+
+            grandChild[binding.property3.name] = value
         }
         is ReferenceBinding -> {
             var child = this[binding.onProperty.name] as Entity<*>?

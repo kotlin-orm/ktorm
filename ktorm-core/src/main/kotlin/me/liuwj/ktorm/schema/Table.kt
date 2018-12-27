@@ -169,10 +169,7 @@ open class Table<E : Entity<E>>(
          * @see me.liuwj.ktorm.entity.createEntity
          */
         fun <R : Entity<R>> references(referenceTable: Table<R>, onProperty: KProperty1<E, R?>): ColumnRegistration<C> {
-            if (!onProperty.isAbstract) {
-                throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $onProperty")
-            }
-
+            checkAbstractProperties(onProperty)
             checkCircularReference(referenceTable)
             return doBinding(ReferenceBinding(copyReference(referenceTable), onProperty))
         }
@@ -201,10 +198,7 @@ open class Table<E : Entity<E>>(
          * 将列绑定到一个简单属性
          */
         fun bindTo(property: KProperty1<E, C?>): ColumnRegistration<C> {
-            if (!property.isAbstract) {
-                throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $property")
-            }
-
+            checkAbstractProperties(property)
             return doBinding(SimpleBinding(property))
         }
 
@@ -212,14 +206,21 @@ open class Table<E : Entity<E>>(
          * 将列绑定到层级嵌套的属性，仅支持两级嵌套
          */
         fun <R : Entity<R>> bindTo(property1: KProperty1<E, R?>, property2: KProperty1<R, C?>): ColumnRegistration<C> {
-            if (!property1.isAbstract) {
-                throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $property1")
-            }
-            if (!property2.isAbstract) {
-                throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $property2")
-            }
-
+            checkAbstractProperties(property1, property2)
             return doBinding(NestedBinding(property1, property2))
+        }
+
+        /**
+         * Binding the column to triple nested properties.
+         */
+        fun <R : Entity<R>, S : Entity<S>> bindTo(
+            property1: KProperty1<E, R?>,
+            property2: KProperty1<R, S?>,
+            property3: KProperty1<S, C?>
+        ): ColumnRegistration<C> {
+
+            checkAbstractProperties(property1, property2, property3)
+            return doBinding(TripleNestedBinding(property1, property2, property3))
         }
 
         private fun doBinding(binding: ColumnBinding): ColumnRegistration<C> {
@@ -231,6 +232,14 @@ open class Table<E : Entity<E>>(
             }
 
             return this
+        }
+
+        private fun checkAbstractProperties(vararg properties: KProperty1<*, *>) {
+            for (prop in properties) {
+                if (!prop.isAbstract) {
+                    throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $prop")
+                }
+            }
         }
     }
 

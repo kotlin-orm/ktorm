@@ -61,6 +61,11 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
                 val child = entity[binding.property1.name] as Entity<*>?
                 child?.get(binding.property2.name)?.let { assignments[column] = it }
             }
+            is TripleNestedBinding -> {
+                val child = entity[binding.property1.name] as Entity<*>?
+                val grandChild = child?.get(binding.property2.name) as Entity<*>?
+                grandChild?.get(binding.property3.name)?.let { assignments[column] = it }
+            }
             is ReferenceBinding -> {
                 val child = entity[binding.onProperty.name] as Entity<*>?
                 child?.getPrimaryKeyValue(binding.referenceTable)?.let { assignments[column] = it }
@@ -116,10 +121,21 @@ private fun EntityImpl.findChangedColumns(fromTable: Table<*>): Map<Column<*>, A
             }
             is NestedBinding -> {
                 val child = this[binding.property1.name] as Entity<*>?
-                val childChanges = child?.impl?.changedProperties ?: kotlin.collections.emptySet<String>()
+                val childChanges = child?.impl?.changedProperties ?: emptySet<String>()
 
                 if (binding.property1.name in changedProperties || binding.property2.name in childChanges) {
                     assignments[column] = child?.get(binding.property2.name)
+                }
+            }
+            is TripleNestedBinding -> {
+                val child = this[binding.property1.name] as Entity<*>?
+                val childChanges = child?.impl?.changedProperties ?: emptySet<String>()
+
+                val grandChild = child?.get(binding.property2.name) as Entity<*>?
+                val grandChildChanges = grandChild?.impl?.changedProperties ?: emptySet<String>()
+
+                if (binding.property1.name in changedProperties || binding.property2.name in childChanges || binding.property3.name in grandChildChanges) {
+                    assignments[column] = grandChild?.get(binding.property3.name)
                 }
             }
             is ReferenceBinding -> {

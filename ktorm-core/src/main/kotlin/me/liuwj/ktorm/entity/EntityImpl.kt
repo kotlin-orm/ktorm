@@ -1,9 +1,6 @@
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.schema.NestedBinding
-import me.liuwj.ktorm.schema.ReferenceBinding
-import me.liuwj.ktorm.schema.SimpleBinding
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.*
 import org.slf4j.LoggerFactory
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -193,11 +190,24 @@ class EntityImpl(
                 binding.property.name == name
             }
             is NestedBinding -> {
-                val p = parent
-                if (p == null) {
+                val parent = this.parent
+                if (parent == null) {
                     binding.property1.name == name
                 } else {
-                    p[binding.property1.name] == this && binding.property2.name == name
+                    parent[binding.property1.name] == this && binding.property2.name == name
+                }
+            }
+            is TripleNestedBinding -> {
+                val parent = this.parent
+                if (parent == null) {
+                    binding.property1.name == name
+                } else {
+                    val grandParent = parent.impl.parent
+                    if (grandParent == null) {
+                        parent[binding.property1.name] == this && binding.property2.name == name
+                    } else {
+                        grandParent[binding.property1.name] == parent && parent[binding.property2.name] == this && binding.property3.name == name
+                    }
                 }
             }
             is ReferenceBinding -> {

@@ -206,21 +206,35 @@ class EntityTest : BaseTest() {
         assert(employees[2]!!.name == "marry")
     }
 
+    interface Parent : Entity<Parent> {
+        var child: Child
+    }
+
+    interface Child : Entity<Child> {
+        var grandChild: GrandChild
+    }
+
+    interface GrandChild : Entity<GrandChild> {
+        var id: Int
+    }
+
+    object Parents : Table<Parent>("t_employee") {
+        val id by int("id").primaryKey().bindTo(Parent::child, Child::grandChild, GrandChild::id)
+    }
+
     @Test
     fun testUpdatePrimaryKey() {
         try {
-            val table = object : Table<Employee>("t_employee") {
-                val id by int("id").primaryKey().bindTo(Employee::manager, Employee::id)
-            }
+            val parent = Parents.findById(1) ?: throw AssertionError()
+            assert(parent.getPrimaryKeyValue(Parents) == 1)
+            assert(parent.child.grandChild.id == 1)
 
-            val employee = table.findById(1) ?: throw AssertionError()
-            assert(employee.manager!!.id == 1)
-
-            employee.manager = Employee()
+            parent.child.grandChild.id = 2
             throw AssertionError()
 
         } catch (e: UnsupportedOperationException) {
             // expected
+            println(e.message)
         }
     }
 }
