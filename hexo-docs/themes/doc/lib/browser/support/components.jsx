@@ -1,13 +1,19 @@
 const React = require('react');
 
-function SupportFooter ({support}) {
-  return (
-    <div className="doc-support-footer">
-      <span className="doc-support-footer__text" dangerouslySetInnerHTML={{ __html: support.text }}></span>
-      &nbsp;<a href={support.link_url} target="_blank" className="doc-support-footer__link">{support.link_text}</a>
-    </div>
-  );
-}
-
-
-module.exports = {SupportFooter};
+module.exports.SupportFooter = function ({page}) {
+  if (page.lang === 'en') {
+    return (
+      <div className="doc-support-footer">
+        Any questions about the document? <br/>
+        Try searching again on the left menu or <a href="https://github.com/vincentlauvlwj/Ktorm/issues/new">Raise an issue on Github.</a>
+      </div>
+    );
+  } else {
+    return (
+      <div className="doc-support-footer">
+        对文档内容有疑问？ <br/>
+        请在侧边栏尝试搜索或者在 GitHub <a href="https://github.com/vincentlauvlwj/Ktorm/issues/new">提出 issue</a>
+      </div>
+    );
+  }
+};

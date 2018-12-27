@@ -14,3 +14,14 @@ main:
   - text: Connecting to Databases
     type: link
     path: en/connecting-to-databases.html
+
+  - text: Support and Feedback
+    type: label
+
+  - text: Author's Blog
+    type: link
+    path: https://www.liuwj.me
+
+  - text: Raise an Issue on GitHub
+    type: link
+    path: https://github.com/vincentlauvlwj/Ktorm/issues/new

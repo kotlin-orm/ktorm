@@ -6,7 +6,7 @@ const {Sidebar, SidebarToggle, SidebarClose, Navbar, Logo} = require('./componen
 const {LangSwitcher} = require('../lang-switcher/components.jsx');
 
 const SIDEBAR_IS_VISIBLE_CLASS = 'doc-sidebar--is-visible';
-const NAVIGATION_IS_COLLASPED_CLASS = 'doc-navigation--is-collapsed';
+const NAVIGATION_IS_COLLAPSED_CLASS = 'doc-navigation--is-collapsed';
 
 class Navigation extends React.Component {
   constructor (props) {
@@ -178,11 +178,11 @@ class Navigation extends React.Component {
   }
 
   collapseSidebar () {
-    this.$body.addClass(NAVIGATION_IS_COLLASPED_CLASS);
+    this.$body.addClass(NAVIGATION_IS_COLLAPSED_CLASS);
   }
 
   uncollapseSidebar () {
-    this.$body.removeClass(NAVIGATION_IS_COLLASPED_CLASS);
+    this.$body.removeClass(NAVIGATION_IS_COLLAPSED_CLASS);
     this.$searchFormInput().focus();
   }
 
@@ -195,8 +195,6 @@ class Navigation extends React.Component {
   }
 
   render () {
-    const theme_config = this.props.config.theme_config || {};
-
     return (
       <div className="doc-navigation">
         <Navbar
@@ -224,11 +222,10 @@ class Navigation extends React.Component {
           uncollapse={this.uncollapseSidebar.bind(this)}
           tocItems={this.state.tocItems}
           visibleHeaderId={this.state.visibleHeaderId}
-          support={theme_config.support}
         />
       </div>
     );
   }
 }
 
-module.exports = {Navigation, SIDEBAR_IS_VISIBLE_CLASS, NAVIGATION_IS_COLLASPED_CLASS};
+module.exports = {Navigation, SIDEBAR_IS_VISIBLE_CLASS, NAVIGATION_IS_COLLAPSED_CLASS};

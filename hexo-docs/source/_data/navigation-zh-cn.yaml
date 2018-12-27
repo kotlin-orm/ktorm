@@ -14,3 +14,14 @@ main:
   - text: 连接数据库
     type: link
     path: zh-cn/connecting-to-databases.html
+
+  - text: 支持和反馈
+    type: label
+
+  - text: 作者博客
+    type: link
+    path: https://www.liuwj.me
+
+  - text: 在 GitHub 提出 issue
+    type: link
+    path: https://github.com/vincentlauvlwj/Ktorm/issues/new

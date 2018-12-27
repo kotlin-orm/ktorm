@@ -1,5 +1,5 @@
 const React = require('react');
-const {dispatch, classNames} = require('../utils');
+const {classNames} = require('../utils');
 
 function Navbar (props) {
   return (
@@ -23,20 +23,10 @@ function Logo ({page, url_for}) {
   );
 }
 
-function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHeaderId, support}) {
+function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHeaderId}) {
 
   const renderItems = () => {
-    const supportItems = support && support.navigation === true ? [{
-      type: 'label',
-      text: support.navigation_label
-    }, {
-      type: 'link',
-      path: support.link_url,
-      text: support.link_text,
-      target: '_blank'
-    }] : [];
-
-    return (items || []).concat(supportItems).map((item, i) => {
+    return (items || []).map((item, i) => {
       return (<SidebarItem
         key={i + 'sidebar-item' }
         item={item}
@@ -73,7 +63,7 @@ function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHe
               placeholder={page.lang === 'en' ? 'Search documents' : '搜索文档'}
               autoFocus={true} />
             <button className="dc-btn dc-search-form__btn doc-search-form__btn" aria-label="Search">
-              <i className="dc-icon dc-icon--search"></i>
+              <i className="dc-icon dc-icon--search"/>
             </button>
           </div>
         </div>

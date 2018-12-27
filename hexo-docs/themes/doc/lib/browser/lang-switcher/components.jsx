@@ -30,4 +30,4 @@ module.exports.LangSwitcher = function({page, url_for}) {
       </span>
     );
   }
-}
+};

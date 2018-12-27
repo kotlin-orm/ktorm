@@ -19,9 +19,10 @@ require('node-jsx').install();
 
 const React = require('react');
 const ReactDOM = require('react-dom/server');
-const {Navigation} = require('../lib/browser/navigation/containers.jsx');
+
 const components = {
-  Navigation
+  Navigation: require('../lib/browser/navigation/containers.jsx').Navigation,
+  SupportFooter: require('../lib/browser/support/components.jsx').SupportFooter
 };
 
 /**
