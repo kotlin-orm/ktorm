@@ -58,7 +58,7 @@ interface Entity<E : Entity<E>> : Serializable {
         /**
          * 创建实体类对象，此方法仅限框架内部使用
          */
-        fun create(entityClass: KClass<*>, fromTable: Table<*>?, holderFiledName: String?): Entity<*> {
+        fun create(entityClass: KClass<*>, parent: Entity<*>? = null, fromTable: Table<*>? = parent?.impl?.fromTable): Entity<*> {
             if (!entityClass.isSubclassOf(Entity::class)) {
                 throw IllegalArgumentException("An entity class must be subclass of Entity.")
             }
@@ -67,7 +67,7 @@ interface Entity<E : Entity<E>> : Serializable {
             }
 
             val classLoader = Thread.currentThread().contextClassLoader
-            val impl = EntityImpl(entityClass, fromTable, holderFiledName)
+            val impl = EntityImpl(entityClass, fromTable, parent)
             return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), impl) as Entity<*>
         }
 

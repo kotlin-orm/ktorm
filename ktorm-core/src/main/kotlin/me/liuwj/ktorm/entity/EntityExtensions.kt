@@ -36,7 +36,7 @@ internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
         is NestedBinding -> {
             var child = this[binding.property1.name] as Entity<*>?
             if (child == null) {
-                child = Entity.create(binding.property1.returnType.classifier as KClass<*>, fromTable, binding.property1.name)
+                child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = this, fromTable = fromTable)
                 this[binding.property1.name] = child
             }
 
@@ -45,7 +45,7 @@ internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
         is ReferenceBinding -> {
             var child = this[binding.onProperty.name] as Entity<*>?
             if (child == null) {
-                child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, binding.referenceTable, null)
+                child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = binding.referenceTable)
                 this[binding.onProperty.name] = child
             }
 

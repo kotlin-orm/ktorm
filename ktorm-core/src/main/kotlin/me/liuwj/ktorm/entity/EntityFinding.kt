@@ -117,11 +117,11 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
 
 private fun Table<*>.doCreateEntity(row: QueryRowSet): Entity<*> {
     val entityClass = this.entityClass ?: kotlin.error("No entity class configured for table: $tableName")
-    val entity = Entity.create(entityClass, this, null)
+    val entity = Entity.create(entityClass, fromTable = this)
 
     for (column in columns) {
         try {
-            retrieveColumn(row, column, intoEntity = entity)
+            row.retrieveColumn(column, intoEntity = entity)
         } catch (e: Throwable) {
             throw IllegalStateException("Error occur while retrieving column: $column, binding: ${column.binding}", e)
         }
@@ -130,18 +130,18 @@ private fun Table<*>.doCreateEntity(row: QueryRowSet): Entity<*> {
     return entity.apply { discardChanges() }
 }
 
-private fun Table<*>.retrieveColumn(row: QueryRowSet, column: Column<*>, intoEntity: Entity<*>) {
-    val binding = column.binding?.takeIf { row.hasColumn(column) } ?: return
+private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>) {
+    val binding = column.binding?.takeIf { this.hasColumn(column) } ?: return
     when (binding) {
         is SimpleBinding -> {
-            intoEntity[binding.property.name] = row[column]
+            intoEntity[binding.property.name] = this[column]
         }
         is NestedBinding -> {
-            val columnValue = row[column]
+            val columnValue = this[column]
             if (columnValue != null) {
                 var child = intoEntity[binding.property1.name] as Entity<*>?
                 if (child == null) {
-                    child = Entity.create(binding.property1.returnType.classifier as KClass<*>, this, binding.property1.name)
+                    child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = intoEntity)
                     intoEntity[binding.property1.name] = child
                 }
 
@@ -153,8 +153,8 @@ private fun Table<*>.retrieveColumn(row: QueryRowSet, column: Column<*>, intoEnt
             val rightTable = binding.referenceTable
             val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} dosen't have a primary key.")
 
-            if (row.hasColumn(primaryKey) && row[primaryKey] != null) {
-                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(row)
+            if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
+                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this)
             }
         }
     }

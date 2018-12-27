@@ -32,7 +32,7 @@ import kotlin.reflect.jvm.kotlinFunction
 class EntityImpl(
     var entityClass: KClass<*>,
     @Transient var fromTable: Table<*>?,
-    var holderFieldName: String?
+    @Transient var parent: Entity<*>?
 ) : InvocationHandler, Entity<EntityImpl> {
 
     var values = LinkedHashMap<String, Any?>()
@@ -137,7 +137,7 @@ class EntityImpl(
                 this == Float::class -> 0.0F
                 this == Double::class -> 0.0
                 this == String::class -> ""
-                this.isSubclassOf(Entity::class) -> Entity.create(this, null, null)
+                this.isSubclassOf(Entity::class) -> Entity.create(this)
                 this.java.isEnum -> this.java.enumConstants[0]
                 this.java.isArray -> this.java.componentType.createArray(0)
                 this == Set::class || this == MutableSet::class -> LinkedHashSet<Any?>()
@@ -193,10 +193,11 @@ class EntityImpl(
                 binding.property.name == name
             }
             is NestedBinding -> {
-                if (holderFieldName == null) {
+                val p = parent
+                if (p == null) {
                     binding.property1.name == name
                 } else {
-                    binding.property1.name == holderFieldName && binding.property2.name == name
+                    p[binding.property1.name] == this && binding.property2.name == name
                 }
             }
             is ReferenceBinding -> {
@@ -214,14 +215,12 @@ class EntityImpl(
 
     private fun writeObject(output: ObjectOutputStream) {
         output.writeUTF(entityClass.jvmName)
-        output.writeObject(holderFieldName)
         output.writeObject(values)
     }
 
     @Suppress("UNCHECKED_CAST")
     private fun readObject(input: ObjectInputStream) {
         entityClass = Class.forName(input.readUTF()).kotlin
-        holderFieldName = input.readObject() as String?
         values = input.readObject() as LinkedHashMap<String, Any?>
 
         changedProperties = LinkedHashSet()

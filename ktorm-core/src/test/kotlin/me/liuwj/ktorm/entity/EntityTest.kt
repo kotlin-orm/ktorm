@@ -2,6 +2,8 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.*
+import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.int
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -74,7 +76,7 @@ class EntityTest : BaseTest() {
             println(this)
         }
 
-        val str = "rO0ABXN9AAAAAQAgbWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRW1wbG95ZWV4cgAXamF2YS5sYW5nLnJlZmxlY3QuUHJveHnhJ9ogzBBDywIAAUwAAWh0ACVMamF2YS9sYW5nL3JlZmxlY3QvSW52b2NhdGlvbkhhbmRsZXI7eHBzcgAgbWUubGl1d2oua3Rvcm0uZW50aXR5LkVudGl0eUltcGwAAAAAAAAAAQMAA0wAC2VudGl0eUNsYXNzdAAXTGtvdGxpbi9yZWZsZWN0L0tDbGFzcztMAA9ob2xkZXJGaWVsZE5hbWV0ABJMamF2YS9sYW5nL1N0cmluZztMAAZ2YWx1ZXN0ABlMamF2YS91dGlsL0xpbmtlZEhhc2hNYXA7eHB3IgAgbWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRW1wbG95ZWVwc3IAF2phdmEudXRpbC5MaW5rZWRIYXNoTWFwNMBOXBBswPsCAAFaAAthY2Nlc3NPcmRlcnhyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAAGdAAEbmFtZXQABWplcnJ5dAADam9idAAHdHJhaW5lZXQAB21hbmFnZXJzcQB+AABzcQB+AAR3IgAgbWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRW1wbG95ZWVwc3EAfgAJP0AAAAAAAAx3CAAAABAAAAAHdAACaWRzcgARamF2YS5sYW5nLkludGVnZXIS4qCk94GHOAIAAUkABXZhbHVleHIAEGphdmEubGFuZy5OdW1iZXKGrJUdC5TgiwIAAHhwAAAAAXQABG5hbWV0AAV2aW5jZXQAA2pvYnQACGVuZ2luZWVydAAHbWFuYWdlcnNxAH4AAHNxAH4ABHciACBtZS5saXV3ai5rdG9ybS5CYXNlVGVzdCRFbXBsb3llZXEAfgAcc3EAfgAJP0AAAAAAAAx3CAAAABAAAAABcQB+ABRweAB4dAAIaGlyZURhdGVzcgANamF2YS50aW1lLlNlcpVdhLobIkiyDAAAeHB3BwMAAAfiAQF4dAAGc2FsYXJ5c3IADmphdmEubGFuZy5Mb25nO4vkkMyPI98CAAFKAAV2YWx1ZXhxAH4AFgAAAAAAAABkdAAKZGVwYXJ0bWVudHN9AAAAAQAibWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRGVwYXJ0bWVudHhxAH4AAXNxAH4ABHckACJtZS5saXV3ai5rdG9ybS5CYXNlVGVzdCREZXBhcnRtZW50cHNxAH4ACT9AAAAAAAAMdwgAAAAQAAAAA3EAfgAUcQB+ABdxAH4AGHQABHRlY2h0AAhsb2NhdGlvbnQACUd1YW5nemhvdXgAeHgAeHQACGhpcmVEYXRlc3EAfgAhdwcDAAAH4gwJeHQABnNhbGFyeXNxAH4AJAAAAAAAAAAydAAKZGVwYXJ0bWVudHNxAH4AJ3NxAH4ABHckACJtZS5saXV3ai5rdG9ybS5CYXNlVGVzdCREZXBhcnRtZW50cHNxAH4ACT9AAAAAAAAMdwgAAAAQAAAAA3EAfgAUcQB+ABdxAH4AGHEAfgArcQB+ACxxAH4ALXgAeHgAeA=="
+        val str = "rO0ABXN9AAAAAQAgbWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRW1wbG95ZWV4cgAXamF2YS5sYW5nLnJlZmxlY3QuUHJveHnhJ9ogzBBDywIAAUwAAWh0ACVMamF2YS9sYW5nL3JlZmxlY3QvSW52b2NhdGlvbkhhbmRsZXI7eHBzcgAgbWUubGl1d2oua3Rvcm0uZW50aXR5LkVudGl0eUltcGwAAAAAAAAAAQMAAkwAC2VudGl0eUNsYXNzdAAXTGtvdGxpbi9yZWZsZWN0L0tDbGFzcztMAAZ2YWx1ZXN0ABlMamF2YS91dGlsL0xpbmtlZEhhc2hNYXA7eHB3IgAgbWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRW1wbG95ZWVzcgAXamF2YS51dGlsLkxpbmtlZEhhc2hNYXA0wE5cEGzA+wIAAVoAC2FjY2Vzc09yZGVyeHIAEWphdmEudXRpbC5IYXNoTWFwBQfawcMWYNEDAAJGAApsb2FkRmFjdG9ySQAJdGhyZXNob2xkeHA/QAAAAAAADHcIAAAAEAAAAAZ0AARuYW1ldAAFamVycnl0AANqb2J0AAd0cmFpbmVldAAHbWFuYWdlcnNxAH4AAHNxAH4ABHciACBtZS5saXV3ai5rdG9ybS5CYXNlVGVzdCRFbXBsb3llZXNxAH4ACD9AAAAAAAAMdwgAAAAQAAAABnQAAmlkc3IAEWphdmEubGFuZy5JbnRlZ2VyEuKgpPeBhzgCAAFJAAV2YWx1ZXhyABBqYXZhLmxhbmcuTnVtYmVyhqyVHQuU4IsCAAB4cAAAAAF0AARuYW1ldAAFdmluY2V0AANqb2J0AAhlbmdpbmVlcnQACGhpcmVEYXRlc3IADWphdmEudGltZS5TZXKVXYS6GyJIsgwAAHhwdwcDAAAH4gEBeHQABnNhbGFyeXNyAA5qYXZhLmxhbmcuTG9uZzuL5JDMjyPfAgABSgAFdmFsdWV4cQB+ABUAAAAAAAAAZHQACmRlcGFydG1lbnRzfQAAAAEAIm1lLmxpdXdqLmt0b3JtLkJhc2VUZXN0JERlcGFydG1lbnR4cQB+AAFzcQB+AAR3JAAibWUubGl1d2oua3Rvcm0uQmFzZVRlc3QkRGVwYXJ0bWVudHNxAH4ACD9AAAAAAAAMdwgAAAAQAAAAA3EAfgATcQB+ABZxAH4AF3QABHRlY2h0AAhsb2NhdGlvbnQACUd1YW5nemhvdXgAeHgAeHQACGhpcmVEYXRlc3EAfgAcdwcDAAAH4gwbeHQABnNhbGFyeXNxAH4AHwAAAAAAAAAydAAKZGVwYXJ0bWVudHNxAH4AInNxAH4ABHckACJtZS5saXV3ai5rdG9ybS5CYXNlVGVzdCREZXBhcnRtZW50c3EAfgAIP0AAAAAAAAx3CAAAABAAAAADcQB+ABNxAH4AFnEAfgAXcQB+ACZxAH4AJ3EAfgAoeAB4eAB4"
         val bytes = Base64.getDecoder().decode(str)
 
         val employee = deserialize(bytes) as Employee
@@ -202,5 +204,23 @@ class EntityTest : BaseTest() {
         assert(employees.size == 2)
         assert(employees[1]!!.name == "vince")
         assert(employees[2]!!.name == "marry")
+    }
+
+    @Test
+    fun testUpdatePrimaryKey() {
+        try {
+            val table = object : Table<Employee>("t_employee") {
+                val id by int("id").primaryKey().bindTo(Employee::manager, Employee::id)
+            }
+
+            val employee = table.findById(1) ?: throw AssertionError()
+            assert(employee.manager!!.id == 1)
+
+            employee.manager = Employee()
+            throw AssertionError()
+
+        } catch (e: UnsupportedOperationException) {
+            // expected
+        }
     }
 }

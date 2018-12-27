@@ -36,7 +36,7 @@ internal class EntityDeserializers : SimpleDeserializers() {
     private class DeserializerImpl(val entityClass: KClass<*>) : JsonDeserializer<Entity<*>>() {
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext): Entity<*> {
-            val entity = Entity.create(entityClass, null, null)
+            val entity = Entity.create(entityClass)
             deserialize(parser, ctxt, entity)
             return entity.apply { discardChanges() }
         }
