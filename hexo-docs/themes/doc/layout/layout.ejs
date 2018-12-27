@@ -34,7 +34,7 @@
 
     <script>window.__INITIAL_STATE__ = <%- JSON.stringify(initial_state) %></script>
 
-    <div id="react-navigation-root"><%- react_component('Navigation', initial_state) %></div>
+    <div id="navigation-container"><%- react_component('Navigation', {page, config, url_for, data: site.data}) %></div>
     
     <%- body %>
 

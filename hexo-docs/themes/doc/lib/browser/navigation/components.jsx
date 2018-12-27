@@ -1,5 +1,4 @@
 const React = require('react');
-const {classNames} = require('../utils');
 
 function Navbar (props) {
   return (
@@ -234,4 +233,14 @@ function SidebarClose ({className, onClick}) {
   );
 }
 
-module.exports = {Navbar, Logo, Sidebar, SidebarItem, SidebarToggle, SidebarClose};
+function classNames (map = {}) {
+  return Object.keys(map).reduce((acc, key) => {
+    if (typeof key !== 'string' || key === 'undefined') { return acc; }
+    if (map[key]) {
+      return acc.concat(key);
+    }
+    return acc;
+  }, []).join(' ');
+}
+
+module.exports = {Navbar, Logo, Sidebar, SidebarToggle, SidebarClose};

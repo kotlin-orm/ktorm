@@ -8,14 +8,14 @@ main:
     type: link
     path: en/quick-start.html
 
-  - text: Connection Management
+  - text: CONNECTION MANAGEMENT
     type: label
 
   - text: Connecting to Databases
     type: link
     path: en/connecting-to-databases.html
 
-  - text: Support and Feedback
+  - text: SUPPORT AND FEEDBACK
     type: label
 
   - text: Author's Blog

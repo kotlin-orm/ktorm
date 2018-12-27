@@ -1,7 +1,6 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 const $ = require('jquery');
-const {url_for, getTOCHeaders} = require('../utils');
 const {Sidebar, SidebarToggle, SidebarClose, Navbar, Logo} = require('./components.jsx');
 const {LangSwitcher} = require('../lang-switcher/components.jsx');
 
@@ -12,7 +11,7 @@ class Navigation extends React.Component {
   constructor (props) {
     super(props);
 
-    this.url_for = url_for(this.props);
+    this.url_for = this.props.url_for;
     this.items = this.getItems();
 
     this.state = {
@@ -24,7 +23,7 @@ class Navigation extends React.Component {
 
   componentDidMount () {
     const SmoothScroll = require('smooth-scroll');
-    const $headers = getTOCHeaders();
+    const $headers = $('h2');
     const tocItems = this.getTocItems($headers);
 
     this.$body = $('body');

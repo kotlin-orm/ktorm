@@ -22,7 +22,9 @@ const ReactDOM = require('react-dom/server');
 
 const components = {
   Navigation: require('../lib/browser/navigation/containers.jsx').Navigation,
-  SupportFooter: require('../lib/browser/support/components.jsx').SupportFooter
+  SupportFooter: require('../lib/browser/support/components.jsx').SupportFooter,
+  LangSwitcher: require('../lib/browser/lang-switcher/components.jsx').LangSwitcher,
+  LogoSection: require('../lib/browser/logo-section/components.jsx').LogoSection
 };
 
 /**
