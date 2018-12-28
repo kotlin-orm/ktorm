@@ -34,7 +34,7 @@ object MySqlDialect : SqlDialect {
 
         private fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
             write("insert into ${expr.table.name.quoted} (")
-            expr.assignments.forEachIndexed { i, assignment ->
+            for ((i, assignment) in expr.assignments.withIndex()) {
                 if (i > 0) write(", ")
                 write(assignment.column.name.quoted)
             }
@@ -51,13 +51,13 @@ object MySqlDialect : SqlDialect {
 
         private fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
             write("insert into ${expr.table.name.quoted} (")
-            expr.assignments[0].forEachIndexed { i, assignment ->
+            for ((i, assignment) in expr.assignments[0].withIndex()) {
                 if (i > 0) write(", ")
                 write(assignment.column.name.quoted)
             }
             write(") values ")
 
-            expr.assignments.forEachIndexed { i, assignments ->
+            for ((i, assignments) in expr.assignments.withIndex()) {
                 if (i > 0) {
                     removeLastBlank()
                     write(", ")

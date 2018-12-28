@@ -195,19 +195,19 @@ open class Table<E : Entity<E>>(
         }
 
         /**
-         * 将列绑定到一个简单属性
+         * Bind the column to a simple property.
          */
         fun bindTo(property: KProperty1<E, C?>): ColumnRegistration<C> {
             checkAbstractProperties(property)
-            return doBinding(SimpleBinding(property))
+            return doBinding(NestedBinding1(property))
         }
 
         /**
-         * 将列绑定到层级嵌套的属性，仅支持两级嵌套
+         * Bind the column to double nested properties.
          */
         fun <R : Entity<R>> bindTo(property1: KProperty1<E, R?>, property2: KProperty1<R, C?>): ColumnRegistration<C> {
             checkAbstractProperties(property1, property2)
-            return doBinding(NestedBinding(property1, property2))
+            return doBinding(NestedBinding2(property1, property2))
         }
 
         /**
@@ -220,7 +220,21 @@ open class Table<E : Entity<E>>(
         ): ColumnRegistration<C> {
 
             checkAbstractProperties(property1, property2, property3)
-            return doBinding(TripleNestedBinding(property1, property2, property3))
+            return doBinding(NestedBinding3(property1, property2, property3))
+        }
+
+        /**
+         * Binding the column to 4 levels of nested properties.
+         */
+        fun <R : Entity<R>, S : Entity<S>, T : Entity<T>> bindTo(
+            property1: KProperty1<E, R?>,
+            property2: KProperty1<R, S?>,
+            property3: KProperty1<S, T?>,
+            property4: KProperty1<T, C?>
+        ): ColumnRegistration<C> {
+
+            checkAbstractProperties(property1, property2, property3, property4)
+            return doBinding(NestedBinding4(property1, property2, property3, property4))
         }
 
         private fun doBinding(binding: ColumnBinding): ColumnRegistration<C> {

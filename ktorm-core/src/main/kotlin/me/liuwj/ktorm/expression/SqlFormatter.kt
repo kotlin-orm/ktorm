@@ -90,7 +90,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
     }
 
     override fun <T : SqlExpression> visitExpressionList(original: List<T>): List<T> {
-        original.forEachIndexed { i, expr ->
+        for ((i, expr) in original.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
                 write(", ")
@@ -363,7 +363,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
     }
 
     override fun visitColumnAssignments(original: List<ColumnAssignmentExpression<*>>): List<ColumnAssignmentExpression<*>> {
-        original.forEachIndexed { i, assignment ->
+        for ((i, assignment) in original.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
                 write(", ")
@@ -378,7 +378,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
 
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         write("insert into ${expr.table.name.quoted} (")
-        expr.assignments.forEachIndexed { i, assignment ->
+        for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             write(assignment.column.name.quoted)
         }
@@ -391,7 +391,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         write("insert into ${expr.table.name.quoted} (")
-        expr.columns.forEachIndexed { i, column ->
+        for ((i, column) in expr.columns.withIndex()) {
             if (i > 0) write(", ")
             write(column.name.quoted)
         }

@@ -182,45 +182,48 @@ class EntityImpl(
     }
 
     override fun set(name: String, value: Any?) {
-        val binding = this.fromTable?.primaryKey?.binding
-
-        val isPrimaryKey = when (binding) {
-            null -> false
-            is SimpleBinding -> {
-                binding.property.name == name
-            }
-            is NestedBinding -> {
-                val parent = this.parent
-                if (parent == null) {
-                    binding.property1.name == name
-                } else {
-                    parent[binding.property1.name] == this && binding.property2.name == name
-                }
-            }
-            is TripleNestedBinding -> {
-                val parent = this.parent
-                if (parent == null) {
-                    binding.property1.name == name
-                } else {
-                    val grandParent = parent.impl.parent
-                    if (grandParent == null) {
-                        parent[binding.property1.name] == this && binding.property2.name == name
-                    } else {
-                        grandParent[binding.property1.name] == parent && parent[binding.property2.name] == this && binding.property3.name == name
-                    }
-                }
-            }
-            is ReferenceBinding -> {
-                binding.onProperty.name == name
-            }
-        }
-
-        if (isPrimaryKey && name in values) {
+        if (isPrimaryKey(name) && name in values) {
             throw UnsupportedOperationException("Cannot modify the primary key value because it's already set to ${values[name]}")
         }
 
         values[name] = value
         changedProperties.add(name)
+    }
+
+    private fun isPrimaryKey(name: String): Boolean {
+        val binding = this.fromTable?.primaryKey?.binding
+
+        when (binding) {
+            null -> return false
+            is ReferenceBinding -> {
+                return binding.onProperty.name == name
+            }
+            is NestedBinding -> {
+                val namesPath = LinkedList<Set<String>>()
+                namesPath.addFirst(setOf(name))
+
+                var curr: Entity<*> = this
+                while (true) {
+                    val parent = curr.impl.parent ?: break
+                    val children = parent.impl.values.filterValues { it == curr }
+
+                    if (children.isEmpty()) {
+                        break
+                    } else {
+                        namesPath.addFirst(children.keys)
+                        curr = parent
+                    }
+                }
+
+                for ((i, possibleFields) in namesPath.withIndex()) {
+                    if (binding[i].name !in possibleFields) {
+                        return false
+                    }
+                }
+
+                return true
+            }
+        }
     }
 
     private fun writeObject(output: ObjectOutputStream) {

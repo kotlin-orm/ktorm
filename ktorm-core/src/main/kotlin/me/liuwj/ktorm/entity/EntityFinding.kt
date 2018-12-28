@@ -133,45 +133,32 @@ private fun Table<*>.doCreateEntity(row: QueryRowSet): Entity<*> {
 private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>) {
     val binding = column.binding?.takeIf { this.hasColumn(column) } ?: return
     when (binding) {
-        is SimpleBinding -> {
-            intoEntity[binding.property.name] = this[column]
-        }
-        is NestedBinding -> {
-            val columnValue = this[column]
-            if (columnValue != null) {
-                var child = intoEntity[binding.property1.name] as Entity<*>?
-                if (child == null) {
-                    child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = intoEntity)
-                    intoEntity[binding.property1.name] = child
-                }
-
-                child[binding.property2.name] = columnValue
-            }
-        }
-        is TripleNestedBinding -> {
-            val columnValue = this[column]
-            if (columnValue != null) {
-                var child = intoEntity[binding.property1.name] as Entity<*>?
-                if (child == null) {
-                    child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = intoEntity)
-                    intoEntity[binding.property1.name] = child
-                }
-
-                var grandChild = child[binding.property2.name] as Entity<*>?
-                if (grandChild == null) {
-                    grandChild = Entity.create(binding.property2.returnType.classifier as KClass<*>, parent = child)
-                    child[binding.property2.name] = grandChild
-                }
-
-                grandChild[binding.property3.name] = columnValue
-            }
-        }
         is ReferenceBinding -> {
             val rightTable = binding.referenceTable
             val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} dosen't have a primary key.")
 
             if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
                 intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this)
+            }
+        }
+        is NestedBinding -> {
+            val columnValue = this[column]
+            if (columnValue != null) {
+
+                var curr: Entity<*> = intoEntity
+                for ((i, prop) in binding.withIndex()) {
+                    if (i != binding.lastIndex) {
+                        var child = curr[prop.name] as Entity<*>?
+                        if (child == null) {
+                            child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
+                            curr[prop.name] = child
+                        }
+
+                        curr = child
+                    }
+                }
+
+                curr[binding.last().name] = columnValue
             }
         }
     }

@@ -5,60 +5,38 @@ import kotlin.reflect.KClass
 
 internal fun Entity<*>.getPrimaryKeyValue(fromTable: Table<*>): Any? {
     val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
-    val binding = primaryKey.binding ?: kotlin.error("Primary key $primaryKey has no bindings to any entity field.")
+    return getColumnValue(primaryKey)
+}
+
+internal fun Entity<*>.getColumnValue(column: Column<*>): Any? {
+    val binding = column.binding ?: kotlin.error("Column $column has no bindings to any entity field.")
 
     when (binding) {
-        is SimpleBinding -> {
-            return this[binding.property.name]
-        }
-        is NestedBinding -> {
-            val child = this[binding.property1.name] as Entity<*>?
-            return child?.get(binding.property2.name)
-        }
-        is TripleNestedBinding -> {
-            val child = this[binding.property1.name] as Entity<*>?
-            val grandChild = child?.get(binding.property2.name) as Entity<*>?
-            return grandChild?.get(binding.property3.name)
-        }
         is ReferenceBinding -> {
             val child = this[binding.onProperty.name] as Entity<*>?
             return child?.getPrimaryKeyValue(binding.referenceTable)
         }
+        is NestedBinding -> {
+            var curr: Entity<*>? = this
+            for ((i, prop) in binding.withIndex()) {
+                if (i != binding.lastIndex) {
+                    curr = curr?.get(prop.name) as Entity<*>?
+                }
+            }
+            return curr?.get(binding.last().name)
+        }
     }
 }
 
-internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any) {
+internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
     val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
-    val binding = primaryKey.binding ?: kotlin.error("Primary key $primaryKey has no bindings to any entity field.")
+    setColumnValue(primaryKey, value)
+}
+
+internal fun Entity<*>.setColumnValue(column: Column<*>, value: Any?) {
+    val binding = column.binding ?: kotlin.error("Column $column has no bindings to any entity field.")
 
     when (binding) {
-        is SimpleBinding -> {
-            this[binding.property.name] = value
-        }
-        is NestedBinding -> {
-            var child = this[binding.property1.name] as Entity<*>?
-            if (child == null) {
-                child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = this, fromTable = fromTable)
-                this[binding.property1.name] = child
-            }
-
-            child[binding.property2.name] = value
-        }
-        is TripleNestedBinding -> {
-            var child = this[binding.property1.name] as Entity<*>?
-            if (child == null) {
-                child = Entity.create(binding.property1.returnType.classifier as KClass<*>, parent = this, fromTable = fromTable)
-                this[binding.property1.name] = child
-            }
-
-            var grandChild = child[binding.property2.name] as Entity<*>?
-            if (grandChild == null) {
-                grandChild = Entity.create(binding.property2.returnType.classifier as KClass<*>, parent = child, fromTable = fromTable)
-                child[binding.property2.name] = grandChild
-            }
-
-            grandChild[binding.property3.name] = value
-        }
         is ReferenceBinding -> {
             var child = this[binding.onProperty.name] as Entity<*>?
             if (child == null) {
@@ -67,6 +45,22 @@ internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any) {
             }
 
             child.setPrimaryKeyValue(binding.referenceTable, value)
+        }
+        is NestedBinding -> {
+            var curr: Entity<*> = this
+            for ((i, prop) in binding.withIndex()) {
+                if (i != binding.lastIndex) {
+                    var child = curr[prop.name] as Entity<*>?
+                    if (child == null) {
+                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr, fromTable = column.table)
+                        curr[prop.name] = child
+                    }
+
+                    curr = child
+                }
+            }
+
+            curr[binding.last().name] = value
         }
     }
 }

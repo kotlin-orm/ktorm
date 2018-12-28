@@ -51,24 +51,10 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
     for (column in columns) {
-        val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
-
-        when (binding) {
-            is SimpleBinding -> {
-                entity[binding.property.name]?.let { assignments[column] = it }
-            }
-            is NestedBinding -> {
-                val child = entity[binding.property1.name] as Entity<*>?
-                child?.get(binding.property2.name)?.let { assignments[column] = it }
-            }
-            is TripleNestedBinding -> {
-                val child = entity[binding.property1.name] as Entity<*>?
-                val grandChild = child?.get(binding.property2.name) as Entity<*>?
-                grandChild?.get(binding.property3.name)?.let { assignments[column] = it }
-            }
-            is ReferenceBinding -> {
-                val child = entity[binding.onProperty.name] as Entity<*>?
-                child?.getPrimaryKeyValue(binding.referenceTable)?.let { assignments[column] = it }
+        if (column is SimpleColumn) {
+            val value = entity.getColumnValue(column)
+            if (value != null) {
+                assignments[column] = value
             }
         }
     }
@@ -114,34 +100,26 @@ private fun EntityImpl.findChangedColumns(fromTable: Table<*>): Map<Column<*>, A
         val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
 
         when (binding) {
-            is SimpleBinding -> {
-                if (binding.property.name in changedProperties) {
-                    assignments[column] = this[binding.property.name]
-                }
-            }
-            is NestedBinding -> {
-                val child = this[binding.property1.name] as Entity<*>?
-                val childChanges = child?.impl?.changedProperties ?: emptySet<String>()
-
-                if (binding.property1.name in changedProperties || binding.property2.name in childChanges) {
-                    assignments[column] = child?.get(binding.property2.name)
-                }
-            }
-            is TripleNestedBinding -> {
-                val child = this[binding.property1.name] as Entity<*>?
-                val childChanges = child?.impl?.changedProperties ?: emptySet<String>()
-
-                val grandChild = child?.get(binding.property2.name) as Entity<*>?
-                val grandChildChanges = grandChild?.impl?.changedProperties ?: emptySet<String>()
-
-                if (binding.property1.name in changedProperties || binding.property2.name in childChanges || binding.property3.name in grandChildChanges) {
-                    assignments[column] = grandChild?.get(binding.property3.name)
-                }
-            }
             is ReferenceBinding -> {
                 if (binding.onProperty.name in changedProperties) {
                     val child = this[binding.onProperty.name] as Entity<*>?
                     assignments[column] = child?.getPrimaryKeyValue(binding.referenceTable)
+                }
+            }
+            is NestedBinding -> {
+                var changed = false
+                var curr: Any? = this
+
+                for (prop in binding) {
+                    check(curr is Entity<*>?)
+
+                    val changedProperties = curr?.impl?.changedProperties ?: emptySet<String>()
+                    changed = changed || prop.name in changedProperties
+                    curr = curr?.get(prop.name)
+                }
+
+                if (changed) {
+                    assignments[column] = curr
                 }
             }
         }

@@ -7,36 +7,53 @@ import me.liuwj.ktorm.expression.ScalarExpression
 import kotlin.reflect.KProperty1
 
 /**
- * 数据列绑定公共父类，可将数据列绑定到一个简单属性、层级嵌套的属性、也可绑定为另一个表的引用
+ * Base class of column bindings.
+ * A column might be bound to a simple property, nested properties, or a reference to another table.
  */
 sealed class ColumnBinding
 
 /**
- * 将列绑定到一个简单属性
+ * Bind the column to nested properties, eg. employee.manager.department.id
  */
-data class SimpleBinding(
-    val property: KProperty1<*, *>
-) : ColumnBinding()
+sealed class NestedBinding(vararg properties: KProperty1<*, *>) : ColumnBinding(), List<KProperty1<*, *>> by properties.asList()
 
 /**
- * 将列绑定到层级嵌套的属性，仅支持两级嵌套
+ * Bind the column to a simple property.
  */
-data class NestedBinding(
+data class NestedBinding1(
+    val property: KProperty1<*, *>
+) : NestedBinding(property)
+
+/**
+ * Bind the column to double nested properties.
+ */
+data class NestedBinding2(
     val property1: KProperty1<*, *>,
     val property2: KProperty1<*, *>
-) : ColumnBinding()
+) : NestedBinding(property1, property2)
 
 /**
- * Binding the column to triple nested properties
+ * Bind the column to triple nested properties
  */
-data class TripleNestedBinding(
+data class NestedBinding3(
     val property1: KProperty1<*, *>,
     val property2: KProperty1<*, *>,
     val property3: KProperty1<*, *>
-): ColumnBinding()
+) : NestedBinding(property1, property2, property3)
 
 /**
- * 将列绑定到一个引用表，对应 SQL 中的外键引用，在使用 find* 系列 Entity 扩展函数时，引用表会自动被 left join 联接
+ * Bind the column to 4 levels of nested properties
+ */
+data class NestedBinding4(
+    val property1: KProperty1<*, *>,
+    val property2: KProperty1<*, *>,
+    val property3: KProperty1<*, *>,
+    val property4: KProperty1<*, *>
+) : NestedBinding(property1, property2, property3, property4)
+
+/**
+ * Bind the column to a reference table, equivalent to a foreign key in relational databases.
+ * Note that find* extension functions left joins all references(recursively) of a table.
  *
  * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
  * @see me.liuwj.ktorm.entity.createEntity

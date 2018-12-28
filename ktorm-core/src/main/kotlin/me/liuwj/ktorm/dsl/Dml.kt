@@ -56,7 +56,7 @@ private fun List<SqlExpression>.executeBatch(): IntArray {
                     logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
                 }
 
-                args.forEachIndexed { i, arg ->
+                for ((i, arg) in args.withIndex()) {
                     @Suppress("UNCHECKED_CAST")
                     val sqlType = arg.sqlType as SqlType<Any>
                     sqlType.setParameter(statement, i + 1, arg.value)
