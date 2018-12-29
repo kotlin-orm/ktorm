@@ -124,32 +124,37 @@ class EntityImpl(
 
     private val KClass<*>.defaultValue: Any get() {
         return defaultValuesCache.computeIfAbsent(this) {
-            val value: Any = when {
-                this == Boolean::class -> false
-                this == Char::class -> 0.toChar()
-                this == Byte::class -> 0.toByte()
-                this == Short::class -> 0.toShort()
-                this == Int::class -> 0
-                this == Long::class -> 0L
-                this == Float::class -> 0.0F
-                this == Double::class -> 0.0
-                this == String::class -> ""
-                this.isSubclassOf(Entity::class) -> Entity.create(this)
-                this.java.isEnum -> this.java.enumConstants[0]
-                this.java.isArray -> this.java.componentType.createArray(0)
-                this == Set::class || this == MutableSet::class -> LinkedHashSet<Any?>()
-                this == List::class || this == MutableList::class -> ArrayList<Any?>()
-                this == Collection::class || this == MutableCollection::class -> ArrayList<Any?>()
-                this == Map::class || this == MutableMap::class -> LinkedHashMap<Any?, Any?>()
-                this == Queue::class || this == Deque::class -> LinkedList<Any?>()
-                this == SortedSet::class || this == NavigableSet::class -> TreeSet<Any?>()
-                this == SortedMap::class || this == NavigableMap::class -> TreeMap<Any?, Any?>()
-                else -> this.createInstance()
+            val value: Any = try {
+                when {
+                    this == Boolean::class -> false
+                    this == Char::class -> 0.toChar()
+                    this == Byte::class -> 0.toByte()
+                    this == Short::class -> 0.toShort()
+                    this == Int::class -> 0
+                    this == Long::class -> 0L
+                    this == Float::class -> 0.0F
+                    this == Double::class -> 0.0
+                    this == String::class -> ""
+                    this.isSubclassOf(Entity::class) -> Entity.create(this)
+                    this.java.isEnum -> this.java.enumConstants[0]
+                    this.java.isArray -> this.java.componentType.createArray(0)
+                    this == Set::class || this == MutableSet::class -> LinkedHashSet<Any?>()
+                    this == List::class || this == MutableList::class -> ArrayList<Any?>()
+                    this == Collection::class || this == MutableCollection::class -> ArrayList<Any?>()
+                    this == Map::class || this == MutableMap::class -> LinkedHashMap<Any?, Any?>()
+                    this == Queue::class || this == Deque::class -> LinkedList<Any?>()
+                    this == SortedSet::class || this == NavigableSet::class -> TreeSet<Any?>()
+                    this == SortedMap::class || this == NavigableMap::class -> TreeMap<Any?, Any?>()
+                    else -> this.createInstance()
+                }
+            } catch (e: Throwable) {
+                throw IllegalArgumentException("Error creating a default value for non-null type: ${this.jvmName}", e)
             }
 
             if (this.isInstance(value)) {
                 value
             } else {
+                // never happens...
                 throw AssertionError("$value must be instance of $this")
             }
         }
