@@ -15,3 +15,4 @@ Ktorm 是一个直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM
  - 灵活的查询，随心所欲地精确控制所生成的 SQL
  - 易扩展的设计，可以灵活编写扩展，支持更多数据类型和 SQL 函数等
  - 方言支持，MySQL、Oracle、PostgreSQL，你也可以自己编写方言支持，只需要实现 `SqlDialect` 接口即可
+

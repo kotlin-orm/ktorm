@@ -107,7 +107,7 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ```
 
-这就是 Kotlin 的魔法，使用 Ktorm 写查询十分地简单和自然，所生成的 SQL 几乎和 Kotlin 代码一一对应。并且，Ktorm 是强类型的，编译器会在你的代码运行之前对它进行检查，IDEA 也能对你的代码进行智能提示和自动补全。
+这就是 Kotlin 的魔法，使用 Ktorm 写查询十分地简单和自然，所生成的 SQL 几乎和 Kotlin 代码一一对应。并且，Ktorm 是强类型的，编译器会在你的代码运行之前对它进行检查，IDE 也能对你的代码进行智能提示和自动补全。
 
 基于条件的动态查询：
 

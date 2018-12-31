@@ -71,7 +71,7 @@ class DatabaseTest : BaseTest() {
     }
 
     @Test
-    fun testRawSql(){
+    fun testRawSql() {
         val names = useConnection { conn ->
             val sql = """
                 select name from t_employee
