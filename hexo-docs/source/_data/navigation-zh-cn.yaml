@@ -15,6 +15,10 @@ main:
     type: link
     path: zh-cn/connecting-to-databases.html
 
+  - text: 事务管理
+    type: link
+    path: zh-cn/transaction-management.html
+
   - text: 支持和反馈
     type: label
 

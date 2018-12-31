@@ -15,6 +15,10 @@ main:
     type: link
     path: en/connecting-to-databases.html
 
+  - text: Transaction Management
+    type: link
+    path: en/transaction-management.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 
