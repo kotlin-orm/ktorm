@@ -29,11 +29,6 @@ interface TransactionManager {
      * 创建新的数据库连接
      */
     fun newConnection(): Connection
-
-    /**
-     * 在事务中执行指定函数
-     */
-    fun <T> transactional(func: () -> T): T
 }
 
 /**

@@ -4,9 +4,7 @@ import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationContext
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
-import org.springframework.transaction.support.TransactionTemplate
 import java.sql.Connection
 import java.sql.DatabaseMetaData
 import java.sql.DriverManager
@@ -95,10 +93,25 @@ class Database(
      * 在事务中执行指定函数
      */
     fun <T> transactional(func: () -> T): T {
+        val current = transactionManager.currentTransaction
+        val isOuter = current == null
+        val transaction = current ?: transactionManager.newTransaction()
+
         try {
-            return transactionManager.transactional(func)
+            val result = func()
+            if (isOuter) transaction.commit()
+            return result
+
         } catch (e: SQLException) {
+            if (isOuter) transaction.rollback()
             throw exceptionTranslator.invoke(e)
+
+        } catch (e: Throwable) {
+            if (isOuter) transaction.rollback()
+            throw e
+
+        } finally {
+            if (isOuter) transaction.close()
         }
     }
 
@@ -174,13 +187,10 @@ class Database(
         }
 
         /**
-         * 使用 Spring 管理的数据源和事务管理器连接数据库，要求容器中必须包含 [DataSource] 和 [TransactionTemplate] bean
+         * 使用 Spring 管理的数据源连接数据库
          */
-        fun connectWithSpringSupport(applicationContext: ApplicationContext, dialect: SqlDialect = StandardDialect): Database {
-            val dataSource = applicationContext.getBean(DataSource::class.java)
-            val transactionTemplate = applicationContext.getBean(TransactionTemplate::class.java)
-
-            val transactionManager = SpringManagedTransactionManager(dataSource, transactionTemplate)
+        fun connectWithSpringSupport(dataSource: DataSource, dialect: SqlDialect = StandardDialect): Database {
+            val transactionManager = SpringManagedTransactionManager(dataSource)
             val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)
             return Database(transactionManager, dialect) { exceptionTranslator.translate("Ktorm", null, it) }
         }

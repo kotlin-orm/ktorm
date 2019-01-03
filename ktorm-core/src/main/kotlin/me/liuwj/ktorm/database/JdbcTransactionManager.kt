@@ -24,25 +24,6 @@ class JdbcTransactionManager(val connector: () -> Connection) : TransactionManag
         return connector.invoke()
     }
 
-    override fun <T> transactional(func: () -> T): T {
-        val current = currentTransaction
-        val isOuter = current == null
-        val transaction = current ?: newTransaction()
-
-        try {
-            val result = func()
-            if (isOuter) transaction.commit()
-            return result
-
-        } catch (e: Throwable) {
-            if (isOuter) transaction.rollback()
-            throw e
-
-        } finally {
-            if (isOuter) transaction.close()
-        }
-    }
-
     private inner class JdbcTransaction(private val desiredIsolation: TransactionIsolation) : Transaction {
         private var originIsolation = defaultIsolation.level
         private var originAutoCommit = true
