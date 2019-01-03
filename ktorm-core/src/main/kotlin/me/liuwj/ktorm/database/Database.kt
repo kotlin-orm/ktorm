@@ -92,13 +92,13 @@ class Database(
     /**
      * 在事务中执行指定函数
      */
-    fun <T> transactional(func: () -> T): T {
+    inline fun <T> useTransaction(func: (Transaction) -> T): T {
         val current = transactionManager.currentTransaction
         val isOuter = current == null
         val transaction = current ?: transactionManager.newTransaction()
 
         try {
-            val result = func()
+            val result = func(transaction)
             if (isOuter) transaction.commit()
             return result
 

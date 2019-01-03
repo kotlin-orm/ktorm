@@ -54,7 +54,7 @@ class DatabaseTest : BaseTest() {
         class DummyException : Exception()
 
         try {
-            transactional {
+            useTransaction {
                 Departments.insert {
                     it.name to "administration"
                     it.location to "Hong Kong"

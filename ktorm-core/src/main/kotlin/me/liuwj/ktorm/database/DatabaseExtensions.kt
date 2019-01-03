@@ -16,8 +16,8 @@ inline fun <T> useConnection(block: (Connection) -> T): T {
 /**
  * Shortcut for Database.global.transactional
  */
-fun <T> transactional(block: () -> T): T {
-    return Database.global.transactional(block)
+inline fun <T> useTransaction(block: (Transaction) -> T): T {
+    return Database.global.useTransaction(block)
 }
 
 /**
