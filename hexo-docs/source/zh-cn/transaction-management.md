@@ -8,12 +8,12 @@ related_path: en/transaction-management.html
 
 事务是许多关系数据库都会提供的一个特性，它保证了一组复杂操作执行结果的强一致性，在一个事务中的操作，要么全部执行成功，要么全部失败。Ktorm 基于 JDBC 对事务提供了方便的支持。
 
-## transactional 函数
+## useTransaction 函数
 
-`Database` 类提供了一个名为 `transactional` 的函数，这个函数以一个闭包 `() -> T` 作为参数。它在事务中执行闭包中的代码，如果执行成功，返回闭包函数的返回值，如果执行失败，则回滚事务。你可以这样调用它：
+`Database` 类提供了一个名为 `useTransaction` 的函数，这个函数以一个闭包 `() -> T` 作为参数。它在事务中执行闭包中的代码，如果执行成功，返回闭包函数的返回值，如果执行失败，则回滚事务。你可以这样调用它：
 
 ```kotlin
-Database.global.transactional { 
+Database.global.useTransaction { 
     // 在事务中执行一组操作
 }
 ```
@@ -22,10 +22,10 @@ Database.global.transactional {
 
 ```kotlin
 /**
- * Shortcut for Database.global.transactional
+ * Shortcut for Database.global.useTransaction
  */
-fun <T> transactional(block: () -> T): T {
-    return Database.global.transactional(block)
+fun <T> useTransaction(block: () -> T): T {
+    return Database.global.useTransaction(block)
 }
 ```
 
@@ -35,7 +35,7 @@ fun <T> transactional(block: () -> T): T {
 class DummyException : Exception()
 
 try {
-    transactional {
+    useTransaction {
         Departments.insert {
             it.name to "administration"
             it.location to "Hong Kong"
@@ -56,5 +56,5 @@ try {
 注意事项：
 
 - 闭包中抛出的任何异常都会触发事务回滚，无论是 checked 还是 unchecked 异常（实际上，checked 异常是 Java 中才有的概念，Kotlin 中并不存在）。
-- `transactional` 函数是可重入的，因此可以嵌套使用，但是内层并没有开启新的事务，而是与外层共享同一个事务。
+- `useTransaction` 函数是可重入的，因此可以嵌套使用，但是内层并没有开启新的事务，而是与外层共享同一个事务。
 
