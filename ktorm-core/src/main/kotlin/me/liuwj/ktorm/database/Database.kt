@@ -92,10 +92,13 @@ class Database(
     /**
      * 在事务中执行指定函数
      */
-    inline fun <T> useTransaction(func: (Transaction) -> T): T {
+    inline fun <T> useTransaction(
+        isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
+        func: (Transaction) -> T
+    ): T {
         val current = transactionManager.currentTransaction
         val isOuter = current == null
-        val transaction = current ?: transactionManager.newTransaction()
+        val transaction = current ?: transactionManager.newTransaction(isolation)
 
         try {
             val result = func(transaction)

@@ -9,15 +9,18 @@ import java.sql.PreparedStatement
 /**
  * Shortcut for Database.global.useConnection
  */
-inline fun <T> useConnection(block: (Connection) -> T): T {
-    return Database.global.useConnection(block)
+inline fun <T> useConnection(func: (Connection) -> T): T {
+    return Database.global.useConnection(func)
 }
 
 /**
  * Shortcut for Database.global.useTransaction
  */
-inline fun <T> useTransaction(block: (Transaction) -> T): T {
-    return Database.global.useTransaction(block)
+inline fun <T> useTransaction(
+    isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
+    func: (Transaction) -> T
+): T {
+    return Database.global.useTransaction(isolation, func)
 }
 
 /**

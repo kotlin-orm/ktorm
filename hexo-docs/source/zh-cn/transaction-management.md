@@ -10,7 +10,7 @@ related_path: en/transaction-management.html
 
 ## useTransaction 函数
 
-`Database` 类提供了一个名为 `useTransaction` 的函数，这个函数以一个闭包 `() -> T` 作为参数。它在事务中执行闭包中的代码，如果执行成功，返回闭包函数的返回值，如果执行失败，则回滚事务。你可以这样调用它：
+`Database` 类提供了一个名为 `useTransaction` 的函数，这个函数以一个闭包 `(Transaction) -> T` 作为参数。它在事务中执行闭包中的代码，如果执行成功，返回闭包函数的返回值，如果执行失败，则回滚事务。你可以这样调用它：
 
 ```kotlin
 Database.global.useTransaction { 
@@ -18,14 +18,17 @@ Database.global.useTransaction {
 }
 ```
 
-考虑到大多数 App 都只需要一个数据库，因此 Ktorm 还提供了一个同名的全局函数，因此你可以省略 `Database.global`： 
+考虑到大多数 App 都只需要一个数据库，Ktorm 还提供了一个同名的全局函数，因此你可以省略 `Database.global`： 
 
 ```kotlin
 /**
  * Shortcut for Database.global.useTransaction
  */
-fun <T> useTransaction(block: () -> T): T {
-    return Database.global.useTransaction(block)
+inline fun <T> useTransaction(
+    isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
+    func: (Transaction) -> T
+): T {
+    return Database.global.useTransaction(isolation, func)
 }
 ```
 
@@ -57,4 +60,30 @@ try {
 
 - 闭包中抛出的任何异常都会触发事务回滚，无论是 checked 还是 unchecked 异常（实际上，checked 异常是 Java 中才有的概念，Kotlin 中并不存在）。
 - `useTransaction` 函数是可重入的，因此可以嵌套使用，但是内层并没有开启新的事务，而是与外层共享同一个事务。
+
+## 事务管理器
+
+有时，简单的 `useTransaction` 方法并不能满足你的需求。你可能希望对事务进行更精细的控制，比如指定事务的隔离级别，或者当符合特定条件的异常抛出时不需要回滚事务。这时，你可以使用 `Database.global.transactionManager` 获取事务管理器完成你的操作，下面是一个例子：
+
+```kotlin
+val transactionManager = Database.global.transactionManager
+val transaction = transactionManager.newTransaction(isolation = TransactionIsolation.READ_COMMITTED)
+
+try {
+    // do something...
+    transaction.commit()
+
+} catch (e: Throwable) {
+    if (someCondition) {
+        transaction.commit()
+    } else {
+        transaction.rollback()
+    }
+
+} finally {
+    transaction.close()
+}
+```
+
+`TransactionManager` 是一个接口，它可以有多种不同的实现。一般来说，使用 `Database.connect` 方法创建的 `Database` 对象默认会使用 `JdbcTransactionManager` 实现，这是基于原生 JDBC 提供的功能实现的事务管理器。Ktorm 还提供了 `SpringManagedTransactionManager`，这个实现自身并没有任何事务管理的功能，而是将事务管理委托给了 Spring 框架，具体请参考 **Spring 支持** 的相关文档。 
 
