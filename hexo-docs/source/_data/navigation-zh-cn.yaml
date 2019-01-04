@@ -19,6 +19,10 @@ main:
     type: link
     path: zh-cn/transaction-management.html
 
+  - text: Spring 支持
+    type: link
+    path: zh-cn/spring-support.html
+
   - text: 支持和反馈
     type: label
 
