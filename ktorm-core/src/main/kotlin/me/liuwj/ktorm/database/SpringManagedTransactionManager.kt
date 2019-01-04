@@ -16,7 +16,7 @@ class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionM
     override val currentTransaction: Transaction? = null
 
     override fun newTransaction(isolation: TransactionIsolation): Nothing {
-        val msg = "Can not create a transaction manually, please use Spring's @Transactional annotation instead."
+        val msg = "Transaction is managed by Spring, please use Spring's @Transactional annotation instead."
         throw UnsupportedOperationException(msg)
     }
 
