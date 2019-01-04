@@ -23,6 +23,13 @@ main:
     type: link
     path: zh-cn/spring-support.html
 
+  - text: SQL DSL
+    type: label
+
+  - text: 定义表结构
+    type: link
+    path: zh-cn/schema-definition.html
+
   - text: 支持和反馈
     type: label
 

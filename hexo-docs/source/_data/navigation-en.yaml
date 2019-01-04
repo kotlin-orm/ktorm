@@ -23,6 +23,13 @@ main:
     type: link
     path: en/spring-support.html
 
+  - text: SQL DSL
+    type: label
+
+  - text: Schema Definition
+    type: link
+    path: en/schema-definition.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 
