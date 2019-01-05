@@ -57,7 +57,7 @@ object Employees : Table<Nothing>("t_employee") {
 - 它们都接收一个字符串的参数，在这里我们需要把列的名称传入
 - 它们的返回值都是 `Table<E>.ColumnRegistration<C>`，E 为实体类的类型，C 为该列的类型，我们可以链式调用 `ConlumnRegistration` 上的 `primaryKey` 函数，将当前列声明为主键
 
-> `ColumnRegistration` 实现了 `ReadOnlyProperty` 接口，所以可以结合 by 关键字用作属性委托。因此，在 `val name by varchar("name")` 中，虽然 `varchar` 函数的返回值类型为 `ColumnRegistration<String>`，但 `val name` 的类型却是 `Column<String>`。以此类推， `val managerId by int("manager_id")` 定义的属性的类型应该是 `Column<Int>`。
+> `ColumnRegistration` 实现了 `ReadOnlyProperty` 接口，所以可以结合 by 关键字用作属性委托。因此，在 `val name by varchar("name")` 中，虽然 varchar 函数的返回值类型为 `ColumnRegistration<String>`，但 `val name` 的类型却是 `Column<String>`。以此类推， `val managerId by int("manager_id")` 定义的属性的类型应该是 `Column<Int>`。
 
 通常我们都会将表定义为 Kotlin 单例对象，但我们其实不必拘泥于此。例如，在某些情况下，我们有两个结构完全相同的表，只是表名不同（在数据备份的时候比较常见），难道我们一定要在每一个表对象中都写一遍完全相同的字段定义吗？当然不需要，这里我们可以使用继承重用代码：
 
@@ -90,3 +90,110 @@ val configs = t.select().associate { row -> row[t.key] to row[t.value] }
 ```
 
 灵活使用 Kotlin 的语法特性可以帮助我们减少重复代码、提高项目的可维护性。
+
+## SqlType
+
+`SqlType` 是一个抽象类，它为 SQL 中的数据类型提供了统一的抽象，基于 JDBC，它封装了从 `ResultSet` 中获取数据，往 `PreparedStatement` 设置参数等通用的操作。在前面定义表中的字段时，我们曾使用了表示不同类型的 int、varchar 等列定义函数，这些函数的背后其实都有一个特定的 `SqlType` 的子类。比如 int 函数的实现是这样的：
+
+```kotlin
+fun <E : Entity<E>> Table<E>.int(name: String): Table<E>.ColumnRegistration<Int> {
+    return registerColumn(name, IntSqlType)
+}
+
+object IntSqlType : SqlType<Int>(Types.INTEGER, typeName = "int") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Int) {
+        ps.setInt(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Int? {
+        return rs.getInt(index)
+    }
+}
+```
+
+`IntSqlType` 的实现特别简单，它只是使用了 `ResultSet.getInt` 函数获取来自结果集中的数据，使用 `PreparedStatement.setInt` 设置传递给数据库的参数而已。
+
+Ktorm 默认支持的数据类型如下表：
+
+| 函数名    | Kotlin 类型             | 底层 SQL 类型 | JDBC 类型码 (java.sql.Types) |
+| --------- | ----------------------- | ------------- | ---------------------------- |
+| boolean   | kotlin.Boolean          | boolean       | Types.BOOLEAN                |
+| int       | kotlin.Int              | int           | Types.INTEGER                |
+| long      | kotlin.Long             | bigint        | Types.BIGINT                 |
+| float     | kotlin.Float            | float         | Types.FLOAT                  |
+| double    | kotlin.Double           | double        | Types.DOUBLE                 |
+| decimal   | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
+| varchar   | kotlin.String           | varchar       | Types.VARCHAR                |
+| text      | kotlin.String           | text          | Types.LONGVARCHAR            |
+| blob      | kotlin.ByteArray        | blob          | Types.BLOB                   |
+| datetime  | java.time.LocalDateTime | datetime      | Types.TIMESTAMP              |
+| date      | java.time.LocalDate     | date          | Types.DATE                   |
+| time      | java.time.Time          | time          | Types.TIME                   |
+| monthDay  | java.time.MonthDay      | varchar       | Types.VARCHAR                |
+| yearMonth | java.time.YearMonth     | varchar       | Types.VARCHAR                |
+| year      | java.time.Year          | int           | Types.INTEGER                |
+| timestamp | java.time.Instant       | timestamp     | Types.TIMESTAMP              |
+
+## 扩展更多的类型
+
+有时候，Ktorm 内置的这些数据类型可能并不能完全满足你的需求，比如你希望在数据库中存储一个 json 字段，许多关系数据库都已经支持了 json 类型，但是原生 JDBC 并不支持，Ktorm 也并没有默认支持。这时你可以自己提供一个 `SqlType` 的实现：
+
+```kotlin
+class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: ObjectMapper) 
+    : SqlType<T>(Types.VARCHAR, typeName = "json") {
+        
+    private val javaType = objectMapper.constructType(type)
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
+        ps.setString(index, objectMapper.writeValueAsString(parameter))
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): T? {
+        val json = rs.getString(index)
+        if (json.isNullOrBlank()) {
+            return null
+        } else {
+            return objectMapper.readValue(json, javaType)
+        }
+    }
+}
+```
+
+上面这个类使用 Jackson 框架进行 json 与对象之间的转换，提供了 json 数据类型的支持。有了 `JsonSqlType` 之后，怎样使用这个类型定义一个列呢？在前面 int 函数的实现中，我们注意到其中调用了 `registerColumn` 函数，这正是其中的秘诀，`registerColumn` 函数正是 Ktorm 提供的用来支持类型扩展的入口。我们可以写一个这样的扩展函数：
+
+```kotlin
+fun <E : Entity<E>, C : Any> Table<E>.json(
+    name: String,
+    typeReference: TypeReference<C>,
+    objectMapper: ObjectMapper = sharedObjectMapper
+): Table<E>.ColumnRegistration<C> {
+    return registerColumn(name, JsonSqlType(typeReference.referencedType, objectMapper))
+}
+```
+
+使用方式如下：
+
+```kotlin
+object Foo : Table<Nothing>("foo") {
+    val bar by json("bar", typeRef<List<Int>>())
+}
+```
+
+这样，Ktorm 就能无缝支持 json 字段的存取，事实上，这正是 ktorm-jackson 模块的功能之一。如果你真的需要使用 json 字段，请直接在项目中添加依赖即可，不必再写一遍上面的代码，这里仅作示范。
+
+Maven 依赖： 
+
+```xml
+<dependency>
+    <groupId>me.liuwj.ktorm</groupId>
+    <artifactId>ktorm-jackson</artifactId>
+    <version>${ktorm.version}</version>
+</dependency>
+```
+
+或者 gradle： 
+
+```groovy
+compile "me.liuwj.ktorm:ktorm-jackson:${ktorm.version}"
+```
+

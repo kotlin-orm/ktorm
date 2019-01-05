@@ -17,7 +17,7 @@ fun <E : Entity<E>> Table<E>.boolean(name: String): Table<E>.ColumnRegistration<
     return registerColumn(name, BooleanSqlType)
 }
 
-object BooleanSqlType : SqlType<Boolean>(Types.BOOLEAN, "tinyint") {
+object BooleanSqlType : SqlType<Boolean>(Types.BOOLEAN, "boolean") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Boolean) {
         ps.setBoolean(index, parameter)
     }
@@ -186,7 +186,7 @@ fun <E : Entity<E>> Table<E>.monthDay(name: String): Table<E>.ColumnRegistration
     return registerColumn(name, MonthDaySqlType)
 }
 
-object MonthDaySqlType : SqlType<MonthDay>(Types.VARCHAR, "varchar(10)") {
+object MonthDaySqlType : SqlType<MonthDay>(Types.VARCHAR, "varchar") {
     val formatter: DateTimeFormatter = DateTimeFormatterBuilder()
         .appendValue(ChronoField.MONTH_OF_YEAR, 2)
         .appendLiteral('-')
@@ -206,7 +206,7 @@ fun <E : Entity<E>> Table<E>.yearMonth(name: String): Table<E>.ColumnRegistratio
     return registerColumn(name, YearMonthSqlType)
 }
 
-object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar(10)") {
+object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
     val formatter: DateTimeFormatter = DateTimeFormatterBuilder()
         .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
         .appendLiteral('-')
