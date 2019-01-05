@@ -10,23 +10,22 @@ import javax.sql.rowset.RowSetProvider
 /**
  * [Query] 对象表示一个查询操作，此类实现了 [Iterable] 接口，因此支持使用 for 循环迭代查询结果集中的数据，
  * 也天然支持了针对 [Iterable] 的一系列 Kotlin 扩展函数，如 map, filter, associateBy 等
+ *
+ * @property expression 该查询的 SQL 表达式
  */
-class Query(private var _expr: QueryExpression) : Iterable<QueryRowSet> {
-
-    /**
-     * 获取该查询的 SQL 表达式
-     */
-    val expression: QueryExpression get() = _expr
+data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 
     /**
      * 返回该查询的 SQL 字符串，提供换行、缩进支持，可在 debug 时确认所生成的 SQL 是否符合预期
      */
-    val sql: String get() = Database.global.formatExpression(expression, beautifySql = true).first
+    val sql: String by lazy {
+        Database.global.formatExpression(expression, beautifySql = true).first
+    }
 
     /**
-     * 执行查询，获取结果集
+     * 该查询的结果集对象，懒初始化，在通过 [Iterable] 对查询进行迭代的时候执行 SQL 获取结果集
      */
-    private val _rowSetLazy = lazy(LazyThreadSafetyMode.NONE) {
+    val rowSet: QueryRowSet by lazy {
         expression.prepareStatement { statement, logger ->
             statement.executeQuery().use { rs ->
                 val rowSet = rowSetFactory.createCachedRowSet()
@@ -37,14 +36,9 @@ class Query(private var _expr: QueryExpression) : Iterable<QueryRowSet> {
     }
 
     /**
-     * 该查询的结果集对象，懒初始化，在通过 [Iterable] 对查询进行迭代的时候执行 SQL 获取结果集
-     */
-    val rowSet: QueryRowSet by _rowSetLazy
-
-    /**
      * 获取符合该查询条件（去除 offset, limit）的总记录数，用于支持分页
      */
-    val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
+    val totalRecords: Int by lazy {
         // Execute the query first to stop the modification on it...
         val rowSet = this.rowSet
         val expression = this.expression
@@ -80,18 +74,6 @@ class Query(private var _expr: QueryExpression) : Iterable<QueryRowSet> {
                 }
             }
         }
-    }
-
-    /**
-     * 提供给框架内部使用，用于修改该查询的 SQL 表达式
-     */
-    internal fun withExpression(func: (QueryExpression) -> QueryExpression): Query {
-        if (_rowSetLazy.isInitialized()) {
-            throw UnsupportedOperationException("Cannot modify a query after it's executed.")
-        }
-
-        _expr = func(_expr)
-        return this
     }
 
     override fun iterator(): Iterator<QueryRowSet> {
@@ -161,12 +143,12 @@ fun Table<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
 }
 
 fun Query.where(block: () -> ScalarExpression<Boolean>): Query {
-    return this.withExpression { expr ->
-        when (expr) {
-            is SelectExpression -> expr.copy(where = block())
+    return this.copy(
+        expression = when (expression) {
+            is SelectExpression -> expression.copy(where = block())
             is UnionExpression -> throw IllegalStateException("Where clause is not supported in a union expression.")
         }
-    }
+    )
 }
 
 inline fun Query.whereWithConditions(block: (MutableList<ScalarExpression<Boolean>>) -> Unit): Query {
@@ -198,33 +180,33 @@ fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Bo
 }
 
 fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
-    return this.withExpression { expr ->
-        when (expr) {
-            is SelectExpression -> expr.copy(groupBy = columns.map { it.asExpression() })
+    return this.copy(
+        expression = when (expression) {
+            is SelectExpression -> expression.copy(groupBy = columns.map { it.asExpression() })
             is UnionExpression -> throw IllegalStateException("Group by clause is not supported in a union expression.")
         }
-    }
+    )
 }
 
 fun Query.having(block: () -> ScalarExpression<Boolean>): Query {
-    return this.withExpression { expr ->
-        when (expr) {
-            is SelectExpression -> expr.copy(having = block())
+    return this.copy(
+        expression = when (expression) {
+            is SelectExpression -> expression.copy(having = block())
             is UnionExpression -> throw IllegalStateException("Having clause is not supported in a union expression.")
         }
-    }
+    )
 }
 
 fun Query.orderBy(vararg orders: OrderByExpression): Query {
-    return this.withExpression { expr ->
-        when (expr) {
-            is SelectExpression -> expr.copy(orderBy = orders.asList())
+    return this.copy(
+        expression = when (expression) {
+            is SelectExpression -> expression.copy(orderBy = orders.asList())
             is UnionExpression -> {
-                val replacer = OrderByReplacer(expr)
-                expr.copy(orderBy = orders.map { replacer.visit(it) as OrderByExpression })
+                val replacer = OrderByReplacer(expression)
+                expression.copy(orderBy = orders.map { replacer.visit(it) as OrderByExpression })
             }
         }
-    }
+    )
 }
 
 private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {
@@ -261,18 +243,18 @@ fun Query.limit(offset: Int, limit: Int): Query {
         return this
     }
 
-    return this.withExpression { expr ->
-        when (expr) {
-            is SelectExpression -> expr.copy(offset = offset, limit = limit)
-            is UnionExpression -> expr.copy(offset = offset, limit = limit)
+    return this.copy(
+        expression = when (expression) {
+            is SelectExpression -> expression.copy(offset = offset, limit = limit)
+            is UnionExpression -> expression.copy(offset = offset, limit = limit)
         }
-    }
+    )
 }
 
 fun Query.union(right: Query): Query {
-    return this.withExpression { UnionExpression(left = expression, right = right.expression, isUnionAll = false) }
+    return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = false))
 }
 
 fun Query.unionAll(right: Query): Query {
-    return this.withExpression { UnionExpression(left = expression, right = right.expression, isUnionAll = true) }
+    return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = true))
 }

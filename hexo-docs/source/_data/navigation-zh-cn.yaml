@@ -30,6 +30,10 @@ main:
     type: link
     path: zh-cn/schema-definition.html
 
+  - text: 查询
+    type: link
+    path: zh-cn/query.html
+
   - text: 支持和反馈
     type: label
 

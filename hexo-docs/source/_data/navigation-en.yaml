@@ -30,6 +30,10 @@ main:
     type: link
     path: en/schema-definition.html
 
+  - text: Query
+    type: link
+    path: en/query.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 
