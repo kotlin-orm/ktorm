@@ -1,10 +1,7 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.BinaryExpression
-import me.liuwj.ktorm.expression.BinaryExpressionType
-import me.liuwj.ktorm.expression.ScalarExpression
-import me.liuwj.ktorm.expression.SqlExpression
+import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 import kotlin.reflect.KClass
 
@@ -81,9 +78,9 @@ fun Table<*>.joinReferencesAndSelect(): Query {
 }
 
 private fun Table<*>.joinReferences(
-    expr: SqlExpression,
+    expr: QuerySourceExpression,
     joinedTables: MutableList<Table<*>>
-): SqlExpression {
+): QuerySourceExpression {
 
     var curr = expr
 

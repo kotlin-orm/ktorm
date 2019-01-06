@@ -56,6 +56,11 @@ data class CastingExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
+ * Query source expression, used in the `from` clause of a [SelectExpression]
+ */
+sealed class QuerySourceExpression : SqlExpression()
+
+/**
  * 查询表达式的基类
  *
  * @property orderBy 排序条件列表
@@ -63,7 +68,7 @@ data class CastingExpression<T : Any>(
  * @property limit 限制返回结果的条数
  * @property tableAlias 根据 SQL 语法，当 select 语句作为另一个 select 语句的查询源时（嵌套查询），必须设置表别名，即此字段
  */
-sealed class QueryExpression : SqlExpression() {
+sealed class QueryExpression : QuerySourceExpression() {
     abstract val orderBy: List<OrderByExpression>
     abstract val offset: Int?
     abstract val limit: Int?
@@ -90,9 +95,9 @@ tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclaringExpressi
  */
 data class SelectExpression(
     val columns: List<ColumnDeclaringExpression> = emptyList(),
-    val from: SqlExpression,
+    val from: QuerySourceExpression,
     val where: ScalarExpression<Boolean>? = null,
-    val groupBy: List<SqlExpression> = emptyList(),
+    val groupBy: List<ScalarExpression<*>> = emptyList(),
     val having: ScalarExpression<Boolean>? = null,
     val isDistinct: Boolean = false,
     override val orderBy: List<OrderByExpression> = emptyList(),
@@ -197,7 +202,7 @@ data class TableExpression(
     val name: String,
     val tableAlias: String?,
     override val isLeafNode: Boolean = true
-) : SqlExpression()
+) : QuerySourceExpression()
 
 /**
  * 列表达式
@@ -272,11 +277,11 @@ enum class JoinType(private val value: String) {
  */
 data class JoinExpression(
     val type: JoinType,
-    val left: SqlExpression,
-    val right: SqlExpression,
+    val left: QuerySourceExpression,
+    val right: QuerySourceExpression,
     val condition: ScalarExpression<Boolean>? = null,
     override val isLeafNode: Boolean = false
-) : SqlExpression()
+) : QuerySourceExpression()
 
 /**
  * SQL in 表达式，判断左操作数是否在右操作数集合中存在

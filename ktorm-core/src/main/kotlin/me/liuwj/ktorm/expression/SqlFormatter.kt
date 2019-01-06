@@ -252,10 +252,13 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
         return expr
     }
 
-    protected fun visitQuerySource(expr: SqlExpression) {
+    override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         when (expr) {
-            is TableExpression, is JoinExpression -> {
-                visit(expr)
+            is TableExpression -> {
+                visitTable(expr)
+            }
+            is JoinExpression -> {
+                visitJoin(expr)
             }
             is QueryExpression -> {
                 write("(")
@@ -266,10 +269,9 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
                 write(") ")
                 expr.tableAlias?.let { write("${it.quoted} ") }
             }
-            else -> {
-                throw AssertionError("Illegal source node: ${expr.javaClass}")
-            }
         }
+
+        return expr
     }
 
     override fun visitUnion(expr: UnionExpression): UnionExpression {

@@ -26,6 +26,7 @@ abstract class SqlExpressionVisitor {
             is DeleteExpression -> visitDelete(expr)
             is ScalarExpression<*> -> visitScalar(expr)
             is QueryExpression -> visitQuery(expr)
+            is QuerySourceExpression -> visitQuerySource(expr)
             else -> visitUnknown(expr)
         }
     }
@@ -139,13 +140,13 @@ abstract class SqlExpressionVisitor {
         return visitExpressionList(original)
     }
 
-    protected open fun visitGroupByList(original: List<SqlExpression>): List<SqlExpression> {
+    protected open fun visitGroupByList(original: List<ScalarExpression<*>>): List<ScalarExpression<*>> {
         return visitExpressionList(original)
     }
 
     protected open fun visitSelect(expr: SelectExpression): SelectExpression {
         val columns = visitColumnDeclaringList(expr.columns)
-        val from = visit(expr.from)
+        val from = visitQuerySource(expr.from)
         val where = expr.where?.let { visitScalar(it) }
         val groupBy = visitGroupByList(expr.groupBy)
         val having = expr.having?.let { visitScalar(it) }
@@ -163,6 +164,14 @@ abstract class SqlExpressionVisitor {
         }
     }
 
+    protected open fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
+        return when (expr) {
+            is TableExpression -> visitTable(expr)
+            is JoinExpression -> visitJoin(expr)
+            is QueryExpression -> visitQuery(expr)
+        }
+    }
+
     protected open fun visitUnion(expr: UnionExpression): UnionExpression {
         val left = visitQuery(expr.left)
         val right = visitQuery(expr.right)
@@ -176,8 +185,8 @@ abstract class SqlExpressionVisitor {
     }
 
     protected open fun visitJoin(expr: JoinExpression): JoinExpression {
-        val left = visit(expr.left)
-        val right = visit(expr.right)
+        val left = visitQuerySource(expr.left)
+        val right = visitQuerySource(expr.right)
         val condition = expr.condition?.let { visitScalar(it) }
 
         if (left === expr.left && right === expr.right && condition === expr.condition) {

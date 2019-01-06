@@ -39,10 +39,6 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
      * 获取符合该查询条件（去除 offset, limit）的总记录数，用于支持分页
      */
     val totalRecords: Int by lazy {
-        // Execute the query first to stop the modification on it...
-        val rowSet = this.rowSet
-        val expression = this.expression
-
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
@@ -108,12 +104,12 @@ fun <T : ResultSet> T.iterable(): Iterable<T> {
     return Iterable { iterator() }
 }
 
-fun SqlExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
+fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
     return Query(SelectExpression(columns = declarations, from = this))
 }
 
-fun SqlExpression.select(vararg columns: ColumnDeclaring<*>): Query {
+fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
     return select(columns.asList())
 }
 
@@ -125,12 +121,12 @@ fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().select(columns.asList())
 }
 
-fun SqlExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
+fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
     return Query(SelectExpression(columns = declarations, from = this, isDistinct = true))
 }
 
-fun SqlExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
+fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
 }
 
