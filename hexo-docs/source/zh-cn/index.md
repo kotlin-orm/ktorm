@@ -1,5 +1,6 @@
 ---
-title: Kotlin ORM 框架
+title: 概述
+slogan: Kotlin ORM 框架
 lang: zh-cn
 related_path: ''
 ---

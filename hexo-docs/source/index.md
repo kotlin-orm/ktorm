@@ -1,5 +1,6 @@
 ---
-title: Kotlin ORM lib with SQL DSL
+title: Overview
+slogan: Kotlin ORM lib with SQL DSL
 lang: en
 related_path: zh-cn/
 ---
