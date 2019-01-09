@@ -138,7 +138,7 @@ fun Table<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().selectDistinct(columns.asList())
 }
 
-fun Query.where(block: () -> ScalarExpression<Boolean>): Query {
+inline fun Query.where(block: () -> ScalarExpression<Boolean>): Query {
     return this.copy(
         expression = when (expression) {
             is SelectExpression -> expression.copy(where = block())
@@ -184,7 +184,7 @@ fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
     )
 }
 
-fun Query.having(block: () -> ScalarExpression<Boolean>): Query {
+inline fun Query.having(block: () -> ScalarExpression<Boolean>): Query {
     return this.copy(
         expression = when (expression) {
             is SelectExpression -> expression.copy(having = block())

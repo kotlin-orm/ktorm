@@ -38,7 +38,7 @@ fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
 /**
  * 根据指定条件获取对象，会自动 left join 所有的引用表
  */
-fun <E : Entity<E>, T : Table<E>> T.findOne(block: (T) -> ScalarExpression<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> T.findOne(block: (T) -> ScalarExpression<Boolean>): E? {
     val list = findList(block)
     when (list.size) {
         0 -> return null
@@ -59,7 +59,7 @@ fun <E : Entity<E>> Table<E>.findAll(): List<E> {
 /**
  * 根据指定条件获取对象列表，会自动 left join 所有的引用表
  */
-fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ScalarExpression<Boolean>): List<E> {
+inline fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ScalarExpression<Boolean>): List<E> {
     return this
         .joinReferencesAndSelect()
         .where { block(this) }
