@@ -18,14 +18,14 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
     /**
      * 返回该查询的 SQL 字符串，提供换行、缩进支持，可在 debug 时确认所生成的 SQL 是否符合预期
      */
-    val sql: String by lazy {
+    val sql: String by lazy(LazyThreadSafetyMode.NONE) {
         Database.global.formatExpression(expression, beautifySql = true).first
     }
 
     /**
      * 该查询的结果集对象，懒初始化，在通过 [Iterable] 对查询进行迭代的时候执行 SQL 获取结果集
      */
-    val rowSet: QueryRowSet by lazy {
+    val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
         expression.prepareStatement { statement, logger ->
             statement.executeQuery().use { rs ->
                 val rowSet = rowSetFactory.createCachedRowSet()
@@ -38,7 +38,7 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
     /**
      * 获取符合该查询条件（去除 offset, limit）的总记录数，用于支持分页
      */
-    val totalRecords: Int by lazy {
+    val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
