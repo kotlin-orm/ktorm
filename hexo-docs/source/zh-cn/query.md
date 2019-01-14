@@ -55,7 +55,7 @@ Employees.select()
 
 - sql：返回该查询生成的 SQL 字符串，可以在调试程序的时候确认生成的 SQL 是否符合预期。
 - rowSet：返回该查询的结果集对象，此字段懒初始化，在第一次获取时，执行 SQL 语句，从数据库中获取结果。
-- totalRecords：如果该查询没有使用 offset, limit 进行分页，此字段返回结果集的总行数；如果使用了分页，返回去除 offset, limit 限制后的符合条件的总记录数。Ktorm 使用此字段来支持页码计算，你可以使用 `totalRecords / limit` 计算总页数。  
+- totalRecords：如果该查询没有使用 offset, limit 进行分页，此字段返回结果集的总行数；如果使用了分页，返回去除 offset, limit 限制后的符合条件的总记录数。Ktorm 使用此字段来支持页码计算，你可以使用 totalRecords 除以你的每页大小来计算总页数。  
 
 ## 获取查询结果
 
@@ -63,7 +63,7 @@ Employees.select()
 
 这种写法虽说并不复杂，但重复的代码写多了也难免让人厌烦。Ktorm 通过让 `Query` 类实现 `Iterable` 接口，为你提供了另一种可能。你可以使用 for-each 循环迭代 `Query` 的结果集，也可以使用 `map`、`filter` 等扩展函数对结果集进行二次处理，就像前面的例子一样。
 
-你可能已经发现，`Query.rowSet` 返回的结果集并不是普通的 `ResultSet`，而是 `QueryRowSet`。这是 Ktorm 提供的特殊的 `ResultSet` 的实现，与普通的 `ResultSet` 不同，它有如下特性：
+你可能已经发现，`Query.rowSet` 返回的结果集并不是普通的 `ResultSet`，而是 `QueryRowSet`。这是 Ktorm 提供的特殊的 `ResultSet` 的实现，与普通的 `ResultSet` 不同，它增加了如下特性：
 
 - 离线可用：它不依赖于数据库连接，当连接关闭后，仍然可以正常使用，使用完毕也不需要调用 `close` 方法。`QueryRowSet` 在创建时，已经完整取出了结果集中的所有数据保存在内存中，因此只需要等待 GC 自动回收即可。
 - 索引访问操作符：`QueryRowSet` 重载了[索引访问操作符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
@@ -83,3 +83,5 @@ for (row in Employees.select()) {
 可以看到，如果列的类型是 `Column<Int>`，返回的结果的类型就是 `Int?`，如果列的类型是 `Column<String>`，返回的结果的类型就是 `String?`。而且，列的类型并不局限于 `ResultSet` 中的 `getXxx` 方法返回的那些类型，它可以是任意类型，结果也始终是对应的类型，其中还可以包含一些对结果的必要的转换行为，具体取决于定义该列时所使用的 [SqlType](/zh-cn/schema-definition.html#SqlType)。
 
 ## select
+
+SQL 中的查询语句都开始于一个 select 关键字，类似地，Ktorm 中的查询也始于 `select` 函数的调用。
