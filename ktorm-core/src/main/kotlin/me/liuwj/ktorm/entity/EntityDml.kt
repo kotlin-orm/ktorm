@@ -51,7 +51,7 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
     for (column in columns) {
-        if (column is SimpleColumn) {
+        if (column is SimpleColumn && column.binding != null) {
             val value = entity.getColumnValue(column)
             if (value != null) {
                 assignments[column] = value
