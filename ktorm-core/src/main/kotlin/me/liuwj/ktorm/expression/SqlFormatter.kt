@@ -83,6 +83,8 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
         return false
     }
 
+    protected val SqlExpression.removeBrackets get() = isLeafNode || this is FunctionExpression<*> || this is AggregateExpression<*>
+
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super.visit(expr)
         assert(result === expr)
@@ -108,7 +110,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
 
     override fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
         if (expr.type == UnaryExpressionType.IS_NULL || expr.type == UnaryExpressionType.IS_NOT_NULL) {
-            if (expr.operand.isLeafNode) {
+            if (expr.operand.removeBrackets) {
                 visit(expr.operand)
             } else {
                 write("(")
@@ -122,7 +124,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
         } else {
             write("${expr.type} ")
 
-            if (expr.operand.isLeafNode) {
+            if (expr.operand.removeBrackets) {
                 visit(expr.operand)
             } else {
                 write("(")
@@ -135,7 +137,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
     }
 
     override fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
-        if (expr.left.isLeafNode) {
+        if (expr.left.removeBrackets) {
             visit(expr.left)
         } else {
             write("(")
@@ -146,7 +148,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
 
         write("${expr.type} ")
 
-        if (expr.right.isLeafNode) {
+        if (expr.right.removeBrackets) {
             visit(expr.right)
         } else {
             write("(")
