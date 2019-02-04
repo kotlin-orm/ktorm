@@ -34,6 +34,10 @@ main:
     type: link
     path: zh-cn/query.html
 
+  - text: 联表
+    type: link
+    path: zh-cn/joining.html
+
   - text: 支持和反馈
     type: label
 

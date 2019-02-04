@@ -96,7 +96,7 @@ fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query
 val query = Employees.select(Employees.id, Employees.name)
 ````
 
-得到 `Query` 对象之后，SQL 实际上还没有运行，你可以继续使用 `where` 或其他扩展函数修改这个 `Query` 对象，也可以使用 `for-each` 循环或其他方式迭代它，这时，Ktorm 会执行一条 SQL，然后我们就能按照上文所述的方法获取查询结果。Ktorm 生成的 SQL 如下：
+得到 `Query` 对象之后，SQL 实际上还没有运行，你可以继续链式调用 `where` 或其他扩展函数修改这个 `Query` 对象，也可以使用 `for-each` 循环或其他方式迭代它，这时，Ktorm 会执行一条 SQL，然后我们就能按照上文所述的方法获取查询结果。Ktorm 生成的 SQL 如下：
 
 ````sql
 select t_employee.id as t_employee_id, t_employee.name as t_employee_name 
@@ -220,3 +220,150 @@ val query = Employees
 ```
 
 使用 `whereWithConditions`，我们只需要在闭包中往 `it` 中添加条件就好了，这个 `it` 就是一个 `MutableList`，创建 list 和合并条件的操作就不需要重复做了。对应的，Ktorm 还提供了一个 `whereWithOrConditions` 函数，这个函数的功能其实是一样的，只不过最后是使用 or 将所有条件连接起来，而不是 and。
+
+## groupBy/having
+
+`groupBy` 和 `having` 也都是 `Query` 类的扩展函数，他们为 SQL 中的相应功能提供了支持，下面是一个使用的例子：
+
+```kotlin
+val t = Employees
+val query = t
+    .select(t.departmentId, avg(t.salary))
+    .groupBy(t.departmentId)
+    .having { avg(t.salary) greater 100.0 }
+```
+
+这个查询获取平均工资大于 100 的部门，返回他们的部门 id 以及平均工资。用法与前面介绍的 `select`、`where` 等函数相似，生成的 SQL 也是十分简单直接：
+
+````sql
+select t_employee.department_id as t_employee_department_id, avg(t_employee.salary) 
+from t_employee 
+group by t_employee.department_id 
+having avg(t_employee.salary) > ?
+````
+
+值得一提的是，如果我们再这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望在返回一下员工的名字：
+
+```kotlin
+val query = t
+    .select(t.departmentId, avg(t.salary), t.name)
+    .groupBy(t.departmentId)
+    .having { avg(t.salary) greater 100.0 }
+```
+
+现在生成的 SQL 是这样的：
+
+````sql
+select t_employee.department_id as t_employee_department_id, avg(t_employee.salary), t_employee.name as t_employee_name 
+from t_employee 
+group by t_employee.department_id 
+having avg(t_employee.salary) > ? 
+````
+
+然而，了解 SQL 语法的人都知道，这条生成的 SQL 的语法是错误的，完全无法在数据库中执行。这是因为 SQL 语法规定，在使用 group by 时，select 子句中出现的字段，要么是 group by 中的列，要么被包含在聚合函数中。然而，这能怪 Ktorm 吗？这只能怪你对 SQL 的不了解，Ktorm 只是忠实地将你的代码翻译成了 SQL 而已。
+
+> 注意：Ktorm 虽然有 SQL 生成，但是我们的设计目标，从来都不是为了取代 SQL，我们不希望做成一个大而全的“自动化” ORM 框架（Hibernate），相反，我们的目标是充分使用 Kotlin 优越的语法特性，为 SQL 提供方便灵活的 DSL。这要求使用者对 SQL 有一定的了解，因为 Ktorm 的工作只是将 DSL 忠实地翻译成 SQL 而已，SQL 的正确性和性能都需要使用者自己负起责任。
+
+## orderBy
+
+`orderBy` 也是 `Query` 的扩展函数，它对应于 SQL 中的 order by 关键字，下面是它的签名：
+
+```kotlin
+fun Query.orderBy(vararg orders: OrderByExpression): Query
+```
+
+可以看到，这个函数接受一个或多个 `OrderByExpression`，这就涉及到另外两个函数，它们分别是 `asc` 和 `desc`，和 SQL 中的关键字名称一样：
+
+````kotlin
+fun ColumnDeclaring<*>.asc(): OrderByExpression
+fun ColumnDeclaring<*>.desc(): OrderByExpression
+````
+
+`orderBy` 的典型用法如下，这个查询获取所有员工的名字，按工资从高到低排序：
+
+```kotlin
+val query = Employees
+    .select(Employees.name)
+    .orderBy(Employees.salary.desc())
+```
+
+与 `select` 函数一样，`orderBy` 不仅支持按普通的列排序，还支持复杂的表达式，下面的查询获取每个部门的 ID 和部门内员工的平均工资，并按平均工资从高到低排序：
+
+```kotlin
+val t = Employees
+val query = t
+    .select(t.departmentId, avg(t.salary))
+    .groupBy(t.departmentId)
+    .orderBy(avg(t.salary).desc())
+```
+
+生成 SQL：
+
+````sql
+select t_employee.department_id as t_employee_department_id, avg(t_employee.salary) 
+from t_employee 
+group by t_employee.department_id 
+order by avg(t_employee.salary) desc 
+````
+
+## limit
+
+SQL 标准中并没有规定如何进行分页查询的语法，因此，每种数据库提供商对其都有不同的实现。例如，在 MySQL 中，分页是通过 `limit m, n` 语法完成的，在 PostgreSQL 中，则是 `limit m offset n`，而 Oracle 则没有提供任何关键字，我们需要在 where 子句使用 rownum 限定自己需要的数据页。
+
+为了抹平不同数据库分页语法的差异，Ktorm 提供了一个 `limit` 函数，我们使用这个函数对查询进行分页：
+
+````kotlin
+fun Query.limit(offset: Int, limit: Int): Query
+````
+
+`limit` 也是 `Query` 类的扩展函数，它接收两个整形参数，分别是：
+
+- offset: 需要返回的第一条记录相对于整个查询结果的位移，从 0 开始
+- limit: 需要返回的记录的数量
+
+使用示例如下，这个查询获取员工表的第一条记录：
+
+````kotlin
+val query = Employees.select().limit(0, 1)
+````
+
+使用 `limit` 函数时，Ktorm 会根据当前使用的不同数据库（Dialect）生成合适的分页 SQL。但是如果你没有启用任何方言，你可能会得到这样一个异常：
+
+````
+java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
+````
+
+这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何启用方言，可参考后面的章节。
+
+## union/unionAll
+
+Ktorm 也支持将两个或多个查询的结果进行合并，这时我们使用 `union` 或 `unionAll` 函数。其中，`union` 对应 SQL 中的 union 关键字，会对合并的结果进行去重；`unionAll` 对应 SQL 中的 union all 关键字，保留重复的结果。下面是一个例子：
+
+```kotlin
+val query = Employees
+    .select(Employees.id)
+    .union(
+        Departments.select(Departments.id)
+    )
+    .unionAll(
+        Departments.select(Departments.id)
+    )
+    .orderBy(Employees.id.desc())
+```
+
+生成 SQL：
+
+````kotlin
+(
+  select t_employee.id as t_employee_id 
+  from t_employee
+) union (
+  select t_department.id as t_department_id 
+  from t_department
+) union all (
+  select t_department.id as t_department_id 
+  from t_department
+) 
+order by t_employee_id desc 
+````
+
