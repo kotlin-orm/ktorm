@@ -242,7 +242,7 @@ group by t_employee.department_id
 having avg(t_employee.salary) > ?
 ````
 
-值得一提的是，如果我们再这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望在返回一下员工的名字：
+值得一提的是，如果我们再这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望再返回一下员工的名字：
 
 ```kotlin
 val query = t
@@ -262,7 +262,7 @@ having avg(t_employee.salary) > ?
 
 然而，了解 SQL 语法的人都知道，这条生成的 SQL 的语法是错误的，完全无法在数据库中执行。这是因为 SQL 语法规定，在使用 group by 时，select 子句中出现的字段，要么是 group by 中的列，要么被包含在聚合函数中。然而，这能怪 Ktorm 吗？这只能怪你对 SQL 的不了解，Ktorm 只是忠实地将你的代码翻译成了 SQL 而已。
 
-> 注意：Ktorm 虽然有 SQL 生成，但是我们的设计目标，从来都不是为了取代 SQL，我们不希望做成一个大而全的“自动化” ORM 框架（Hibernate），相反，我们的目标是充分使用 Kotlin 优越的语法特性，为 SQL 提供方便灵活的 DSL。这要求使用者对 SQL 有一定的了解，因为 Ktorm 的工作只是将 DSL 忠实地翻译成 SQL 而已，SQL 的正确性和性能都需要使用者自己负起责任。
+> 注意：Ktorm 虽然有 SQL 生成，但是我们的设计目标，从来都不是为了取代 SQL，我们不希望做成一个大而全的“自动化” ORM 框架，相反，我们的目标是充分使用 Kotlin 优越的语法特性，为 SQL 提供方便灵活的 DSL。这要求使用者对 SQL 有一定的了解，因为 Ktorm 的工作只是将 DSL 忠实地翻译成 SQL 而已，SQL 的正确性和性能都需要使用者自己负起责任。
 
 ## orderBy
 

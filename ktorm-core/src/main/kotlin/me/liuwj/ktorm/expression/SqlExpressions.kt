@@ -58,7 +58,7 @@ data class CastingExpression<T : Any>(
 /**
  * Query source expression, used in the `from` clause of a [SelectExpression]
  */
-sealed class QuerySourceExpression : SqlExpression()
+abstract class QuerySourceExpression : SqlExpression()
 
 /**
  * 查询表达式的基类

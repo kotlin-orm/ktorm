@@ -15,18 +15,15 @@ abstract class SqlExpressionVisitor {
 
     open fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {
-            is TableExpression -> visitTable(expr)
+            is ScalarExpression<*> -> visitScalar(expr)
+            is QuerySourceExpression -> visitQuerySource(expr)
             is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
             is OrderByExpression -> visitOrderBy(expr)
-            is JoinExpression -> visitJoin(expr)
             is ColumnAssignmentExpression<*> -> visitColumnAssignment(expr)
             is InsertExpression -> visitInsert(expr)
             is InsertFromQueryExpression -> visitInsertFromQuery(expr)
             is UpdateExpression -> visitUpdate(expr)
             is DeleteExpression -> visitDelete(expr)
-            is ScalarExpression<*> -> visitScalar(expr)
-            is QueryExpression -> visitQuery(expr)
-            is QuerySourceExpression -> visitQuerySource(expr)
             else -> visitUnknown(expr)
         }
     }
@@ -47,6 +44,15 @@ abstract class SqlExpressionVisitor {
 
         @Suppress("UNCHECKED_CAST")
         return result as ScalarExpression<T>
+    }
+
+    protected open fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
+        return when (expr) {
+            is TableExpression -> visitTable(expr)
+            is JoinExpression -> visitJoin(expr)
+            is QueryExpression -> visitQuery(expr)
+            else -> error("Unexpected expression type: ${expr.javaClass}")
+        }
     }
 
     protected open fun visitQuery(expr: QueryExpression): QueryExpression {
@@ -161,14 +167,6 @@ abstract class SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(columns = columns, from = from, where = where, groupBy = groupBy, having = having, orderBy = orderBy)
-        }
-    }
-
-    protected open fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
-        return when (expr) {
-            is TableExpression -> visitTable(expr)
-            is JoinExpression -> visitJoin(expr)
-            is QueryExpression -> visitQuery(expr)
         }
     }
 

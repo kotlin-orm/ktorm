@@ -271,6 +271,9 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
                 write(") ")
                 expr.tableAlias?.let { write("${it.quoted} ") }
             }
+            else -> {
+                error("Unexpected expression type: ${expr.javaClass}")
+            }
         }
 
         return expr
