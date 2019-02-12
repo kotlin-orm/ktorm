@@ -8,7 +8,7 @@ related_path: en/joining.html
 
 在上一节中，我们介绍了查询的 SQL DSL，这足以应付许多的场景。不过前面的查询都只限于单表，在大部分情况下，我们的业务都需要多个表来完成。连接查询的支持，对于一个 ORM 框架而言必不可少。
 
-## 联表扩展函数
+## 扩展函数
 
 Ktorm 使用扩展函数对连接查询提供支持，内置的标准连接类型有四种：
 
@@ -147,3 +147,74 @@ open class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {
 ```
 
 以上就是 Ktorm 提供的表别名的支持。现在你可以再尝试执行一下前面的自连接查询，如无意外，它现在应该已经可以完美生成 SQL，返回结果了。
+
+## 扩展连接类型
+
+Ktorm 的核心模块只提供了四种标准的连接类型（见[扩展函数](#扩展函数)一节），一般来说，这四种连接类型已经足够应付我们的业务，但是，如果我们想使用某些数据库特有的连接类型，该如何做呢？下面我们以 MySQL 中的自然连接（natural join）为例对此问题进行探讨。
+
+查看源码，我们可以知道，`JoinExpression` 继承于 `QuerySourceExpression`，这是一个抽象类。我们也可以创建一个 `NaturalJoinExpression` 类继承于 `QuerySourceExpression`：
+
+```kotlin
+data class NaturalJoinExpression(
+    val left: QuerySourceExpression,
+    val right: QuerySourceExpression,
+    override val isLeafNode: Boolean = false
+) : QuerySourceExpression()
+```
+
+有了定制的表达式类型以后，我们需要添加一个扩展函数，就像上面的 `crossJoin`、`leftJoin` 等扩展函数一样，用于方便地使用表对象创建 `NaturalJoinExpression`。
+
+```kotlin
+fun Table<*>.naturalJoin(right: Table<*>): NaturalJoinExpression {
+    return NaturalJoinExpression(left = this.asExpression(), right = right.asExpression())
+}
+```
+
+事实上，这个 `naturalJoin` 还需要针对 `QuerySourceExpression` 添加几个重载的版本，以支持连续的 join 方法的调用，这里仅用于示范，可先忽略。
+
+Ktorm 默认情况下无法识别我们自己创建的表达式类型 `NaturalJoinExpression`，因此无法生成支持 `natural join` 的 SQL 语句。这时，我们可以扩展 `SqlFormatter` 类，重写它的 `visitUnknown` 方法，在里面检测我们的自定义表达式，为其生成正确的 SQL：
+
+```kotlin
+class CustomSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
+    : SqlFormatter(database, beautifySql, indentSize) {
+
+    override fun visitUnknown(expr: SqlExpression): SqlExpression {
+        if (expr is NaturalJoinExpression) {
+            visitQuerySource(expr.left)
+            newLine(Indentation.SAME)
+            write("natural join ")
+            visitQuerySource(expr.right)
+            return expr
+        } else {
+            return super.visitUnknown(expr)
+        }
+    }
+}
+```
+
+接下来的事情就是使用方言（Dialect）支持将这个自定义的 SqlFormatter 注册到 Ktorm 中了，关于如何启用方言，可参考后面的章节。
+
+`naturalJoin` 的使用方式如下：
+
+```kotlin
+val query = Employees.naturalJoin(Departments).select()
+```
+
+这样，Ktorm 就能够无缝支持自然连接，事实上，这正是 ktorm-support-mysql 模块的功能之一，如果你真的需要使用 MySQL 的自然连接，请直接在项目中添加依赖，不必再写一遍上面的代码，这里仅作示范。
+
+Maven 依赖：
+
+```
+<dependency>
+    <groupId>me.liuwj.ktorm</groupId>
+    <artifactId>ktorm-support-mysql</artifactId>
+    <version>${ktorm.version}</version>
+</dependency>
+```
+
+或者 gradle：
+
+```groovy
+compile "me.liuwj.ktorm:ktorm-support-mysql:${ktorm.version}"
+```
+

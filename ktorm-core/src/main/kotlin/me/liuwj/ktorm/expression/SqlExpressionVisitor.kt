@@ -52,7 +52,7 @@ abstract class SqlExpressionVisitor {
             is TableExpression -> visitTable(expr)
             is JoinExpression -> visitJoin(expr)
             is QueryExpression -> visitQuery(expr)
-            else -> error("Unexpected expression type: ${expr.javaClass}")
+            else -> visitUnknown(expr) as QuerySourceExpression
         }
     }
 

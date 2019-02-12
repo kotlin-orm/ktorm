@@ -103,4 +103,10 @@ class MySqlTest : BaseTest() {
         assert(Employees.findById(1)!!.salary == 1000L)
         assert(Employees.findById(5)!!.salary == 1000L)
     }
+
+    @Test
+    fun testNaturalJoin() {
+        val query = Employees.naturalJoin(Departments).select()
+        assert(query.count() == 0)
+    }
 }

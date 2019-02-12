@@ -28,6 +28,7 @@ object MySqlDialect : SqlDialect {
             return when (expr) {
                 is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
                 is BulkInsertExpression -> visitBulkInsert(expr)
+                is NaturalJoinExpression -> visitNaturalJoin(expr)
                 else -> super.visitUnknown(expr)
             }
         }
@@ -73,6 +74,14 @@ object MySqlDialect : SqlDialect {
             visitExpressionList(assignments.map { it.expression as ArgumentExpression })
             removeLastBlank()
             write(") ")
+        }
+
+        private fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
+            visitQuerySource(expr.left)
+            newLine(Indentation.SAME)
+            write("natural join ")
+            visitQuerySource(expr.right)
+            return expr
         }
     }
 }
