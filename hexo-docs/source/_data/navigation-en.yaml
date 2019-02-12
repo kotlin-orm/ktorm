@@ -38,6 +38,10 @@ main:
     type: link
     path: en/joining.html
 
+  - text: Data Manipulation
+    type: link
+    path: en/dml.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 
