@@ -16,6 +16,7 @@ abstract class SqlExpressionVisitor {
     open fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {
             is ScalarExpression<*> -> visitScalar(expr)
+            is QueryExpression -> visitQuery(expr)
             is QuerySourceExpression -> visitQuerySource(expr)
             is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
             is OrderByExpression -> visitOrderBy(expr)
