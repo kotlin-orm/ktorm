@@ -1,4 +1,5 @@
 
 dependencies {
     compile project(":ktorm-core")
+    testCompile project(path: ":ktorm-core", configuration: "testOutput")
 }

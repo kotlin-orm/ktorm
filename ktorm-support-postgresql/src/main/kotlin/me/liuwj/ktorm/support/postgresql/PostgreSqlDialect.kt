@@ -4,6 +4,7 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.SqlDialect
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.QueryExpression
+import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.expression.SqlFormatter
 import me.liuwj.ktorm.schema.IntSqlType
 
@@ -30,6 +31,37 @@ object PostgreSqlDialect : SqlDialect {
                 write("offset ? ")
                 _parameters += ArgumentExpression(expr.offset, IntSqlType)
             }
+        }
+
+        override fun visitUnknown(expr: SqlExpression): SqlExpression {
+            return when (expr) {
+                is ILikeExpression -> visitILike(expr)
+                else -> super.visitUnknown(expr)
+            }
+        }
+
+        private fun visitILike(expr: ILikeExpression): ILikeExpression {
+            if (expr.left.removeBrackets) {
+                visit(expr.left)
+            } else {
+                write("(")
+                visit(expr.left)
+                removeLastBlank()
+                write(") ")
+            }
+
+            write("ilike ")
+
+            if (expr.right.removeBrackets) {
+                visit(expr.right)
+            } else {
+                write("(")
+                visit(expr.right)
+                removeLastBlank()
+                write(") ")
+            }
+
+            return expr
         }
     }
 }
