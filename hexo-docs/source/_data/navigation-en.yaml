@@ -42,6 +42,10 @@ main:
     type: link
     path: en/dml.html
 
+  - text: Operators
+    type: link
+    path: en/operators.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 

@@ -42,6 +42,10 @@ main:
     type: link
     path: zh-cn/dml.html
 
+  - text: 操作符
+    type: link
+    path: zh-cn/operators.html
+
   - text: 支持和反馈
     type: label
 
