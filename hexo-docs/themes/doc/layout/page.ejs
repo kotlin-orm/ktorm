@@ -19,7 +19,7 @@
         <%- page.content %>
 
         <div id="support-footer-container">
-          <%- react_component('SupportFooter', {page}) %>
+          <%- react_component('SupportFooter', {page, url_for, data: site.data}) %>
         </div>
       </article>
     </div>
