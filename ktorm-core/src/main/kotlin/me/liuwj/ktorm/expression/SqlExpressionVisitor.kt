@@ -36,6 +36,7 @@ abstract class SqlExpressionVisitor {
             is BinaryExpression -> visitBinary(expr)
             is ColumnExpression -> visitColumn(expr)
             is InListExpression<*> -> visitInList(expr)
+            is ExistsExpression -> visitExists(expr)
             is AggregateExpression -> visitAggregate(expr)
             is BetweenExpression<*> -> visitBetween(expr)
             is ArgumentExpression -> visitArgument(expr)
@@ -204,6 +205,16 @@ abstract class SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(left = left, query = query, values = values)
+        }
+    }
+
+    protected open fun visitExists(expr: ExistsExpression): ExistsExpression {
+        val query = visitQuery(expr.query)
+
+        if (query === expr.query) {
+            return expr
+        } else {
+            return expr.copy(query = query)
         }
     }
 

@@ -127,7 +127,6 @@ data class UnionExpression(
  * 一元表达式类型
  */
 enum class UnaryExpressionType(private val value: String) {
-    EXISTS("exists"),
     IS_NULL("is null"),
     IS_NOT_NULL("is not null"),
     UNARY_MINUS("-"),
@@ -296,6 +295,19 @@ data class InListExpression<T : Any>(
     val query: QueryExpression? = null,
     val values: List<ScalarExpression<T>>? = null,
     val notInList: Boolean = false,
+    override val sqlType: SqlType<Boolean> = BooleanSqlType,
+    override val isLeafNode: Boolean = false
+) : ScalarExpression<Boolean>()
+
+/**
+ * SQL exists 表达式，判断指定查询是否至少返回一条结果
+ *
+ * @property query 查询表达式
+ * @property notExists 是否取反
+ */
+data class ExistsExpression(
+    val query: QueryExpression,
+    val notExists: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
     override val isLeafNode: Boolean = false
 ) : ScalarExpression<Boolean>()

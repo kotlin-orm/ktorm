@@ -8,10 +8,6 @@ import me.liuwj.ktorm.schema.*
 
 // ---- Unary operators... ----
 
-fun ColumnDeclaring<*>.exists(): UnaryExpression<Boolean> {
-    return UnaryExpression(UnaryExpressionType.EXISTS, asExpression(), BooleanSqlType)
-}
-
 fun ColumnDeclaring<*>.isNull(): UnaryExpression<Boolean> {
     return UnaryExpression(UnaryExpressionType.IS_NULL, asExpression(), BooleanSqlType)
 }
@@ -264,6 +260,16 @@ infix fun <T : Any> ColumnDeclaring<T>.notInList(collection: Collection<T>): InL
 
 infix fun <T : Any> ColumnDeclaring<T>.notInList(query: Query): InListExpression<T> {
     return InListExpression(left = asExpression(), query = query.expression, notInList = true)
+}
+
+// ---- Exists ------
+
+fun exists(query: Query): ExistsExpression {
+    return ExistsExpression(query.expression)
+}
+
+fun notExists(query: Query): ExistsExpression {
+    return ExistsExpression(query.expression, notExists = true)
 }
 
 // ---- Type casting... ----

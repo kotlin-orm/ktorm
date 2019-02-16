@@ -83,7 +83,9 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
         return false
     }
 
-    protected val SqlExpression.removeBrackets get() = isLeafNode || this is FunctionExpression<*> || this is AggregateExpression<*>
+    protected open val SqlExpression.removeBrackets: Boolean get() {
+        return isLeafNode || this is FunctionExpression<*> || this is AggregateExpression<*> || this is ExistsExpression
+    }
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super.visit(expr)
@@ -343,6 +345,18 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
             removeLastBlank()
             write(") ")
         }
+        return expr
+    }
+
+    override fun visitExists(expr: ExistsExpression): ExistsExpression {
+        if (expr.notExists) {
+            write("not exists ")
+        } else {
+            write("exists ")
+        }
+
+        visitQuerySource(expr.query)
+
         return expr
     }
 

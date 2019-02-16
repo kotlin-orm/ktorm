@@ -164,6 +164,23 @@ class QueryTest : BaseTest() {
     }
 
     @Test
+    fun testExists() {
+        val query = Employees
+            .select()
+            .where {
+                Employees.id.isNotNull() and exists(
+                    Departments
+                        .select()
+                        .where { Departments.id eq Employees.departmentId }
+                )
+            }
+
+        //assert(query.count() == 4)
+        println(query.count())
+        println(query.sql)
+    }
+
+    @Test
     fun testUnion() {
         val query = Employees
             .select(Employees.id)
