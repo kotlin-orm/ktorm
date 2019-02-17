@@ -161,6 +161,7 @@ enum class BinaryExpressionType(private val value: String) {
     DIV("/"),
     REM("%"),
     LIKE("like"),
+    NOT_LIKE("not like"),
     AND("and"),
     OR("or"),
     XOR("xor"),

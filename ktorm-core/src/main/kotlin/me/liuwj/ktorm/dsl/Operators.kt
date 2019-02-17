@@ -108,6 +108,14 @@ infix fun ColumnDeclaring<*>.like(argument: String): BinaryExpression<Boolean> {
     return this like ArgumentExpression(argument, VarcharSqlType)
 }
 
+infix fun ColumnDeclaring<*>.notLike(expr: ColumnDeclaring<String>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.NOT_LIKE, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+infix fun ColumnDeclaring<*>.notLike(argument: String): BinaryExpression<Boolean> {
+    return this notLike ArgumentExpression(argument, VarcharSqlType)
+}
+
 // --------- And ------------
 
 infix fun ColumnDeclaring<Boolean>.and(expr: ColumnDeclaring<Boolean>): BinaryExpression<Boolean> {

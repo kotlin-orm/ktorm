@@ -175,8 +175,7 @@ class QueryTest : BaseTest() {
                 )
             }
 
-        //assert(query.count() == 4)
-        println(query.count())
+        assert(query.count() == 4)
         println(query.sql)
     }
 
@@ -194,6 +193,13 @@ class QueryTest : BaseTest() {
 
         assert(query.count() == 8)
 
+        println(query.sql)
+    }
+
+    @Test
+    fun testMod() {
+        val query = Employees.select().where { Employees.id % 2 eq 1 }
+        assert(query.count() == 2)
         println(query.sql)
     }
 }
