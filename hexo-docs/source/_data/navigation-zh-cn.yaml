@@ -46,6 +46,10 @@ main:
     type: link
     path: zh-cn/operators.html
 
+  - text: 方言
+    type: link
+    path: zh-cn/dialect.html
+
   - text: 支持和反馈
     type: label
 

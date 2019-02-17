@@ -46,6 +46,10 @@ main:
     type: link
     path: en/operators.html
 
+  - text: Dialect
+    type: link
+    path: en/dialect.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 
