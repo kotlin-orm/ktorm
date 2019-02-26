@@ -89,3 +89,16 @@ fun <T : Comparable<T>> least(left: ColumnDeclaring<T>, right: T): FunctionExpre
 fun <T : Comparable<T>> least(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
     return least(right.wrapArgument(left), right)
 }
+
+fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpression<T> {
+    // ifnull(left, right)
+    return FunctionExpression(
+        functionName = "ifnull",
+        arguments = listOf(this, right).map { it.asExpression() },
+        sqlType = sqlType
+    )
+}
+
+fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
+    return this.ifNull(wrapArgument(right))
+}

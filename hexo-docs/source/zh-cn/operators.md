@@ -10,7 +10,7 @@ related_path: en/operators.html
 
 ## 内置操作符
 
-Ktorm 的每个操作符实际上都是一个返回 `SqlExpression` 的 Kotlin 函数，下面是目前我们所支持的所有操作符的列表及使用示例：
+Ktorm 的每个操作符实际上都是一个返回 `SqlExpression` 的 Kotlin 函数，下面是目前我们支持的所有操作符的列表及使用示例：
 
 | Kotlin 函数名 | SQL 关键字/符号 | 使用示例                                                     |
 | ------------- | --------------- | ------------------------------------------------------------ |
@@ -98,7 +98,7 @@ infix fun ColumnDeclaring<*>.ilike(argument: String): ILikeExpression {
 }
 ```
 
-这样我们就能使用这个操作符函数了，就像使用其他操作符一样。不过现在 Ktorm 还无法识别我们自己创建的 `IlikeExpression`，无法为我们生成正确的 SQL，跟之前一样，我们需要扩展 `SqlFormatter` 类：
+这样我们就能使用这个操作符函数了，就像使用其他操作符一样。不过现在 Ktorm 还无法识别我们自己创建的 `ILikeExpression`，无法为我们生成正确的 SQL，跟之前一样，我们需要扩展 `SqlFormatter` 类：
 
 ```kotlin
 class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
@@ -135,3 +135,4 @@ class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
 ```
 
 接下来的事情就是使用方言（Dialect）支持将这个自定义的 SqlFormatter 注册到 Ktorm 中了，关于如何启用方言，可参考后面的章节。
+
