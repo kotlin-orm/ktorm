@@ -53,9 +53,13 @@ main:
   - text: ENTITY API
     type: label
 
-  - text: Entity Definition
+  - text: Entities and Column Binding
     type: link
-    path: en/entity-definition.html
+    path: en/entities-and-column-binding.html
+
+  - text: Entity Finding
+    type: link
+    path: en/entity-finding.html
 
   - text: SUPPORT AND FEEDBACK
     type: label

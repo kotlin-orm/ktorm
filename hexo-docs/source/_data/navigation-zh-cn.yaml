@@ -53,9 +53,13 @@ main:
   - text: 实体类 API
     type: label
 
-  - text: 定义实体类
+  - text: 实体类与列绑定
     type: link
-    path: zh-cn/entity-definition.html
+    path: zh-cn/entities-and-column-binding.html
+
+  - text: 实体查询
+    type: link
+    path: zh-cn/entity-finding.html
 
   - text: 支持和反馈
     type: label
