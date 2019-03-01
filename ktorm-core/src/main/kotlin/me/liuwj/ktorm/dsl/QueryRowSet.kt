@@ -29,15 +29,15 @@ internal constructor(
 ) : CachedRowSet by nativeRowSet {
 
     private val resultLabels by lazy(LazyThreadSafetyMode.NONE) {
-        val labelsToIndex = HashMap<String, Int>()
+        val labels = HashMap<String, Int>()
         val metaData = nativeRowSet.metaData
 
         for (i in 1..metaData.columnCount) {
             val label = metaData.getColumnLabel(i)
-            labelsToIndex.putIfAbsent(label.toUpperCase(), i)
+            labels.putIfAbsent(label.toUpperCase(), i)
         }
 
-        labelsToIndex as Map<String, Int>
+        labels as Map<String, Int>
     }
 
     private val queryLabels by lazy(LazyThreadSafetyMode.NONE) {

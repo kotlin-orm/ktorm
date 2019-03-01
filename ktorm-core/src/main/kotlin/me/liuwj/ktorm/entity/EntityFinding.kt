@@ -116,12 +116,13 @@ private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = n
     val entityClass = this.entityClass ?: kotlin.error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
-    if (foreignKey != null) {
-        entity.setPrimaryKeyValue(this, row[foreignKey])
+    val foreignKeyValue = if (foreignKey != null && row.hasColumn(foreignKey)) row[foreignKey] else null
+    if (foreignKeyValue != null) {
+        entity.setPrimaryKeyValue(this, foreignKeyValue)
     }
 
     for (column in columns) {
-        if (foreignKey != null && this.primaryKey == column) {
+        if (foreignKeyValue != null && this.primaryKey == column) {
             continue
         }
 
@@ -136,7 +137,7 @@ private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = n
 }
 
 private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>) {
-    val binding = column.binding?.takeIf { this.hasColumn(column) } ?: return
+    val binding = column.binding ?: return
     when (binding) {
         is ReferenceBinding -> {
             val rightTable = binding.referenceTable
@@ -147,9 +148,9 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>)
             }
         }
         is NestedBinding -> {
-            val columnValue = this[column]
-            if (columnValue != null) {
+            val columnValue = if (this.hasColumn(column)) this[column] else null
 
+            if (columnValue != null) {
                 var curr: Entity<*> = intoEntity
                 for ((i, prop) in binding.withIndex()) {
                     if (i != binding.lastIndex) {
