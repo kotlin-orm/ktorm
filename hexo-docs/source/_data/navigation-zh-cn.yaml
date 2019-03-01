@@ -61,6 +61,10 @@ main:
     type: link
     path: zh-cn/entity-finding.html
 
+  - text: 实体增删改
+    type: link
+    path: zh-cn/entity-dml.html
+
   - text: 支持和反馈
     type: label
 

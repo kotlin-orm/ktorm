@@ -223,7 +223,7 @@ val query = Employees
 
 ## groupBy/having
 
-`groupBy` 和 `having` 也都是 `Query` 类的扩展函数，他们为 SQL 中的相应功能提供了支持，下面是一个使用的例子：
+`groupBy` 和 `having` 也都是 `Query` 类的扩展函数，他们为 SQL 中的聚合功能提供了支持，下面是一个使用的例子：
 
 ```kotlin
 val t = Employees

@@ -16,13 +16,13 @@ Ktorm 提供了许多扩展函数，用来从数据库中获取实体对象，�
 inline fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ScalarExpression<Boolean>): List<E>
 ````
 
-这个函数接受一个闭包作为参数，使用闭包中返回的 `ScalarExpression<Boolean>` 作为查询的筛选条件，SQL 执行完毕后，从结果集中创建一个实体对象的列表并返回。值得一提的是，作为参数的闭包函数本身也接收一个参数 `T`，这正是当前表对象，因此我们能在闭包中使用 it 引用它。获取部门 1 中所有员工的代码如下：
+这个函数接受一个闭包作为参数，使用闭包中返回的 `ScalarExpression<Boolean>` 作为查询的筛选条件，SQL 执行完毕后，从结果集中创建一个实体对象的列表并返回。作为参数的闭包函数本身也接收一个参数 `T`，这正是当前表对象，因此我们能在闭包中使用 it 引用它。获取部门 1 中所有员工的代码如下：
 
 ````kotlin
 val employees = Employees.findList { it.departmentId eq 1 }
 ````
 
-这种写法十分自然，就像使用 Kotlin 标准库中的函数从一个集合中获取符合条件的元素一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。
+这种写法十分自然，就像使用 Kotlin 标准库中的函数从一个集合中筛选符合条件的元素一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。
 
 上述代码生成的 SQL 如下：
 
@@ -74,3 +74,37 @@ Employee{id=3, name=tom, job=director, hireDate=2018-01-01, salary=200, departme
 Employee{id=4, name=penny, job=assistant, manager=Employee{id=3}, hireDate=2019-01-01, salary=100, department=Department{id=2}}
 ````
 
+## joinReferencesAndSelect
+
+`joinReferencesAndSelect` 也是 `Table` 类的扩展函数，它创建一个 `Query` 对象，这个查询递归地 left join 当前表对象的所有关联表，并且 select 出它们的所有列。你可以直接从这个返回的 `Query` 对象中获取所有的记录，也可以紧接着调用 `Query` 类的其他扩展方法修改这个查询。实际上，`find*` 系列函数都是基于这个函数实现的。
+
+下面是一个使用示例，这个查询获取所有的员工及其所在的部门的信息，并按员工的 ID 进行排序：
+
+````kotlin
+val employees = Employees
+    .joinReferencesAndSelect()
+    .orderBy(Employees.id.asc())
+    .map { Employees.createEntity(it) }
+````
+
+生成的 SQL 如下：
+
+````sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+order by t_employee.id 
+````
+
+从生成的 SQL 中可以看出，上面的查询实际上相当于手动调用 `leftJoin` 函数，例如下面的代码与上面例子中的查询就是完全等价的，但是使用 `joinReferencesAndSelect` 可以为我们减少一些样板代码。
+
+```kotlin
+val emp = Employees
+val dept = emp.departmentId.referenceTable as Departments
+
+val employees = emp
+    .leftJoin(dept, on = emp.departmentId eq dept.id)
+    .select(emp.columns + dept.columns)
+    .orderBy(emp.id.asc())
+    .map { emp.createEntity(it) }
+```

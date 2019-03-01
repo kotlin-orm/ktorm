@@ -61,6 +61,10 @@ main:
     type: link
     path: en/entity-finding.html
 
+  - text: Entity Manipulation
+    type: link
+    path: en/entity-dml.html
+
   - text: SUPPORT AND FEEDBACK
     type: label
 
