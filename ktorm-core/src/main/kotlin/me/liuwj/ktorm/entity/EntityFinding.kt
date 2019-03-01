@@ -112,11 +112,19 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
     return doCreateEntity(row) as E
 }
 
-private fun Table<*>.doCreateEntity(row: QueryRowSet): Entity<*> {
+private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = null): Entity<*> {
     val entityClass = this.entityClass ?: kotlin.error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
+    if (foreignKey != null) {
+        entity.setPrimaryKeyValue(this, row[foreignKey])
+    }
+
     for (column in columns) {
+        if (foreignKey != null && this.primaryKey == column) {
+            continue
+        }
+
         try {
             row.retrieveColumn(column, intoEntity = entity)
         } catch (e: Throwable) {
@@ -135,7 +143,7 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>)
             val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} dosen't have a primary key.")
 
             if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
-                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this)
+                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this, foreignKey = column)
             }
         }
         is NestedBinding -> {

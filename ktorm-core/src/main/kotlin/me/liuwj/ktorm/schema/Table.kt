@@ -154,8 +154,12 @@ open class Table<E : Entity<E>>(
          * 将当前列设置为主键
          */
         fun primaryKey(): ColumnRegistration<C> {
-            if (getColumn() is AliasedColumn) {
+            val column = getColumn()
+            if (column is AliasedColumn) {
                 throw UnsupportedOperationException("Cannot set aliased column $key as a primary key.")
+            }
+            if (column.binding is ReferenceBinding) {
+                throw UnsupportedOperationException("Reference binding is not supported on primary key: $column")
             }
 
             _primaryKeyName = key
@@ -239,6 +243,10 @@ open class Table<E : Entity<E>>(
 
         private fun doBinding(binding: ColumnBinding): ColumnRegistration<C> {
             val column = _columns[key] ?: throw NoSuchElementException(key)
+
+            if (column == primaryKey && binding is ReferenceBinding) {
+                throw UnsupportedOperationException("Reference binding is not supported on primary key: $column")
+            }
 
             _columns[key] = when (column) {
                 is SimpleColumn -> column.copy(binding = binding)
