@@ -65,6 +65,10 @@ main:
     type: link
     path: zh-cn/entity-dml.html
 
+  - text: 实体序列
+    type: link
+    path: zh-cn/entity-sequence.html
+
   - text: 支持和反馈
     type: label
 
