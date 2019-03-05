@@ -2,7 +2,7 @@
 title: 概述
 slogan: Kotlin ORM 框架
 lang: zh-cn
-related_path: ''
+related_path: '/'
 ---
 
 ## Ktorm 是什么？
