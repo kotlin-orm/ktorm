@@ -221,7 +221,7 @@ Employees.delete { it.id eq 4 }
 
 更多 SQL DSL 的用法，参考[具体文档](https://ktorm.liuwj.me)。
 
-## Entity
+## 实体类 API
 
 跟其他 ORM 框架一样，Ktorm 也支持实体对象。在 Ktorm 里面，我们使用接口定义实体类，继承 `Entity<E>` 接口即可：
 
