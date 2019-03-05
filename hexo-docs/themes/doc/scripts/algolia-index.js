@@ -101,9 +101,9 @@ function algolia(args, callback) {
     var hexoPages = hexo.database.model('Page').find({});
 
     for (var i = 0; i < hexoPages.length; i++) {
-      var algoliaIndex = hexoPages.data[i].algoliaIndex;
-      if (algoliaIndex === undefined || algoliaIndex === null || algoliaIndex === true) {
-        posts.push(processPost(hexoPages.data[i]));
+      var post = hexoPages.data[i];
+      if (!post.skipAlgolia && post.layout !== 'api') {
+        posts.push(processPost(post));
       }
     }
 

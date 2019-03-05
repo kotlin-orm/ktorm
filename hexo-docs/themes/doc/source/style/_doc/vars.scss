@@ -67,7 +67,7 @@ $code-font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, mo
 $code-foreground: #222;
 $code-background: #eee;
 $line-height-code-block: 1.6;
-$code-border-radius: 4px;
+$code-border-radius: 0px;
 
 $highlight-background: #f7f7f7;
 $highlight-current-line: #efefef;
@@ -85,3 +85,4 @@ $highlight-gutter-color: #869194;
 $highlight-gutter-bg-color:  #eff2f3;
 $highlight-deletion: #fdd;
 $highlight-addition: #dfd;
+$highlight-link: #26aafe

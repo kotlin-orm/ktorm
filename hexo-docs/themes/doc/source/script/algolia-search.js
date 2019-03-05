@@ -17,7 +17,7 @@ $(document).ready(function () {
     searchParameters: {
       facets: ['lang'],
       facetsRefinements: {
-        lang: [lang]
+        lang: [lang === 'zh-cn' ? 'zh-cn' : 'en']
       }
     },
     searchFunction: function (helper) {
@@ -76,19 +76,19 @@ $(document).ready(function () {
           );
         },
         empty: function (data) {
-          if (lang === 'en') {
+          if (lang === 'zh-cn') {
             return (
               '<h1 class="doc-search-results__title">' +
-                'No results for <span class="doc-search-results__title__query">"' + data.query + '".</span>' +
+              '未找到与 <span class="doc-search-results__title__query">"' + data.query + '"</span> 相关的内容' +
               '</h1>' +
-              '<p>There are no results for "' + data.query + '". Why not <strong>try typing another keyword?</strong></p>'
+              '<p>未找到与 "' + data.query + '" 相关的内容，请 <strong>尝试其他关键字</strong></p>'
             );
           } else {
             return (
               '<h1 class="doc-search-results__title">' +
-                '未找到与 <span class="doc-search-results__title__query">"' + data.query + '"</span> 相关的内容' +
+              'No results for <span class="doc-search-results__title__query">"' + data.query + '".</span>' +
               '</h1>' +
-              '<p>未找到与 "' + data.query + '" 相关的内容，请 <strong>尝试其他关键字</strong></p>'
+              '<p>There are no results for "' + data.query + '". Why not <strong>try typing another keyword?</strong></p>'
             );
           }
         }
@@ -103,16 +103,16 @@ $(document).ready(function () {
       container: '#doc-search-stats',
       templates: {
         body: function (data) {
-          if (lang === 'en') {
+          if (lang === 'zh-cn') {
             return (
               '<h1 class="doc-search-results__title">' +
-                data.nbHits + ' results found in ' + data.processingTimeMS + 'ms.' + 
+              '找到 ' + data.nbHits + ' 条结果，耗时 ' + data.processingTimeMS + ' 毫秒' +
               '</h1>'
             );
           } else {
             return (
               '<h1 class="doc-search-results__title">' +
-                '找到 ' + data.nbHits + ' 条结果，耗时 ' + data.processingTimeMS + ' 毫秒' + 
+              data.nbHits + ' results found in ' + data.processingTimeMS + 'ms.' +
               '</h1>'
             );
           }

@@ -52,7 +52,11 @@ class Navigation extends React.Component {
 
   getNavigationConfig() {
     const lang = this.props.page.lang;
-    return this.props.data["navigation-" + lang];
+    if (lang === 'zh-cn') {
+      return this.props.data['navigation-zh-cn'];
+    } else {
+      return this.props.data['navigation-en'];
+    }
   }
 
   getItems () {
@@ -70,7 +74,7 @@ class Navigation extends React.Component {
 
         // check if the item represents the current page,
         // and traverse ancestors
-        if (item.path === page.path.replace('index.html', '')) {
+        if (item.path === page.path || item.path === page.path.replace('index.html', '')) {
           item.isCurrent = true;
           (function walk (p) {
             if (p) {

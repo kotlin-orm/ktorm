@@ -72,10 +72,14 @@ main:
   - text: SUPPORT AND FEEDBACK
     type: label
 
+  - text: API Documents
+    type: support-link
+    path: api-docs/index.html
+
   - text: Author's Blog
-    type: link
+    type: support-link
     path: https://www.liuwj.me
 
   - text: Raise an Issue on GitHub
-    type: link
+    type: support-link
     path: https://github.com/vincentlauvlwj/Ktorm/issues/new

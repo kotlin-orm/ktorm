@@ -72,10 +72,14 @@ main:
   - text: 支持和反馈
     type: label
 
+  - text: API 文档
+    type: support-link
+    path: api-docs/index.html
+
   - text: 作者博客
-    type: link
+    type: support-link
     path: https://www.liuwj.me
 
   - text: 在 GitHub 提出 issue
-    type: link
+    type: support-link
     path: https://github.com/vincentlauvlwj/Ktorm/issues/new

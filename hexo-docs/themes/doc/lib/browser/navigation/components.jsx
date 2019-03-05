@@ -9,7 +9,7 @@ function Navbar (props) {
 }
 
 function Logo ({page, url_for}) {
-  var homePath = page.lang === 'en' ? '/' : 'zh-cn/'; 
+  var homePath = page.lang === 'zh-cn' ? 'zh-cn/' : '/';
 
   return (
     <span className="doc-navbar__logo">
@@ -59,7 +59,7 @@ function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHe
             <input type="search"
               id="doc-search-input"
               className="dc-input dc-search-form__input doc-search-form__input"
-              placeholder={page.lang === 'en' ? 'Search documents' : '搜索文档'}
+              placeholder={page.lang === 'zh-cn' ? '搜索文档' : 'Search documents'}
               autoFocus={true} />
             <button className="dc-btn dc-search-form__btn doc-search-form__btn" aria-label="Search">
               <i className="dc-icon dc-icon--search"/>
