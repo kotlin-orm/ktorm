@@ -188,7 +188,7 @@ Employees.update {
 Employees.delete { it.id eq 4 }
 ```
 
-更多 SQL DSL 的用法，参考[具体文档](https://ktorm.liuwj.me)。
+更多 SQL DSL 的用法，请参考具体的文档。
 
 ## Entity
 
@@ -310,4 +310,4 @@ val employee = Employees.findById(2) ?: throw AssertionError()
 employee.delete()
 ```
 
-更多实体 API 的用法，参考[具体文档](https://ktorm.liuwj.me)。
+更多实体 API 的用法，请参考具体的文档。

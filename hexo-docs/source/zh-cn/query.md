@@ -53,9 +53,9 @@ Employees.select()
 
 `Query` 类中还有一些有用的属性：
 
-- sql：返回该查询生成的 SQL 字符串，可以在调试程序的时候确认生成的 SQL 是否符合预期。
-- rowSet：返回该查询的结果集对象，此字段懒初始化，在第一次获取时，执行 SQL 语句，从数据库中获取结果。
-- totalRecords：如果该查询没有使用 offset, limit 进行分页，此字段返回结果集的总行数；如果使用了分页，返回去除 offset, limit 限制后的符合条件的总记录数。Ktorm 使用此字段来支持页码计算，你可以使用 totalRecords 除以你的每页大小来计算总页数。  
+- **sql：**返回该查询生成的 SQL 字符串，可以在调试程序的时候确认生成的 SQL 是否符合预期。
+- **rowSet：**返回该查询的结果集对象，此字段懒初始化，在第一次获取时，执行 SQL 语句，从数据库中获取结果。
+- **totalRecords：**如果该查询没有使用 offset, limit 进行分页，此字段返回结果集的总行数；如果使用了分页，返回去除 offset, limit 限制后的符合条件的总记录数。Ktorm 使用此字段来支持页码计算，你可以使用 totalRecords 除以你的每页大小来计算总页数。  
 
 ## 获取查询结果
 
@@ -65,8 +65,8 @@ Employees.select()
 
 你可能已经发现，`Query.rowSet` 返回的结果集并不是普通的 `ResultSet`，而是 `QueryRowSet`。这是 Ktorm 提供的特殊的 `ResultSet` 的实现，与普通的 `ResultSet` 不同，它增加了如下特性：
 
-- 离线可用：它不依赖于数据库连接，当连接关闭后，仍然可以正常使用，使用完毕也不需要调用 `close` 方法。`QueryRowSet` 在创建时，已经完整取出了结果集中的所有数据保存在内存中，因此只需要等待 GC 自动回收即可。
-- 索引访问操作符：`QueryRowSet` 重载了[索引访问操作符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
+- **离线可用：**它不依赖于数据库连接，当连接关闭后，仍然可以正常使用，使用完毕也不需要调用 `close` 方法。`QueryRowSet` 在创建时，已经完整取出了结果集中的所有数据保存在内存中，因此只需要等待 GC 自动回收即可。
+- **索引访问操作符：**`QueryRowSet` 重载了[索引访问操作符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
 
 使用索引访问操作符获取列的方法如下：
 
@@ -131,7 +131,7 @@ select max(t_employee.salary) - min(t_employee.salary)
 from t_employee 
 ````
 
-可以看到，生成的 SQL 和我们写出来的 Kotlin 代码高度一致，这得益于 Kotlin 优秀的语法特性。Ktorm 提供了许多重载的操作符，这就是我们能够在上面的查询中使用减号的原因。由于操作符的重载，这里的减号并没有执行实际的减法，而是被翻译为 SQL 中的减号送到数据库中去执行。在后面的章节中我们会介绍 Ktorm 提供的其他操作符。
+可以看到，生成的 SQL 和我们写出来的 Kotlin 代码高度一致，这得益于 Kotlin 优秀的语法特性。Ktorm 提供了许多重载的操作符，这就是我们能够在上面的查询中使用减号的原因。由于操作符的重载，这里的减号并没有执行实际的减法，而是被翻译为 SQL 中的减号送到数据库中去执行。在[操作符](./operators.html)一节中我们会介绍 Ktorm 提供的其他操作符。
 
 > 有个小遗憾：虽然 `select` 方法支持使用复杂的表达式，但是将查询的结果从 `QueryRowSet` 中取出来时，我们却不能使用前面介绍的索引访问操作符 []，只能使用继承自 `ResultSet` 中的 `getXxx` 方法，使用列的序号获取该列的值。
 
@@ -187,7 +187,7 @@ val query = Employees
     }
 ```
 
-这里我们使用一个 `ArrayList` 保存所有查询条件，然后使用 if 语句根据不同的参数是否为空将不同的查询条件添加到 list 中，最后使用一个 reduce 操作将所有条件用 and 连接起来。使用 Ktorm 不需要特别的操作就能够完美支持所谓的“动态查询”。
+这里我们使用一个 `ArrayList` 保存所有查询条件，然后使用 if 语句根据不同的参数是否为空将查询条件添加到 list 中，最后使用一个 reduce 操作将所有条件用 and 连接起来。使用 Ktorm 不需要特别的操作就能够完美支持所谓的“动态查询”。
 
 当然，上面的写法还是有一点漏洞，当所有情况都不满足，list 为空时，reduce 操作会抛出一个异常。为了避免这个异常，可以使用 `conditions.combineConditions()` 代替 reduce 操作。`combineConditions` 是 Ktorm 提供的函数，它的功能就是使用 and 将所有条件连接起来，当 list 为空时，直接返回 true，这是它的实现：
 
@@ -333,7 +333,7 @@ val query = Employees.select().limit(0, 1)
 java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
 ````
 
-这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何启用方言，可参考后面的章节。
+这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何[启用方言](./dialects-and-raw-sql.html#启用方言)，可参考后面的章节。
 
 ## union/unionAll
 

@@ -188,7 +188,7 @@ Delete:
 Employees.delete { it.id eq 4 }
 ```
 
-Refer to [documentation](https://ktorm.liuwj.me) for more usage about SQL DSL.
+Refer to detailed documentations for more usage about SQL DSL.
 
 ## Entity
 
@@ -310,4 +310,4 @@ val employee = Employees.findById(2) ?: throw AssertionError()
 employee.delete()
 ```
 
-Refer to [documentation](https://ktorm.liuwj.me) for more usage about entity APIs.
+Refer to detailed documentations for more usage about entity APIs.

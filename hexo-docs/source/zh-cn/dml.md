@@ -166,7 +166,7 @@ Employees.update {
 update t_employee set salary = salary + ? where id = ? 
 ````
 
-有时候，我们需要一次性更新多条数据，而循环调用 `update` 方法的性能可能难以忍受。这时，我们可以使用 `batchUpdate` 函数，与 `batchInsert` 类似，它基于原始 JDBC 提供的 `executeBatch` 函数实现，可以提高批量操作的性能。下面的操作将 id 为 1 和 2 的部门的 location 字段更新为 Hong Kong，当然我们也可以不用 `batchUpdate` 而是把更新条件指定为 `it.id between 1..2`，这里只是为了示范。可以看到，它的用法与 `batchInsert` 函数十分类似，只是多了一个 `where` 函数用于指定更新条件。
+有时候，我们需要一次性更新多条数据，而循环调用 `update` 方法的性能可能难以忍受。这时，我们可以使用 `batchUpdate` 函数，与 `batchInsert` 类似，它基于原生 JDBC 提供的 `executeBatch` 函数实现，可以提高批量操作的性能。下面的操作将 id 为 1 和 2 的部门的 location 字段更新为 Hong Kong，当然我们也可以不用 `batchUpdate` 而是把更新条件指定为 `it.id between 1..2`，这里只是为了示范。可以看到，它的用法与 `batchInsert` 函数十分类似，只是多了一个 `where` 函数用于指定更新条件。
 
 ```kotlin
 Departments.batchUpdate {

@@ -134,5 +134,5 @@ class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
 }
 ```
 
-接下来的事情就是使用方言（Dialect）支持将这个自定义的 SqlFormatter 注册到 Ktorm 中了，关于如何启用方言，可参考后面的章节。
+接下来的事情就是使用方言（Dialect）支持将这个自定义的 SqlFormatter 注册到 Ktorm 中了，关于如何[启用方言](./dialects-and-raw-sql.html#启用方言)，可参考后面的章节。
 

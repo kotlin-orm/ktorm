@@ -33,12 +33,3 @@ internal fun ObjectCodec.nameForProperty(prop: KProperty1<*, *>, config: MapperC
 
     return prop.name
 }
-
-fun Any.formatToJson(): String {
-    return sharedObjectMapper.writeValueAsString(this)
-}
-
-inline fun <reified T> String.parseJson(): T {
-    val type = object : TypeReference<T>() { }
-    return sharedObjectMapper.readValue(this, type)
-}

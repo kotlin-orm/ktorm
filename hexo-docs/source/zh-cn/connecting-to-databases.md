@@ -6,7 +6,7 @@ related_path: en/connecting-to-databases.html
 
 # 连接数据库
 
-要使用 Ktorm，首先你需要连接到你的数据库。Ktorm 提供了一个 `Database` 类用于管理你的数据库连接，一个 `Database` 实例代表了你的一个数据库。创建 `Database` 对象，你可以调用其伴随对象上的 `connect` 方法，提供数据库连接参数或者一个现成的 `DataSource` 数据源对象。
+要使用 Ktorm，首先你需要连接到你的数据库。Ktorm 提供了一个 `Database` 类用于管理你的数据库连接，一个 `Database` 实例代表了你的一个数据库。要创建 `Database` 对象，你可以调用其伴随对象上的 `connect` 方法，提供数据库连接参数或者一个现成的 `DataSource` 数据源对象。
 
 ## 使用 URL 连接到数据库
 

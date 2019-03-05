@@ -85,5 +85,5 @@ try {
 }
 ```
 
-`TransactionManager` 是一个接口，它可以有多种不同的实现。一般来说，使用 `Database.connect` 方法创建的 `Database` 对象默认会使用 `JdbcTransactionManager` 实现，这是基于原生 JDBC 提供的功能实现的事务管理器。Ktorm 还提供了 `SpringManagedTransactionManager`，这个实现自身并没有任何事务管理的功能，而是将事务管理委托给了 Spring 框架，具体请参考 **Spring 支持** 的相关文档。 
+`TransactionManager` 是一个接口，它可以有多种不同的实现。一般来说，使用 `Database.connect` 方法创建的 `Database` 对象默认会使用 `JdbcTransactionManager` 实现，这是基于原生 JDBC 提供的功能实现的事务管理器。Ktorm 还提供了 `SpringManagedTransactionManager`，这个实现自身并没有任何事务管理的功能，而是将事务管理委托给了 Spring 框架，具体请参考 [Spring 支持](./spring-support.html)的相关文档。 
 
