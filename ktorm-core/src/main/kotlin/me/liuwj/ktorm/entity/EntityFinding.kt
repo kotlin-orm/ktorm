@@ -116,21 +116,17 @@ private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = n
     val entityClass = this.entityClass ?: kotlin.error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
-    val foreignKeyValue = if (foreignKey != null && row.hasColumn(foreignKey)) row[foreignKey] else null
-    if (foreignKeyValue != null) {
-        entity.setPrimaryKeyValue(this, foreignKeyValue)
-    }
-
     for (column in columns) {
-        if (foreignKeyValue != null && this.primaryKey == column) {
-            continue
-        }
-
         try {
             row.retrieveColumn(column, intoEntity = entity)
         } catch (e: Throwable) {
             throw IllegalStateException("Error occur while retrieving column: $column, binding: ${column.binding}", e)
         }
+    }
+
+    val foreignKeyValue = if (foreignKey != null && row.hasColumn(foreignKey)) row[foreignKey] else null
+    if (foreignKeyValue != null) {
+        entity.forceSetPrimaryKeyValue(this, foreignKeyValue)
     }
 
     return entity.apply { discardChanges() }

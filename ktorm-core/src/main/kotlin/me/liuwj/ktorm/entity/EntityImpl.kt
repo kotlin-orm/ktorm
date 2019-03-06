@@ -195,6 +195,11 @@ class EntityImpl(
         changedProperties.add(name)
     }
 
+    fun forceSetValue(name: String, value: Any?) {
+        values[name] = value
+        changedProperties.add(name)
+    }
+
     private fun isPrimaryKey(name: String): Boolean {
         val binding = this.fromTable?.primaryKey?.binding
 

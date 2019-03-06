@@ -237,4 +237,13 @@ class EntityTest : BaseTest() {
             println(e.message)
         }
     }
+
+    @Test
+    fun testForeignKeyValue() {
+        val employees = Employees
+            .select()
+            .map { Employees.createEntity(it) }
+
+        employees.forEach { println(it) }
+    }
 }

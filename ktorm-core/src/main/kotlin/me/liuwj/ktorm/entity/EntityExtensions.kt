@@ -65,6 +65,43 @@ internal fun Entity<*>.setColumnValue(column: Column<*>, value: Any?) {
     }
 }
 
+internal fun Entity<*>.forceSetPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
+    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
+    forceSetColumnValue(primaryKey, value)
+}
+
+internal fun Entity<*>.forceSetColumnValue(column: Column<*>, value: Any?) {
+    val binding = column.binding ?: kotlin.error("Column $column has no bindings to any entity field.")
+
+    when (binding) {
+        is ReferenceBinding -> {
+            var child = this[binding.onProperty.name] as Entity<*>?
+            if (child == null) {
+                child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = binding.referenceTable)
+                this.impl.forceSetValue(binding.onProperty.name, child)
+            }
+
+            child.forceSetPrimaryKeyValue(binding.referenceTable, value)
+        }
+        is NestedBinding -> {
+            var curr: Entity<*> = this
+            for ((i, prop) in binding.withIndex()) {
+                if (i != binding.lastIndex) {
+                    var child = curr[prop.name] as Entity<*>?
+                    if (child == null) {
+                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr, fromTable = column.table)
+                        curr.impl.forceSetValue(prop.name, child)
+                    }
+
+                    curr = child
+                }
+            }
+
+            curr.impl.forceSetValue(binding.last().name, value)
+        }
+    }
+}
+
 /**
  * todo: make this extension internal
  */
