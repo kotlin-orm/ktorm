@@ -1,7 +1,7 @@
 ---
 title: 连接数据库
 lang: zh-cn
-related_path: en/connecting-to-databases.html
+related_path: en/connect-to-databases.html
 ---
 
 # 连接数据库
@@ -92,3 +92,4 @@ h2 {
 ```
 
 上面的代码先后使用 `connect` 方法连接上了两个数据库，并示范了如何在不同的数据库之间进行切换。因为 `Database` 重载了 `invoke` 操作符，接收一个闭包函数作为参数，在这个闭包函数中的作用域中，使用 `Database.global` 获取到的数据库对象会变成当前对象，因此达到了切换数据库的目的。
+

@@ -190,7 +190,7 @@ Employees.delete { it.id eq 4 }
 
 Refer to detailed documentations for more usage about SQL DSL.
 
-## Entity
+## Entity API
 
 Entity objects is also supported just like other ORM frameworks do. In Ktorm, we define entities as interfaces extending from `Entity<E>`: 
 

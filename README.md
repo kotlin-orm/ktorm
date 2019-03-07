@@ -32,7 +32,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
  - No configuration files, no xml, lightweight, easy to use.
  - Strong typed SQL DSL, exposing low-level bugs at compile time.
  - Flexible query, exactly control the generated SQLs as you wish.
- - Extensible design, write your own extensions to support more data types, SQL functions, etc.
+ - Extensible design, write your own extensions to support more operators, data types, SQL functions, etc.
  - Dialects supports, MySQL, Oracle, PostgreSQL, or you can write your own dialect support by implementing the `SqlDialect` interface.
 
 # Quick Start
@@ -221,7 +221,7 @@ Employees.delete { it.id eq 4 }
 
 Refer to [documentation](https://ktorm.liuwj.me) for more usage about SQL DSL.
 
-## Entity
+## Entity API
 
 Entity objects is also supported just like other ORM frameworks do. In Ktorm, we define entities as interfaces extending from `Entity<E>`: 
 

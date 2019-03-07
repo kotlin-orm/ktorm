@@ -13,7 +13,7 @@ main:
 
   - text: 连接数据库
     type: link
-    path: zh-cn/connecting-to-databases.html
+    path: zh-cn/connect-to-databases.html
 
   - text: 事务管理
     type: link

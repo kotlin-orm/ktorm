@@ -65,8 +65,8 @@ $(document).ready(function () {
             '<span class="doc-search-results__list__score-divider">|</span>' +
             '<span class="doc-search-results__list__score">' + matchedCount + ' matches</span>' +
             '<p>' + 
-              rawContent.substr(startIndex, 120)
-                .replace(/[\t\n\s]+/g, ' ')
+              rawContent.substr(startIndex, 300)
+                .replace(/[\t\n\s`]+/g, ' ')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/&lt;em&gt;/g, '<em>')

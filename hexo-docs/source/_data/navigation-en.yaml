@@ -11,9 +11,9 @@ main:
   - text: CONNECTION MANAGEMENT
     type: label
 
-  - text: Connecting to Databases
+  - text: Connect to Databases
     type: link
-    path: en/connecting-to-databases.html
+    path: en/connect-to-databases.html
 
   - text: Transaction Management
     type: link
