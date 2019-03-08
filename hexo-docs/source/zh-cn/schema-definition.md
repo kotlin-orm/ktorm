@@ -57,7 +57,7 @@ object Employees : Table<Nothing>("t_employee") {
 - 它们都接收一个字符串的参数，在这里我们需要把列的名称传入
 - 它们的返回值都是 `Table<E>.ColumnRegistration<C>`，E 为实体类的类型，C 为该列的类型，我们可以链式调用 `ConlumnRegistration` 上的 `primaryKey` 函数，将当前列声明为主键
 
-> `ColumnRegistration` 实现了 `ReadOnlyProperty` 接口，所以可以结合 by 关键字用作属性委托。因此，在 `val name by varchar("name")` 中，虽然 varchar 函数的返回值类型为 `ColumnRegistration<String>`，但 `val name` 的类型却是 `Column<String>`。以此类推， `val managerId by int("manager_id")` 定义的属性的类型应该是 `Column<Int>`。
+> `ColumnRegistration` 实现了 `ReadOnlyProperty` 接口，所以可以结合 by 关键字用作[属性委托](https://kotlinlang.org/docs/reference/delegated-properties.html)。因此，在 `val name by varchar("name")` 中，虽然 varchar 函数的返回值类型为 `ColumnRegistration<String>`，但 `val name` 的类型却是 `Column<String>`。以此类推， `val managerId by int("manager_id")` 定义的属性的类型应该是 `Column<Int>`。
 
 通常我们都会将表定义为 Kotlin 单例对象，但我们其实不必拘泥于此。例如，在某些情况下，我们有两个结构完全相同的表，只是表名不同（在数据备份的时候比较常见），难道我们一定要在每一个表对象中都写一遍完全相同的字段定义吗？当然不需要，这里我们可以使用继承重用代码：
 
