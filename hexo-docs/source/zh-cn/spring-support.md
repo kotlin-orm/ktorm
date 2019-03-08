@@ -73,14 +73,14 @@ class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionM
 
 可以看到，它的 `currentTransaction` 属性永远返回 null，它的 `newTransaction` 方法会抛出异常。因此我们无法使用它来创建事务，在需要连接的时候只能使用 `newConnection` 方法从 [TransactionAwareDataSourceProxy](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/datasource/TransactionAwareDataSourceProxy.html) 获取一个代理，通过这个代理，我们的事务将完全被 Spring 接管。
 
-> 注意：开启了 Spring 支持之后，`useTransaction` 方法将不能使用，请改用 Spring 框架提供的 `@Transactional` 注解，否则会抛出异常：java.lang.UnsupportedOperationException: Transaction is managed by Spring, please use Spring's @Transactional annotation instead.
+> 注意：开启了 Spring 支持之后，[useTransaction](./transaction-management.html#useTransaction-函数) 方法将不能使用，请改用 Spring 框架提供的 `@Transactional` 注解，否则会抛出异常：java.lang.UnsupportedOperationException: Transaction is managed by Spring, please use Spring's @Transactional annotation instead.
 
 ## 异常转换
 
 除了事务管理，Spring JDBC 还提供了异常转换的功能，它能将 JDBC 中抛出的 `SQLException` 统一转换为 [DataAccessException](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/dao/DataAccessException.html) 重新抛出，这个功能有两条好处：
 
-- 使用 unchecked 异常：JDBC 抛出的 `SQLException` 是 checked 异常，对于 Java 用户，这意味着我们需要在许多地方被迫地捕获一些没用的异常。Spring JDBC 统一将他们转换为 `RuntimeException`，有利于代码的整洁。不过 Kotlin 中不存在此问题，因此从这个角度看，此功能意义不大。
-- 统一数据访问层的异常体系：在 JDBC 中，使用不同的驱动，其底层抛出的异常类型都不同（虽然它们都是 `SQLException` 的子类），而且 JDBC 中定义的异常体系语义模糊。Spring JDBC 定义了一套成体系的清晰简洁的异常类型，能帮助我们更好地选择感兴趣的异常进行处理，并且屏蔽了不同数据库之间的异常差异。
+- **使用 unchecked 异常：**JDBC 抛出的 `SQLException` 是 checked 异常，对于 Java 用户，这意味着我们需要在许多地方被迫地捕获一些没用的异常。Spring JDBC 统一将他们转换为 `RuntimeException`，有利于代码的整洁。不过 Kotlin 中不存在此问题，因此从这个角度看，此功能意义不大。
+- **统一数据访问层的异常体系：**在 JDBC 中，使用不同的驱动，其底层抛出的异常类型都不同（虽然它们都是 `SQLException` 的子类），而且 JDBC 中定义的异常体系语义模糊。Spring JDBC 定义了一套成体系的清晰简洁的异常类型，能帮助我们更好地选择感兴趣的异常进行处理，并且屏蔽了不同数据库之间的异常差异。
 
 使用 `Database.connectWithSpringSupport` 方法创建的 `Database` 对象默认启用了 Spring JDBC 的异常转换功能，因此我们可以写出这样的代码：
 
@@ -101,4 +101,4 @@ try {
 }
 ```
 
-这段代码首先尝试插入一条 ID 为 1 的 `Department`，当捕获到主键冲突的异常时，再改为更新 location 字段 ，从而实现了 `upsert` 的功能，这个例子体现了异常转换功能的好处。
+这段代码首先尝试插入一条 ID 为 1 的 `Department`，当捕获到主键冲突的异常 [DuplicateKeyException](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/dao/DuplicateKeyException.html) 时，再改为更新 location 字段 ，从而实现了 `upsert` 的功能，这个例子体现了异常转换功能的好处。
