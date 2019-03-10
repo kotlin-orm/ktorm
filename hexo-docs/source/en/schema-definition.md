@@ -77,7 +77,7 @@ object RegularEmployees : Employees("t_regular_employee")
 object FormerEmployees : Employees("t_former_employee")
 ```
 
-For another example, sometimes our table is on-off, we don't need to use it twice, so it's not necessary to define it as a global object, for fear that the naming space is polluted. This time, we can even define the table as a anonymous object inside a function: 
+For another example, sometimes our table is on-off, we don't need to use it twice, so it's not necessary to define it as a global object, for fear that the naming space is polluted. This time, we can even define the table as an anonymous object inside a function: 
 
 ```kotlin
 val t = object : Table<Nothing>("t_config") {
