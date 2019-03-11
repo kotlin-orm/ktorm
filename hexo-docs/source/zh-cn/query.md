@@ -163,7 +163,9 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ````
 
-在 `where` 闭包中，我们可以返回任何查询条件，这里我们使用 `eq`、`and`、`like` 等操作符构造了一个。infix 是 Kotlin 提供的关键字，使用此关键字修饰的函数，在调用时可以省略点和括号，这样，代码写起来就像说话一样自然，我们这里使用的操作符正是 Ktorm 提供的 infix 函数。Ktorm 提供的内置操作符分为两类，一类是通过操作符重载实现的，比如加减乘除取反取余等常用运算，还有一类就是基于 infix 函数实现的，如 `and`、`or`、`eq`、`like`、`greater`、`less` 等 Kotlin 中无法重载的操作符。
+在 `where` 闭包中，我们可以返回任何查询条件，这里我们使用 `eq`、`and` 和 `like` 操作符构造了一个。infix 是 Kotlin 提供的关键字，使用此关键字修饰的函数，在调用时可以省略点和括号，这样，代码写起来就像说话一样自然，我们这里使用的操作符正是 Ktorm 提供的 infix 函数。
+
+> Ktorm 提供的内置操作符分为两类，一类是通过操作符重载实现的，比如加减乘除取反取余等常用运算，还有一类就是基于 infix 函数实现的，如 `and`、`or`、`eq`、`like`、`greater`、`less` 等 Kotlin 中无法重载的操作符。
 
 有时候，我们的查询需要许多个筛选条件，这些条件使用 and 或 or 操作符连接，他们的数量不定，而且还会根据不同的情况启用不同的条件。为满足这种需求，许多 ORM 框架都提供了名为“动态查询”的特性，比如 MyBatis 的 `<if>` 标签。然而，在 Ktorm 中，这种需求根本就不是问题，因为 Ktorm 的查询都是纯 Kotlin 代码，因此天然具有这种“动态性”。我们看看下面这个查询：
 
@@ -219,7 +221,7 @@ val query = Employees
     }
 ```
 
-使用 `whereWithConditions`，我们只需要在闭包中往 `it` 中添加条件就好了，这个 `it` 就是一个 `MutableList`，创建 list 和合并条件的操作就不需要重复做了。对应的，Ktorm 还提供了一个 `whereWithOrConditions` 函数，这个函数的功能其实是一样的，只不过最后是使用 or 将所有条件连接起来，而不是 and。
+使用 `whereWithConditions`，我们只需要在闭包中往 `it` 中添加条件就好了，这个 `it` 就是一个 `MutableList`，创建 list 和合并条件的操作就不需要重复做了。对应地，Ktorm 还提供了一个 `whereWithOrConditions` 函数，这个函数的功能其实是一样的，只不过最后是使用 or 将所有条件连接起来，而不是 and。
 
 ## groupBy/having
 

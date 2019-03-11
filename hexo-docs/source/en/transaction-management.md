@@ -58,7 +58,7 @@ There has been 2 records in the `Departments` table before. The code above opens
 
 Note: 
 
-- Any exceptions thrown in the closure can trigger a rollback, no matter the exception is checked or unchecked. Actually, "checked" exception is a Java only concept, there is no such thing in Kotlin. 
+- Any exceptions thrown in the closure can trigger a rollback, no matter the exception is checked or unchecked. Actually, *checked exception* is a Java only concept, there is no such thing in Kotlin. 
 - `useTransaction` is reentrant, so it can be called nested. However, the inner calls dosen't open new transactions, but share the same ones with outers. 
 
 ## Transaction Manager

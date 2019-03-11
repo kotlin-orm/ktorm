@@ -82,39 +82,39 @@ We can see that if the column's type is `Column<Int>`, then the result's type is
 
 ## select
 
-SQL 中的查询语句都开始于一个 select 关键字，类似地，Ktorm 中的查询也始于 `select` 函数的调用。`select` 是 `Table` 类的扩展函数，因此 Ktorm 中的所有查询操作，都由一个表对象引出。`select` 函数的签名如下：
+All queries in SQL start with a select keyword. Similarly, All queries in Ktorm start with a `select` function calling. `select` is an extension function of `Table` class, so every query in Ktorm comes from a `Table` object. Here is the signature of this function: 
 
 ```kotlin
 fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query
 ```
 
-可以看到，它接受任意数量的列，返回一个 `Query` 对象，这个查询对象从当前表中查询指定的列。下面使用 `select` 函数查询员工的 id 和姓名：
+We can see it accepts any number of columns and returns a new created `Query` object which selects specific columns from current table. The example below queries employees' ids and names via `select` function: 
 
 ```kotlin
 val query = Employees.select(Employees.id, Employees.name)
 ```
 
-得到 `Query` 对象之后，SQL 实际上还没有运行，你可以继续链式调用 `where` 或其他扩展函数修改这个 `Query` 对象，也可以使用 `for-each` 循环或其他方式迭代它，这时，Ktorm 会执行一条 SQL，然后我们就能按照上文所述的方法获取查询结果。Ktorm 生成的 SQL 如下：
+Now we have a `Query` object, but no SQL has been executed yet. We can chaining call `where` or other extension functions to modify it, or iterate it by a for-each loop or any other way. While the query object is iterated, Ktorm will execute a generated SQL, then we can obtain results in the way we discussed above. The generated SQL is given as follows: 
 
 ```sql
 select t_employee.id as t_employee_id, t_employee.name as t_employee_name 
 from t_employee 
 ```
 
-可以尝试删除传递给 `select` 方法的参数，即：
+Try to remove arguments passed to the `select` function: 
 
 ```kotlin
 val query = Employees.select()
 ```
 
-然后，生成的 SQL 就会变成：
+Then the generated SQL will change to `select *`: 
 
 ```sql
 select * 
 from t_employee 
 ```
 
-可能你已经注意到，`select` 函数的参数类型是 `ColumnDeclaring`，而不是 `Column`，这使它不仅可以从表中查询普通的列，还支持使用复杂的表达式和聚合函数。如果我们想知道公司里最高薪员工和最低薪员工的薪水之差，查询可以这样写：
+You might have noticed that the paramter type of `select` function was `ColumnDeclaring` instead of `Column`. So we can not only select normal columns from a table, but complex expressions and aggregation functions are also supported. For insance, if we want to know the salary difference between the max and the min in a company, we can write a query like this: 
 
 ```kotlin
 Employees
@@ -122,30 +122,30 @@ Employees
     .forEach { row -> println(row.getLong(1)) }
 ```
 
-这里我们使用了 `max` 和 `min` 两个聚合函数，他们的返回值都是 `AggregateExpression`，然后将他们相减，最终得到一个 `BinaryExpression`，它是 `ColumnDeclaring` 的子类，因此可以直接传入 `select` 方法中。最终生成的 SQL 如下：
+Here we use two aggregation functions, `max` and `min`, the return types of which are both `AggregateExpression`. Then substracting the max by the min, we finally have a `BinaryExpression`, which is a subclass of `ColumnDeclaring`, so we can pass it to the `select` function. Generated SQL: 
 
 ```sql
 select max(t_employee.salary) - min(t_employee.salary) 
 from t_employee 
 ```
 
-可以看到，生成的 SQL 和我们写出来的 Kotlin 代码高度一致，这得益于 Kotlin 优秀的语法特性。Ktorm 提供了许多重载的操作符，这就是我们能够在上面的查询中使用减号的原因。由于操作符的重载，这里的减号并没有执行实际的减法，而是被翻译为 SQL 中的减号送到数据库中去执行。在[操作符](./operators.html)一节中我们会介绍 Ktorm 提供的其他操作符。
+We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, thats why we can use minus operator in the query above. Because of the operator overloading, the minus operator here dosen't perform an actual substraction, but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
 
-> 有个小遗憾：虽然 `select` 方法支持使用复杂的表达式，但是将查询的结果从 `QueryRowSet` 中取出来时，我们却不能使用前面介绍的索引访问操作符 []，只能使用继承自 `ResultSet` 中的 `getXxx` 方法，使用列的序号获取该列的值。
+> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` dosen't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by lables or column indices. 
 
 ## selectDistinct
 
-`selectDistinct` 也是 `Table` 类的扩展函数，顾名思义，它对应于 SQL 中的 `select distinct` 操作，会将查询的结果进行去重。除此之外，它的使用方法与 `select` 完全一致，在此不再赘述。
+`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be transalated to a `select distinct` statement in SQL. Bisides of this, it's usage is totally the same with `select` function, so we won't repeat it. 
 
 ## where
 
-`where` 是 `Query` 类的扩展函数，我们先来看看它的签名：
+`where` is also an extension function of `Table` class, let's learn its signature first: 
 
 ```kotlin
 inline fun Query.where(block: () -> ScalarExpression<Boolean>): Query
 ```
 
-它是一个内联函数，接受一个闭包作为参数，我们在这个闭包中指定查询的 where 子句，闭包的返回值是 `ScalarExpression<Boolean>`。`where` 函数会创建一个新的 `Query` 对象，它的所有属性都复制自当前 `Query`，并使用闭包的返回值作为其筛选条件。典型的用法如下：
+It's an inline function that accepts a parameter of type `() -> ScalarExpression<Boolean>`, which is a closure function that returns a `ScalarExpression<Boolean>` as our filter condition. The `where` function creates a new `Query` object with all properties being copied from current query, but applying a new filter condition, the return value of the closure. Typical usage: 
 
 ```kotlin
 val query = Employees
@@ -153,7 +153,7 @@ val query = Employees
     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
 ```
 
-一眼明了，这个查询的目的是获得部门 1 中名字为 vince 的员工的薪水，生成的 SQL 你应该也能猜到：
+Easy to know that the query obtains the salary of an employee named vince in department 1. Generated SQL is easy too: 
 
 ```sql
 select t_employee.salary as t_employee_salary 
@@ -161,9 +161,11 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ```
 
-在 `where` 闭包中，我们可以返回任何查询条件，这里我们使用 `eq`、`and`、`like` 等操作符构造了一个。infix 是 Kotlin 提供的关键字，使用此关键字修饰的函数，在调用时可以省略点和括号，这样，代码写起来就像说话一样自然，我们这里使用的操作符正是 Ktorm 提供的 infix 函数。Ktorm 提供的内置操作符分为两类，一类是通过操作符重载实现的，比如加减乘除取反取余等常用运算，还有一类就是基于 infix 函数实现的，如 `and`、`or`、`eq`、`like`、`greater`、`less` 等 Kotlin 中无法重载的操作符。
+We can return any filter conditions in `where` closure, here we constructed one by operators `eq`, `and` and  `like`. Ktolin provides an infix keyword, functions marked with it can be called using the [infix notation](https://kotlinlang.org/docs/reference/functions.html#infix-notation) (omitting the dot and the parentheses for the call), that's how these operators works.  
 
-有时候，我们的查询需要许多个筛选条件，这些条件使用 and 或 or 操作符连接，他们的数量不定，而且还会根据不同的情况启用不同的条件。为满足这种需求，许多 ORM 框架都提供了名为“动态查询”的特性，比如 MyBatis 的 `<if>` 标签。然而，在 Ktorm 中，这种需求根本就不是问题，因为 Ktorm 的查询都是纯 Kotlin 代码，因此天然具有这种“动态性”。我们看看下面这个查询：
+> Ktorm's built-in operators can be divided into two groups: those that is implemented by operator overloading, such as basic arithmetic operators; and those that is based on infix notations, such as `and`, `or`, `eq`, `like`, `greater`, `less`, etc. 
+
+Sometimes, we need a variable number of filter conditions in our queries, those conditions are combined with `and` or `or` operator, and each of them can be enabled or disabled depending on different conditions. To meet this requirement, many ORM frameworks provide features like *dynamic query*, such as the `<if>` tag of MyBatis. However, this is not a problem at all in Ktorm, because queries in Ktorm are pure Kotlin codes, which is natively *dynamic*. Let's learn the query below: 
 
 ```kotlin
 val query = Employees
@@ -185,9 +187,9 @@ val query = Employees
     }
 ```
 
-这里我们使用一个 `ArrayList` 保存所有查询条件，然后使用 if 语句根据不同的参数是否为空将查询条件添加到 list 中，最后使用一个 reduce 操作将所有条件用 and 连接起来。使用 Ktorm 不需要特别的操作就能够完美支持所谓的“动态查询”。
+Here, we create an `ArrayList` to hold filter conditions first, then add different conditions to the list depending on whether the specific parameters are null or not, finally combine all of them with the  `and` operator. We don't need to do anything special with Ktorm, and the *dynamic query* is perfectly supported. 
 
-当然，上面的写法还是有一点漏洞，当所有情况都不满足，list 为空时，reduce 操作会抛出一个异常。为了避免这个异常，可以使用 `conditions.combineConditions()` 代替 reduce 操作。`combineConditions` 是 Ktorm 提供的函数，它的功能就是使用 and 将所有条件连接起来，当 list 为空时，直接返回 true，这是它的实现：
+Obviously, there is a bug in the query above, that the reduce operation may throw an exception if the list is empty, all conditions are not matched. To avoid this exception, we can replace the reduce operation with `conditions.combineConditions`. This is a extension function provided by Ktorm, it combines all conditions with `and` operator, otherwise if the list is empty, true will be returned directly. 
 
 ```kotlin
 fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Boolean> {
@@ -199,7 +201,7 @@ fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Bo
 }
 ```
 
-其实，每次都创建一个 `ArrayList`，然后往里面添加条件，最后使用 reduce 连接的操作也挺烦的。Ktorm 提供了一个方便的函数 `whereWithConditions`，可以减少我们的这两行重复代码，使用这个函数，上面的查询可以改写成：
+To be honest, it's easy to get bored with creating a new `ArrayList` and adding conditions into it every time. Ktorm provides a convenient function `whereWithConditions` which can reduce our duplicated codes. With this function, we can modify the query to: 
 
 ```kotlin
 val query = Employees
@@ -218,7 +220,7 @@ val query = Employees
 
 ```
 
-使用 `whereWithConditions`，我们只需要在闭包中往 `it` 中添加条件就好了，这个 `it` 就是一个 `MutableList`，创建 list 和合并条件的操作就不需要重复做了。对应的，Ktorm 还提供了一个 `whereWithOrConditions` 函数，这个函数的功能其实是一样的，只不过最后是使用 or 将所有条件连接起来，而不是 and。
+Using `whereWithConditins`, we just need to add conditions to `it` which is exactly a `MutableList`, not needed to create a list and combine the conditions by ourselves anymore. On the other hand, Ktorm also provides a `whereWithOrConditions` function, which does the same thing as the other, but finally combining conditions with `or` instead of `and`. 
 
 ## groupBy/having
 
