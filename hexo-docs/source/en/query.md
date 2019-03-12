@@ -6,7 +6,7 @@ related_path: zh-cn/query.html
 
 # Query
 
-In former chapters, we have created a simple query, it selected all employees in the table table and printed their names. Let's start from this query: 
+In former chapters, we have created a simple query, it selected all employees in the table and printed their names. Let's start from this query: 
 
 ```kotlin
 for (row in Employees.select()) {
@@ -52,19 +52,19 @@ Actually, in the example above, all the work Ktorm dose is just to generate a si
 There are some other useful properties in `Query` class: 
 
 - **sql:** Return the generated SQL string of this query, can be used to ensure whether the generated SQL is expected while debugging. 
-- **rowSet:** Return `ResultSet` object of this query, lazy initialized after first access, obtained from database by executing the generated SQL. 
-- **totalRecords:** If the query dosen't limits the results via *offset* and *limit*, return the size of the result set. Or if it dose, return the total record count of the query ignoring the *offset* and *limit* parameters. Ktorm provides this property to support pagination, you can calculate page count through dividing it by your page size.
+- **rowSet:** Return the `ResultSet` object of this query, lazy initialized after first access, obtained from database by executing the generated SQL. 
+- **totalRecords:** If the query dosen't limits the results via *offset* and *limit*, return the size of the result set. Or if it dose, return the total record count of the query ignoring the *offset* and *limit* parameters. Ktorm provides this property to support pagination, we can calculate page count through dividing it by our page size.
 
 ## Obtain Query Results
 
-Every JDBC user knows how to obtain query results from a `ResultSet`. We need a loop to iterate rows in the `ResultSet`, calling the getter functions (such as `getInt`, `getString`, etc) to obtain the data of the specific column. A typical usage is based on a while loop: `while (rs.netxt())  { ... } `. Moreover, after finishing these works, we also have to call `close` function to release the resources. 
+Every JDBC user knows how to obtain query results from a `ResultSet`. We need a loop to iterate rows in it, calling the getter functions (such as `getInt`, `getString`, etc) to obtain the data of the specific column. A typical usage is based on a while loop: `while (rs.netxt())  { ... } `. Moreover, after finishing these works, we also have to call `close` function to release the resources. 
 
 That's not so complex, but it's still easy to get bored to write duplicated codes. We have know that `Query` class implemented `Iterable` interaface, that provided another posibility for us. We can iterate results sets by a for-each loop, or process them via extension functions like map, filter, etc, just like the previous example. 
 
 You might have noticed that the return type of `Query.rowSet` was not a normal `ResultSet`, but a `QueryRowSet` instead. That's a special implementation provided by Ktorm, different from normal result sets, it provides additional features: 
 
 - **Available offline:** It's connection independent, it remains available after the connection closed, and it's not necessary to be closed after being used. Ktorm creates `QueryRowSet` objects with all data being retrieved from the result set into memory, so we just need to wait GC to collect them after they are not useful. 
-- **Indexed access operator:** `QueryRowSet` oveloads the [indexed access operator](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed), so we can use square brackets `[]` to obtain the value by giving a specific `Column` instance. It's not easy to get wrong by the benefit of the compiler's static checking, but you can still use `getXxx` functions in the `ResultSet` to obtain your results by labels or column indices. 
+- **Indexed access operator:** `QueryRowSet` oveloads the [indexed access operator](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed), so we can use square brackets `[]` to obtain the value by giving a specific `Column` instance. It's not easy to get wrong by the benefit of the compiler's static checking, but we can still use `getXxx` functions in the `ResultSet` to obtain our results by labels or column indices. 
 
 Obtain results via indexed access operator: 
 
@@ -88,7 +88,7 @@ All queries in SQL start with a select keyword. Similarly, All queries in Ktorm 
 fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query
 ```
 
-We can see it accepts any number of columns and returns a new created `Query` object which selects specific columns from current table. The example below queries employees' ids and names via `select` function: 
+We can see it accepts any number of columns and returns a new created `Query` object which selects specific columns from current table. The example below obtains employees' ids and names via `select` function: 
 
 ```kotlin
 val query = Employees.select(Employees.id, Employees.name)
@@ -107,7 +107,7 @@ Try to remove arguments passed to the `select` function:
 val query = Employees.select()
 ```
 
-Then the generated SQL will change to `select *`: 
+Then the generated SQL will be changed to `select *`: 
 
 ```sql
 select * 
@@ -135,7 +135,7 @@ We can see that the generated SQL is highly corresponding to our Kotlin code. Th
 
 ## selectDistinct
 
-`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be transalated to a `select distinct` statement in SQL. Bisides of this, it's usage is totally the same with `select` function, so we won't repeat it. 
+`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be transalated to a `select distinct` statement in SQL. Besides of this, it's usage is totally the same with `select` function, so we won't repeat it. 
 
 ## where
 
@@ -153,7 +153,7 @@ val query = Employees
     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
 ```
 
-Easy to know that the query obtains the salary of an employee named vince in department 1. Generated SQL is easy too: 
+Easy to know that the query obtains the salary of an employee named vince in department 1. The generated SQL is easy too: 
 
 ```sql
 select t_employee.salary as t_employee_salary 
@@ -201,7 +201,7 @@ fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Bo
 }
 ```
 
-To be honest, it's easy to get bored with creating a new `ArrayList` and adding conditions into it every time. Ktorm provides a convenient function `whereWithConditions` which can reduce our duplicated codes. With this function, we can modify the query to: 
+To be honest, it's easy to get bored with creating a new `ArrayList` and adding conditions to it every time. Ktorm provides a convenient function `whereWithConditions` which can reduce our duplicated codes. With this function, we can modify the query to: 
 
 ```kotlin
 val query = Employees
@@ -217,14 +217,13 @@ val query = Employees
             it += Employees.name like "%$name%"
         }
     }
-
 ```
 
 Using `whereWithConditins`, we just need to add conditions to `it` which is exactly a `MutableList`, not needed to create a list and combine the conditions by ourselves anymore. On the other hand, Ktorm also provides a `whereWithOrConditions` function, which does the same thing as the other, but finally combining conditions with `or` instead of `and`. 
 
 ## groupBy/having
 
-`groupBy` 和 `having` 也都是 `Query` 类的扩展函数，他们为 SQL 中的聚合功能提供了支持，下面是一个使用的例子：
+Both `groupBy` and `having` are extension functions for `Query` class, they provide aggregation support for Ktorm, a usage example is shown below: 
 
 ```kotlin
 val t = Employees
@@ -232,70 +231,63 @@ val query = t
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
-
 ```
 
-这个查询获取平均工资大于 100 的部门，返回他们的部门 id 以及平均工资。用法与前面介绍的 `select`、`where` 等函数相似，生成的 SQL 也是十分简单直接：
+This query selects departments whose average salary is greater than 100, then returns the average salaries along with their department's IDs. The usage is similar to other extension functions like `select` and  `where`, and the generated SQL is also simple and direct too: 
 
 ```sql
 select t_employee.department_id as t_employee_department_id, avg(t_employee.salary) 
 from t_employee 
 group by t_employee.department_id 
 having avg(t_employee.salary) > ?
-
 ```
 
-值得一提的是，如果我们再这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望再返回一下员工的名字：
+What if we just add one column to the query above? Assuming if we want to select the employees' names additionally, what will happen?  
 
 ```kotlin
 val query = t
     .select(t.departmentId, avg(t.salary), t.name)
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
-
 ```
 
-现在生成的 SQL 是这样的：
+The generated SQL will be changed to: 
 
 ```sql
 select t_employee.department_id as t_employee_department_id, avg(t_employee.salary), t_employee.name as t_employee_name 
 from t_employee 
 group by t_employee.department_id 
 having avg(t_employee.salary) > ? 
-
 ```
 
-然而，了解 SQL 语法的人都知道，这条生成的 SQL 的语法是错误的，完全无法在数据库中执行。这是因为 SQL 语法规定，在使用 group by 时，select 子句中出现的字段，要么是 group by 中的列，要么被包含在聚合函数中。然而，这能怪 Ktorm 吗？这只能怪你对 SQL 的不了解，Ktorm 只是忠实地将你的代码翻译成了 SQL 而已。
+However, as any SQL users know, the generate SQL is wrong with syntax now, and it's impossible to be executed in a database. That's because the SQL's grammar restricts that if we are using group by, every select column either comes from the group by clause, or appears in an aggregation function. So, that's not Ktorm's fault, we don't understand SQL enough, Ktorm just translate our Koltin code to SQL trustily. 
 
-> 注意：Ktorm 虽然有 SQL 生成，但是我们的设计目标，从来都不是为了取代 SQL，我们不希望做成一个大而全的“自动化” ORM 框架，相反，我们的目标是充分使用 Kotlin 优越的语法特性，为 SQL 提供方便灵活的 DSL。这要求使用者对 SQL 有一定的了解，因为 Ktorm 的工作只是将 DSL 忠实地翻译成 SQL 而已，SQL 的正确性和性能都需要使用者自己负起责任。
+> Note: Ktorm generates SQLs, but our design goal are never to replace SQL in Kotlin. Ktorm dosen't meant to be a "automation" ORM framework that's "large and complete". Instead, one of our goals is to provide a set of flexible and convenient DSL for SQL by making full use of Kotlin's excellent features. This requires our users to have a certain understanding on SQL, because Ktorm just translate our DSL to SQL trustily, we have to take the responsibility of our SQL's correctness and performance. 
 
 ## orderBy
 
-`orderBy` 也是 `Query` 的扩展函数，它对应于 SQL 中的 order by 关键字，下面是它的签名：
+`orderBy` is also an extension function for `Query` class, it's corresponding to SQL's order by keyword, here is its signature: 
 
 ```kotlin
 fun Query.orderBy(vararg orders: OrderByExpression): Query
-
 ```
 
-可以看到，这个函数接受一个或多个 `OrderByExpression`，这就涉及到另外两个函数，它们分别是 `asc` 和 `desc`，和 SQL 中的关键字名称一样：
+It can be seen that this function accepts a variable number of `OrderByExpression`s, that can be created by other two functions, `asc` and `desc`, naming by the keywords in SQL: 
 
 ```kotlin
 fun ColumnDeclaring<*>.asc(): OrderByExpression
 fun ColumnDeclaring<*>.desc(): OrderByExpression
-
 ```
 
-`orderBy` 的典型用法如下，这个查询获取所有员工的名字，按工资从高到低排序：
+A typical usage is shown below. The query obtains all employees' names, sorting them by their salaries descending: 
 
 ```kotlin
 val query = Employees
     .select(Employees.name)
     .orderBy(Employees.salary.desc())
-
 ```
 
-与 `select` 函数一样，`orderBy` 不仅支持按普通的列排序，还支持复杂的表达式，下面的查询获取每个部门的 ID 和部门内员工的平均工资，并按平均工资从高到低排序：
+Similar to `select`, the `orderBy` function not only supports sorting by normal columns, but complex expressions are also OK. The query below obtains departments' IDs and their average salaries, and sorting them by their average salaries descending: 
 
 ```kotlin
 val t = Employees
@@ -303,54 +295,49 @@ val query = t
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .orderBy(avg(t.salary).desc())
-
 ```
 
-生成 SQL：
+Generated SQL：
 
 ```sql
 select t_employee.department_id as t_employee_department_id, avg(t_employee.salary) 
 from t_employee 
 group by t_employee.department_id 
 order by avg(t_employee.salary) desc 
-
 ```
 
 ## limit
 
-SQL 标准中并没有规定如何进行分页查询的语法，因此，每种数据库提供商对其都有不同的实现。例如，在 MySQL 中，分页是通过 `limit m, n` 语法完成的，在 PostgreSQL 中，则是 `limit m offset n`，而 Oracle 则没有提供任何关键字，我们需要在 where 子句使用 rownum 限定自己需要的数据页。
+The SQL standard dosen't say how to implement paging queries, so different databases provides different implementations on that. For example, MySQL uses `limit m, n` syntax for pagination; PostgreSQL uses `limit m offset n` syntax; Oracle dosen't even provide any keyword, we need to limit our pages in where clause by rownum. 
 
-为了抹平不同数据库分页语法的差异，Ktorm 提供了一个 `limit` 函数，我们使用这个函数对查询进行分页：
+To hide the paging syntax's differences among databases, Ktorm provides a `limit` function to support pagination: 
 
 ```kotlin
 fun Query.limit(offset: Int, limit: Int): Query
-
 ```
 
-`limit` 也是 `Query` 类的扩展函数，它接收两个整形参数，分别是：
+`limit` is also an extension function for `Query` class, it accepts two parameters of int: 
 
-- offset: 需要返回的第一条记录相对于整个查询结果的位移，从 0 开始
-- limit: 需要返回的记录的数量
+- offset: the offset to the first returned record, starts from 0. 
+- limit: max record numbers returned by the query.
 
-使用示例如下，这个查询获取员工表的第一条记录：
+Here is an example, this query obtains the first employee in the table: 
 
 ```kotlin
 val query = Employees.select().limit(0, 1)
-
 ```
 
-使用 `limit` 函数时，Ktorm 会根据当前使用的不同数据库（Dialect）生成合适的分页 SQL。但是如果你没有启用任何方言，你可能会得到这样一个异常：
+When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the current enabled dialect. If we dosen't use any dialects, an exception might be thrown: 
 
 ```
 java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
-
 ```
 
-这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何[启用方言](./dialects-and-raw-sql.html#启用方言)，可参考后面的章节。
+This is OK, the SQL standard dosen't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to latter chapters for how to [enable dialects](./dialects-and-raw-sql.html#Enable-Dialects).
 
 ## union/unionAll
 
-Ktorm 也支持将两个或多个查询的结果进行合并，这时我们使用 `union` 或 `unionAll` 函数。其中，`union` 对应 SQL 中的 union 关键字，会对合并的结果进行去重；`unionAll` 对应 SQL 中的 union all 关键字，保留重复的结果。下面是一个例子：
+Ktorm also supports to merge two or more query results, that's the `union` and `unionAll` functions. The `union` function is corresponding to the union keyword in SQL, removing duplciated rows; The `unionAll` function is corresponding to the union all keyword, not removing dupliated rows. Here is an example: 
 
 ```kotlin
 val query = Employees
@@ -362,10 +349,9 @@ val query = Employees
         Departments.select(Departments.id)
     )
     .orderBy(Employees.id.desc())
-
 ```
 
-生成 SQL：
+Generated SQL：
 
 ```kotlin
 (
@@ -379,6 +365,5 @@ val query = Employees
   from t_department
 ) 
 order by t_employee_id desc 
-
 ```
 
