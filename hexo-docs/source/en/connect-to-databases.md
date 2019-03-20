@@ -27,7 +27,7 @@ Easy to know what we do in the `connect` function. Just like any JDBC boilerplat
 
 ## Connect with a Pool
 
-Ktorm dosen't limit you, you can use any connection pool you like, such as DBCP, C3P0 or Druid. The `connect` function provides a overloaded edition which accepts a `DataSource` parameter, you just need to create a `DataSource` object and call that function with it: 
+Ktorm dosen't limit you, you can use any connection pool you like, such as DBCP, C3P0 or Druid. The `connect` function provides an overloaded edition which accepts a `DataSource` parameter, you just need to create a `DataSource` object and call that function with it: 
 
 ````kotlin
 val dataSource = SingleConnectionDataSource() // Any DataSource implementation is OK. 

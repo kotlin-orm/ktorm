@@ -179,7 +179,7 @@ object Foo : Table<Nothing>("foo") {
 }
 ```
 
-In this way, Ktorm are able to reading and writing json columns now. Actually, this is one of the features of ktorm-jackson module, if you really need to use json columns, you don't have to repeat the code above, please add the dependency to your project: 
+In this way, Ktorm are able to read and write json columns now. Actually, this is one of the features of ktorm-jackson module, if you really need to use json columns, you don't have to repeat the code above, please add the dependency to your project: 
 
 Maven： 
 

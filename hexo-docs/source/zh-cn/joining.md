@@ -61,7 +61,7 @@ where t_employee.salary > ?
 
 ## 自连接查询与表别名
 
-自连接是连接查询的一种特殊用法，它支持把一个表与它自身进行连接，比如下面这句 SQL 就使用了自连接，它查询每个员工的名字、他直接负责的管理者的名字以及他所属部门的名称：
+自连接是连接查询的一种特殊用法，它支持把一个表与它自身进行连接，比如下面这句 SQL 就使用了自连接，它查询每个员工的名字、他直属上司的名字以及他所属部门的名称：
 
 ````sql
 select emp.name as emp_name, mgr.name as mgr_name, dept.name as dept_name 
@@ -150,7 +150,7 @@ open class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {
 
 ## 扩展连接类型
 
-Ktorm 的核心模块只提供了四种标准的连接类型（见[扩展函数](#扩展函数)一节），一般来说，这四种连接类型已经足够应付我们的业务，但是，如果我们想使用某些数据库特有的连接类型，该如何做呢？下面我们以 MySQL 中的自然连接（natural join）为例对此问题进行探讨。
+Ktorm 的核心模块只提供了四种标准的连接类型（见[连接函数](#连接函数)一节），一般来说，这四种连接类型已经足够应付我们的业务，但是，如果我们想使用某些数据库特有的连接类型，该如何做呢？下面我们以 MySQL 中的自然连接（natural join）为例对此问题进行探讨。
 
 查看源码，我们可以知道，`JoinExpression` 继承于 `QuerySourceExpression`，这是一个抽象类。我们也可以创建一个 `NaturalJoinExpression` 类继承于 `QuerySourceExpression`：
 
