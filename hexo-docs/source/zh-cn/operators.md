@@ -75,6 +75,8 @@ infix fun ColumnDeclaring<*>.like(argument: String): BinaryExpression<Boolean> {
 
 **但是对于普通的操作符函数，却并没有优先级一说。**在 Kotlin 语言的层面，它们实际上都只是普通的函数调用，因此只需要遵循从前往后结合的原则，尽管这有时可能会违反我们的直觉。比如 `a or b and c`，这里的 `or` 和 `and` 都是操作符函数，直觉上，`and` 的优先级应该比 `or` 高，因此应该优先结合，但实际上，它们只是普通的 Kotlin 函数而已。如果对这一点没有清楚的认识，可能导致一些意料之外的 bug，为了解决这个问题，我们可以在需要的地方使用括号，比如 `a or (b and c)`。
 
+关于表达式优先级的具体顺序，请参考 [Kotlin 语言规范](https://kotlinlang.org/docs/reference/grammar.html#expressions)中的相关规定。
+
 ## 自定义操作符
 
 前面已经介绍过 Ktorm 核心模块的内置操作符，这些操作符为标准 SQL 中的操作符提供了支持，但如果我们想使用一些数据库方言中特有的操作符呢？下面我们以 PostgreSQL 中的 ilike 操作符为例，了解如何增加自己的操作符。

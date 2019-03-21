@@ -129,7 +129,7 @@ select max(t_employee.salary) - min(t_employee.salary)
 from t_employee 
 ```
 
-We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, thats why we can use minus operator in the query above. Because of the operator overloading, the minus operator here dosen't perform an actual substraction, but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
+We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, thats why we can use minus operator in the query above. Because of operator overloading, the minus operator here dosen't perform an actual substraction, but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
 
 > Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` dosen't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by lables or column indices. 
 
