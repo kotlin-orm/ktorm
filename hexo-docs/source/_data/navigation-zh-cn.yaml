@@ -48,7 +48,7 @@ main:
 
   - text: 方言与原生 SQL
     type: link
-    path: zh-cn/dialects-and-raw-sql.html
+    path: zh-cn/dialects-and-native-sql.html
 
   - text: 实体类 API
     type: label
