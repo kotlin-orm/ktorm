@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.schema
 
-import me.liuwj.ktorm.entity.Entity
+import me.liuwj.ktorm.dsl.Query
+import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -22,7 +23,7 @@ open class Table<E : Entity<E>>(
     val tableName: String,
     val alias: String? = null,
     entityClass: KClass<E>? = null
-) : TypeReference<E>() {
+) : TypeReference<E>(), EntitySequence<E> {
 
     private val _refCounter = AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
@@ -262,6 +263,24 @@ open class Table<E : Entity<E>>(
      */
     fun asExpression(): TableExpression {
         return TableExpression(tableName, alias)
+    }
+
+    /**
+     * Iterate all entities in this table.
+     */
+    override fun iterator() = object : EntitySequenceIterator<E> {
+        private val rs by lazy(LazyThreadSafetyMode.NONE) { query.rowSet }
+        private var hasNext: Boolean? = null
+
+        override val query: Query = this@Table.joinReferencesAndSelect()
+
+        override fun hasNext(): Boolean {
+            return hasNext ?: rs.next().also { hasNext = it }
+        }
+
+        override fun next(): E {
+            return if (hasNext()) this@Table.createEntity(rs).also { hasNext = null } else throw NoSuchElementException()
+        }
     }
 
     /**
