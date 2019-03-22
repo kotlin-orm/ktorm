@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.dsl.Query
+import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
@@ -266,21 +267,17 @@ open class Table<E : Entity<E>>(
     }
 
     /**
-     * Iterate all entities in this table.
+     * Create a query auto left joining all reference tables and selecting all columns.
      */
-    override fun iterator() = object : EntitySequenceIterator<E> {
-        private val rs by lazy(LazyThreadSafetyMode.NONE) { query.rowSet }
-        private var hasNext: Boolean? = null
+    override fun createQuery(): Query {
+        return this.joinReferencesAndSelect()
+    }
 
-        override val query: Query = this@Table.joinReferencesAndSelect()
-
-        override fun hasNext(): Boolean {
-            return hasNext ?: rs.next().also { hasNext = it }
-        }
-
-        override fun next(): E {
-            return if (hasNext()) this@Table.createEntity(rs).also { hasNext = null } else throw NoSuchElementException()
-        }
+    /**
+     * Obtain the current entity from the [QueryRowSet].
+     */
+    override fun obtainRow(row: QueryRowSet): E {
+        return this.createEntity(row)
     }
 
     /**
