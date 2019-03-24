@@ -65,7 +65,7 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImpl.doFlushChanges(): Int {
     val fromTable = this.fromTable ?: kotlin.error("The entity is not associated with any table yet.")
-    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
+    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} doesn't have a primary key.")
     val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
 
     val expression = AliasRemover.visit(
@@ -131,7 +131,7 @@ private fun EntityImpl.findChangedColumns(fromTable: Table<*>): Map<Column<*>, A
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImpl.doDelete(): Int {
     val fromTable = this.fromTable ?: kotlin.error("The entity is not associated with any table yet.")
-    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
+    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} doesn't have a primary key.")
 
     val expression = AliasRemover.visit(
         expr = DeleteExpression(

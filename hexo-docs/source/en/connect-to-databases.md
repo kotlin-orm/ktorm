@@ -23,11 +23,11 @@ val db = Database.connect(
 
 Easy to know what we do in the `connect` function. Just like any JDBC boilerplate code, Ktorm loads the MySQL database driver by `Class.forName` method first, then calls `DriverManager.getConnection` with your arguments to obtain a connection. 
 
-> Of course, Ktorm dosen't call `DriverManager.getConnection` in the beginning. Instead, we obtain connections only when it's really needed (such as executing a SQL), then close them after they are not useful anymore. Therefore, `Database` objects created by this way won't reuse any connections, creating connections frequently can lead to huge performance costs. It's highly recommended to use connection pools in your product environment. 
+> Of course, Ktorm doesn't call `DriverManager.getConnection` in the beginning. Instead, we obtain connections only when it's really needed (such as executing a SQL), then close them after they are not useful anymore. Therefore, `Database` objects created by this way won't reuse any connections, creating connections frequently can lead to huge performance costs. It's highly recommended to use connection pools in your product environment. 
 
 ## Connect with a Pool
 
-Ktorm dosen't limit you, you can use any connection pool you like, such as DBCP, C3P0 or Druid. The `connect` function provides an overloaded edition which accepts a `DataSource` parameter, you just need to create a `DataSource` object and call that function with it: 
+Ktorm doesn't limit you, you can use any connection pool you like, such as DBCP, C3P0 or Druid. The `connect` function provides an overloaded edition which accepts a `DataSource` parameter, you just need to create a `DataSource` object and call that function with it: 
 
 ````kotlin
 val dataSource = SingleConnectionDataSource() // Any DataSource implementation is OK. 

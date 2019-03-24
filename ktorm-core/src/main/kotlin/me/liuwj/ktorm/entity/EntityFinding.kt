@@ -21,7 +21,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
         return emptyList()
     } else {
-        val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName dosen't have a primary key.")
+        val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName doesn't have a primary key.")
         return findList { primaryKey inList ids }
     }
 }
@@ -31,7 +31,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
-    val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName dosen't have a primary key.")
+    val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName doesn't have a primary key.")
     return findOne { primaryKey eq id }
 }
 
@@ -90,7 +90,7 @@ private fun Table<*>.joinReferences(
         val binding = column.binding
         if (binding is ReferenceBinding) {
             val rightTable = binding.referenceTable
-            val primaryKey = rightTable.primaryKey ?: kotlin.error("Table ${rightTable.tableName} dosen't have a primary key.")
+            val primaryKey = rightTable.primaryKey ?: kotlin.error("Table ${rightTable.tableName} doesn't have a primary key.")
 
             curr = curr.leftJoin(rightTable, on = column eq primaryKey)
             curr = rightTable.joinReferences(curr, joinedTables)
@@ -137,7 +137,7 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>)
     when (binding) {
         is ReferenceBinding -> {
             val rightTable = binding.referenceTable
-            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} dosen't have a primary key.")
+            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
 
             if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
                 intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this, foreignKey = column)

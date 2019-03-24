@@ -4,7 +4,7 @@ import me.liuwj.ktorm.schema.*
 import kotlin.reflect.KClass
 
 internal fun Entity<*>.getPrimaryKeyValue(fromTable: Table<*>): Any? {
-    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
+    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} doesn't have a primary key.")
     return getColumnValue(primaryKey)
 }
 
@@ -29,7 +29,7 @@ internal fun Entity<*>.getColumnValue(column: Column<*>): Any? {
 }
 
 internal fun Entity<*>.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
-    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
+    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} doesn't have a primary key.")
     setColumnValue(primaryKey, value)
 }
 
@@ -66,7 +66,7 @@ internal fun Entity<*>.setColumnValue(column: Column<*>, value: Any?) {
 }
 
 internal fun Entity<*>.forceSetPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
-    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} dosen't have a primary key.")
+    val primaryKey = fromTable.primaryKey ?: kotlin.error("Table ${fromTable.tableName} doesn't have a primary key.")
     forceSetColumnValue(primaryKey, value)
 }
 
