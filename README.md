@@ -31,7 +31,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
  - No configuration files, no xml, lightweight, easy to use.
  - Strong typed SQL DSL, exposing low-level bugs at compile time.
- - Flexible query, exactly control the generated SQLs as you wish.
+ - Flexible query, fine-grained control over the generated SQLs as you wish.
  - Extensible design, write your own extensions to support more operators, data types, SQL functions, etc.
  - Dialects supports, MySQL, Oracle, PostgreSQL, or you can write your own dialect support by implementing the `SqlDialect` interface.
 
