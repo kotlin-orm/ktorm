@@ -42,22 +42,7 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
-            val countExpr = SelectExpression(
-                columns = listOf(
-                    ColumnDeclaringExpression(
-                        expression = AggregateExpression(
-                            type = AggregateType.COUNT,
-                            argument = null,
-                            isDistinct = false,
-                            sqlType = IntSqlType
-                        )
-                    )
-                ),
-                from = when (expression) {
-                    is SelectExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
-                    is UnionExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
-                }
-            )
+            val countExpr = expression.toCountExpression()
 
             countExpr.prepareStatement { statement, logger ->
                 statement.executeQuery().use { rs ->

@@ -109,4 +109,40 @@ class MySqlTest : BaseTest() {
         val query = Employees.naturalJoin(Departments).select()
         assert(query.count() == 0)
     }
+
+    @Test
+    fun testPagingSql() {
+        var query = Employees
+            .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
+            .select()
+            .orderBy(Departments.id.desc())
+            .limit(0, 1)
+
+        assert(query.totalRecords == 4)
+
+        query = Employees
+            .select(Employees.departmentId, avg(Employees.salary))
+            .groupBy(Employees.departmentId)
+            .limit(0, 1)
+
+        assert(query.totalRecords == 2)
+
+        query = Employees
+            .selectDistinct(Employees.departmentId)
+            .limit(0, 1)
+
+        assert(query.totalRecords == 2)
+
+        query = Employees
+            .select(max(Employees.salary))
+            .limit(0, 1)
+
+        assert(query.totalRecords == 1)
+
+        query = Employees
+            .select(Employees.name)
+            .limit(0, 1)
+
+        assert(query.totalRecords == 4)
+    }
 }
