@@ -53,7 +53,7 @@ Or Gradle:
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 ````
 
-Firstly, create Kotlin objects to describe your table schema: 
+Firstly, create Kotlin objects to describe your table schemas: 
 
 ````kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -85,7 +85,7 @@ fun main() {
 }
 ````
 
-Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` is also available, eg. map/filter/reduce provided by Kotlin standard lib.
+Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` are also available, eg. map/filter/reduce provided by Kotlin standard lib.
 
 ## SQL DSL
 

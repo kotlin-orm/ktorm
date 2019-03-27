@@ -106,5 +106,5 @@ delete from t_employee where id = ?
 
 与 `flushChanges` 相同， 使用 `delete` 函数也有两个注意事项：
 
-- 在表对象中必须使用 `primaryKey` 函数指定主键列，否则 Ktorm 无法确定实体对象的唯一标识。
-- 调用 `delete` 函数的实体对象必须首先”与某个表关联“。
+1. 在表对象中必须使用 `primaryKey` 函数指定主键列，否则 Ktorm 无法确定实体对象的唯一标识。
+2. 调用 `delete` 函数的实体对象必须首先”与某个表关联“。
