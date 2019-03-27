@@ -121,6 +121,13 @@ class MySqlTest : BaseTest() {
         assert(query.totalRecords == 4)
 
         query = Employees
+            .select(Employees.name)
+            .orderBy((Employees.id + 1).desc())
+            .limit(0, 1)
+
+        assert(query.totalRecords == 4)
+
+        query = Employees
             .select(Employees.departmentId, avg(Employees.salary))
             .groupBy(Employees.departmentId)
             .limit(0, 1)
