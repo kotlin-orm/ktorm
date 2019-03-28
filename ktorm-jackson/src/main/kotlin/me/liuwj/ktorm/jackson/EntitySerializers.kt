@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.module.SimpleSerializers
 import me.liuwj.ktorm.entity.Entity
-import me.liuwj.ktorm.entity.impl
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
@@ -41,12 +40,11 @@ internal class EntitySerializers : SimpleSerializers() {
         ) {
             gen.configureIndentOutputIfEnabled()
 
-            val impl = entity.impl
-            val properties = impl.entityClass.memberProperties.associateBy { it.name }
+            val properties = entity.entityClass.memberProperties.associateBy { it.name }
 
             gen.writeStartObject()
 
-            for ((name, value) in impl.values) {
+            for ((name, value) in entity.properties) {
                 val prop = properties[name] ?: continue
                 val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
                 val ser = serializers.findTypedValueSerializer(propType, true, null)
@@ -71,11 +69,10 @@ internal class EntitySerializers : SimpleSerializers() {
         ) {
             gen.configureIndentOutputIfEnabled()
 
-            val impl = entity.impl
-            val properties = impl.entityClass.memberProperties.associateBy { it.name }
-            val typeId = typeSer.writeTypePrefix(gen, typeSer.typeId(entity, impl.entityClass.java, JsonToken.START_OBJECT))
+            val properties = entity.entityClass.memberProperties.associateBy { it.name }
+            val typeId = typeSer.writeTypePrefix(gen, typeSer.typeId(entity, entity.entityClass.java, JsonToken.START_OBJECT))
 
-            for ((name, value) in impl.values) {
+            for ((name, value) in entity.properties) {
                 val prop = properties[name] ?: continue
                 val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
                 val ser = serializers.findTypedValueSerializer(propType, true, null)

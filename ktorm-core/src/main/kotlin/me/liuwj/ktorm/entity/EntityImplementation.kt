@@ -1,11 +1,10 @@
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.schema.NestedBinding
-import me.liuwj.ktorm.schema.ReferenceBinding
 import me.liuwj.ktorm.schema.Table
 import org.slf4j.LoggerFactory
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
+import java.io.Serializable
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -25,33 +24,48 @@ import kotlin.reflect.jvm.kotlinFunction
 
 /**
  * Created by vince on Jun 18, 2018.
- * todo: make this class internal
  */
-class EntityImpl(
+internal class EntityImplementation(
     var entityClass: KClass<*>,
     @Transient var fromTable: Table<*>?,
-    @Transient var parent: Entity<*>?
-) : InvocationHandler, Entity<EntityImpl> {
+    @Transient var parent: EntityImplementation?
+) : InvocationHandler, Serializable {
 
     var values = LinkedHashMap<String, Any?>()
     @Transient var changedProperties = LinkedHashSet<String>()
 
     companion object {
         private const val serialVersionUID = 1L
-        private val logger = LoggerFactory.getLogger(EntityImpl::class.java)
+        private val logger = LoggerFactory.getLogger(EntityImplementation::class.java)
         private val defaultImplsCache: MutableMap<Method, Method> = Collections.synchronizedMap(WeakHashMap())
     }
 
-    override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? = when (method.name) {
-        "equals" -> this == args!![0]
-        "hashCode" -> this.hashCode()
-        "toString" -> this.toString()
-        "flushChanges" -> this.flushChanges()
-        "discardChanges" -> this.discardChanges()
-        "delete" -> this.delete()
-        "get" -> this[args!![0] as String]
-        "set" -> this[args!![0] as String] = args[1]
-        else -> handleMethodCall(proxy, method, args)
+    override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
+        return when (method.declaringClass.kotlin) {
+            Any::class -> {
+                when (method.name) {
+                    "equals" -> this == args!![0]
+                    "hashCode" -> this.hashCode()
+                    "toString" -> this.toString()
+                    else -> throw IllegalStateException("Unrecognized method: $method")
+                }
+            }
+            Entity::class -> {
+                when (method.name) {
+                    "getEntityClass" -> this.entityClass
+                    "getProperties" -> Collections.unmodifiableMap(this.values)
+                    "flushChanges" -> this.doFlushChanges()
+                    "discardChanges" -> this.doDiscardChanges()
+                    "delete" -> this.doDelete()
+                    "get" -> this.getProperty(args!![0] as String)
+                    "set" -> this.setProperty(args!![0] as String, args[1])
+                    else -> throw IllegalStateException("Unrecognized method: $method")
+                }
+            }
+            else -> {
+                handleMethodCall(proxy, method, args)
+            }
+        }
     }
 
     private fun handleMethodCall(proxy: Any, method: Method, args: Array<out Any>?): Any? {
@@ -60,16 +74,16 @@ class EntityImpl(
             val (prop, isGetter) = ktProp
             if (prop.isAbstract) {
                 if (isGetter) {
-                    val result = this[prop.name]
+                    val result = this.getProperty(prop.name)
                     if (result != null || prop.returnType.isMarkedNullable) {
                         return result
                     } else {
                         val defValue = (prop.returnType.classifier as KClass<*>).defaultValue
-                        this[prop.name] = defValue
+                        this.setProperty(prop.name, defValue)
                         return defValue
                     }
                 } else {
-                    this[prop.name] = args!![0]
+                    this.setProperty(prop.name, args!![0])
                     return null
                 }
             } else {
@@ -106,7 +120,7 @@ class EntityImpl(
             logger.error("method: $method")
             logger.error("args: ${args?.contentToString()}")
             logger.error("arg types: ${args?.map { it.javaClass }}")
-            logger.error("impl: $impl")
+            logger.error("implementation: $impl")
             logger.error("cache: $defaultImplsCache")
             throw e
         }
@@ -164,70 +178,17 @@ class EntityImpl(
         return java.lang.reflect.Array.newInstance(this, length)
     }
 
-    override fun flushChanges(): Int {
-        return doFlushChanges()
-    }
-
-    override fun discardChanges() {
-        doDiscardChanges()
-    }
-
-    override fun delete(): Int {
-        return doDelete()
-    }
-
-    override fun get(name: String): Any? {
+    fun getProperty(name: String): Any? {
         return values[name]
     }
 
-    override fun set(name: String, value: Any?) {
-        if (isPrimaryKey(name) && name in values) {
+    fun setProperty(name: String, value: Any?, forceSet: Boolean = false) {
+        if (!forceSet && isPrimaryKey(name) && name in values) {
             throw UnsupportedOperationException("Cannot modify the primary key value because it's already set to ${values[name]}")
         }
 
         values[name] = value
         changedProperties.add(name)
-    }
-
-    fun forceSetValue(name: String, value: Any?) {
-        values[name] = value
-        changedProperties.add(name)
-    }
-
-    private fun isPrimaryKey(name: String): Boolean {
-        val binding = this.fromTable?.primaryKey?.binding
-
-        when (binding) {
-            null -> return false
-            is ReferenceBinding -> {
-                return binding.onProperty.name == name
-            }
-            is NestedBinding -> {
-                val namesPath = LinkedList<Set<String>>()
-                namesPath.addFirst(setOf(name))
-
-                var curr: Entity<*> = this
-                while (true) {
-                    val parent = curr.impl.parent ?: break
-                    val children = parent.impl.values.filterValues { it == curr }
-
-                    if (children.isEmpty()) {
-                        break
-                    } else {
-                        namesPath.addFirst(children.keys)
-                        curr = parent
-                    }
-                }
-
-                for ((i, possibleFields) in namesPath.withIndex()) {
-                    if (binding[i].name !in possibleFields) {
-                        return false
-                    }
-                }
-
-                return true
-            }
-        }
     }
 
     private fun writeObject(output: ObjectOutputStream) {
@@ -243,7 +204,11 @@ class EntityImpl(
     }
 
     override fun equals(other: Any?): Boolean {
-        return this === (other as? Entity<*>)?.impl
+        return when (other) {
+            is EntityImplementation -> this === other
+            is Entity<*> -> this === other.implementation
+            else -> false
+        }
     }
 
     override fun hashCode(): Int {

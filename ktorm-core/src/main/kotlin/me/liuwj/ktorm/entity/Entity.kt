@@ -13,7 +13,7 @@ import kotlin.reflect.full.isSubclassOf
  *
  * 在框架中，实体类必须声明为 interface(not data class) 并且继承 [Entity]。
  * 在从查询结果中创建实体对象时，框架会使用 JDK 动态代理生成实体类接口的实现，并创建一个对象，
- * 因此在实体里上进行的任何操作都会代理到框架的 [EntityImpl] 类中，从而使得框架能够检测到实体对象中的任何变化
+ * 因此在实体里上进行的任何操作都会代理到框架的 [EntityImplementation] 类中，从而使得框架能够检测到实体对象中的任何变化
  *
  * Created by vince on Jun 18, 2018.
  */
@@ -22,12 +22,12 @@ interface Entity<E : Entity<E>> : Serializable {
     /**
      * Return this entity's [KClass] instance, which must be an interface.
      */
-    //val entityClass: KClass<E>
+    val entityClass: KClass<E>
 
     /**
      * Return the immutable view of this entity's all properties.
      */
-    //val properties: Map<String, Any?>
+    val properties: Map<String, Any?>
 
     /**
      * 将实体对象中变化的字段保存到数据库，返回受影响的记录数
@@ -61,7 +61,7 @@ interface Entity<E : Entity<E>> : Serializable {
         /**
          * 创建实体类对象，此方法仅限框架内部使用
          */
-        fun create(entityClass: KClass<*>, parent: Entity<*>? = null, fromTable: Table<*>? = parent?.impl?.fromTable): Entity<*> {
+        internal fun create(entityClass: KClass<*>, parent: EntityImplementation? = null, fromTable: Table<*>? = parent?.fromTable): Entity<*> {
             if (!entityClass.isSubclassOf(Entity::class)) {
                 throw IllegalArgumentException("An entity class must be subclass of Entity.")
             }
@@ -70,22 +70,31 @@ interface Entity<E : Entity<E>> : Serializable {
             }
 
             val classLoader = Thread.currentThread().contextClassLoader
-            val impl = EntityImpl(entityClass, fromTable, parent)
-            return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), impl) as Entity<*>
+            val handler = EntityImplementation(entityClass, fromTable, parent)
+            return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), handler) as Entity<*>
+        }
+
+        /**
+         * 创建实体类对象
+         */
+        fun create(entityClass: KClass<*>): Entity<*> {
+            if (!entityClass.isSubclassOf(Entity::class)) {
+                throw IllegalArgumentException("An entity class must be subclass of Entity.")
+            }
+            if (!entityClass.java.isInterface) {
+                throw IllegalArgumentException("An entity class must be defined as an interface.")
+            }
+
+            val classLoader = Thread.currentThread().contextClassLoader
+            val handler = EntityImplementation(entityClass, null, null)
+            return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), handler) as Entity<*>
         }
 
         /**
          * 创建实体类对象
          */
         inline fun <reified E : Entity<E>> create(): E {
-            return create(E::class, null, null) as E
-        }
-
-        /**
-         * 创建实体类对象，并执行回调函数进行初始化操作
-         */
-        inline fun <reified E : Entity<E>> create(init: E.() -> Unit): E {
-            return create<E>().apply(init)
+            return create(E::class) as E
         }
     }
 
