@@ -54,7 +54,7 @@ open class BaseTest {
 
     interface Employee : Entity<Employee> {
         companion object : Entity.Factory<Employee>()
-        val id: Int?
+        var id: Int?
         var name: String
         var job: String
         var manager: Employee?

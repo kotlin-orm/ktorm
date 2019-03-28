@@ -273,12 +273,14 @@ class EntityTest : BaseTest() {
     interface Emp : Entity<Emp> {
         val id: Int
         var employee: Employee
+        var manager: Employee
     }
 
     object Emps : Table<Emp>("t_employee") {
         val id by int("id").primaryKey().bindTo(Emp::id)
         val name by varchar("name").bindTo(Emp::employee, Employee::name)
         val job by varchar("job").bindTo(Emp::employee, Employee::job)
+        val managerId by int("manager_id").bindTo(Emp::manager, Employee::id)
     }
 
     @Test
@@ -315,5 +317,15 @@ class EntityTest : BaseTest() {
         } catch (e: IllegalStateException) {
             assert(e.message == "this.employee.name may be unexpectedly discarded after flushChanges, please save it to database first.")
         }
+    }
+
+    @Test
+    fun testFlushChangesForDefaultValues() {
+        var emp = Emps.findById(1) ?: return
+        emp.manager.id = 2
+        emp.flushChanges()
+
+        emp = Emps.findById(1) ?: return
+        assert(emp.manager.id == 2)
     }
 }
