@@ -38,7 +38,7 @@ internal class EntityDeserializers : SimpleDeserializers() {
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext): Entity<*> {
             val entity = Entity.create(entityClass)
             deserialize(parser, ctxt, entity)
-            return entity.apply { discardChanges() }
+            return entity
         }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext, intoValue: Entity<*>): Entity<*> {

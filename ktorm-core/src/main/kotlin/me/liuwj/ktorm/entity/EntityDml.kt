@@ -107,18 +107,28 @@ private fun EntityImpl.findChangedColumns(fromTable: Table<*>): Map<Column<*>, A
                 }
             }
             is NestedBinding -> {
-                var changed = false
+                var anyChanged = false
                 var curr: Any? = this
 
-                for (prop in binding) {
+                for ((i, prop) in binding.withIndex()) {
                     check(curr is Entity<*>?)
 
-                    val changedProperties = curr?.impl?.changedProperties ?: emptySet<String>()
-                    changed = changed || prop.name in changedProperties
+                    val changed = if (curr == null) false else prop.name in curr.impl.changedProperties
+
+                    if (changed && i > 0) {
+                        check(curr != null)
+
+                        if (curr.impl.fromTable != null && curr.getRoot() != this) {
+                            val propPath = binding.subList(0, i + 1).joinToString(separator = ".", prefix = "this.") { it.name }
+                            throw IllegalStateException("$propPath may be unexpectedly discarded after flushChanges, please save it to database first.")
+                        }
+                    }
+
+                    anyChanged = anyChanged || changed
                     curr = curr?.get(prop.name)
                 }
 
-                if (changed) {
+                if (anyChanged) {
                     assignments[column] = curr
                 }
             }
@@ -126,6 +136,43 @@ private fun EntityImpl.findChangedColumns(fromTable: Table<*>): Map<Column<*>, A
     }
 
     return assignments
+}
+
+private tailrec fun Entity<*>.getRoot(): Entity<*> {
+    val parent = this.impl.parent
+    if (parent == null) {
+        return this
+    } else {
+        return parent.getRoot()
+    }
+}
+
+internal fun EntityImpl.doDiscardChanges() {
+    val fromTable = this.fromTable ?: kotlin.error("The entity is not associated with any table yet.")
+
+    for (column in fromTable.columns) {
+        val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
+
+        when (binding) {
+            is ReferenceBinding -> {
+                changedProperties.remove(binding.onProperty.name)
+            }
+            is NestedBinding -> {
+                var curr: Any? = this
+
+                for (prop in binding) {
+                    if (curr == null) {
+                        break
+                    }
+
+                    check(curr is Entity<*>)
+                    curr.impl.changedProperties.remove(prop.name)
+
+                    curr = curr[prop.name]
+                }
+            }
+        }
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

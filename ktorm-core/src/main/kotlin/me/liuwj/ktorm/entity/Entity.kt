@@ -4,6 +4,7 @@ import me.liuwj.ktorm.schema.TypeReference
 import me.liuwj.ktorm.schema.Table
 import java.io.Serializable
 import java.lang.reflect.Proxy
+import java.sql.SQLException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
@@ -31,6 +32,7 @@ interface Entity<E : Entity<E>> : Serializable {
     /**
      * 将实体对象中变化的字段保存到数据库，返回受影响的记录数
      */
+    @Throws(SQLException::class)
     fun flushChanges(): Int
 
     /**
@@ -41,6 +43,7 @@ interface Entity<E : Entity<E>> : Serializable {
     /**
      * 在数据库中删除此实体对象所代表的记录，返回受影响的记录数
      */
+    @Throws(SQLException::class)
     fun delete(): Int
 
     /**

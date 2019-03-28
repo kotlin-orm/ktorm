@@ -4,6 +4,7 @@ import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.int
+import me.liuwj.ktorm.schema.varchar
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -245,5 +246,74 @@ class EntityTest : BaseTest() {
             .map { Employees.createEntity(it) }
 
         employees.forEach { println(it) }
+    }
+
+    @Test
+    fun testAutoDiscardChanges() {
+        var department = Departments.findById(2) ?: return
+        department.name = "tech"
+
+        val employee = Employee()
+        employee.department = department
+        employee.name = "jerry"
+        employee.job = "trainee"
+        employee.manager = Employees.findOne { it.name eq "vince" }
+        employee.hireDate = LocalDate.now()
+        employee.salary = 50
+        Employees.add(employee)
+
+        department.location = "Guangzhou"
+        department.flushChanges()
+
+        department = Departments.findById(2) ?: return
+        assert(department.name == "tech")
+        assert(department.location == "Guangzhou")
+    }
+
+    interface Emp : Entity<Emp> {
+        val id: Int
+        var employee: Employee
+    }
+
+    object Emps : Table<Emp>("t_employee") {
+        val id by int("id").primaryKey().bindTo(Emp::id)
+        val name by varchar("name").bindTo(Emp::employee, Employee::name)
+        val job by varchar("job").bindTo(Emp::employee, Employee::job)
+    }
+
+    @Test
+    fun testCheckUnexpectedFlush() {
+        val emp1 = Emps.findById(1) ?: return
+        emp1.employee.name = "jerry"
+        // emp1.flushChanges()
+
+        val emp2 = Emps.findById(2) ?: return
+        emp2.employee = emp1.employee
+
+        try {
+            emp2.flushChanges()
+            throw AssertionError("failed")
+
+        } catch (e: IllegalStateException) {
+            assert(e.message == "this.employee.name may be unexpectedly discarded after flushChanges, please save it to database first.")
+        }
+    }
+
+    @Test
+    fun testCheckUnexpectedFlush1() {
+        val employee = Employees.findById(1) ?: return
+        employee.name = "jerry"
+        // employee.flushChanges()
+
+        val emp = Emps.findById(2) ?: return
+        emp.employee = employee
+
+        try {
+            emp.flushChanges()
+            throw AssertionError("failed")
+
+        } catch (e: IllegalStateException) {
+            assert(e.message == "this.employee.name may be unexpectedly discarded after flushChanges, please save it to database first.")
+        }
     }
 }

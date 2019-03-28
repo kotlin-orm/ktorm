@@ -169,13 +169,7 @@ class EntityImpl(
     }
 
     override fun discardChanges() {
-        changedProperties.clear()
-
-        for ((_, value) in values) {
-            if (value is Entity<*>) {
-                value.discardChanges()
-            }
-        }
+        doDiscardChanges()
     }
 
     override fun delete(): Int {
