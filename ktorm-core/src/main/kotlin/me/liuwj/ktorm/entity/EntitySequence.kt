@@ -31,3 +31,47 @@ fun <T> EntitySequence<T>.toList(): List<T> {
     }
     return list
 }
+
+fun <T, R> EntitySequence<T>.map(transform: (T) -> R): EntitySequence<R> {
+    return object : EntitySequence<R> {
+        val upstream = this@map
+
+        override fun createQuery(): Query {
+            return upstream.createQuery()
+        }
+
+        override fun obtainRow(row: QueryRowSet): R {
+            return transform(upstream.obtainRow(row))
+        }
+    }
+}
+
+fun <T, R> EntitySequence<T>.mapIndexed(transform: (index: Int, T) -> R): EntitySequence<R> {
+    return object : EntitySequence<R> {
+        val upstream = this@mapIndexed
+        var index = 0
+
+        override fun createQuery(): Query {
+            return upstream.createQuery()
+        }
+
+        override fun obtainRow(row: QueryRowSet): R {
+            return transform(index++, upstream.obtainRow(row))
+        }
+    }
+}
+
+fun <T, R, C : MutableCollection<in R>> EntitySequence<T>.mapTo(destination: C, transform: (T) -> R): C {
+    for (item in this) {
+        destination.add(transform(item))
+    }
+    return destination
+}
+
+fun <T, R, C : MutableCollection<in R>> EntitySequence<T>.mapIndexedTo(destination: C, transform: (index: Int, T) -> R): C {
+    var index = 0
+    for (item in this) {
+        destination.add(transform(index++, item))
+    }
+    return destination
+}
