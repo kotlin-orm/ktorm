@@ -25,45 +25,13 @@ class EntitySequenceTest : BaseTest() {
     }
 
     @Test
-    fun testMap() {
-        val names = Employees.asSequence().map { it.name }.map { it.toUpperCase() }.toList()
-        assert(names.size == 4)
-        assert(names[0] == "VINCE")
-        assert(names[1] == "MARRY")
-    }
-
-    @Test
-    fun testMapIndexed() {
-        val names = Employees.asSequence().map { it.name }.mapIndexed { i, name -> "$i.$name" }.toList()
-        assert(names.size == 4)
-        assert(names[0] == "0.vince")
-        assert(names[1] == "1.marry")
-    }
-
-    @Test
-    fun testMapTo() {
-        val names = Employees.asSequence().map { it.name }.mapTo(ArrayList()) { it.toUpperCase() }
-        assert(names.size == 4)
-        assert(names[0] == "VINCE")
-        assert(names[1] == "MARRY")
-    }
-
-    @Test
-    fun testMapIndexedTo() {
-        val names = Employees.asSequence().map { it.name }.mapIndexedTo(ArrayList()) { i, name -> "$i.$name" }
-        assert(names.size == 4)
-        assert(names[0] == "0.vince")
-        assert(names[1] == "1.marry")
-    }
-
-    @Test
     fun testFilter() {
         val names = Employees
             .asSequence()
             .filter { it.departmentId eq 1 }
             .filterNot { it.managerId.isNull() }
-            .map { it.name }
             .toList()
+            .map { it.name }
 
         assert(names.size == 1)
         assert(names[0] == "marry")
@@ -73,9 +41,9 @@ class EntitySequenceTest : BaseTest() {
     fun testFilterTo() {
         val names = Employees
             .asSequence()
-            .map { it.name }
             .filter { it.departmentId eq 1 }
             .filterTo(ArrayList()) { it.managerId.isNull() }
+            .map { it.name }
 
         assert(names.size == 1)
         assert(names[0] == "vince")

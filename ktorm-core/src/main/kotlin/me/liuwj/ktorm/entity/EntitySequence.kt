@@ -1,111 +1,72 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.Query
-import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.dsl.and
 import me.liuwj.ktorm.dsl.not
 import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.expression.SelectExpression
 import me.liuwj.ktorm.schema.Table
-import java.util.NoSuchElementException
 
-abstract class EntitySequence<T : Table<*>, out R>(val sourceTable: T) {
+data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val expression: SelectExpression) {
 
-    abstract fun createQuery(): Query
+    val query = Query(expression)
 
-    abstract fun obtainRow(row: QueryRowSet): R
+    val sql get() = query.sql
 
-    operator fun iterator() = object : Iterator<R> {
-        private val query = createQuery()
-        private var hasNext: Boolean? = null
+    val rowSet get() = query.rowSet
+
+    val totalRecords get() = query.totalRecords
+
+    operator fun iterator() = object : Iterator<E> {
+        private val queryIterator = query.iterator()
 
         override fun hasNext(): Boolean {
-            return hasNext ?: query.rowSet.next().also { hasNext = it }
+            return queryIterator.hasNext()
         }
 
-        override fun next(): R {
-            return if (hasNext()) obtainRow(query.rowSet).also { hasNext = null } else throw NoSuchElementException()
-        }
-    }
-}
-
-internal fun EntitySequence<*, *>.createSelectExpression() = createQuery().expression as SelectExpression
-
-fun <E : Entity<E>, T : Table<E>> T.asSequence(): EntitySequence<T, E> {
-    return object : EntitySequence<T, E>(sourceTable = this) {
-
-        override fun createQuery(): Query {
-            return sourceTable.joinReferencesAndSelect()
-        }
-
-        override fun obtainRow(row: QueryRowSet): E {
-            return sourceTable.createEntity(row)
+        override fun next(): E {
+            return sourceTable.createEntity(queryIterator.next())
         }
     }
 }
 
-fun <R> EntitySequence<*, R>.toList(): List<R> {
-    return this.mapTo(ArrayList()) { it }
+fun <E : Entity<E>, T : Table<E>> T.asSequence(): EntitySequence<E, T> {
+    val query = this.joinReferencesAndSelect()
+    return EntitySequence(this, query.expression as SelectExpression)
 }
 
-fun <T : Table<*>, S, R> EntitySequence<T, S>.map(transform: (S) -> R): EntitySequence<T, R> {
-    return this.mapIndexed { _, item -> transform(item) }
-}
-
-fun <T : Table<*>, S, R> EntitySequence<T, S>.mapIndexed(transform: (index: Int, S) -> R): EntitySequence<T, R> {
-    return object : EntitySequence<T, R>(sourceTable) {
-        val upstream = this@mapIndexed
-        var index = 0
-
-        override fun createQuery(): Query {
-            return upstream.createQuery()
-        }
-
-        override fun obtainRow(row: QueryRowSet): R {
-            return transform(index++, upstream.obtainRow(row))
-        }
-    }
-}
-
-fun <T : Table<*>, S, R, C : MutableCollection<in R>> EntitySequence<T, S>.mapTo(destination: C, transform: (S) -> R): C {
-    return this.mapIndexedTo(destination) { _, item -> transform(item) }
-}
-
-fun <T : Table<*>, S, R, C : MutableCollection<in R>> EntitySequence<T, S>.mapIndexedTo(destination: C, transform: (index: Int, S) -> R): C {
-    var index = 0
+fun <E : Entity<E>> EntitySequence<E, *>.toList(): List<E> {
+    val list = ArrayList<E>()
     for (item in this) {
-        destination.add(transform(index++, item))
+        list += item
+    }
+    return list
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<E, T> {
+    if (expression.where == null) {
+        return this.copy(expression = expression.copy(where = predicate(sourceTable)))
+    } else {
+        return this.copy(expression = expression.copy(where = expression.where and predicate(sourceTable)))
+    }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterNot(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<E, T> {
+    return this.filter { !predicate(it) }
+}
+
+fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(destination: C, predicate: (T) -> ScalarExpression<Boolean>): C {
+    val sequence = this.filter(predicate)
+    for (item in sequence) {
+        destination += item
     }
     return destination
 }
 
-fun <T : Table<*>, R> EntitySequence<T, R>.filter(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<T, R> {
-    return object : EntitySequence<T, R>(sourceTable) {
-        val upstream = this@filter
-
-        override fun createQuery(): Query {
-            val select = upstream.createSelectExpression()
-            if (select.where == null) {
-                return Query(select.copy(where = predicate(sourceTable)))
-            } else {
-                return Query(select.copy(where = select.where and predicate(sourceTable)))
-            }
-        }
-
-        override fun obtainRow(row: QueryRowSet): R {
-            return upstream.obtainRow(row)
-        }
+fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(destination: C, predicate: (T) -> ScalarExpression<Boolean>): C {
+    val sequence = this.filterNot(predicate)
+    for (item in sequence) {
+        destination += item
     }
-}
-
-fun <T : Table<*>, R> EntitySequence<T, R>.filterNot(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<T, R> {
-    return this.filter { !predicate(it) }
-}
-
-fun <T : Table<*>, R, C : MutableCollection<in R>> EntitySequence<T, R>.filterTo(destination: C, predicate: (T) -> ScalarExpression<Boolean>): C {
-    return this.filter(predicate).mapTo(destination) { it }
-}
-
-fun <T : Table<*>, R, C : MutableCollection<in R>> EntitySequence<T, R>.filterNotTo(destination: C, predicate: (T) -> ScalarExpression<Boolean>): C {
-    return this.filterNot(predicate).mapTo(destination) { it }
+    return destination
 }
