@@ -47,13 +47,13 @@ Employees.select()
     .forEach { println(it.name) }
 ```
 
-Actually, in the example above, all the work Ktorm dose is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedByDescending { }.forEach { }` are all extension functions in Kotlin standard lib. That's the advantages of implementing `Iterable` interface. 
+Actually, in the example above, all the work Ktorm does is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedByDescending { }.forEach { }` are all extension functions in Kotlin standard lib. That's the advantages of implementing `Iterable` interface. 
 
 There are some other useful properties in `Query` class: 
 
 - **sql:** Return the generated SQL string of this query, can be used to ensure whether the generated SQL is expected while debugging. 
 - **rowSet:** Return the `ResultSet` object of this query, lazy initialized after first access, obtained from database by executing the generated SQL. 
-- **totalRecords:** If the query dosen't limits the results via *offset* and *limit*, return the size of the result set. Or if it dose, return the total record count of the query ignoring the *offset* and *limit* parameters. Ktorm provides this property to support pagination, we can calculate page count through dividing it by our page size.
+- **totalRecords:** If the query doesn't limits the results via *offset* and *limit*, return the size of the result set. Or if it does, return the total record count of the query ignoring the *offset* and *limit* parameters. Ktorm provides this property to support pagination, we can calculate page count through dividing it by our page size.
 
 ## Obtain Query Results
 
@@ -129,9 +129,9 @@ select max(t_employee.salary) - min(t_employee.salary)
 from t_employee 
 ```
 
-We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, thats why we can use minus operator in the query above. Because of operator overloading, the minus operator here dosen't perform an actual substraction, but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
+We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, thats why we can use minus operator in the query above. Because of operator overloading, the minus operator here doesn't perform an actual substraction, but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
 
-> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` dosen't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by lables or column indices. 
+> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` doesn't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by lables or column indices. 
 
 ## selectDistinct
 
@@ -262,7 +262,7 @@ having avg(t_employee.salary) > ?
 
 However, as any SQL users know, the generate SQL is wrong with syntax now, and it's impossible to be executed in a database. That's because the SQL's grammar restricts that if we are using group by, every select column either comes from the group by clause, or appears in an aggregation function. So, that's not Ktorm's fault, we don't understand SQL enough, Ktorm just translate our Koltin code to SQL trustily. 
 
-> Note: Ktorm generates SQLs, but our design goal are never to replace SQL in Kotlin. Ktorm dosen't meant to be a "automation" ORM framework that's "large and complete". Instead, one of our goals is to provide a set of flexible and convenient DSL for SQL by making full use of Kotlin's excellent features. This requires our users to have a certain understanding on SQL, because Ktorm just translate our DSL to SQL trustily, we have to take the responsibility of our SQL's correctness and performance. 
+> Note: Ktorm generates SQLs, but our design goal are never to replace SQL in Kotlin. Ktorm doesn't meant to be a "automation" ORM framework that's "large and complete". Instead, one of our goals is to provide a set of flexible and convenient DSL for SQL by making full use of Kotlin's excellent features. This requires our users to have a certain understanding on SQL, because Ktorm just translate our DSL to SQL trustily, we have to take the responsibility of our SQL's correctness and performance. 
 
 ## orderBy
 
@@ -308,7 +308,7 @@ order by avg(t_employee.salary) desc
 
 ## limit
 
-The SQL standard dosen't say how to implement paging queries, so different databases provides different implementations on that. For example, MySQL uses `limit m, n` syntax for pagination; PostgreSQL uses `limit m offset n` syntax; Oracle dosen't even provide any keyword, we need to limit our pages in where clause by rownum. 
+The SQL standard doesn't say how to implement paging queries, so different databases provides different implementations on that. For example, MySQL uses `limit m, n` syntax for pagination; PostgreSQL uses `limit m offset n` syntax; Oracle doesn't even provide any keyword, we need to limit our pages in where clause by rownum. 
 
 To hide the paging syntax's differences among databases, Ktorm provides a `limit` function to support pagination: 
 
@@ -327,13 +327,13 @@ Here is an example, this query obtains the first employee in the table:
 val query = Employees.select().limit(0, 1)
 ```
 
-When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the current enabled dialect. If we dosen't use any dialects, an exception might be thrown: 
+When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the current enabled dialect. If we doesn't use any dialects, an exception might be thrown: 
 
 ```
 java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
 ```
 
-This is OK, the SQL standard dosen't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to latter chapters for how to [enable dialects](./dialects-and-raw-sql.html#Enable-Dialects).
+This is OK, the SQL standard doesn't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to latter chapters for how to [enable dialects](./dialects-and-raw-sql.html#Enable-Dialects).
 
 ## union/unionAll
 

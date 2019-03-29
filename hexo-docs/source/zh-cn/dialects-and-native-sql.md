@@ -1,7 +1,7 @@
 ---
 title: 方言与原生 SQL
 lang: zh-cn
-related_path: en/dialects-and-raw-sql.html
+related_path: en/dialects-and-native-sql.html
 ---
 
 # 方言与原生 SQL

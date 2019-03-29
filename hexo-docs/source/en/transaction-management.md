@@ -59,7 +59,7 @@ There has been 2 records in the `Departments` table before. The code above opens
 Note: 
 
 - Any exceptions thrown in the closure can trigger a rollback, no matter the exception is checked or unchecked. Actually, *checked exception* is a Java only concept, there is no such thing in Kotlin. 
-- `useTransaction` is reentrant, so it can be called nested. However, the inner calls dosen't open new transactions, but share the same ones with outers. 
+- `useTransaction` is reentrant, so it can be called nested. However, the inner calls doesn't open new transactions, but share the same ones with outers. 
 
 ## Transaction Manager
 
@@ -85,5 +85,5 @@ try {
 }
 ```
 
-`TransactionManager` is an interface that has several implementations. In general, `Database` objects created by `Database.connect` function use the `JdbcTransactionManager` implementation by default, this implementation supports transaction management directly based on raw JDBC. Ktorm also provides a `SpringManagedTransactionManager` implementation which dosen't support transaction management by itself but delegates it to Spring framework, refer to [Spring Support](./spring-support.html) for more details. 
+`TransactionManager` is an interface that has several implementations. In general, `Database` objects created by `Database.connect` function use the `JdbcTransactionManager` implementation by default, this implementation supports transaction management directly based on raw JDBC. Ktorm also provides a `SpringManagedTransactionManager` implementation which doesn't support transaction management by itself but delegates it to Spring framework, refer to [Spring Support](./spring-support.html) for more details. 
 

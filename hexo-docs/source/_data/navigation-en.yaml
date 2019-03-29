@@ -46,9 +46,9 @@ main:
     type: link
     path: en/operators.html
 
-  - text: Dialects and Raw SQL
+  - text: Dialects and Native SQL
     type: link
-    path: en/dialects-and-raw-sql.html
+    path: en/dialects-and-native-sql.html
 
   - text: ENTITY API
     type: label

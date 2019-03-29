@@ -41,7 +41,7 @@ from t_employee
 cross join t_department 
 ```
 
-That's so simple, but honestly, such a simple joining query dosen't make any sense to us in practical use. Here is a more practical example, we want to list those employees whose salary is greater than 100, and return their names and the departments they are from. Here, we specify the second parameter `on` of the function `leftJoin`, that's the joining condition. As for the usage of `select` and `where` function, we have discussed that in the former section. 
+That's so simple, but honestly, such a simple joining query doesn't make any sense to us in practical use. Here is a more practical example, we want to list those employees whose salary is greater than 100, and return their names and the departments they are from. Here, we specify the second parameter `on` of the function `leftJoin`, that's the joining condition. As for the usage of `select` and `where` function, we have discussed that in the former section. 
 
 ```kotlin
 val query = Employees

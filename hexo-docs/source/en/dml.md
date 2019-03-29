@@ -39,7 +39,7 @@ Here, we use `it.name to "jerry"` to set the name to jerry in the closure, do yo
 
 It can be seen that the type of the closure is `AssignmentsBuilder.(T) -> Unit`, which is a function that accepts a parameter `T`, the current table object, that's why we can use `it` to access the current table and its columns in the closure. Moreover, the closure is also an extension fuction of `AssignmentsBuilder` class, so in the scope of the closure, `this` reference is changed to a `AssignmentsBuilder` instance, that's why we can call its member function `to` there. Yes, this `to` function is a member function of `AssignmentsBuilder` class, but not the `to` function used to create `Pair` instances of Kotlin standard lib. 
 
-Here is the source code of `AssignmentsBuilder`, we can see that the `to` function dosen't return any values, it just save the current column and its value into a `MutableList`.
+Here is the source code of `AssignmentsBuilder`, we can see that the `to` function doesn't return any values, it just save the current column and its value into a `MutableList`.
 
 ```kotlin
 @KtormDsl
@@ -65,9 +65,9 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
 }
 ```
 
-> Because the member function `to` dosen't return any values, we are not likely to mix it with the `kotlin.to` function of Kotlin standard lib. If you really want to use `kotlin.to` in the closure, but found it's resolved to `AssignmentsBuilder.to` and compiler error occurs. We recommend you to refactor your code and move the calling of `kotlin.to` outside the closure. 
+> Because the member function `to` doesn't return any values, we are not likely to mix it with the `kotlin.to` function of Kotlin standard lib. If you really want to use `kotlin.to` in the closure, but found it's resolved to `AssignmentsBuilder.to` and compiler error occurs. We recommend you to refactor your code and move the calling of `kotlin.to` outside the closure. 
 
-Sometimes we may use auto-increment keys in our tables, we may need to obtain the auto generated keys from databases after records are inserted. This time we can use `insertAndGenerateKey` function. Different from `insert`, it dosen't return the effected record numbers anymore, but returns the auto generated keys instead. Besides of this, it's usage is totally the same with `insert`. 
+Sometimes we may use auto-increment keys in our tables, we may need to obtain the auto generated keys from databases after records are inserted. This time we can use `insertAndGenerateKey` function. Different from `insert`, it doesn't return the effected record numbers anymore, but returns the auto generated keys instead. Besides of this, it's usage is totally the same with `insert`. 
 
 ```kotlin
 val id = Employees.insertAndGenerateKey {

@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E> {
-    return findListByIds(ids).associateBy { it.getPrimaryKeyValue(this) as K }
+    return findListByIds(ids).associateBy { it.implementation.getPrimaryKeyValue(this) as K }
 }
 
 /**
@@ -21,7 +21,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
         return emptyList()
     } else {
-        val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName dosen't have a primary key.")
+        val primaryKey = (this.primaryKey as? Column<Any>) ?: error("Table $tableName doesn't have a primary key.")
         return findList { primaryKey inList ids }
     }
 }
@@ -31,7 +31,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
-    val primaryKey = (this.primaryKey as? Column<Any>) ?: kotlin.error("Table $tableName dosen't have a primary key.")
+    val primaryKey = (this.primaryKey as? Column<Any>) ?: error("Table $tableName doesn't have a primary key.")
     return findOne { primaryKey eq id }
 }
 
@@ -90,7 +90,7 @@ private fun Table<*>.joinReferences(
         val binding = column.binding
         if (binding is ReferenceBinding) {
             val rightTable = binding.referenceTable
-            val primaryKey = rightTable.primaryKey ?: kotlin.error("Table ${rightTable.tableName} dosen't have a primary key.")
+            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
 
             curr = curr.leftJoin(rightTable, on = column eq primaryKey)
             curr = rightTable.joinReferences(curr, joinedTables)
@@ -113,7 +113,7 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
 }
 
 private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = null): Entity<*> {
-    val entityClass = this.entityClass ?: kotlin.error("No entity class configured for table: $tableName")
+    val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
     for (column in columns) {
@@ -126,7 +126,7 @@ private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = n
 
     val foreignKeyValue = if (foreignKey != null && row.hasColumn(foreignKey)) row[foreignKey] else null
     if (foreignKeyValue != null) {
-        entity.forceSetPrimaryKeyValue(this, foreignKeyValue)
+        entity.implementation.forceSetPrimaryKeyValue(this, foreignKeyValue)
     }
 
     return entity.apply { discardChanges() }
@@ -137,7 +137,7 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>)
     when (binding) {
         is ReferenceBinding -> {
             val rightTable = binding.referenceTable
-            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} dosen't have a primary key.")
+            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
 
             if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
                 intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this, foreignKey = column)
@@ -147,20 +147,20 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>)
             val columnValue = if (this.hasColumn(column)) this[column] else null
 
             if (columnValue != null) {
-                var curr: Entity<*> = intoEntity
+                var curr = intoEntity.implementation
                 for ((i, prop) in binding.withIndex()) {
                     if (i != binding.lastIndex) {
-                        var child = curr[prop.name] as Entity<*>?
+                        var child = curr.getProperty(prop.name) as Entity<*>?
                         if (child == null) {
                             child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
-                            curr[prop.name] = child
+                            curr.setProperty(prop.name, child)
                         }
 
-                        curr = child
+                        curr = child.implementation
                     }
                 }
 
-                curr[binding.last().name] = columnValue
+                curr.setProperty(binding.last().name, columnValue)
             }
         }
     }
