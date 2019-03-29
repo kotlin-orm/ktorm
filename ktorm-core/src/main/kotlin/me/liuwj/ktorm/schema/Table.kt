@@ -1,8 +1,6 @@
 package me.liuwj.ktorm.schema
 
-import me.liuwj.ktorm.dsl.Query
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.entity.*
+import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -24,7 +22,7 @@ open class Table<E : Entity<E>>(
     val tableName: String,
     val alias: String? = null,
     entityClass: KClass<E>? = null
-) : TypeReference<E>(), EntitySequence<E> {
+) : TypeReference<E>() {
 
     private val _refCounter = AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
@@ -264,20 +262,6 @@ open class Table<E : Entity<E>>(
      */
     fun asExpression(): TableExpression {
         return TableExpression(tableName, alias)
-    }
-
-    /**
-     * Create a query auto left joining all reference tables and selecting all columns.
-     */
-    override fun createQuery(): Query {
-        return this.joinReferencesAndSelect()
-    }
-
-    /**
-     * Obtain the current entity from the [QueryRowSet].
-     */
-    override fun obtainRow(row: QueryRowSet): E {
-        return this.createEntity(row)
     }
 
     /**
