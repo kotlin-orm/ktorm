@@ -3,7 +3,7 @@ package me.liuwj.ktorm.dsl
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.IntSqlType
 
-internal fun QueryExpression.toCountExpression(): SelectExpression {
+internal fun QueryExpression.toCountExpression(keepPaging: Boolean): SelectExpression {
     val expression = OrderByRemover.visit(this) as QueryExpression
 
     val countColumns = listOf(
@@ -18,15 +18,29 @@ internal fun QueryExpression.toCountExpression(): SelectExpression {
     )
 
     if (expression is SelectExpression && expression.isSimpleSelect()) {
-        return expression.copy(columns = countColumns, offset = null, limit = null)
+        if (keepPaging) {
+            return expression.copy(columns = countColumns)
+        } else {
+            return expression.copy(columns = countColumns, offset = null, limit = null)
+        }
     } else {
-        return SelectExpression(
-            columns = countColumns,
-            from = when (expression) {
-                is SelectExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
-                is UnionExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
-            }
-        )
+        if (keepPaging) {
+            return SelectExpression(
+                columns = countColumns,
+                from = when (expression) {
+                    is SelectExpression -> expression.copy(tableAlias = "tmp_count")
+                    is UnionExpression -> expression.copy(tableAlias = "tmp_count")
+                }
+            )
+        } else {
+            return SelectExpression(
+                columns = countColumns,
+                from = when (expression) {
+                    is SelectExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
+                    is UnionExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
+                }
+            )
+        }
     }
 }
 

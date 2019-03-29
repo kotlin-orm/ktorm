@@ -2,6 +2,7 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.eq
+import me.liuwj.ktorm.dsl.greater
 import me.liuwj.ktorm.dsl.isNull
 import org.junit.Test
 
@@ -13,7 +14,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.filter { it > 0 }
+        sequence.any()
     }
 
     @Test
@@ -47,5 +48,16 @@ class EntitySequenceTest : BaseTest() {
 
         assert(names.size == 1)
         assert(names[0] == "vince")
+    }
+
+    @Test
+    fun testCount() {
+        assert(Employees.asSequence().filter { it.departmentId eq 1 }.count() == 2)
+        assert(Employees.asSequence().count { it.departmentId eq 1 } == 2)
+    }
+
+    @Test
+    fun testAll() {
+        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary greater 49L })
     }
 }

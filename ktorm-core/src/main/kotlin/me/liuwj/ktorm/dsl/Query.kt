@@ -42,7 +42,7 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
-            val countExpr = expression.toCountExpression()
+            val countExpr = expression.toCountExpression(keepPaging = false)
 
             countExpr.prepareStatement { statement, logger ->
                 statement.executeQuery().use { rs ->

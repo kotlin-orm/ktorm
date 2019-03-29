@@ -1,8 +1,11 @@
 package me.liuwj.ktorm.entity
 
+import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.Query
 import me.liuwj.ktorm.dsl.and
 import me.liuwj.ktorm.dsl.not
+import me.liuwj.ktorm.dsl.toCountExpression
 import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.expression.SelectExpression
 import me.liuwj.ktorm.schema.Table
@@ -69,4 +72,43 @@ fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E,
         destination += item
     }
     return destination
+}
+
+fun EntitySequence<*, *>.count(): Int {
+    val countExpr = expression.toCountExpression(keepPaging = true)
+
+    countExpr.prepareStatement { statement, logger ->
+        statement.executeQuery().use { rs ->
+            if (rs.next()) {
+                return rs.getInt(1).also { logger.debug("Count: {}", it) }
+            } else {
+                val (sql, _) = Database.global.formatExpression(countExpr, beautifySql = true)
+                throw IllegalStateException("No result return for sql: $sql")
+            }
+        }
+    }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(predicate: (T) -> ScalarExpression<Boolean>): Int {
+    return this.filter(predicate).count()
+}
+
+fun EntitySequence<*, *>.none(): Boolean {
+    return this.count() == 0
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
+    return this.count(predicate) == 0
+}
+
+fun EntitySequence<*, *>.any(): Boolean {
+    return this.count() > 0
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
+    return this.count(predicate) > 0
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
+    return this.none { !predicate(it) }
 }
