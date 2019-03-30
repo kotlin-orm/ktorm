@@ -155,15 +155,26 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testDrop() {
-        val employees = Employees.asSequence().drop(3).toList()
+        val employees = Employees.asSequence().drop(1).drop(1).drop(1).toList()
         assert(employees.size == 1)
         assert(employees[0].name == "penny")
     }
 
     @Test
     fun testTake() {
-        val employees = Employees.asSequence().take(1).toList()
+        val employees = Employees.asSequence().take(2).take(1).toList()
         assert(employees.size == 1)
         assert(employees[0].name == "vince")
+    }
+
+    @Test
+    fun testElementAt() {
+        val employee = Employees
+            .asSequence()
+            .drop(2)
+            .elementAt(1)
+
+        assert(employee.name == "penny")
+        assert(Employees.asSequence().elementAtOrNull(4) == null)
     }
 }

@@ -14,7 +14,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.take(0)
+        sequence.elementAt(1)
     }
 
     @Test

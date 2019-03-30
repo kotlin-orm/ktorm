@@ -9,6 +9,7 @@ import me.liuwj.ktorm.dsl.toCountExpression
 import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.expression.SelectExpression
 import me.liuwj.ktorm.schema.Table
+import kotlin.math.min
 
 data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val expression: SelectExpression) {
 
@@ -160,13 +161,32 @@ fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associat
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
-    if (n <= 0) {
+    if (n == 0) {
         return this
     } else {
-        return this.copy(expression = expression.copy(offset = n))
+        val offset = expression.offset ?: 0
+        return this.copy(expression = expression.copy(offset = offset + n))
     }
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T> {
-    return this.copy(expression = expression.copy(limit = n))
+    val limit = expression.limit ?: Int.MAX_VALUE
+    return this.copy(expression = expression.copy(limit = min(limit, n)))
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
+    val iterator = this.drop(index).take(1).iterator()
+    if (iterator.hasNext()) {
+        return iterator.next()
+    } else {
+        return null
+    }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(index: Int, defaultValue: (Int) -> E): E {
+    return this.elementAtOrNull(index) ?: defaultValue(index)
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAt(index: Int): E {
+    return this.elementAtOrNull(index) ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
 }
