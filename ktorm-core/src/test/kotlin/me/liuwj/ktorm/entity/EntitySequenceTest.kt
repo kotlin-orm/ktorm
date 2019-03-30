@@ -14,7 +14,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.any()
+        sequence.associateBy { it }
     }
 
     @Test
@@ -59,5 +59,12 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testAll() {
         assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+    }
+
+    @Test
+    fun testAssociate() {
+        val employees = Employees.asSequence().filter { it.departmentId eq 1 }.associateBy { it.id }
+        assert(employees.size == 2)
+        assert(employees[1]!!.name == "vince")
     }
 }

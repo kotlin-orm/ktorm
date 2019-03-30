@@ -46,6 +46,8 @@ fun <E : Entity<E>> EntitySequence<E, *>.toList(): List<E> {
     return list
 }
 
+
+
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<E, T> {
     if (expression.where == null) {
         return this.copy(expression = expression.copy(where = predicate(sourceTable)))
@@ -111,4 +113,48 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(predicate: (T) -> Sca
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
     return this.none { !predicate(it) }
+}
+
+fun <E : Entity<E>, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair<K, V>): Map<K, V> {
+    return this.associateTo(LinkedHashMap(), transform)
+}
+
+fun <E : Entity<E>, K> EntitySequence<E, *>.associateBy(keySelector: (E) -> K): Map<K, E> {
+    return this.associateByTo(LinkedHashMap(), keySelector)
+}
+
+fun <E : Entity<E>, K, V> EntitySequence<E, *>.associateBy(keySelector: (E) -> K, valueTransform: (E) -> V): Map<K, V> {
+    return this.associateByTo(LinkedHashMap(), keySelector, valueTransform)
+}
+
+fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(valueTransform: (K) -> V): Map<K, V> {
+    return this.associateWithTo(LinkedHashMap(), valueTransform)
+}
+
+fun <E : Entity<E>, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateTo(destination: M, transform: (E) -> Pair<K, V>): M {
+    for (item in this) {
+        destination += transform(item)
+    }
+    return destination
+}
+
+fun <E : Entity<E>, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associateByTo(destination: M, keySelector: (E) -> K): M {
+    for (item in this) {
+        destination.put(keySelector(item), item)
+    }
+    return destination
+}
+
+fun <E : Entity<E>, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateByTo(destination: M, keySelector: (E) -> K, valueTransform: (E) -> V): M {
+    for (item in this) {
+        destination.put(keySelector(item), valueTransform(item))
+    }
+    return destination
+}
+
+fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associateWithTo(destination: M, valueTransform: (K) -> V): M {
+    for (item in this) {
+        destination.put(item, valueTransform(item))
+    }
+    return destination
 }
