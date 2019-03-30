@@ -109,14 +109,26 @@ private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpre
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
-    return doCreateEntity(row) as E
+    return doCreateEntity(row, skipReferences = false) as E
 }
 
-private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = null): Entity<*> {
+/**
+ * 从结果集中创建实体对象，不会自动级联创建引用表的实体对象
+ */
+@Suppress("UNCHECKED_CAST")
+fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {
+    return doCreateEntity(row, skipReferences = true) as E
+}
+
+private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false, foreignKey: Column<*>? = null): Entity<*> {
     val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
     for (column in columns) {
+        if (skipReferences && column.binding is ReferenceBinding) {
+            continue
+        }
+
         try {
             row.retrieveColumn(column, intoEntity = entity)
         } catch (e: Throwable) {

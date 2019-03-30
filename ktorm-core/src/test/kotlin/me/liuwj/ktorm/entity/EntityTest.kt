@@ -248,6 +248,17 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testCreateEntityWithoutReferences() {
+        Employees
+            .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
+            .select(Employees.columns + Departments.columns)
+            .forEach { row ->
+                val employee = Employees.createEntityWithoutReferences(row)
+                assert(employee["department"] == null)
+            }
+    }
+
+    @Test
     fun testAutoDiscardChanges() {
         var department = Departments.findById(2) ?: return
         department.name = "tech"
