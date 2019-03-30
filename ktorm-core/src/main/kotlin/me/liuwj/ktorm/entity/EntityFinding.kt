@@ -109,7 +109,8 @@ private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpre
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
-    return doCreateEntity(row, skipReferences = false) as E
+    val entity = doCreateEntity(row, skipReferences = false) as E
+    return entity.apply { discardChanges() }
 }
 
 /**
@@ -117,63 +118,62 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {
-    return doCreateEntity(row, skipReferences = true) as E
+    val entity = doCreateEntity(row, skipReferences = true) as E
+    return entity.apply { discardChanges() }
 }
 
-private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false, foreignKey: Column<*>? = null): Entity<*> {
+private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): Entity<*> {
     val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
     for (column in columns) {
-        if (skipReferences && column.binding is ReferenceBinding) {
-            continue
-        }
-
         try {
-            row.retrieveColumn(column, intoEntity = entity)
+            row.retrieveColumn(column, intoEntity = entity, skipReferences = skipReferences)
         } catch (e: Throwable) {
             throw IllegalStateException("Error occur while retrieving column: $column, binding: ${column.binding}", e)
         }
     }
 
-    val foreignKeyValue = if (foreignKey != null && row.hasColumn(foreignKey)) row[foreignKey] else null
-    if (foreignKeyValue != null) {
-        entity.implementation.forceSetPrimaryKeyValue(this, foreignKeyValue)
-    }
-
-    return entity.apply { discardChanges() }
+    return entity
 }
 
-private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>) {
+private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>, skipReferences: Boolean) {
+    val columnValue = (if (this.hasColumn(column)) this[column] else null) ?: return
+
     val binding = column.binding ?: return
     when (binding) {
         is ReferenceBinding -> {
             val rightTable = binding.referenceTable
             val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
 
-            if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
-                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this, foreignKey = column)
+            when {
+                skipReferences -> {
+                    val child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = rightTable)
+                    child.implementation.setPrimaryKeyValue(rightTable, columnValue)
+                    intoEntity[binding.onProperty.name] = child.apply { discardChanges() }
+                }
+                this.hasColumn(primaryKey) && this[primaryKey] != null -> {
+                    val child = rightTable.doCreateEntity(this)
+                    child.implementation.forceSetPrimaryKeyValue(rightTable, columnValue)
+                    intoEntity[binding.onProperty.name] = child.apply { discardChanges() }
+                }
             }
         }
         is NestedBinding -> {
-            val columnValue = if (this.hasColumn(column)) this[column] else null
-
-            if (columnValue != null) {
-                var curr = intoEntity.implementation
-                for ((i, prop) in binding.withIndex()) {
-                    if (i != binding.lastIndex) {
-                        var child = curr.getProperty(prop.name) as Entity<*>?
-                        if (child == null) {
-                            child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
-                            curr.setProperty(prop.name, child)
-                        }
-
-                        curr = child.implementation
+            var curr = intoEntity.implementation
+            for ((i, prop) in binding.withIndex()) {
+                if (i != binding.lastIndex) {
+                    var child = curr.getProperty(prop.name) as Entity<*>?
+                    if (child == null) {
+                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
+                        curr.setProperty(prop.name, child)
                     }
-                }
 
-                curr.setProperty(binding.last().name, columnValue)
+                    curr = child.implementation
+                }
             }
+
+            curr.setProperty(binding.last().name, columnValue)
         }
     }
 }

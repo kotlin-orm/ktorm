@@ -249,13 +249,18 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testCreateEntityWithoutReferences() {
-        Employees
+        val employees = Employees
             .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
             .select(Employees.columns + Departments.columns)
-            .forEach { row ->
-                val employee = Employees.createEntityWithoutReferences(row)
-                assert(employee["department"] == null)
-            }
+            .map { Employees.createEntityWithoutReferences(it) }
+
+        employees.forEach { println(it) }
+
+        assert(employees.size == 4)
+        assert(employees[0].department.id == 1)
+        assert(employees[1].department.id == 1)
+        assert(employees[2].department.id == 2)
+        assert(employees[3].department.id == 2)
     }
 
     @Test
