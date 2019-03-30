@@ -149,12 +149,12 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>,
             when {
                 skipReferences -> {
                     val child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = rightTable)
-                    child.implementation.setPrimaryKeyValue(rightTable, columnValue)
+                    child.implementation.setColumnValue(primaryKey, columnValue)
                     intoEntity[binding.onProperty.name] = child.apply { discardChanges() }
                 }
                 this.hasColumn(primaryKey) && this[primaryKey] != null -> {
                     val child = rightTable.doCreateEntity(this)
-                    child.implementation.forceSetPrimaryKeyValue(rightTable, columnValue)
+                    child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
                     intoEntity[binding.onProperty.name] = child.apply { discardChanges() }
                 }
             }

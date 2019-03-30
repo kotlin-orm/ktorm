@@ -116,6 +116,7 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
 
                     val changed = if (curr == null) false else prop.name in curr.changedProperties
 
+                    // Add check to avoid bug #10
                     if (changed && i > 0) {
                         check(curr != null)
 
