@@ -158,3 +158,15 @@ fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associat
     }
     return destination
 }
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
+    if (n <= 0) {
+        return this
+    } else {
+        return this.copy(expression = expression.copy(offset = n))
+    }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T> {
+    return this.copy(expression = expression.copy(limit = n))
+}

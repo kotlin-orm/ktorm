@@ -14,7 +14,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.associateBy { it }
+        sequence.take(0)
     }
 
     @Test
@@ -66,5 +66,27 @@ class EntitySequenceTest : BaseTest() {
         val employees = Employees.asSequence().filter { it.departmentId eq 1 }.associateBy { it.id }
         assert(employees.size == 2)
         assert(employees[1]!!.name == "vince")
+    }
+
+    @Test
+    fun testDrop() {
+        try {
+            val employees = Employees.asSequence().drop(3).toList()
+            assert(employees.size == 1)
+            assert(employees[0].name == "penny")
+        } catch (e: UnsupportedOperationException) {
+            // Expected, pagination should be provided by dialects...
+        }
+    }
+
+    @Test
+    fun testTake() {
+        try {
+            val employees = Employees.asSequence().take(1).toList()
+            assert(employees.size == 1)
+            assert(employees[0].name == "vince")
+        } catch (e: UnsupportedOperationException) {
+            // Expected, pagination should be provided by dialects...
+        }
     }
 }

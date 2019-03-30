@@ -4,7 +4,7 @@ import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.findById
+import me.liuwj.ktorm.entity.*
 import org.junit.Test
 import java.time.LocalDate
 
@@ -151,5 +151,19 @@ class MySqlTest : BaseTest() {
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
+    }
+
+    @Test
+    fun testDrop() {
+        val employees = Employees.asSequence().drop(3).toList()
+        assert(employees.size == 1)
+        assert(employees[0].name == "penny")
+    }
+
+    @Test
+    fun testTake() {
+        val employees = Employees.asSequence().take(1).toList()
+        assert(employees.size == 1)
+        assert(employees[0].name == "vince")
     }
 }
