@@ -99,4 +99,10 @@ class EntitySequenceTest : BaseTest() {
         assert(employee.name == "penny")
         assert(Employees.asSequence().elementAtOrNull(4) == null)
     }
+
+    @Test
+    fun testFold() {
+        val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
+        assert(totalSalary == 450L)
+    }
 }

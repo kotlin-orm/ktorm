@@ -248,3 +248,25 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> Sc
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ScalarExpression<Boolean>): E? {
     return this.lastOrNull(predicate)
 }
+
+fun <E : Entity<E>, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
+    var accumulator = initial
+    for (item in this) {
+        accumulator = operation(accumulator, item)
+    }
+    return accumulator
+}
+
+fun <E : Entity<E>, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: (index: Int, acc: R, E) -> R): R {
+    var index = 0
+    return this.fold(initial) { acc, e -> operation(index++, acc, e) }
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
+    for (item in this) action(item)
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
+    var index = 0
+    for (item in this) action(index++, item)
+}
