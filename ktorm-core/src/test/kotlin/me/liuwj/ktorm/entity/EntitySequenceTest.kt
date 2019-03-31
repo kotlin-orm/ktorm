@@ -14,7 +14,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.elementAt(1)
+        sequence.find { it > 0 }
     }
 
     @Test
@@ -88,5 +88,15 @@ class EntitySequenceTest : BaseTest() {
         } catch (e: UnsupportedOperationException) {
             // Expected, pagination should be provided by dialects...
         }
+    }
+
+    @Test
+    fun testFindLast() {
+        val employee = Employees
+            .asSequence()
+            .elementAt(3)
+
+        assert(employee.name == "penny")
+        assert(Employees.asSequence().elementAtOrNull(4) == null)
     }
 }

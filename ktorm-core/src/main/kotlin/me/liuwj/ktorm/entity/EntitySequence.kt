@@ -175,10 +175,24 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySeque
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
-    val iterator = this.drop(index).take(1).iterator()
-    if (iterator.hasNext()) {
-        return iterator.next()
-    } else {
+    try {
+        val iterator = this.drop(index).take(1).iterator()
+        if (iterator.hasNext()) {
+            return iterator.next()
+        } else {
+            return null
+        }
+
+    } catch (e: UnsupportedOperationException) {
+
+        val iterator = this.iterator()
+        var count = 0
+        while (iterator.hasNext()) {
+            val item = iterator.next()
+            if (index == count++) {
+                return item
+            }
+        }
         return null
     }
 }
@@ -189,4 +203,48 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(index: In
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAt(index: Int): E {
     return this.elementAtOrNull(index) ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(): E? {
+    return this.elementAtOrNull(0)
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ScalarExpression<Boolean>): E? {
+    return this.filter(predicate).elementAtOrNull(0)
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(): E {
+    return this.elementAt(0)
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(predicate: (T) -> ScalarExpression<Boolean>): E {
+    return this.filter(predicate).elementAt(0)
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.lastOrNull(): E? {
+    var last: E? = null
+    for (item in this) {
+        last = item
+    }
+    return last
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ScalarExpression<Boolean>): E? {
+    return this.filter(predicate).lastOrNull()
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.last(): E {
+    return lastOrNull() ?: throw NoSuchElementException("Sequence is empty.")
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.last(predicate: (T) -> ScalarExpression<Boolean>): E {
+    return this.filter(predicate).last()
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> ScalarExpression<Boolean>): E? {
+    return this.firstOrNull(predicate)
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ScalarExpression<Boolean>): E? {
+    return this.lastOrNull(predicate)
 }
