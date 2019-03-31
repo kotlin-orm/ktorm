@@ -2,12 +2,11 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
-import me.liuwj.ktorm.dsl.Query
-import me.liuwj.ktorm.dsl.and
-import me.liuwj.ktorm.dsl.not
-import me.liuwj.ktorm.dsl.toCountExpression
+import me.liuwj.ktorm.dsl.*
+import me.liuwj.ktorm.expression.OrderByExpression
 import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.expression.SelectExpression
+import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.Table
 import kotlin.math.min
 
@@ -269,4 +268,16 @@ fun <E : Entity<E>> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
 fun <E : Entity<E>> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
     var index = 0
     for (item in this) action(index++, item)
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(selector: (T) -> List<OrderByExpression>): EntitySequence<E, T> {
+    return this.copy(expression = expression.copy(orderBy = selector(sourceTable)))
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(selector: (T) -> ColumnDeclaring<*>): EntitySequence<E, T> {
+    return this.sorted { listOf(selector(it).asc()) }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(selector: (T) -> ColumnDeclaring<*>): EntitySequence<E, T> {
+    return this.sorted { listOf(selector(it).desc()) }
 }
