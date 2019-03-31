@@ -6,6 +6,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.OrderByExpression
 import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.expression.SelectExpression
+import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.Table
 import kotlin.math.min
@@ -47,6 +48,10 @@ fun <E : Entity<E>> EntitySequence<E, *>.toList(): List<E> {
 }
 
 
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(selector: (T) -> List<Column<*>>): EntitySequence<E, T> {
+    val declarations = selector(sourceTable).map { it.asDeclaringExpression() }
+    return this.copy(expression = expression.copy(columns = declarations))
+}
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<E, T> {
     if (expression.where == null) {

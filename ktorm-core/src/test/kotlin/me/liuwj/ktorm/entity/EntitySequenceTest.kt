@@ -14,7 +14,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.sorted()
+        sequence.withIndex()
     }
 
     @Test
@@ -110,5 +110,16 @@ class EntitySequenceTest : BaseTest() {
     fun testSorted() {
         val employee = Employees.asSequence().sortedByDescending { it.salary }.first()
         assert(employee.name == "tom")
+    }
+
+    @Test
+    fun testFilterColumns() {
+        val employee = Employees
+            .asSequence()
+            .filterColumns { it.columns + it.department.columns - it.department.location }
+            .filter { it.department.id eq 1 }
+            .first()
+
+        assert(employee.department.location.isEmpty())
     }
 }
