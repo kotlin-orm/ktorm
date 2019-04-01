@@ -31,8 +31,8 @@ class LogoSection extends React.Component {
           <a href="https://app.codacy.com/app/vincentlauvlwj/Ktorm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/Ktorm&utm_campaign=Badge_Grade_Dashboard">
             <img className="badge" src="https://api.codacy.com/project/badge/Grade/65d4931bfbe14fe986e1267b572bed53" alt="Codacy Badge" />
           </a>
-          <a href="https://www.liuwj.me">
-            <img className="badge" src="https://img.shields.io/badge/author-vince-yellowgreen.svg" alt="Author" />
+          <a href="https://github.com/KotlinBy/awesome-kotlin">
+            <img className="badge" src="https://kotlin.link/awesome-kotlin.svg" alt="Awesome Kotlin Badge" />
           </a>
         </p>
       </section>
