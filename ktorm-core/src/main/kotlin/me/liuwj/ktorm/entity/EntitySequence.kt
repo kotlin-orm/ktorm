@@ -286,3 +286,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(selector: (T) ->
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(selector: (T) -> ColumnDeclaring<*>): EntitySequence<E, T> {
     return this.sorted { listOf(selector(it).desc()) }
 }
+
+fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(keySelector: (T) -> ColumnDeclaring<K>): EntityGrouping<E, T, K> {
+    return EntityGrouping(this, keySelector)
+}

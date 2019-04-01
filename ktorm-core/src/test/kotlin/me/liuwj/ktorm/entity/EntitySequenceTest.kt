@@ -1,9 +1,7 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.greater
-import me.liuwj.ktorm.dsl.isNull
+import me.liuwj.ktorm.dsl.*
 import org.junit.Test
 
 /**
@@ -121,5 +119,20 @@ class EntitySequenceTest : BaseTest() {
             .first()
 
         assert(employee.department.location.isEmpty())
+    }
+
+    @Test
+    fun testGroupingBy() {
+        val salaries = Employees
+            .asSequence()
+            .groupingBy { it.departmentId * 2 }
+            .fold(0L) { acc, employee ->
+                acc + employee.salary
+            }
+
+        println(salaries)
+        assert(salaries.size == 2)
+        assert(salaries[2] == 150L)
+        assert(salaries[4] == 300L)
     }
 }
