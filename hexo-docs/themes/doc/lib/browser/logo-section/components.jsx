@@ -32,7 +32,7 @@ class LogoSection extends React.Component {
             <img className="badge" src="https://api.codacy.com/project/badge/Grade/65d4931bfbe14fe986e1267b572bed53" alt="Codacy Badge" />
           </a>
           <a href="https://github.com/KotlinBy/awesome-kotlin">
-            <img src="https://kotlin.link/awesome-kotlin.svg" alt="Awesome Kotlin Badge" />
+            <img className="badge" src="https://kotlin.link/awesome-kotlin.svg" alt="Awesome Kotlin Badge" />
           </a>
         </p>
       </section>
