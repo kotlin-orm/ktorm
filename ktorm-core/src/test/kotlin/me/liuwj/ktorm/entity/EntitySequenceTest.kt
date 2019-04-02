@@ -135,4 +135,15 @@ class EntitySequenceTest : BaseTest() {
         assert(salaries[2] == 150L)
         assert(salaries[4] == 300L)
     }
+
+    @Test
+    fun testEachCount() {
+        val counts = Employees
+            .asSequence()
+            .filter { it.salary less 100000L }
+            .groupingBy { it.departmentId }
+            .eachCount()
+
+        println(counts)
+    }
 }

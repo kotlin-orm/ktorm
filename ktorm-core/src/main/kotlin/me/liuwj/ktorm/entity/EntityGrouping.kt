@@ -1,7 +1,11 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.Query
+import me.liuwj.ktorm.expression.AggregateExpression
+import me.liuwj.ktorm.expression.AggregateType
+import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.schema.ColumnDeclaring
+import me.liuwj.ktorm.schema.IntSqlType
 import me.liuwj.ktorm.schema.Table
 
 data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
@@ -86,4 +90,32 @@ inline fun <E : Entity<E>, K : Any, M : MutableMap<in K, E>> EntityGrouping<E, *
     operation: (key: K, accumulator: E, element: E) -> E
 ): M {
     return asKotlinGrouping().reduceTo(destination, operation)
+}
+
+fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K, Int>> EntityGrouping<E, T, K>.eachCountTo(
+    destination: M
+): M {
+    val keyColumn = keySelector(sequence.sourceTable)
+    val countExpr = AggregateExpression(
+        type = AggregateType.COUNT,
+        argument = null,
+        isDistinct = false,
+        sqlType = IntSqlType
+    )
+
+    val expr = sequence.expression.copy(
+        columns = listOf(keyColumn.asExpression(), countExpr).map { ColumnDeclaringExpression(it) },
+        groupBy = listOf(keyColumn.asExpression())
+    )
+
+    for (row in Query(expr)) {
+        val groupKey = keyColumn.sqlType.getResult(row, 1) ?: error("One of the grouping key is null.")
+        destination[groupKey] = row.getInt(2)
+    }
+
+    return destination
+}
+
+fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): Map<K, Int> {
+    return eachCountTo(LinkedHashMap())
 }
