@@ -145,5 +145,22 @@ class EntitySequenceTest : BaseTest() {
             .eachCount()
 
         println(counts)
+        assert(counts.size == 2)
+        assert(counts[1] == 2)
+        assert(counts[2] == 2)
+    }
+
+    @Test
+    fun testEachSum() {
+        val sums = Employees
+            .asSequence()
+            .filter { it.salary lessEq 100000L }
+            .groupingBy { it.departmentId }
+            .eachSumOf { it.salary }
+
+        println(sums)
+        assert(sums.size == 2)
+        assert(sums[1] == 150L)
+        assert(sums[2] == 300L)
     }
 }

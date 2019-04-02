@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.Query
+import me.liuwj.ktorm.dsl.sum
 import me.liuwj.ktorm.expression.AggregateExpression
 import me.liuwj.ktorm.expression.AggregateType
 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
@@ -92,6 +93,10 @@ inline fun <E : Entity<E>, K : Any, M : MutableMap<in K, E>> EntityGrouping<E, *
     return asKotlinGrouping().reduceTo(destination, operation)
 }
 
+fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): Map<K, Int> {
+    return eachCountTo(LinkedHashMap())
+}
+
 fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K, Int>> EntityGrouping<E, T, K>.eachCountTo(
     destination: M
 ): M {
@@ -116,6 +121,28 @@ fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K, Int>> EntityGrou
     return destination
 }
 
-fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): Map<K, Int> {
-    return eachCountTo(LinkedHashMap())
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachSumOf(
+    columnSelector: (T) -> ColumnDeclaring<C>
+): Map<K, C> {
+    return eachSumOfTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K, in C>> EntityGrouping<E, T, K>.eachSumOfTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): M {
+    val keyColumn = keySelector(sequence.sourceTable)
+    val aggregation = sum(columnSelector(sequence.sourceTable))
+
+    val expr = sequence.expression.copy(
+        columns = listOf(keyColumn.asExpression(), aggregation).map { ColumnDeclaringExpression(it) },
+        groupBy = listOf(keyColumn.asExpression())
+    )
+
+    for (row in Query(expr)) {
+        val groupKey = keyColumn.sqlType.getResult(row, 1) ?: error("One of the grouping key is null.")
+        destination[groupKey] = aggregation.sqlType.getResult(row, 2) ?: error("One of the aggregation result is null")
+    }
+
+    return destination
 }
