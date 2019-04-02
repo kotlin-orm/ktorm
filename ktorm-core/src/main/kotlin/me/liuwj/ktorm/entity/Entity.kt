@@ -56,6 +56,11 @@ interface Entity<E : Entity<E>> : Serializable {
      */
     operator fun set(name: String, value: Any?)
 
+    /**
+     * 复制一个当前实体对象的拷贝，返回的对象具有与当前对象完全相同的属性值和状态
+     */
+    fun copy(): E
+
     companion object {
 
         /**

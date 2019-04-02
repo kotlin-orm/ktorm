@@ -343,4 +343,14 @@ class EntityTest : BaseTest() {
         emp = Emps.findById(1) ?: return
         assert(emp.manager.id == 2)
     }
+
+    @Test
+    fun testCopy() {
+        var employee = Employees.findById(1)?.copy() ?: return
+        employee.name = "jerry"
+        employee.flushChanges()
+
+        employee = Employees.findById(1) ?: return
+        assert(employee.name == "jerry")
+    }
 }
