@@ -1,12 +1,9 @@
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.dsl.Query
-import me.liuwj.ktorm.dsl.sum
-import me.liuwj.ktorm.expression.AggregateExpression
-import me.liuwj.ktorm.expression.AggregateType
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
+import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.IntSqlType
 import me.liuwj.ktorm.schema.Table
 
 data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
@@ -97,18 +94,11 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): 
     return eachCountTo(LinkedHashMap())
 }
 
+@Suppress("RedundantLambdaArrow", "UNCHECKED_CAST")
 fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, Int>> EntityGrouping<E, T, K>.eachCountTo(
     destination: M
 ): M {
-    val countExpr = AggregateExpression(
-        type = AggregateType.COUNT,
-        argument = null,
-        isDistinct = false,
-        sqlType = IntSqlType
-    )
-
-    @Suppress("UNCHECKED_CAST")
-    return aggregateTo(destination as MutableMap<in K?, Int?>, countExpr) as M
+    return aggregateTo(destination as MutableMap<in K?, Int?>) { _ -> count() } as M
 }
 
 inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachSumOf(
@@ -121,14 +111,54 @@ inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in 
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): M {
-    return aggregateTo(destination, sum(columnSelector(sequence.sourceTable)))
+    return aggregateTo(destination) { sum(columnSelector(it)) }
 }
 
-fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.aggregateTo(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMaxOf(
+    columnSelector: (T) -> ColumnDeclaring<C>
+): Map<K?, C?> {
+    return eachMaxOfTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMaxOfTo(
     destination: M,
-    aggregation: AggregateExpression<C>
+    columnSelector: (T) -> ColumnDeclaring<C>
+): M {
+    return aggregateTo(destination) { max(columnSelector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMinOf(
+    columnSelector: (T) -> ColumnDeclaring<C>
+): Map<K?, C?> {
+    return eachMinOfTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMinOfTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): M {
+    return aggregateTo(destination) { min(columnSelector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachAverageOf(
+    columnSelector: (T) -> ColumnDeclaring<out Number>
+): Map<K?, Double?> {
+    return eachAverageOfTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, in Double?>> EntityGrouping<E, T, K>.eachAverageOfTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<out Number>
+): M {
+    return aggregateTo(destination) { avg(columnSelector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.aggregateTo(
+    destination: M,
+    aggregationSelector: (T) -> ScalarExpression<C>
 ): M {
     val keyColumn = keySelector(sequence.sourceTable).asExpression()
+    val aggregation = aggregationSelector(sequence.sourceTable)
 
     val expr = sequence.expression.copy(
         columns = listOf(keyColumn, aggregation).map { ColumnDeclaringExpression(it) },

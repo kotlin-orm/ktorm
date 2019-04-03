@@ -44,8 +44,16 @@ fun <C : Any> count(column: ColumnDeclaring<C>): AggregateExpression<Int> {
     return AggregateExpression(AggregateType.COUNT, column.asExpression(), false, IntSqlType)
 }
 
+fun count(): AggregateExpression<Int> {
+    return AggregateExpression(AggregateType.COUNT, null, false, IntSqlType)
+}
+
 fun <C : Any> countDistinct(column: ColumnDeclaring<C>): AggregateExpression<Int> {
     return AggregateExpression(AggregateType.COUNT, column.asExpression(), true, IntSqlType)
+}
+
+fun countDistinct(): AggregateExpression<Int> {
+    return AggregateExpression(AggregateType.COUNT, null, true, IntSqlType)
 }
 
 /**
