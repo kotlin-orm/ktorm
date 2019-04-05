@@ -7,6 +7,7 @@ import me.liuwj.ktorm.expression.SelectExpression
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.Table
+import java.util.*
 import kotlin.math.min
 
 data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val expression: SelectExpression) {
@@ -18,6 +19,8 @@ data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val e
     val rowSet get() = query.rowSet
 
     val totalRecords get() = query.totalRecords
+
+    fun asKotlinSequence() = Sequence { iterator() }
 
     operator fun iterator() = object : Iterator<E> {
         private val queryIterator = query.iterator()
@@ -37,14 +40,37 @@ fun <E : Entity<E>, T : Table<E>> T.asSequence(): EntitySequence<E, T> {
     return EntitySequence(this, query.expression as SelectExpression)
 }
 
-fun <E : Entity<E>> EntitySequence<E, *>.toList(): List<E> {
-    val list = ArrayList<E>()
-    for (item in this) {
-        list += item
-    }
-    return list
+fun <E : Entity<E>, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C {
+    return asKotlinSequence().toCollection(destination)
 }
 
+fun <E : Entity<E>> EntitySequence<E, *>.toList(): List<E> {
+    return asKotlinSequence().toList()
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.toMutableList(): MutableList<E> {
+    return asKotlinSequence().toMutableList()
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.toSet(): Set<E> {
+    return asKotlinSequence().toSet()
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.toMutableSet(): MutableSet<E> {
+    return asKotlinSequence().toMutableSet()
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.toHashSet(): HashSet<E> {
+    return asKotlinSequence().toHashSet()
+}
+
+fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Entity<E>, E : Comparable<E> {
+    return asKotlinSequence().toSortedSet()
+}
+
+fun <E> EntitySequence<E, *>.toSortedSet(comparator: Comparator<in E>): SortedSet<E> where E : Entity<E>, E : Comparable<E> {
+    return asKotlinSequence().toSortedSet(comparator)
+}
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(selector: (T) -> List<Column<*>>): EntitySequence<E, T> {
     val declarations = selector(sourceTable).map { it.asDeclaringExpression() }

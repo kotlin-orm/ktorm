@@ -12,7 +12,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testRealSequence() {
         val sequence = listOf(1, 2, 3).asSequence()
-        sequence.withIndex()
+        sequence.toSet()
     }
 
     @Test
