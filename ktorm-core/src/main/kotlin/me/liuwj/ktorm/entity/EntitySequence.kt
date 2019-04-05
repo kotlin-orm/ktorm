@@ -1,10 +1,8 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.OrderByExpression
-import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.expression.SelectExpression
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
@@ -53,19 +51,19 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(selector: (
     return this.copy(expression = expression.copy(columns = declarations))
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<E, T> {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: (T) -> ColumnDeclaring<Boolean>): EntitySequence<E, T> {
     if (expression.where == null) {
-        return this.copy(expression = expression.copy(where = predicate(sourceTable)))
+        return this.copy(expression = expression.copy(where = predicate(sourceTable).asExpression()))
     } else {
         return this.copy(expression = expression.copy(where = expression.where and predicate(sourceTable)))
     }
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterNot(predicate: (T) -> ScalarExpression<Boolean>): EntitySequence<E, T> {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterNot(predicate: (T) -> ColumnDeclaring<Boolean>): EntitySequence<E, T> {
     return this.filter { !predicate(it) }
 }
 
-fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(destination: C, predicate: (T) -> ScalarExpression<Boolean>): C {
+fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(destination: C, predicate: (T) -> ColumnDeclaring<Boolean>): C {
     val sequence = this.filter(predicate)
     for (item in sequence) {
         destination += item
@@ -73,7 +71,7 @@ fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E,
     return destination
 }
 
-fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(destination: C, predicate: (T) -> ScalarExpression<Boolean>): C {
+fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(destination: C, predicate: (T) -> ColumnDeclaring<Boolean>): C {
     val sequence = this.filterNot(predicate)
     for (item in sequence) {
         destination += item
@@ -81,43 +79,68 @@ fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E,
     return destination
 }
 
-fun EntitySequence<*, *>.count(): Int {
-    val countExpr = expression.toCountExpression(keepPaging = true)
+inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate(
+    aggregationSelector: (T) -> ColumnDeclaring<C>
+): C? {
+    val aggregation = aggregationSelector(sourceTable)
 
-    countExpr.prepareStatement { statement, logger ->
-        statement.executeQuery().use { rs ->
-            if (rs.next()) {
-                return rs.getInt(1).also { logger.debug("Count: {}", it) }
-            } else {
-                val (sql, _) = Database.global.formatExpression(countExpr, beautifySql = true)
-                throw IllegalStateException("No result return for sql: $sql")
-            }
-        }
+    val expr = expression.copy(
+        columns = listOf(aggregation.asDeclaringExpression())
+    )
+
+    val rowSet = Query(expr).rowSet
+
+    if (rowSet.size() == 1) {
+        assert(rowSet.next())
+        return aggregation.sqlType.getResult(rowSet, 1)
+    } else {
+        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+        throw IllegalStateException("Expected 1 result but ${rowSet.size()} returned from sql: \n\n$sql")
     }
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(predicate: (T) -> ScalarExpression<Boolean>): Int {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(): Int {
+    return aggregate { me.liuwj.ktorm.dsl.count() } ?: error("Count expression returns null, which never happens.")
+}
+
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return this.filter(predicate).count()
 }
 
-fun EntitySequence<*, *>.none(): Boolean {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(): Boolean {
     return this.count() == 0
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return this.count(predicate) == 0
 }
 
-fun EntitySequence<*, *>.any(): Boolean {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(): Boolean {
     return this.count() > 0
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return this.count(predicate) > 0
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(predicate: (T) -> ScalarExpression<Boolean>): Boolean {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return this.none { !predicate(it) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
+    return aggregate { sum(selector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
+    return aggregate { max(selector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
+    return aggregate { min(selector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
+    return aggregate { avg(selector(it)) }
 }
 
 fun <E : Entity<E>, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair<K, V>): Map<K, V> {
@@ -213,7 +236,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(): E? {
     return this.elementAtOrNull(0)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ScalarExpression<Boolean>): E? {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.filter(predicate).elementAtOrNull(0)
 }
 
@@ -221,7 +244,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(): E {
     return this.elementAt(0)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(predicate: (T) -> ScalarExpression<Boolean>): E {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(predicate: (T) -> ColumnDeclaring<Boolean>): E {
     return this.filter(predicate).elementAt(0)
 }
 
@@ -233,7 +256,7 @@ fun <E : Entity<E>> EntitySequence<E, *>.lastOrNull(): E? {
     return last
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ScalarExpression<Boolean>): E? {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.filter(predicate).lastOrNull()
 }
 
@@ -241,15 +264,15 @@ fun <E : Entity<E>> EntitySequence<E, *>.last(): E {
     return lastOrNull() ?: throw NoSuchElementException("Sequence is empty.")
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.last(predicate: (T) -> ScalarExpression<Boolean>): E {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.last(predicate: (T) -> ColumnDeclaring<Boolean>): E {
     return this.filter(predicate).last()
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> ScalarExpression<Boolean>): E? {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.firstOrNull(predicate)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ScalarExpression<Boolean>): E? {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.lastOrNull(predicate)
 }
 

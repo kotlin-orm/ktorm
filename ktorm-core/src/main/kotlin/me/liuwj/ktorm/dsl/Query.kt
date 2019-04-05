@@ -42,7 +42,7 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
-            val countExpr = expression.toCountExpression(keepPaging = false)
+            val countExpr = expression.toCountExpression()
 
             countExpr.prepareStatement { statement, logger ->
                 statement.executeQuery().use { rs ->
@@ -123,17 +123,17 @@ fun Table<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().selectDistinct(columns.asList())
 }
 
-inline fun Query.where(block: () -> ScalarExpression<Boolean>): Query {
+inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
     return this.copy(
         expression = when (expression) {
-            is SelectExpression -> expression.copy(where = block())
+            is SelectExpression -> expression.copy(where = block().asExpression())
             is UnionExpression -> throw IllegalStateException("Where clause is not supported in a union expression.")
         }
     )
 }
 
-inline fun Query.whereWithConditions(block: (MutableList<ScalarExpression<Boolean>>) -> Unit): Query {
-    val conditions = ArrayList<ScalarExpression<Boolean>>().apply(block)
+inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
+    val conditions = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
 
     if (conditions.isEmpty()) {
         return this
@@ -142,8 +142,8 @@ inline fun Query.whereWithConditions(block: (MutableList<ScalarExpression<Boolea
     }
 }
 
-inline fun Query.whereWithOrConditions(block: (MutableList<ScalarExpression<Boolean>>) -> Unit): Query {
-    val conditions = ArrayList<ScalarExpression<Boolean>>().apply(block)
+inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
+    val conditions = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
 
     if (conditions.isEmpty()) {
         return this
@@ -152,7 +152,7 @@ inline fun Query.whereWithOrConditions(block: (MutableList<ScalarExpression<Bool
     }
 }
 
-fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Boolean> {
+fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Boolean> {
     if (this.any()) {
         return this.reduce { a, b -> a and b }
     } else {
@@ -169,10 +169,10 @@ fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
     )
 }
 
-inline fun Query.having(block: () -> ScalarExpression<Boolean>): Query {
+inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
     return this.copy(
         expression = when (expression) {
-            is SelectExpression -> expression.copy(having = block())
+            is SelectExpression -> expression.copy(having = block().asExpression())
             is UnionExpression -> throw IllegalStateException("Having clause is not supported in a union expression.")
         }
     )

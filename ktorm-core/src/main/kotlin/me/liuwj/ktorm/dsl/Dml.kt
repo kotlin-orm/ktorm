@@ -17,7 +17,7 @@ fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     val builder = UpdateStatementBuilder(assignments).apply { block(this@update) }
 
-    val expression = AliasRemover.visit(UpdateExpression(asExpression(), assignments, builder.where))
+    val expression = AliasRemover.visit(UpdateExpression(asExpression(), assignments, builder.where?.asExpression()))
 
     expression.prepareStatement { statement, logger ->
         return statement.executeUpdate().also { logger.debug("Effects: {}", it) }
@@ -145,8 +145,8 @@ fun Query.insertTo(table: Table<*>, vararg columns: Column<*>): Int {
 /**
  * 根据条件删除表中的记录，返回受影响的记录数
  */
-fun <T : Table<*>> T.delete(block: (T) -> ScalarExpression<Boolean>): Int {
-    val expression = AliasRemover.visit(DeleteExpression(asExpression(), block(this)))
+fun <T : Table<*>> T.delete(block: (T) -> ColumnDeclaring<Boolean>): Int {
+    val expression = AliasRemover.visit(DeleteExpression(asExpression(), block(this).asExpression()))
 
     expression.prepareStatement { statement, logger ->
         return statement.executeUpdate().also { logger.debug("Effects: {}", it) }
@@ -191,9 +191,9 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
 
 @KtormDsl
 class UpdateStatementBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) : AssignmentsBuilder(assignments) {
-    internal var where: ScalarExpression<Boolean>? = null
+    internal var where: ColumnDeclaring<Boolean>? = null
 
-    fun where(block: () -> ScalarExpression<Boolean>) {
+    fun where(block: () -> ColumnDeclaring<Boolean>) {
         this.where = block()
     }
 }
@@ -208,7 +208,7 @@ class BatchUpdateStatementBuilder<T : Table<*>>(internal val table: T) {
         val builder = UpdateStatementBuilder(assignments)
         builder.block(table)
 
-        val expr = UpdateExpression(table.asExpression(), assignments, builder.where)
+        val expr = UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
 
         val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
 

@@ -156,7 +156,7 @@ class EntitySequenceTest : BaseTest() {
             .asSequence()
             .filter { it.salary lessEq 100000L }
             .groupingBy { it.departmentId }
-            .eachSumOf { it.salary }
+            .eachSumBy { it.salary }
 
         println(sums)
         assert(sums.size == 2)

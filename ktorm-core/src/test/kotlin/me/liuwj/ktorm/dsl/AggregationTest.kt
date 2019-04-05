@@ -1,6 +1,8 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.entity.aggregate
+import me.liuwj.ktorm.entity.asSequence
 import org.junit.Test
 
 /**
@@ -40,7 +42,7 @@ class AggregationTest : BaseTest() {
 
     @Test
     fun testAvg() {
-        val avg = Employees.avgBy { it.salary }
+        val avg = Employees.averageBy { it.salary }
         println(avg)
     }
 
@@ -57,5 +59,12 @@ class AggregationTest : BaseTest() {
     @Test
     fun testAll() {
         assert(Employees.all { it.salary greater 0L })
+    }
+
+    @Test
+    fun testAggregate() {
+        val result = Employees.asSequence().aggregate { max(it.salary) - min(it.salary) }
+        println(result)
+        assert(result == 150L)
     }
 }

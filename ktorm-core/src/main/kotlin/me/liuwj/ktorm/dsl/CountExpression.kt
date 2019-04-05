@@ -1,46 +1,21 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.IntSqlType
 
-internal fun QueryExpression.toCountExpression(keepPaging: Boolean): SelectExpression {
+internal fun QueryExpression.toCountExpression(): SelectExpression {
     val expression = OrderByRemover.visit(this) as QueryExpression
-
-    val countColumns = listOf(
-        ColumnDeclaringExpression(
-            expression = AggregateExpression(
-                type = AggregateType.COUNT,
-                argument = null,
-                isDistinct = false,
-                sqlType = IntSqlType
-            )
-        )
-    )
+    val countColumns = listOf(count().asDeclaringExpression())
 
     if (expression is SelectExpression && expression.isSimpleSelect()) {
-        if (keepPaging) {
-            return expression.copy(columns = countColumns)
-        } else {
-            return expression.copy(columns = countColumns, offset = null, limit = null)
-        }
+        return expression.copy(columns = countColumns, offset = null, limit = null)
     } else {
-        if (keepPaging) {
-            return SelectExpression(
-                columns = countColumns,
-                from = when (expression) {
-                    is SelectExpression -> expression.copy(tableAlias = "tmp_count")
-                    is UnionExpression -> expression.copy(tableAlias = "tmp_count")
-                }
-            )
-        } else {
-            return SelectExpression(
-                columns = countColumns,
-                from = when (expression) {
-                    is SelectExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
-                    is UnionExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
-                }
-            )
-        }
+        return SelectExpression(
+            columns = countColumns,
+            from = when (expression) {
+                is SelectExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
+                is UnionExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
+            }
+        )
     }
 }
 
