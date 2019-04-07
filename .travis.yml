@@ -5,11 +5,21 @@ services:
   - mysql
 
 before_install:
-  - mysql -e 'create database if not exists ktorm;'
+  - mysql -e "create database if not exists ktorm;"
 
 after_success: 
   - chmod +x auto-upload.sh
   - ./auto-upload.sh
+
+before_cache:
+  - rm -f  "${HOME}/.gradle/caches/modules-2/modules-2.lock"
+  - rm -rf "${HOME}/.gradle/caches/*/plugin-resolution/"
+  - rm -rf "${HOME}/.gradle/caches/*/fileHashes/"
+
+cache:
+  directories:
+    - "${HOME}/.gradle/caches/"
+    - "${HOME}/.gradle/wrapper/"
 
 notifications:
   email:
