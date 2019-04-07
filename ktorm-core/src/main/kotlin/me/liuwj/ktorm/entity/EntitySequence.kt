@@ -344,6 +344,22 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate
     return lastOrNull(predicate)
 }
 
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.singleOrNull(): E? {
+    return asKotlinSequence().singleOrNull()
+}
+
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.singleOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+    return filter(predicate).singleOrNull()
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.single(): E {
+    return asKotlinSequence().single()
+}
+
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.single(predicate: (T) -> ColumnDeclaring<Boolean>): E {
+    return filter(predicate).single()
+}
+
 inline fun <E : Entity<E>, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
     return asKotlinSequence().fold(initial, operation)
 }
@@ -395,19 +411,19 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
     return EntityGrouping(this, keySelector)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
     selector: (T) -> List<OrderByExpression>
 ): EntitySequence<E, T> {
     return this.copy(expression = expression.copy(orderBy = selector(sourceTable)))
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T> {
     return sorted { listOf(selector(it).asc()) }
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T> {
     return sorted { listOf(selector(it).desc()) }
@@ -434,4 +450,12 @@ fun <E : Entity<E>> EntitySequence<E, *>.joinToString(
     transform: ((E) -> CharSequence)? = null
 ): String {
     return asKotlinSequence().joinToString(separator, prefix, postfix, limit, truncated, transform)
+}
+
+inline fun <E : Entity<E>> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
+    return asKotlinSequence().reduce(operation)
+}
+
+inline fun <E : Entity<E>> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
+    return asKotlinSequence().reduceIndexed(operation)
 }

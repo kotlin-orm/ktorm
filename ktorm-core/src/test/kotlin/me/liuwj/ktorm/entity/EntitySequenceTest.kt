@@ -181,4 +181,16 @@ class EntitySequenceTest : BaseTest() {
         val salaries = Employees.asSequence().joinToString { it.id.toString() }
         assert(salaries == "1, 2, 3, 4")
     }
+
+    @Test
+    fun testReduce() {
+        val emp = Employees.asSequence().reduce { acc, employee -> acc.apply { salary += employee.salary } }
+        assert(emp.salary == 450L)
+    }
+
+    @Test
+    fun testSingle() {
+        val employee = Employees.asSequence().singleOrNull { it.departmentId eq 1 }
+        assert(employee == null)
+    }
 }
