@@ -38,8 +38,8 @@ fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
 /**
  * 根据指定条件获取对象，会自动 left join 所有的引用表
  */
-inline fun <E : Entity<E>, T : Table<E>> T.findOne(block: (T) -> ColumnDeclaring<Boolean>): E? {
-    val list = findList(block)
+inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+    val list = findList(predicate)
     when (list.size) {
         0 -> return null
         1 -> return list[0]
@@ -51,6 +51,7 @@ inline fun <E : Entity<E>, T : Table<E>> T.findOne(block: (T) -> ColumnDeclaring
  * 获取表中的所有记录，会自动 left join 所有的引用表
  */
 fun <E : Entity<E>> Table<E>.findAll(): List<E> {
+    // return this.asSequence().toList()
     return this
         .joinReferencesAndSelect()
         .map { row -> this.createEntity(row) }
@@ -59,10 +60,11 @@ fun <E : Entity<E>> Table<E>.findAll(): List<E> {
 /**
  * 根据指定条件获取对象列表，会自动 left join 所有的引用表
  */
-inline fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ColumnDeclaring<Boolean>): List<E> {
+inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
+    // return this.asSequence().filter(predicate).toList()
     return this
         .joinReferencesAndSelect()
-        .where { block(this) }
+        .where { predicate(this) }
         .map { row -> this.createEntity(row) }
 }
 

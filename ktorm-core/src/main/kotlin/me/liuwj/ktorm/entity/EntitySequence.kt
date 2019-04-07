@@ -140,6 +140,38 @@ inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.
     return mapTo(destination) { transform(index++, it) }
 }
 
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
+    selector: (T) -> List<OrderByExpression>
+): EntitySequence<E, T> {
+    return this.copy(expression = expression.copy(orderBy = selector(sourceTable)))
+}
+
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
+    selector: (T) -> ColumnDeclaring<*>
+): EntitySequence<E, T> {
+    return sorted { listOf(selector(it).asc()) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(
+    selector: (T) -> ColumnDeclaring<*>
+): EntitySequence<E, T> {
+    return sorted { listOf(selector(it).desc()) }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
+    if (n == 0) {
+        return this
+    } else {
+        val offset = expression.offset ?: 0
+        return this.copy(expression = expression.copy(offset = offset + n))
+    }
+}
+
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T> {
+    val limit = expression.limit ?: Int.MAX_VALUE
+    return this.copy(expression = expression.copy(limit = min(limit, n)))
+}
+
 inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): C? {
@@ -274,20 +306,6 @@ inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.a
     return asKotlinSequence().associateWithTo(destination, valueTransform)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
-    if (n == 0) {
-        return this
-    } else {
-        val offset = expression.offset ?: 0
-        return this.copy(expression = expression.copy(offset = offset + n))
-    }
-}
-
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T> {
-    val limit = expression.limit ?: Int.MAX_VALUE
-    return this.copy(expression = expression.copy(limit = min(limit, n)))
-}
-
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
     try {
         return drop(index).take(1).asKotlinSequence().firstOrNull()
@@ -368,6 +386,14 @@ inline fun <E : Entity<E>, R> EntitySequence<E, *>.foldIndexed(initial: R, opera
     return asKotlinSequence().foldIndexed(initial, operation)
 }
 
+inline fun <E : Entity<E>> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
+    return asKotlinSequence().reduce(operation)
+}
+
+inline fun <E : Entity<E>> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
+    return asKotlinSequence().reduceIndexed(operation)
+}
+
 inline fun <E : Entity<E>> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
     for (item in this) action(item)
 }
@@ -411,24 +437,6 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
     return EntityGrouping(this, keySelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
-    selector: (T) -> List<OrderByExpression>
-): EntitySequence<E, T> {
-    return this.copy(expression = expression.copy(orderBy = selector(sourceTable)))
-}
-
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
-    selector: (T) -> ColumnDeclaring<*>
-): EntitySequence<E, T> {
-    return sorted { listOf(selector(it).asc()) }
-}
-
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(
-    selector: (T) -> ColumnDeclaring<*>
-): EntitySequence<E, T> {
-    return sorted { listOf(selector(it).desc()) }
-}
-
 fun <E : Entity<E>, A : Appendable> EntitySequence<E, *>.joinTo(
     buffer: A,
     separator: CharSequence = ", ",
@@ -450,12 +458,4 @@ fun <E : Entity<E>> EntitySequence<E, *>.joinToString(
     transform: ((E) -> CharSequence)? = null
 ): String {
     return asKotlinSequence().joinToString(separator, prefix, postfix, limit, truncated, transform)
-}
-
-inline fun <E : Entity<E>> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
-    return asKotlinSequence().reduce(operation)
-}
-
-inline fun <E : Entity<E>> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
-    return asKotlinSequence().reduceIndexed(operation)
 }
