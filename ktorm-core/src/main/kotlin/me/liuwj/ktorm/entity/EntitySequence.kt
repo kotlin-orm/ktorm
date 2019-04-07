@@ -164,7 +164,9 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(): Int {
     return aggregate { me.liuwj.ktorm.dsl.count() } ?: error("Count expression returns null, which never happens.")
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): Int {
     return this.filter(predicate).count()
 }
 
@@ -172,7 +174,9 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(): Boolean {
     return this.count() == 0
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): Boolean {
     return this.count(predicate) == 0
 }
 
@@ -180,72 +184,94 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(): Boolean {
     return this.count() > 0
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): Boolean {
     return this.count(predicate) > 0
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): Boolean {
     return this.none { !predicate(it) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.sumBy(
+    selector: (T) -> ColumnDeclaring<C>
+): C? {
     return aggregate { sum(selector(it)) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.maxBy(
+    selector: (T) -> ColumnDeclaring<C>
+): C? {
     return aggregate { max(selector(it)) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.minBy(
+    selector: (T) -> ColumnDeclaring<C>
+): C? {
     return aggregate { min(selector(it)) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.averageBy(
+    selector: (T) -> ColumnDeclaring<out Number>
+): Double? {
     return aggregate { avg(selector(it)) }
 }
 
-fun <E : Entity<E>, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair<K, V>): Map<K, V> {
-    return this.associateTo(LinkedHashMap(), transform)
+inline fun <E : Entity<E>, K, V> EntitySequence<E, *>.associate(
+    transform: (E) -> Pair<K, V>
+): Map<K, V> {
+    return asKotlinSequence().associate(transform)
 }
 
-fun <E : Entity<E>, K> EntitySequence<E, *>.associateBy(keySelector: (E) -> K): Map<K, E> {
-    return this.associateByTo(LinkedHashMap(), keySelector)
+inline fun <E : Entity<E>, K> EntitySequence<E, *>.associateBy(
+    keySelector: (E) -> K
+): Map<K, E> {
+    return asKotlinSequence().associateBy(keySelector)
 }
 
-fun <E : Entity<E>, K, V> EntitySequence<E, *>.associateBy(keySelector: (E) -> K, valueTransform: (E) -> V): Map<K, V> {
-    return this.associateByTo(LinkedHashMap(), keySelector, valueTransform)
+inline fun <E : Entity<E>, K, V> EntitySequence<E, *>.associateBy(
+    keySelector: (E) -> K,
+    valueTransform: (E) -> V
+): Map<K, V> {
+    return asKotlinSequence().associateBy(keySelector, valueTransform)
 }
 
-fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(valueTransform: (K) -> V): Map<K, V> {
-    return this.associateWithTo(LinkedHashMap(), valueTransform)
+inline fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(
+    valueTransform: (K) -> V
+): Map<K, V> {
+    return asKotlinSequence().associateWith(valueTransform)
 }
 
-fun <E : Entity<E>, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateTo(destination: M, transform: (E) -> Pair<K, V>): M {
-    for (item in this) {
-        destination += transform(item)
-    }
-    return destination
+inline fun <E : Entity<E>, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateTo(
+    destination: M,
+    transform: (E) -> Pair<K, V>
+): M {
+    return asKotlinSequence().associateTo(destination, transform)
 }
 
-fun <E : Entity<E>, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associateByTo(destination: M, keySelector: (E) -> K): M {
-    for (item in this) {
-        destination.put(keySelector(item), item)
-    }
-    return destination
+inline fun <E : Entity<E>, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associateByTo(
+    destination: M,
+    keySelector: (E) -> K
+): M {
+    return asKotlinSequence().associateByTo(destination, keySelector)
 }
 
-fun <E : Entity<E>, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateByTo(destination: M, keySelector: (E) -> K, valueTransform: (E) -> V): M {
-    for (item in this) {
-        destination.put(keySelector(item), valueTransform(item))
-    }
-    return destination
+inline fun <E : Entity<E>, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateByTo(
+    destination: M,
+    keySelector: (E) -> K,
+    valueTransform: (E) -> V
+): M {
+    return asKotlinSequence().associateByTo(destination, keySelector, valueTransform)
 }
 
-fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associateWithTo(destination: M, valueTransform: (K) -> V): M {
-    for (item in this) {
-        destination.put(item, valueTransform(item))
-    }
-    return destination
+inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associateWithTo(
+    destination: M,
+    valueTransform: (K) -> V
+): M {
+    return asKotlinSequence().associateWithTo(destination, valueTransform)
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
