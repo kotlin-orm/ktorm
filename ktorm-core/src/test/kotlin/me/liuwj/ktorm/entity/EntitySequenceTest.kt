@@ -175,4 +175,10 @@ class EntitySequenceTest : BaseTest() {
         assert(sums[1] == 150L)
         assert(sums[2] == 300L)
     }
+
+    @Test
+    fun testJoinToString() {
+        val salaries = Employees.asSequence().joinToString { it.id.toString() }
+        assert(salaries == "1, 2, 3, 4")
+    }
 }

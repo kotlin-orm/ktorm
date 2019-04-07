@@ -99,25 +99,25 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterNot(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): EntitySequence<E, T> {
-    return this.filter { !predicate(it) }
+    return filter { !predicate(it) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(
     destination: C,
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): C {
-    return this.filter(predicate).toCollection(destination)
+    return filter(predicate).toCollection(destination)
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(
     destination: C,
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): C {
-    return this.filterNot(predicate).toCollection(destination)
+    return filterNot(predicate).toCollection(destination)
 }
 
 inline fun <E : Entity<E>, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R> {
-    return this.mapTo(ArrayList(), transform)
+    return mapTo(ArrayList(), transform)
 }
 
 inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
@@ -129,7 +129,7 @@ inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.
 }
 
 inline fun <E : Entity<E>, R> EntitySequence<E, *>.mapIndexed(transform: (index: Int, E) -> R): List<R> {
-    return this.mapIndexedTo(ArrayList(), transform)
+    return mapIndexedTo(ArrayList(), transform)
 }
 
 inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedTo(
@@ -137,7 +137,7 @@ inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.
     transform: (index: Int, E) -> R
 ): C {
     var index = 0
-    return this.mapTo(destination) { transform(index++, it) }
+    return mapTo(destination) { transform(index++, it) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate(
@@ -167,33 +167,33 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(): Int {
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Int {
-    return this.filter(predicate).count()
+    return filter(predicate).count()
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(): Boolean {
-    return this.count() == 0
+    return count() == 0
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.none(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
-    return this.count(predicate) == 0
+    return count(predicate) == 0
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(): Boolean {
-    return this.count() > 0
+    return count() > 0
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.any(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
-    return this.count(predicate) > 0
+    return count(predicate) > 0
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
-    return this.none { !predicate(it) }
+    return none { !predicate(it) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.sumBy(
@@ -290,34 +290,34 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySeque
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
     try {
-        return this.drop(index).take(1).asKotlinSequence().firstOrNull()
+        return drop(index).take(1).asKotlinSequence().firstOrNull()
     } catch (e: UnsupportedOperationException) {
-        return this.asKotlinSequence().elementAtOrNull(index)
+        return asKotlinSequence().elementAtOrNull(index)
     }
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(index: Int, defaultValue: (Int) -> E): E {
-    return this.elementAtOrNull(index) ?: defaultValue(index)
+    return elementAtOrNull(index) ?: defaultValue(index)
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAt(index: Int): E {
-    return this.elementAtOrNull(index) ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
+    return elementAtOrNull(index) ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(): E? {
-    return this.elementAtOrNull(0)
+    return elementAtOrNull(0)
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
-    return this.filter(predicate).elementAtOrNull(0)
+    return filter(predicate).elementAtOrNull(0)
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(): E {
-    return this.elementAt(0)
+    return elementAt(0)
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(predicate: (T) -> ColumnDeclaring<Boolean>): E {
-    return this.filter(predicate).elementAt(0)
+    return filter(predicate).elementAt(0)
 }
 
 fun <E : Entity<E>> EntitySequence<E, *>.lastOrNull(): E? {
@@ -325,7 +325,7 @@ fun <E : Entity<E>> EntitySequence<E, *>.lastOrNull(): E? {
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
-    return this.filter(predicate).lastOrNull()
+    return filter(predicate).lastOrNull()
 }
 
 fun <E : Entity<E>> EntitySequence<E, *>.last(): E {
@@ -333,15 +333,15 @@ fun <E : Entity<E>> EntitySequence<E, *>.last(): E {
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.last(predicate: (T) -> ColumnDeclaring<Boolean>): E {
-    return this.filter(predicate).last()
+    return filter(predicate).last()
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
-    return this.firstOrNull(predicate)
+    return firstOrNull(predicate)
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
-    return this.lastOrNull(predicate)
+    return lastOrNull(predicate)
 }
 
 inline fun <E : Entity<E>, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
@@ -395,14 +395,43 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
     return EntityGrouping(this, keySelector)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(selector: (T) -> List<OrderByExpression>): EntitySequence<E, T> {
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
+    selector: (T) -> List<OrderByExpression>
+): EntitySequence<E, T> {
     return this.copy(expression = expression.copy(orderBy = selector(sourceTable)))
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(selector: (T) -> ColumnDeclaring<*>): EntitySequence<E, T> {
-    return this.sorted { listOf(selector(it).asc()) }
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
+    selector: (T) -> ColumnDeclaring<*>
+): EntitySequence<E, T> {
+    return sorted { listOf(selector(it).asc()) }
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(selector: (T) -> ColumnDeclaring<*>): EntitySequence<E, T> {
-    return this.sorted { listOf(selector(it).desc()) }
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(
+    selector: (T) -> ColumnDeclaring<*>
+): EntitySequence<E, T> {
+    return sorted { listOf(selector(it).desc()) }
+}
+
+fun <E : Entity<E>, A : Appendable> EntitySequence<E, *>.joinTo(
+    buffer: A,
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: ((E) -> CharSequence)? = null
+): A {
+    return asKotlinSequence().joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+}
+
+fun <E : Entity<E>> EntitySequence<E, *>.joinToString(
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: ((E) -> CharSequence)? = null
+): String {
+    return asKotlinSequence().joinToString(separator, prefix, postfix, limit, truncated, transform)
 }
