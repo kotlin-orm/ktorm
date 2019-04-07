@@ -290,28 +290,13 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySeque
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
     try {
-        val iterator = this.drop(index).take(1).iterator()
-        if (iterator.hasNext()) {
-            return iterator.next()
-        } else {
-            return null
-        }
-
+        return this.drop(index).take(1).asKotlinSequence().firstOrNull()
     } catch (e: UnsupportedOperationException) {
-
-        val iterator = this.iterator()
-        var count = 0
-        while (iterator.hasNext()) {
-            val item = iterator.next()
-            if (index == count++) {
-                return item
-            }
-        }
-        return null
+        return this.asKotlinSequence().elementAtOrNull(index)
     }
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(index: Int, defaultValue: (Int) -> E): E {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(index: Int, defaultValue: (Int) -> E): E {
     return this.elementAtOrNull(index) ?: defaultValue(index)
 }
 
@@ -323,7 +308,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(): E? {
     return this.elementAtOrNull(0)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.filter(predicate).elementAtOrNull(0)
 }
 
@@ -331,19 +316,15 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(): E {
     return this.elementAt(0)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(predicate: (T) -> ColumnDeclaring<Boolean>): E {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.first(predicate: (T) -> ColumnDeclaring<Boolean>): E {
     return this.filter(predicate).elementAt(0)
 }
 
 fun <E : Entity<E>> EntitySequence<E, *>.lastOrNull(): E? {
-    var last: E? = null
-    for (item in this) {
-        last = item
-    }
-    return last
+    return asKotlinSequence().lastOrNull()
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.filter(predicate).lastOrNull()
 }
 
@@ -351,38 +332,67 @@ fun <E : Entity<E>> EntitySequence<E, *>.last(): E {
     return lastOrNull() ?: throw NoSuchElementException("Sequence is empty.")
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.last(predicate: (T) -> ColumnDeclaring<Boolean>): E {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.last(predicate: (T) -> ColumnDeclaring<Boolean>): E {
     return this.filter(predicate).last()
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.find(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.firstOrNull(predicate)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return this.lastOrNull(predicate)
 }
 
-fun <E : Entity<E>, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
-    var accumulator = initial
-    for (item in this) {
-        accumulator = operation(accumulator, item)
-    }
-    return accumulator
+inline fun <E : Entity<E>, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
+    return asKotlinSequence().fold(initial, operation)
 }
 
-fun <E : Entity<E>, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: (index: Int, acc: R, E) -> R): R {
-    var index = 0
-    return this.fold(initial) { acc, e -> operation(index++, acc, e) }
+inline fun <E : Entity<E>, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: (index: Int, acc: R, E) -> R): R {
+    return asKotlinSequence().foldIndexed(initial, operation)
 }
 
-fun <E : Entity<E>> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
+inline fun <E : Entity<E>> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
     for (item in this) action(item)
 }
 
-fun <E : Entity<E>> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
+inline fun <E : Entity<E>> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
     var index = 0
     for (item in this) action(index++, item)
+}
+
+inline fun <E : Entity<E>, K> EntitySequence<E, *>.groupBy(
+    keySelector: (E) -> K
+): Map<K, List<E>> {
+    return asKotlinSequence().groupBy(keySelector)
+}
+
+inline fun <E : Entity<E>, K, V> EntitySequence<E, *>.groupBy(
+    keySelector: (E) -> K,
+    valueTransform: (E) -> V
+): Map<K, List<V>> {
+    return asKotlinSequence().groupBy(keySelector, valueTransform)
+}
+
+inline fun <E : Entity<E>, K, M : MutableMap<in K, MutableList<E>>> EntitySequence<E, *>.groupByTo(
+    destination: M,
+    keySelector: (E) -> K
+): M {
+    return asKotlinSequence().groupByTo(destination, keySelector)
+}
+
+inline fun <E : Entity<E>, K, V, M : MutableMap<in K, MutableList<V>>> EntitySequence<E, *>.groupByTo(
+    destination: M,
+    keySelector: (E) -> K,
+    valueTransform: (E) -> V
+): M {
+    return asKotlinSequence().groupByTo(destination, keySelector, valueTransform)
+}
+
+fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
+    keySelector: (T) -> ColumnDeclaring<K>
+): EntityGrouping<E, T, K> {
+    return EntityGrouping(this, keySelector)
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(selector: (T) -> List<OrderByExpression>): EntitySequence<E, T> {
@@ -395,8 +405,4 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(selector: (T) ->
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedByDescending(selector: (T) -> ColumnDeclaring<*>): EntitySequence<E, T> {
     return this.sorted { listOf(selector(it).desc()) }
-}
-
-fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(keySelector: (T) -> ColumnDeclaring<K>): EntityGrouping<E, T, K> {
-    return EntityGrouping(this, keySelector)
 }
