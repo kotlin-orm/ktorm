@@ -68,16 +68,26 @@ fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Entity<E>, E 
     return asKotlinSequence().toSortedSet()
 }
 
-fun <E> EntitySequence<E, *>.toSortedSet(comparator: Comparator<in E>): SortedSet<E> where E : Entity<E>, E : Comparable<E> {
+fun <E> EntitySequence<E, *>.toSortedSet(
+    comparator: Comparator<in E>
+): SortedSet<E> where E : Entity<E>, E : Comparable<E> {
     return asKotlinSequence().toSortedSet(comparator)
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(selector: (T) -> List<Column<*>>): EntitySequence<E, T> {
-    val declarations = selector(sourceTable).map { it.asDeclaringExpression() }
-    return this.copy(expression = expression.copy(columns = declarations))
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(
+    selector: (T) -> List<Column<*>>
+): EntitySequence<E, T> {
+    val columns = selector(sourceTable)
+    if (columns.isEmpty()) {
+        return this
+    } else {
+        return this.copy(expression = expression.copy(columns = columns.map { it.asDeclaringExpression() }))
+    }
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: (T) -> ColumnDeclaring<Boolean>): EntitySequence<E, T> {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): EntitySequence<E, T> {
     if (expression.where == null) {
         return this.copy(expression = expression.copy(where = predicate(sourceTable).asExpression()))
     } else {
@@ -85,24 +95,24 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(predicate: 
     }
 }
 
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterNot(predicate: (T) -> ColumnDeclaring<Boolean>): EntitySequence<E, T> {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterNot(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): EntitySequence<E, T> {
     return this.filter { !predicate(it) }
 }
 
-fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(destination: C, predicate: (T) -> ColumnDeclaring<Boolean>): C {
-    val sequence = this.filter(predicate)
-    for (item in sequence) {
-        destination += item
-    }
-    return destination
+inline fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(
+    destination: C,
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): C {
+    return this.filter(predicate).toCollection(destination)
 }
 
-fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(destination: C, predicate: (T) -> ColumnDeclaring<Boolean>): C {
-    val sequence = this.filterNot(predicate)
-    for (item in sequence) {
-        destination += item
-    }
-    return destination
+inline fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(
+    destination: C,
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): C {
+    return this.filterNot(predicate).toCollection(destination)
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate(
