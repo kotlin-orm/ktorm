@@ -8,6 +8,7 @@ import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.Table
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 
 data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val expression: SelectExpression) {
@@ -113,6 +114,30 @@ inline fun <E : Entity<E>, T : Table<E>, C : MutableCollection<in E>> EntitySequ
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): C {
     return this.filterNot(predicate).toCollection(destination)
+}
+
+inline fun <E : Entity<E>, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R> {
+    return this.mapTo(ArrayList(), transform)
+}
+
+inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
+    destination: C,
+    transform: (E) -> R
+): C {
+    for (item in this) destination += transform(item)
+    return destination
+}
+
+inline fun <E : Entity<E>, R> EntitySequence<E, *>.mapIndexed(transform: (index: Int, E) -> R): List<R> {
+    return this.mapIndexedTo(ArrayList(), transform)
+}
+
+inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedTo(
+    destination: C,
+    transform: (index: Int, E) -> R
+): C {
+    var index = 0
+    return this.mapTo(destination) { transform(index++, it) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate(
