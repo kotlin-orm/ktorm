@@ -2,16 +2,13 @@ package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Proxy
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.ArrayList
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.isSubclassOf
 
 /**
  * SQL 数据表
@@ -22,6 +19,7 @@ import kotlin.reflect.full.isSubclassOf
  * @property columns 获取该表中的所有列
  * @property primaryKey 获取该表的主键列
  */
+@Suppress("UNCHECKED_CAST")
 open class Table<E : Entity<E>>(
     val tableName: String,
     val alias: String? = null,
@@ -32,7 +30,6 @@ open class Table<E : Entity<E>>(
     private val _columns = LinkedHashMap<String, Column<*>>()
     private var _primaryKeyName: String? = null
 
-    @Suppress("UNCHECKED_CAST")
     val entityClass: KClass<E>? = entityClass ?: (referencedKotlinType.classifier as? KClass<E>)?.takeIf { it != Nothing::class }
 
     val columns: List<Column<*>> get() = _columns.values.toList()
@@ -77,16 +74,15 @@ open class Table<E : Entity<E>>(
                     _columns[column.name] = column.copy(table = this, binding = newBinding)
                 }
                 is AliasedColumn -> {
-                    @Suppress("UNCHECKED_CAST")
                     val col = column as AliasedColumn<Any>
-                    _columns[col.alias] = col.copy(originColumn = col.originColumn.copy(table = this), binding = newBinding)
+                    val originColumn = col.originColumn.copy(table = this)
+                    _columns[col.alias] = col.copy(originColumn = originColumn, binding = newBinding)
                 }
             }
         }
     }
 
     private fun copyReference(table: Table<*>): Table<*> {
-        // val copy = table.aliased("${alias ?: tableName}_ref${_refCounter.getAndIncrement()}")
         val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
 
         val columns = copy.columns.map {
@@ -128,7 +124,8 @@ open class Table<E : Entity<E>>(
             throw IllegalArgumentException("Duplicate column name: $alias")
         }
 
-        _columns[alias] = AliasedColumn(this as SimpleColumn<C>, alias)
+        val originColumn = this as SimpleColumn<C>
+        _columns[alias] = AliasedColumn(originColumn.copy(binding = null), alias)
         return ColumnRegistration(alias)
     }
 
@@ -138,10 +135,15 @@ open class Table<E : Entity<E>>(
     inner class ColumnRegistration<C : Any>(private val key: String) : ReadOnlyProperty<Table<E>, Column<C>> {
 
         /**
+         * Current table object.
+         */
+        val table = this@Table
+
+        /**
          * 获取该列，实现从 [ReadOnlyProperty] 来的 getValue 方法，以支持 by 语法
          */
         override operator fun getValue(thisRef: Table<E>, property: KProperty<*>): Column<C> {
-            assert(thisRef === this@Table)
+            assert(thisRef === table)
             return getColumn()
         }
 
@@ -150,7 +152,6 @@ open class Table<E : Entity<E>>(
          */
         fun getColumn(): Column<C> {
             val column = _columns[key] ?: throw NoSuchElementException(key)
-            @Suppress("UNCHECKED_CAST")
             return column as Column<C>
         }
 
@@ -172,10 +173,54 @@ open class Table<E : Entity<E>>(
          * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
          * @see me.liuwj.ktorm.entity.createEntity
          */
-        fun <R : Entity<R>> references(referenceTable: Table<R>, onProperty: KProperty1<E, R?>): ColumnRegistration<C> {
-            checkAbstractProperties(onProperty)
-            checkCircularReference(referenceTable)
-            return doBinding(ReferenceBinding(copyReference(referenceTable), onProperty))
+        inline fun <R : Entity<R>> references(referenceTable: Table<R>, selector: (E) -> R?): ColumnRegistration<C> {
+            val entityClass = table.entityClass ?: error("No entity class configured for table: ${table.tableName}")
+            val properties = ArrayList<KProperty1<*, *>>()
+
+            val proxy = ColumnBindingHandler.createProxy(entityClass, properties)
+            selector(proxy as E)
+
+            if (properties.isEmpty()) {
+                throw IllegalArgumentException("No binding properties found.")
+            }
+            if (properties.size > 1) {
+                throw IllegalArgumentException("Reference binding doesn't support nested properties.")
+            }
+
+            return bindTo(ReferenceBinding(referenceTable, properties[0]))
+        }
+
+        inline fun bindTo(selector: (E) -> C?): ColumnRegistration<C> {
+            val entityClass = table.entityClass ?: error("No entity class configured for table: ${table.tableName}")
+            val properties = ArrayList<KProperty1<*, *>>()
+
+            val proxy = ColumnBindingHandler.createProxy(entityClass, properties)
+            selector(proxy as E)
+
+            if (properties.isEmpty()) {
+                throw IllegalArgumentException("No binding properties found.")
+            }
+
+            return bindTo(NestedBinding(properties))
+        }
+
+        fun bindTo(binding: ColumnBinding): ColumnRegistration<C> {
+            val checkedBinding = when (binding) {
+                is NestedBinding -> binding
+                is ReferenceBinding -> {
+                    checkCircularReference(binding.referenceTable)
+                    ReferenceBinding(copyReference(binding.referenceTable), binding.onProperty)
+                }
+            }
+
+            val column = _columns[key] ?: throw NoSuchElementException(key)
+
+            _columns[key] = when (column) {
+                is SimpleColumn -> column.copy(binding = checkedBinding)
+                is AliasedColumn -> column.copy(binding = checkedBinding)
+            }
+
+            return this
         }
 
         /**
@@ -198,104 +243,43 @@ open class Table<E : Entity<E>>(
             stack.pop()
         }
 
-        /**
-         * Bind the column to a simple property.
-         */
+        @Suppress("UNUSED_PARAMETER")
+        @Deprecated("Deprecated method, please use references(table) { it.prop } instead", level = DeprecationLevel.ERROR)
+        fun <R : Entity<R>> references(referenceTable: Table<R>, onProperty: KProperty1<E, R?>): ColumnRegistration<C> {
+            throw UnsupportedOperationException("Deprecated method, please use references(table) { it.prop } instead")
+        }
+
+        @Suppress("UNUSED_PARAMETER")
+        @Deprecated("Deprecated method, please use bindTo { it.prop } instead", level = DeprecationLevel.ERROR)
         fun bindTo(property: KProperty1<E, C?>): ColumnRegistration<C> {
-            checkAbstractProperties(property)
-            return doBinding(NestedBinding1(property))
+            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop } instead")
         }
 
-        /**
-         * Bind the column to double nested properties.
-         */
+        @Suppress("UNUSED_PARAMETER")
+        @Deprecated("Deprecated method, please use bindTo { it.prop1.prop2 } instead", level = DeprecationLevel.ERROR)
         fun <R : Entity<R>> bindTo(property1: KProperty1<E, R?>, property2: KProperty1<R, C?>): ColumnRegistration<C> {
-            checkAbstractProperties(property1, property2)
-            return doBinding(NestedBinding2(property1, property2))
+            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop1.prop2 } instead")
         }
 
-        /**
-         * Binding the column to triple nested properties.
-         */
+        @Suppress("UNUSED_PARAMETER")
+        @Deprecated("Deprecated method, please use bindTo { it.prop1.prop2.prop3 } instead", level = DeprecationLevel.ERROR)
         fun <R : Entity<R>, S : Entity<S>> bindTo(
             property1: KProperty1<E, R?>,
             property2: KProperty1<R, S?>,
             property3: KProperty1<S, C?>
         ): ColumnRegistration<C> {
-
-            checkAbstractProperties(property1, property2, property3)
-            return doBinding(NestedBinding3(property1, property2, property3))
+            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop1.prop2.prop3 } instead")
         }
 
-        /**
-         * Binding the column to 4 levels of nested properties.
-         */
+        @Suppress("UNUSED_PARAMETER")
+        @Deprecated("Deprecated method, please use bindTo { it.prop1.prop2.prop3.prop4 } instead", level = DeprecationLevel.ERROR)
         fun <R : Entity<R>, S : Entity<S>, T : Entity<T>> bindTo(
             property1: KProperty1<E, R?>,
             property2: KProperty1<R, S?>,
             property3: KProperty1<S, T?>,
             property4: KProperty1<T, C?>
         ): ColumnRegistration<C> {
-
-            checkAbstractProperties(property1, property2, property3, property4)
-            return doBinding(NestedBinding4(property1, property2, property3, property4))
-        }
-
-        private fun doBinding(binding: ColumnBinding): ColumnRegistration<C> {
-            val column = _columns[key] ?: throw NoSuchElementException(key)
-
-            _columns[key] = when (column) {
-                is SimpleColumn -> column.copy(binding = binding)
-                is AliasedColumn -> column.copy(binding = binding)
-            }
-
-            return this
-        }
-
-        private fun checkAbstractProperties(vararg properties: KProperty1<*, *>) {
-            for (prop in properties) {
-                if (!prop.isAbstract) {
-                    throw IllegalArgumentException("Cannot bind a column to a non-abstract property: $prop")
-                }
-            }
-        }
-    }
-
-    private class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>>) : InvocationHandler {
-
-        override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
-            when (method.declaringClass.kotlin) {
-                Any::class, Entity::class -> {
-                    throw UnsupportedOperationException("Unsupported method: $method")
-                }
-                else -> {
-                    val (prop, isGetter) = method.kotlinProperty ?: throw UnsupportedOperationException("Unsupported method: $method")
-                    if (!prop.isAbstract) {
-                        throw UnsupportedOperationException("Cannot bind a column to a non-abstract property: $prop")
-                    }
-                    if (!isGetter) {
-                        throw UnsupportedOperationException("Cannot modify a property while we are binding a column to it, property: $prop")
-                    }
-
-                    properties += prop
-
-                    val returnType = prop.returnType as KClass<*>
-                    if (returnType.isSubclassOf(Entity::class)) {
-                        return createProxy(returnType, properties)
-                    } else {
-                        return null
-                    }
-                }
-            }
-        }
-
-        companion object {
-
-            fun createProxy(entityClass: KClass<*>, properties: MutableList<KProperty1<*, *>>): Entity<*> {
-                val classLoader = Thread.currentThread().contextClassLoader
-                val handler = ColumnBindingHandler(properties)
-                return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), handler) as Entity<*>
-            }
+            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop1.prop2.prop3.prop4 } instead")
         }
     }
 

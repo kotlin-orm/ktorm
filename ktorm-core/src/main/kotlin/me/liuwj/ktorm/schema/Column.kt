@@ -15,41 +15,7 @@ sealed class ColumnBinding
 /**
  * Bind the column to nested properties, eg. employee.manager.department.id
  */
-sealed class NestedBinding(vararg properties: KProperty1<*, *>) : ColumnBinding(), List<KProperty1<*, *>> by properties.asList()
-
-/**
- * Bind the column to a simple property.
- */
-data class NestedBinding1(
-    val property: KProperty1<*, *>
-) : NestedBinding(property)
-
-/**
- * Bind the column to double nested properties.
- */
-data class NestedBinding2(
-    val property1: KProperty1<*, *>,
-    val property2: KProperty1<*, *>
-) : NestedBinding(property1, property2)
-
-/**
- * Bind the column to triple nested properties
- */
-data class NestedBinding3(
-    val property1: KProperty1<*, *>,
-    val property2: KProperty1<*, *>,
-    val property3: KProperty1<*, *>
-) : NestedBinding(property1, property2, property3)
-
-/**
- * Bind the column to 4 levels of nested properties
- */
-data class NestedBinding4(
-    val property1: KProperty1<*, *>,
-    val property2: KProperty1<*, *>,
-    val property3: KProperty1<*, *>,
-    val property4: KProperty1<*, *>
-) : NestedBinding(property1, property2, property3, property4)
+data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding()
 
 /**
  * Bind the column to a reference table, equivalent to a foreign key in relational databases.
@@ -58,10 +24,7 @@ data class NestedBinding4(
  * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
  * @see me.liuwj.ktorm.entity.createEntity
  */
-data class ReferenceBinding(
-    val referenceTable: Table<*>,
-    val onProperty: KProperty1<*, *>
-) : ColumnBinding()
+data class ReferenceBinding(val referenceTable: Table<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
 
 /**
  * 列声明
