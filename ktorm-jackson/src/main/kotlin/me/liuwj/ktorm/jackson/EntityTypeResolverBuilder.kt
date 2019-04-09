@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
 import me.liuwj.ktorm.entity.Entity
-import kotlin.reflect.full.isSubclassOf
 
 /**
  * Created by vince on Aug 13, 2018.
@@ -39,7 +38,7 @@ internal class EntityTypeResolverBuilder(val src: StdTypeResolverBuilder) : StdT
         subtypes: MutableCollection<NamedType>?
     ): TypeSerializer? {
 
-        if (baseType.rawClass.kotlin.isSubclassOf(Entity::class)) {
+        if (baseType.isTypeOrSubTypeOf(Entity::class.java)) {
             // Always use type serialization for entity types...
             return super.buildTypeSerializer(config, baseType, subtypes)
         } else {
@@ -53,7 +52,7 @@ internal class EntityTypeResolverBuilder(val src: StdTypeResolverBuilder) : StdT
         subtypes: MutableCollection<NamedType>?
     ): TypeDeserializer? {
 
-        if (baseType.rawClass.kotlin.isSubclassOf(Entity::class)) {
+        if (baseType.isTypeOrSubTypeOf(Entity::class.java)) {
             // Always use type serialization for entity types...
             return super.buildTypeDeserializer(config, baseType, subtypes)
         } else {

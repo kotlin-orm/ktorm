@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.module.SimpleSerializers
 import me.liuwj.ktorm.entity.Entity
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
 
@@ -24,7 +23,7 @@ internal class EntitySerializers : SimpleSerializers() {
         beanDesc: BeanDescription
     ): JsonSerializer<*>? {
 
-        if (type.rawClass.kotlin.isSubclassOf(Entity::class)) {
+        if (type.isTypeOrSubTypeOf(Entity::class.java)) {
             return SerializerImpl
         } else {
             return super.findSerializer(config, type, beanDesc)
