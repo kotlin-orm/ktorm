@@ -112,6 +112,10 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
                 var curr: Any? = this
 
                 for ((i, prop) in binding.withIndex()) {
+                    if (curr is Entity<*>) {
+                        curr = curr.implementation
+                    }
+
                     check(curr is EntityImplementation?)
 
                     val changed = if (curr == null) false else prop.name in curr.changedProperties
@@ -126,11 +130,7 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
                     }
 
                     anyChanged = anyChanged || changed
-
                     curr = curr?.getProperty(prop.name)
-                    if (curr is Entity<*>) {
-                        curr = curr.implementation
-                    }
                 }
 
                 if (anyChanged) {
@@ -169,14 +169,13 @@ internal fun EntityImplementation.doDiscardChanges() {
                     if (curr == null) {
                         break
                     }
-
-                    check(curr is EntityImplementation)
-                    curr.changedProperties.remove(prop.name)
-
-                    curr = curr.getProperty(prop.name)
                     if (curr is Entity<*>) {
                         curr = curr.implementation
                     }
+
+                    check(curr is EntityImplementation)
+                    curr.changedProperties.remove(prop.name)
+                    curr = curr.getProperty(prop.name)
                 }
             }
         }

@@ -54,7 +54,7 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?)
                 if (i != binding.lastIndex) {
                     var child = curr.getProperty(prop.name) as Entity<*>?
                     if (child == null) {
-                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr, fromTable = column.table)
+                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
                         curr.setProperty(prop.name, child)
                     }
 
@@ -91,7 +91,7 @@ internal fun EntityImplementation.forceSetColumnValue(column: Column<*>, value: 
                 if (i != binding.lastIndex) {
                     var child = curr.getProperty(prop.name) as Entity<*>?
                     if (child == null) {
-                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr, fromTable = column.table)
+                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
                         curr.setProperty(prop.name, child, forceSet = true)
                     }
 
