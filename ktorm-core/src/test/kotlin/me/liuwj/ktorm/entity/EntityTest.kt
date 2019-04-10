@@ -220,7 +220,7 @@ class EntityTest : BaseTest() {
     }
 
     object Parents : Table<Parent>("t_employee") {
-        val id by int("id").primaryKey().bindTo(Parent::child, Child::grandChild, GrandChild::id)
+        val id by int("id").primaryKey().bindTo { it.child.grandChild.id }
     }
 
     @Test
@@ -292,10 +292,10 @@ class EntityTest : BaseTest() {
     }
 
     object Emps : Table<Emp>("t_employee") {
-        val id by int("id").primaryKey().bindTo(Emp::id)
-        val name by varchar("name").bindTo(Emp::employee, Employee::name)
-        val job by varchar("job").bindTo(Emp::employee, Employee::job)
-        val managerId by int("manager_id").bindTo(Emp::manager, Employee::id)
+        val id by int("id").primaryKey().bindTo { it.id }
+        val name by varchar("name").bindTo { it.employee.name }
+        val job by varchar("job").bindTo { it.employee.job }
+        val managerId by int("manager_id").bindTo { it.manager.id }
     }
 
     @Test

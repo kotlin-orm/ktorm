@@ -111,7 +111,11 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
                 var anyChanged = false
                 var curr: Any? = this
 
-                for ((i, prop) in binding.withIndex()) {
+                for ((i, prop) in binding.properties.withIndex()) {
+                    if (curr is Entity<*>) {
+                        curr = curr.implementation
+                    }
+
                     check(curr is EntityImplementation?)
 
                     val changed = if (curr == null) false else prop.name in curr.changedProperties
@@ -121,17 +125,13 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
                         check(curr != null)
 
                         if (curr.fromTable != null && curr.getRoot() != this) {
-                            val propPath = binding.subList(0, i + 1).joinToString(separator = ".", prefix = "this.") { it.name }
+                            val propPath = binding.properties.subList(0, i + 1).joinToString(separator = ".", prefix = "this.") { it.name }
                             throw IllegalStateException("$propPath may be unexpectedly discarded after flushChanges, please save it to database first.")
                         }
                     }
 
                     anyChanged = anyChanged || changed
-
                     curr = curr?.getProperty(prop.name)
-                    if (curr is Entity<*>) {
-                        curr = curr.implementation
-                    }
                 }
 
                 if (anyChanged) {
@@ -166,18 +166,17 @@ internal fun EntityImplementation.doDiscardChanges() {
             is NestedBinding -> {
                 var curr: Any? = this
 
-                for (prop in binding) {
+                for (prop in binding.properties) {
                     if (curr == null) {
                         break
+                    }
+                    if (curr is Entity<*>) {
+                        curr = curr.implementation
                     }
 
                     check(curr is EntityImplementation)
                     curr.changedProperties.remove(prop.name)
-
                     curr = curr.getProperty(prop.name)
-                    if (curr is Entity<*>) {
-                        curr = curr.implementation
-                    }
                 }
             }
         }

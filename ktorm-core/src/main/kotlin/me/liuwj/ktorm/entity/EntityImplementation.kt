@@ -1,7 +1,8 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.schema.Table
-import org.slf4j.LoggerFactory
+import me.liuwj.ktorm.schema.defaultValue
+import me.liuwj.ktorm.schema.kotlinProperty
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
@@ -12,13 +13,6 @@ import java.util.*
 import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KProperty
-import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.javaGetter
-import kotlin.reflect.jvm.javaSetter
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -36,7 +30,6 @@ internal class EntityImplementation(
 
     companion object {
         private const val serialVersionUID = 1L
-        private val logger = LoggerFactory.getLogger(EntityImplementation::class.java)
         private val defaultImplsCache: MutableMap<Method, Method> = Collections.synchronizedMap(WeakHashMap())
     }
 
@@ -117,66 +110,8 @@ internal class EntityImplementation(
             throw e.targetException
 
         } catch (e: Throwable) {
-            logger.error("proxy: ${proxy.javaClass}: $proxy")
-            logger.error("method: $method")
-            logger.error("args: ${args?.contentToString()}")
-            logger.error("arg types: ${args?.map { it.javaClass }}")
-            logger.error("implementation: $impl")
-            logger.error("cache: $defaultImplsCache")
             throw e
         }
-    }
-
-    private val Method.kotlinProperty: Pair<KProperty<*>, Boolean>? get() {
-        for (prop in entityClass.memberProperties) {
-            if (prop.javaGetter == this) {
-                return prop to true
-            }
-            if (prop is KMutableProperty<*> && prop.javaSetter == this) {
-                return prop to false
-            }
-        }
-        return null
-    }
-
-    private val KClass<*>.defaultValue: Any get() {
-        val value: Any = try {
-            when {
-                this == Boolean::class -> false
-                this == Char::class -> 0.toChar()
-                this == Byte::class -> 0.toByte()
-                this == Short::class -> 0.toShort()
-                this == Int::class -> 0
-                this == Long::class -> 0L
-                this == Float::class -> 0.0F
-                this == Double::class -> 0.0
-                this == String::class -> ""
-                this.isSubclassOf(Entity::class) -> Entity.create(this)
-                this.java.isEnum -> this.java.enumConstants[0]
-                this.java.isArray -> this.java.componentType.createArray(0)
-                this == Set::class || this == MutableSet::class -> LinkedHashSet<Any?>()
-                this == List::class || this == MutableList::class -> ArrayList<Any?>()
-                this == Collection::class || this == MutableCollection::class -> ArrayList<Any?>()
-                this == Map::class || this == MutableMap::class -> LinkedHashMap<Any?, Any?>()
-                this == Queue::class || this == Deque::class -> LinkedList<Any?>()
-                this == SortedSet::class || this == NavigableSet::class -> TreeSet<Any?>()
-                this == SortedMap::class || this == NavigableMap::class -> TreeMap<Any?, Any?>()
-                else -> this.createInstance()
-            }
-        } catch (e: Throwable) {
-            throw IllegalArgumentException("Error creating a default value for non-null type: ${this.jvmName}", e)
-        }
-
-        if (this.isInstance(value)) {
-            return value
-        } else {
-            // never happens...
-            throw AssertionError("$value must be instance of $this")
-        }
-    }
-
-    private fun Class<*>.createArray(length: Int): Any {
-        return java.lang.reflect.Array.newInstance(this, length)
     }
 
     fun getProperty(name: String): Any? {

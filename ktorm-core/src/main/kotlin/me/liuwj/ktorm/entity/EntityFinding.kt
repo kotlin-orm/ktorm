@@ -1,7 +1,9 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.*
+import me.liuwj.ktorm.expression.BinaryExpression
+import me.liuwj.ktorm.expression.BinaryExpressionType
+import me.liuwj.ktorm.expression.QuerySourceExpression
 import me.liuwj.ktorm.schema.*
 import kotlin.reflect.KClass
 
@@ -162,20 +164,7 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>,
             }
         }
         is NestedBinding -> {
-            var curr = intoEntity.implementation
-            for ((i, prop) in binding.withIndex()) {
-                if (i != binding.lastIndex) {
-                    var child = curr.getProperty(prop.name) as Entity<*>?
-                    if (child == null) {
-                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
-                        curr.setProperty(prop.name, child)
-                    }
-
-                    curr = child.implementation
-                }
-            }
-
-            curr.setProperty(binding.last().name, columnValue)
+            intoEntity.implementation.setColumnValue(column, columnValue)
         }
     }
 }

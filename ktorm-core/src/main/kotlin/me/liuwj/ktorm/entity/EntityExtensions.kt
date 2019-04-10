@@ -19,13 +19,13 @@ internal fun EntityImplementation.getColumnValue(column: Column<*>): Any? {
         }
         is NestedBinding -> {
             var curr: EntityImplementation? = this
-            for ((i, prop) in binding.withIndex()) {
-                if (i != binding.lastIndex) {
+            for ((i, prop) in binding.properties.withIndex()) {
+                if (i != binding.properties.lastIndex) {
                     val child = curr?.getProperty(prop.name) as Entity<*>?
                     curr = child?.implementation
                 }
             }
-            return curr?.getProperty(binding.last().name)
+            return curr?.getProperty(binding.properties.last().name)
         }
     }
 }
@@ -50,11 +50,11 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
         }
         is NestedBinding -> {
             var curr: EntityImplementation = this
-            for ((i, prop) in binding.withIndex()) {
-                if (i != binding.lastIndex) {
+            for ((i, prop) in binding.properties.withIndex()) {
+                if (i != binding.properties.lastIndex) {
                     var child = curr.getProperty(prop.name) as Entity<*>?
                     if (child == null) {
-                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr, fromTable = column.table)
+                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
                         curr.setProperty(prop.name, child, forceSet)
                     }
 
@@ -62,7 +62,7 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
                 }
             }
 
-            curr.setProperty(binding.last().name, value, forceSet)
+            curr.setProperty(binding.properties.last().name, value, forceSet)
         }
     }
 }
@@ -93,7 +93,7 @@ internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
             }
 
             for ((i, possibleFields) in namesPath.withIndex()) {
-                if (binding[i].name !in possibleFields) {
+                if (binding.properties[i].name !in possibleFields) {
                     return false
                 }
             }
