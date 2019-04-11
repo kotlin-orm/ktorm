@@ -10,6 +10,8 @@ import me.liuwj.ktorm.schema.*
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.add(entity: E): Int {
+    entity.implementation.checkUnexpectedDiscarding(this)
+
     val assignments = findInsertColumns(entity).takeIf { it.isNotEmpty() } ?: return 0
 
     val expression = AliasRemover.visit(
@@ -66,6 +68,8 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doFlushChanges(): Int {
     val fromTable = this.fromTable?.takeIf { this.parent == null } ?: error("The entity is not associated with any table yet.")
+    checkUnexpectedDiscarding(fromTable)
+
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
     val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
 
@@ -111,26 +115,17 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
                 var anyChanged = false
                 var curr: Any? = this
 
-                for ((i, prop) in binding.properties.withIndex()) {
+                for (prop in binding.properties) {
                     if (curr is Entity<*>) {
                         curr = curr.implementation
                     }
 
                     check(curr is EntityImplementation?)
 
-                    val changed = if (curr == null) false else prop.name in curr.changedProperties
-
-                    // Add check to avoid bug #10
-                    if (changed && i > 0) {
-                        check(curr != null)
-
-                        if (curr.fromTable != null && curr.getRoot() != this) {
-                            val propPath = binding.properties.subList(0, i + 1).joinToString(separator = ".", prefix = "this.") { it.name }
-                            throw IllegalStateException("$propPath may be unexpectedly discarded after flushChanges, please save it to database first.")
-                        }
+                    if (curr != null && prop.name in curr.changedProperties) {
+                        anyChanged = true
                     }
 
-                    anyChanged = anyChanged || changed
                     curr = curr?.getProperty(prop.name)
                 }
 
@@ -142,15 +137,6 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
     }
 
     return assignments
-}
-
-private tailrec fun EntityImplementation.getRoot(): EntityImplementation {
-    val parent = this.parent
-    if (parent == null) {
-        return this
-    } else {
-        return parent.getRoot()
-    }
 }
 
 internal fun EntityImplementation.doDiscardChanges() {
@@ -179,6 +165,54 @@ internal fun EntityImplementation.doDiscardChanges() {
                     curr = curr.getProperty(prop.name)
                 }
             }
+        }
+    }
+}
+
+// Add check to avoid bug #10
+private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) {
+    for (column in fromTable.columns) {
+        val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
+
+        if (binding is NestedBinding) {
+            var curr: Any? = this
+
+            for ((i, prop) in binding.properties.withIndex()) {
+                if (curr == null) {
+                    break
+                }
+                if (curr is Entity<*>) {
+                    curr = curr.implementation
+                }
+
+                check(curr is EntityImplementation)
+
+                if (i > 0 && prop.name in curr.changedProperties && curr.fromTable != null && curr.getRoot() != this) {
+                    val propPath = binding.properties.subList(0, i + 1).joinToString(separator = ".", prefix = "this.") { it.name }
+                    throw IllegalStateException("$propPath may be unexpectedly discarded, please save it to database first.")
+                }
+
+                curr = curr.getProperty(prop.name)
+            }
+        }
+    }
+}
+
+private tailrec fun EntityImplementation.getRoot(): EntityImplementation {
+    val parent = this.parent
+    if (parent == null) {
+        return this
+    } else {
+        return parent.getRoot()
+    }
+}
+
+internal fun Entity<*>.clearChangesRecursively() {
+    implementation.changedProperties.clear()
+
+    for ((_, value) in properties) {
+        if (value is Entity<*>) {
+            value.clearChangesRecursively()
         }
     }
 }

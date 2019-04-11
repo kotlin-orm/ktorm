@@ -114,7 +114,7 @@ private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpre
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
     val entity = doCreateEntity(row, skipReferences = false) as E
-    return entity.apply { discardChanges() }
+    return entity.apply { clearChangesRecursively() }
 }
 
 /**
@@ -123,7 +123,7 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {
     val entity = doCreateEntity(row, skipReferences = true) as E
-    return entity.apply { discardChanges() }
+    return entity.apply { clearChangesRecursively() }
 }
 
 private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): Entity<*> {
@@ -154,12 +154,12 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>,
                 skipReferences -> {
                     val child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = rightTable)
                     child.implementation.setColumnValue(primaryKey, columnValue)
-                    intoEntity[binding.onProperty.name] = child.apply { discardChanges() }
+                    intoEntity[binding.onProperty.name] = child
                 }
                 this.hasColumn(primaryKey) && this[primaryKey] != null -> {
                     val child = rightTable.doCreateEntity(this)
                     child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
-                    intoEntity[binding.onProperty.name] = child.apply { discardChanges() }
+                    intoEntity[binding.onProperty.name] = child
                 }
             }
         }
