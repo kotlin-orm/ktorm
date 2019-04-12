@@ -2,9 +2,7 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.int
-import me.liuwj.ktorm.schema.varchar
+import me.liuwj.ktorm.schema.*
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -248,6 +246,22 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testCreateEntityWithoutReferences() {
+        val employees = Employees
+            .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
+            .select(Employees.columns + Departments.columns)
+            .map { Employees.createEntityWithoutReferences(it) }
+
+        employees.forEach { println(it) }
+
+        assert(employees.size == 4)
+        assert(employees[0].department.id == 1)
+        assert(employees[1].department.id == 1)
+        assert(employees[2].department.id == 2)
+        assert(employees[3].department.id == 2)
+    }
+
+    @Test
     fun testAutoDiscardChanges() {
         var department = Departments.findById(2) ?: return
         department.name = "tech"
@@ -270,9 +284,13 @@ class EntityTest : BaseTest() {
     }
 
     interface Emp : Entity<Emp> {
+        companion object : Entity.Factory<Emp>()
         val id: Int
         var employee: Employee
         var manager: Employee
+        var hireDate: LocalDate
+        var salary: Long
+        var departmentId: Int
     }
 
     object Emps : Table<Emp>("t_employee") {
@@ -280,10 +298,35 @@ class EntityTest : BaseTest() {
         val name by varchar("name").bindTo { it.employee.name }
         val job by varchar("job").bindTo { it.employee.job }
         val managerId by int("manager_id").bindTo { it.manager.id }
+        val hireDate by date("hire_date").bindTo { it.hireDate }
+        val salary by long("salary").bindTo { it.salary }
+        val departmentId by int("department_id").bindTo { it.departmentId }
     }
 
     @Test
     fun testCheckUnexpectedFlush() {
+        val emp1 = Emps.findById(1) ?: return
+        emp1.employee.name = "jerry"
+        // emp1.flushChanges()
+
+        val emp2 = Emp {
+            employee = emp1.employee
+            hireDate = LocalDate.now()
+            salary = 100
+            departmentId = 1
+        }
+
+        try {
+            Emps.add(emp2)
+            throw AssertionError("failed")
+
+        } catch (e: IllegalStateException) {
+            assert(e.message == "this.employee.name may be unexpectedly discarded, please save it to database first.")
+        }
+    }
+
+    @Test
+    fun testCheckUnexpectedFlush0() {
         val emp1 = Emps.findById(1) ?: return
         emp1.employee.name = "jerry"
         // emp1.flushChanges()
@@ -296,7 +339,7 @@ class EntityTest : BaseTest() {
             throw AssertionError("failed")
 
         } catch (e: IllegalStateException) {
-            assert(e.message == "this.employee.name may be unexpectedly discarded after flushChanges, please save it to database first.")
+            assert(e.message == "this.employee.name may be unexpectedly discarded, please save it to database first.")
         }
     }
 
@@ -314,7 +357,7 @@ class EntityTest : BaseTest() {
             throw AssertionError("failed")
 
         } catch (e: IllegalStateException) {
-            assert(e.message == "this.employee.name may be unexpectedly discarded after flushChanges, please save it to database first.")
+            assert(e.message == "this.employee.name may be unexpectedly discarded, please save it to database first.")
         }
     }
 
@@ -326,5 +369,15 @@ class EntityTest : BaseTest() {
 
         emp = Emps.findById(1) ?: return
         assert(emp.manager.id == 2)
+    }
+
+    @Test
+    fun testCopy() {
+        var employee = Employees.findById(1)?.copy() ?: return
+        employee.name = "jerry"
+        employee.flushChanges()
+
+        employee = Employees.findById(1) ?: return
+        assert(employee.name == "jerry")
     }
 }

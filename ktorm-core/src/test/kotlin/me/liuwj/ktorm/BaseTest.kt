@@ -83,5 +83,6 @@ open class BaseTest {
         val hireDate by date("hire_date").bindTo { it.hireDate }
         val salary by long("salary").bindTo { it.salary }
         val departmentId by int("department_id").references(Departments) { it.department }
+        val department get() = departmentId.referenceTable as Departments
     }
 }

@@ -1,21 +1,10 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.IntSqlType
 
 internal fun QueryExpression.toCountExpression(): SelectExpression {
     val expression = OrderByRemover.visit(this) as QueryExpression
-
-    val countColumns = listOf(
-        ColumnDeclaringExpression(
-            expression = AggregateExpression(
-                type = AggregateType.COUNT,
-                argument = null,
-                isDistinct = false,
-                sqlType = IntSqlType
-            )
-        )
-    )
+    val countColumns = listOf(count().asDeclaringExpression())
 
     if (expression is SelectExpression && expression.isSimpleSelect()) {
         return expression.copy(columns = countColumns, offset = null, limit = null)

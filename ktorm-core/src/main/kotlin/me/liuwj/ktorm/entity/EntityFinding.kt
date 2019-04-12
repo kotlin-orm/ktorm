@@ -4,8 +4,8 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.BinaryExpression
 import me.liuwj.ktorm.expression.BinaryExpressionType
 import me.liuwj.ktorm.expression.QuerySourceExpression
-import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.schema.*
+import kotlin.reflect.KClass
 
 /**
  * 根据 ID 批量获取实体对象，会自动 left join 所有的引用表
@@ -40,8 +40,8 @@ fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
 /**
  * 根据指定条件获取对象，会自动 left join 所有的引用表
  */
-inline fun <E : Entity<E>, T : Table<E>> T.findOne(block: (T) -> ScalarExpression<Boolean>): E? {
-    val list = findList(block)
+inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+    val list = findList(predicate)
     when (list.size) {
         0 -> return null
         1 -> return list[0]
@@ -53,6 +53,7 @@ inline fun <E : Entity<E>, T : Table<E>> T.findOne(block: (T) -> ScalarExpressio
  * 获取表中的所有记录，会自动 left join 所有的引用表
  */
 fun <E : Entity<E>> Table<E>.findAll(): List<E> {
+    // return this.asSequence().toList()
     return this
         .joinReferencesAndSelect()
         .map { row -> this.createEntity(row) }
@@ -61,10 +62,11 @@ fun <E : Entity<E>> Table<E>.findAll(): List<E> {
 /**
  * 根据指定条件获取对象列表，会自动 left join 所有的引用表
  */
-inline fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ScalarExpression<Boolean>): List<E> {
+inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
+    // return this.asSequence().filter(predicate).toList()
     return this
         .joinReferencesAndSelect()
-        .where { block(this) }
+        .where { predicate(this) }
         .map { row -> this.createEntity(row) }
 }
 
@@ -111,45 +113,58 @@ private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpre
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
-    return doCreateEntity(row) as E
+    val entity = doCreateEntity(row, skipReferences = false) as E
+    return entity.apply { clearChangesRecursively() }
 }
 
-private fun Table<*>.doCreateEntity(row: QueryRowSet, foreignKey: Column<*>? = null): Entity<*> {
+/**
+ * 从结果集中创建实体对象，不会自动级联创建引用表的实体对象
+ */
+@Suppress("UNCHECKED_CAST")
+fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {
+    val entity = doCreateEntity(row, skipReferences = true) as E
+    return entity.apply { clearChangesRecursively() }
+}
+
+private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): Entity<*> {
     val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
     val entity = Entity.create(entityClass, fromTable = this)
 
     for (column in columns) {
         try {
-            row.retrieveColumn(column, intoEntity = entity)
+            row.retrieveColumn(column, intoEntity = entity, skipReferences = skipReferences)
         } catch (e: Throwable) {
             throw IllegalStateException("Error occur while retrieving column: $column, binding: ${column.binding}", e)
         }
     }
 
-    val foreignKeyValue = if (foreignKey != null && row.hasColumn(foreignKey)) row[foreignKey] else null
-    if (foreignKeyValue != null) {
-        entity.implementation.forceSetPrimaryKeyValue(this, foreignKeyValue)
-    }
-
-    return entity.apply { discardChanges() }
+    return entity
 }
 
-private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>) {
+private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>, skipReferences: Boolean) {
+    val columnValue = (if (this.hasColumn(column)) this[column] else null) ?: return
+
     val binding = column.binding ?: return
     when (binding) {
         is ReferenceBinding -> {
             val rightTable = binding.referenceTable
             val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
 
-            if (this.hasColumn(primaryKey) && this[primaryKey] != null) {
-                intoEntity[binding.onProperty.name] = rightTable.doCreateEntity(this, foreignKey = column)
+            when {
+                skipReferences -> {
+                    val child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = rightTable)
+                    child.implementation.setColumnValue(primaryKey, columnValue)
+                    intoEntity[binding.onProperty.name] = child
+                }
+                this.hasColumn(primaryKey) && this[primaryKey] != null -> {
+                    val child = rightTable.doCreateEntity(this)
+                    child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
+                    intoEntity[binding.onProperty.name] = child
+                }
             }
         }
         is NestedBinding -> {
-            val columnValue = if (this.hasColumn(column)) this[column] else null
-            if (columnValue != null) {
-                intoEntity.implementation.setColumnValue(column, columnValue)
-            }
+            intoEntity.implementation.setColumnValue(column, columnValue)
         }
     }
 }

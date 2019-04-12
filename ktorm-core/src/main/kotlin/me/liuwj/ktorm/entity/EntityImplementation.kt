@@ -52,6 +52,7 @@ internal class EntityImplementation(
                     "delete" -> this.doDelete()
                     "get" -> this.getProperty(args!![0] as String)
                     "set" -> this.setProperty(args!![0] as String, args[1])
+                    "copy" -> this.copy()
                     else -> throw IllegalStateException("Unrecognized method: $method")
                 }
             }
@@ -124,6 +125,13 @@ internal class EntityImplementation(
 
         values[name] = value
         changedProperties.add(name)
+    }
+
+    private fun copy(): Entity<*> {
+        val entity = Entity.create(entityClass, parent, fromTable)
+        entity.implementation.values.putAll(values)
+        entity.implementation.changedProperties.addAll(changedProperties)
+        return entity
     }
 
     private fun writeObject(output: ObjectOutputStream) {

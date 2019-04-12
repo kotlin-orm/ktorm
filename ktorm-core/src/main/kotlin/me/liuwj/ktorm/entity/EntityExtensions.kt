@@ -30,12 +30,12 @@ internal fun EntityImplementation.getColumnValue(column: Column<*>): Any? {
     }
 }
 
-internal fun EntityImplementation.setPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
+internal fun EntityImplementation.setPrimaryKeyValue(fromTable: Table<*>, value: Any?, forceSet: Boolean = false) {
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    setColumnValue(primaryKey, value)
+    setColumnValue(primaryKey, value, forceSet)
 }
 
-internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?) {
+internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?, forceSet: Boolean = false) {
     val binding = column.binding ?: error("Column $column has no bindings to any entity field.")
 
     when (binding) {
@@ -43,10 +43,10 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?)
             var child = this.getProperty(binding.onProperty.name) as Entity<*>?
             if (child == null) {
                 child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = binding.referenceTable)
-                this.setProperty(binding.onProperty.name, child)
+                this.setProperty(binding.onProperty.name, child, forceSet)
             }
 
-            child.implementation.setPrimaryKeyValue(binding.referenceTable, value)
+            child.implementation.setPrimaryKeyValue(binding.referenceTable, value, forceSet)
         }
         is NestedBinding -> {
             var curr: EntityImplementation = this
@@ -55,51 +55,14 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?)
                     var child = curr.getProperty(prop.name) as Entity<*>?
                     if (child == null) {
                         child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
-                        curr.setProperty(prop.name, child)
+                        curr.setProperty(prop.name, child, forceSet)
                     }
 
                     curr = child.implementation
                 }
             }
 
-            curr.setProperty(binding.properties.last().name, value)
-        }
-    }
-}
-
-internal fun EntityImplementation.forceSetPrimaryKeyValue(fromTable: Table<*>, value: Any?) {
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    forceSetColumnValue(primaryKey, value)
-}
-
-internal fun EntityImplementation.forceSetColumnValue(column: Column<*>, value: Any?) {
-    val binding = column.binding ?: error("Column $column has no bindings to any entity field.")
-
-    when (binding) {
-        is ReferenceBinding -> {
-            var child = this.getProperty(binding.onProperty.name) as Entity<*>?
-            if (child == null) {
-                child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = binding.referenceTable)
-                this.setProperty(binding.onProperty.name, child, forceSet = true)
-            }
-
-            child.implementation.forceSetPrimaryKeyValue(binding.referenceTable, value)
-        }
-        is NestedBinding -> {
-            var curr: EntityImplementation = this
-            for ((i, prop) in binding.properties.withIndex()) {
-                if (i != binding.properties.lastIndex) {
-                    var child = curr.getProperty(prop.name) as Entity<*>?
-                    if (child == null) {
-                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
-                        curr.setProperty(prop.name, child, forceSet = true)
-                    }
-
-                    curr = child.implementation
-                }
-            }
-
-            curr.setProperty(binding.properties.last().name, value, forceSet = true)
+            curr.setProperty(binding.properties.last().name, value, forceSet)
         }
     }
 }
