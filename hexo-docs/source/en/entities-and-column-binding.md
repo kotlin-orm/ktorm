@@ -76,19 +76,19 @@ It's easy to bind a column to an entity's property, we just need to chaining cal
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo(Department::id)
-    val name by varchar("name").bindTo(Department::name)
-    val location by varchar("location").bindTo(Department::location)
+    val id by int("id").primaryKey().bindTo { it.id }
+    val name by varchar("name").bindTo { it.name }
+    val location by varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo(Employee::id)
-    val name by varchar("name").bindTo(Employee::name)
-    val job by varchar("job").bindTo(Employee::job)
-    val managerId by int("manager_id").bindTo(Employee::manager, Employee::id)
-    val hireDate by date("hire_date").bindTo(Employee::hireDate)
-    val salary by long("salary").bindTo(Employee::salary)
-    val departmentId by int("department_id").references(Departments, onProperty = Employee::department)
+    val id by int("id").primaryKey().bindTo { it.id }
+    val name by varchar("name").bindTo { it.name }
+    val job by varchar("job").bindTo { it.job }
+    val managerId by int("manager_id").bindTo { it.manager.id }
+    val hireDate by date("hire_date").bindTo { it.hireDate }
+    val salary by long("salary").bindTo { it.salary }
+    val departmentId by int("department_id").references(Departments) { it.department }
 }
 ```
 
@@ -103,10 +103,10 @@ The significance of column bindings is that, while obtaining entities from datab
 
 Ktorm provides the following different binding types: 
 
-1. **Simple Binding:** Use `bindTo` function to bind a column to a simple property, eg. `c.bindTo(Employee::name)`. 
-2. **Reference Binding:** Use `references` function to bind a column to another table, eg. `c.references(Departments, onProperty = Employee::department)`, equivalent to the foreign key in databases. Using reference binding, while obtaining entities from databases (eg. `findList`, `findOne`, etc), Ktorm will auto left join all its reference tables, obtaining the referenced entity objects at the same time. 
-3. **Nested Binding:** Use `bindTo` function to bind a column to nested properties, for example `c.bindTo(Employee::manager, Employee::department, Department::id)`. While obtaining entities from databases, the value of this column will be fill to `employee.manager.department.id`. With only a single level of properties, simple binding is a special case of nested binding. 
-4. **Aliased Binding:** At times we need to bind a column to multiple properties, but it's a pity that we can only call `bindTo` or `references` once on a `ColumnRegistration`. Ktorm provides an `aliased` function to create a copy of current column with an specific alias, then we can bind this new created column to any property we want, that's equivalent to the label syntax `select name as label` in SQL. For example, assuming that we have a `t_foo` table, in which there is only one column `bar`, and its binding configurations (with an aliased binding in it) is given as follows. In this example, while obtaining entities from databases, the column's values will be fill to both `bar` and `barCopy` properties. Please note that aliased bindings are only available for query operations, they will be ignored when inserting or updating entities. 
+1. **Simple Binding:** Use `bindTo` function to bind a column to a simple property, eg. `c.bindTo { it.name }`. 
+2. **Reference Binding:** Use `references` function to bind a column to another table, eg. `c.references(Departments) { it.department }`, equivalent to the foreign key in databases. Using reference binding, while obtaining entities from databases (eg. `findList`, `findOne`, etc), Ktorm will auto left join all its reference tables, obtaining the referenced entity objects at the same time. 
+3. **Nested Binding:** Use `bindTo` function to bind a column to nested properties, for example `c.bindTo { it.manager.department.id }`. While obtaining entities from databases, the value of this column will be filled to `employee.manager.department.id`. With only a single level of properties, simple binding is a special case of nested binding. 
+4. **Aliased Binding:** At times we need to bind a column to multiple properties, but it's a pity that we can only call `bindTo` or `references` once on a `ColumnRegistration`. Ktorm provides an `aliased` function to create a copy of current column with a specific alias, then we can bind this new created column to any property we want, that's equivalent to the label syntax `select name as label` in SQL. For example, assuming that we have a `t_foo` table, in which there is only one column `bar`, and its binding configurations (with an aliased binding in it) is given as follows. In this example, while obtaining entities from databases, the column's values will be filled to both `bar` and `barCopy` properties. Please note that aliased bindings are only available for query operations, they will be ignored when inserting or updating entities. 
 
 ```kotlin
 interface Foo : Entity<Foo> {
@@ -115,8 +115,8 @@ interface Foo : Entity<Foo> {
 }
 
 object Foos : Table<Foo>("t_foo") {
-    val bar by varchar("bar").bindTo(Foo::bar)
-    val barCopy by bar.aliased("bar_copy").bindTo(Foo::barCopy)
+    val bar by varchar("bar").bindTo { it.bar }
+    val barCopy by bar.aliased("bar_copy").bindTo { it.barCopy }
 }
 ```
 

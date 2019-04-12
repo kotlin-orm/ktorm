@@ -76,19 +76,19 @@ ORM 框架的一大功能就是将数据表与实体类进行绑定、将表中�
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo(Department::id)
-    val name by varchar("name").bindTo(Department::name)
-    val location by varchar("location").bindTo(Department::location)
+    val id by int("id").primaryKey().bindTo { it.id }
+    val name by varchar("name").bindTo { it.name }
+    val location by varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo(Employee::id)
-    val name by varchar("name").bindTo(Employee::name)
-    val job by varchar("job").bindTo(Employee::job)
-    val managerId by int("manager_id").bindTo(Employee::manager, Employee::id)
-    val hireDate by date("hire_date").bindTo(Employee::hireDate)
-    val salary by long("salary").bindTo(Employee::salary)
-    val departmentId by int("department_id").references(Departments, onProperty = Employee::department)
+    val id by int("id").primaryKey().bindTo { it.id }
+    val name by varchar("name").bindTo { it.name }
+    val job by varchar("job").bindTo { it.job }
+    val managerId by int("manager_id").bindTo { it.manager.id }
+    val hireDate by date("hire_date").bindTo { it.hireDate }
+    val salary by long("salary").bindTo { it.salary }
+    val departmentId by int("department_id").references(Departments) { it.department }
 }
 ```
 
@@ -103,9 +103,9 @@ object Employees : Table<Employee>("t_employee") {
 
 Ktorm 提供以下几种不同的绑定类型：
 
-1. **简单绑定：**使用 `bindTo` 函数将列绑定到一个简单的属性上，如 `c.bindTo(Employee::name)`。
-2. **引用绑定：**使用 `references` 函数将列绑定到另一个表，如 `c.references(Departments, onProperty = Employee::department)`，相当于数据库中的外键引用。使用引用绑定的列，在通过实体查询函数（如 `findList`、`findOne` 等）从数据库中获取当前实体对象的时候，会自动递归地 left join 其关联表，并将关联的实体对象也一并获取。
-3. **嵌套绑定：**使用 `bindTo` 函数将列绑定到多层嵌套的某个属性上，如 `c.bindTo(Employee::manager, Employee::department, Department::id)`；这样，从数据库中获取该列时，它的值会被填充到 `employee.manager.department.id` 中；将修改更新到数据库时，只要嵌套的属性中的任何一级发生变化，都会将新的值同步更新到所绑定的这个列。简单绑定其实也是嵌套绑定的一种特例，只不过嵌套的属性只有一层。
+1. **简单绑定：**使用 `bindTo` 函数将列绑定到一个简单的属性上，如 `c.bindTo { it.name }`。
+2. **引用绑定：**使用 `references` 函数将列绑定到另一个表，如 `c.references(Departments) { it.department }`，相当于数据库中的外键引用。使用引用绑定的列，在通过实体查询函数（如 `findList`、`findOne` 等）从数据库中获取当前实体对象的时候，会自动递归地 left join 其关联表，并将关联的实体对象也一并获取。
+3. **嵌套绑定：**使用 `bindTo` 函数将列绑定到多层嵌套的某个属性上，如 `c.bindTo { it.manager.department.id }`；这样，从数据库中获取该列时，它的值会被填充到 `employee.manager.department.id` 中；将修改更新到数据库时，只要嵌套的属性中的任何一级发生变化，都会将新的值同步更新到所绑定的这个列。简单绑定其实也是嵌套绑定的一种特例，只不过嵌套的属性只有一层。
 4. **别名绑定：**有时候，我们可能需要将一个列绑定到多个属性，但是在 `ColumnRegistration` 上，我们只能调用一次 `bindTo` 或 `references` 函数。别名绑定使用 `aliased` 方法从一个列复制出一个别名列，这样，我们就能够在这个复制出来别名列上绑定属性，其效果相当于 SQL 中的 `select name as label` 语法。例如下面的例子，在数据库中，`t_foo` 表中其实只有一个 `bar` 列，从数据库中获取 `Foo` 实体时，这个列的值会同时填充到 `bar` 和 `barCopy` 两个属性中。请注意：别名绑定仅在查询时有效，在执行插入或更新实体的操作时，以普通的列绑定为准，Ktorm 会忽略别名绑定。
 
 ```kotlin
@@ -115,8 +115,8 @@ interface Foo : Entity<Foo> {
 }
 
 object Foos : Table<Foo>("t_foo") {
-    val bar by varchar("bar").bindTo(Foo::bar)
-    val barCopy by bar.aliased("bar_copy").bindTo(Foo::barCopy)
+    val bar by varchar("bar").bindTo { it.bar }
+    val barCopy by bar.aliased("bar_copy").bindTo { it.barCopy }
 }
 ```
 

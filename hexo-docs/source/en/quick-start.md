@@ -216,19 +216,19 @@ Modify the table objects above, binding database columns to entity properties:
 
 ````kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo(Department::id)
-    val name by varchar("name").bindTo(Department::name)
-    val location by varchar("location").bindTo(Department::location)
+    val id by int("id").primaryKey().bindTo { it.id }
+    val name by varchar("name").bindTo { it.name }
+    val location by varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo(Employee::id)
-    val name by varchar("name").bindTo(Employee::name)
-    val job by varchar("job").bindTo(Employee::job)
-    val managerId by int("manager_id").bindTo(Employee::manager, Employee::id)
-    val hireDate by date("hire_date").bindTo(Employee::hireDate)
-    val salary by long("salary").bindTo(Employee::salary)
-    val departmentId by int("department_id").references(Departments, onProperty = Employee::department)
+    val id by int("id").primaryKey().bindTo { it.id }
+    val name by varchar("name").bindTo { it.name }
+    val job by varchar("job").bindTo { it.job }
+    val managerId by int("manager_id").bindTo { it.manager.id }
+    val hireDate by date("hire_date").bindTo { it.hireDate }
+    val salary by long("salary").bindTo { it.salary }
+    val departmentId by int("department_id").references(Departments) { it.department }
 }
 ````
 
