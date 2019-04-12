@@ -63,9 +63,11 @@ val employees = Employees
 employees.forEach { println(it) }
 ```
 
-`Query` implements the `Iterable<QueryRowSet>` interface, so we can use the Kotlin built-in `map` function to iterate it and create an entity object from the result set via `createEntity` for each row. `createEntity` is an extension function of `Table` class, it will create an entity object from the result set, using the binding configurations in the table object, filling columns' values into corresponding entities' properties. And if there is any reference binding to another table, then it will also create the referenced entity object recursively. 
+`Query` implements the `Iterable<QueryRowSet>` interface, so we can use the Kotlin built-in `map` function to iterate it and create an entity object from the result set via `createEntity` for each row. `createEntity` is an extension function of `Table` class, it will create an entity object from the result set, using the binding configurations in the table object, filling columns' values into corresponding entities' properties. And if there are any reference bindings to other tables, it will also create the referenced entity objects recursively. 
 
-The query above will generate a simple SQL `select * from t_employee order by t_employee.id`. Here is the query's result: 
+The selected columns in query DSL are customizable, and there may be no columns from referenced tables. In this case, Ktorm provides a `createEntityWithoutReferences` function since version 2.0, which do the same thing as `createEntity`. But it doesn't obtain referenced entities' data automatically. It treats all reference bindings as nested bindings to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`, it is equivalent to `c.bindTo { it.department.id }` for it, that avoids unnecessary object creations and some exceptions raised by conflict column names. 
+
+Get back the example above, no matter we use `createEntity` or `createEntityWithoutReferences`, it will generate a simple SQL `select * from t_employee order by t_employee.id` and print the same results:  
 
 ```plain
 Employee{id=1, name=vince, job=engineer, hireDate=2018-01-01, salary=100, department=Department{id=1}}

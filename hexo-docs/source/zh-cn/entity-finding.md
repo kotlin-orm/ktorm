@@ -43,7 +43,7 @@ where t_employee.department_id = ?
 
 - **findList：**获取符合条件的实体对象的列表
 - **findAll：**获取该表中所有实体对象的列表
-- **findOne：**获取符合条件的一个实体对象的列表，如果没有找到，返回 null，如果符合条件的实体数量多于一个，抛出异常
+- **findOne：**获取符合条件的某个实体对象，如果没有找到，返回 null，如果符合条件的实体数量多于一个，抛出异常
 - **findById：**根据主键获取指定的实体对象，如果没有找到，返回 null，如果符合条件的实体数量多于一个，抛出异常
 - **findListByIds：**根据主键批量获取实体对象的列表
 - **findMapByIds：**根据主键批量获取实体对象，返回一个 `Map`，key 是主键，value 是实体对象
@@ -65,7 +65,9 @@ employees.forEach { println(it) }
 
 `Query` 对象实现了 `Iterable<QueryRowSet>` 接口，在这里，我们使用 `map` 函数对查询进行迭代，在迭代中使用 `createEntity` 为每一行返回的记录创建一个实体对象。`createEntity` 是 `Table` 类的扩展函数，它会根据表对象中的列绑定配置，自动创建实体对象，从结果集中读取数据填充到实体对象的各个属性中。如果该表使用 `references` 引用绑定了其它表，也会递归地对所引用的表调用 `createEntity` 创建关联的实体对象。
 
-上述例子会生成一句简单的 SQL `select * from t_employee order by t_employee.id`，打印出如下结果：
+查询 DSL 返回的列是可自定义的，里面不一定包含引用表中的列。针对这种情况，Ktorm 2.0 及以上版本提供了 `createEntityWithoutReferences` 函数，它的功能是一样的，但是不会自动获取引用表关联的实体对象的数据。它把引用绑定视为到其所引用的实体对象的主键的嵌套绑定，例如 `c.references(Departments) { it.department }`，在它眼里相当于 `c.bindTo { it.department.id }`，因此避免了不必要的对象创建和一些因列名冲突导致的异常。
+
+在上面的例子中，不管我们使用 `createEntity` 还是 `createEntityWithoutReferences`，都会生成一句简单的 SQL `select * from t_employee order by t_employee.id`，打印出同样的结果：
 
 ````plain
 Employee{id=1, name=vince, job=engineer, hireDate=2018-01-01, salary=100, department=Department{id=1}}
