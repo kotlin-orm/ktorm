@@ -186,7 +186,7 @@ Departments.batchUpdate {
 Ktorm 使用 `delete` 函数实现数据删除，它也是 `Table` 类的扩展函数，签名如下：
 
 ```kotlin
-fun <T : Table<*>> T.delete(block: (T) -> ScalarExpression<Boolean>): Int
+fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 ```
 
 `delete` 接受一个闭包函数作为参数，我们需要在闭包函数中指定删除的数据的条件，删除完成后，返回受影响的记录数。闭包函数接受一个 `T` 作为参数，而 `T` 正是当前表对象，因此我们可以在闭包中使用 `it` 获取表对象。使用方法非常简单：

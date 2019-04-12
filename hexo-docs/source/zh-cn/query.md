@@ -144,10 +144,10 @@ from t_employee
 `where` 是 `Query` 类的扩展函数，我们先来看看它的签名：
 
 ````kotlin
-inline fun Query.where(block: () -> ScalarExpression<Boolean>): Query
+inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query
 ````
 
-它是一个内联函数，接受一个闭包作为参数，我们在这个闭包中指定查询的 where 子句，闭包的返回值是 `ScalarExpression<Boolean>`。`where` 函数会创建一个新的 `Query` 对象，它的所有属性都复制自当前 `Query`，并使用闭包的返回值作为其筛选条件。典型的用法如下：
+它是一个内联函数，接受一个闭包作为参数，我们在这个闭包中指定查询的 where 子句，闭包的返回值是 `ColumnDeclaring<Boolean>`。`where` 函数会创建一个新的 `Query` 对象，它的所有属性都复制自当前 `Query`，并使用闭包的返回值作为其筛选条件。典型的用法如下：
 
 ```kotlin
 val query = Employees
@@ -173,7 +173,7 @@ where (t_employee.department_id = ?) and (t_employee.name like ?)
 val query = Employees
     .select(Employees.salary)
     .where {
-        val conditions = ArrayList<ScalarExpression<Boolean>>()
+        val conditions = ArrayList<ColumnDeclaring<Boolean>>()
 
         if (departmentId != null) {
             conditions += Employees.departmentId eq departmentId
@@ -194,7 +194,7 @@ val query = Employees
 当然，上面的写法还是有一点漏洞，当所有情况都不满足，list 为空时，reduce 操作会抛出一个异常。为了避免这个异常，可以使用 `conditions.combineConditions()` 代替 reduce 操作。`combineConditions` 是 Ktorm 提供的函数，它的功能就是使用 and 将所有条件连接起来，当 list 为空时，直接返回 true，这是它的实现：
 
 ```kotlin
-fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Boolean> {
+fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Boolean> {
     if (this.any()) {
         return this.reduce { a, b -> a and b }
     } else {

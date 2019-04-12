@@ -145,8 +145,8 @@ fun Query.insertTo(table: Table<*>, vararg columns: Column<*>): Int {
 /**
  * 根据条件删除表中的记录，返回受影响的记录数
  */
-fun <T : Table<*>> T.delete(block: (T) -> ColumnDeclaring<Boolean>): Int {
-    val expression = AliasRemover.visit(DeleteExpression(asExpression(), block(this).asExpression()))
+fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
+    val expression = AliasRemover.visit(DeleteExpression(asExpression(), predicate(this).asExpression()))
 
     expression.prepareStatement { statement, logger ->
         return statement.executeUpdate().also { logger.debug("Effects: {}", it) }

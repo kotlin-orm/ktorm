@@ -13,10 +13,10 @@ Ktorm 提供了许多扩展函数，用来从数据库中获取实体对象，�
 我们首先来看看 `findList` 函数，它是 `Table` 类的扩展函数，签名如下：
 
 ````kotlin
-inline fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ScalarExpression<Boolean>): List<E>
+inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E>
 ````
 
-这个函数接受一个闭包作为参数，使用闭包中返回的 `ScalarExpression<Boolean>` 作为查询的筛选条件，SQL 执行完毕后，从结果集中创建一个实体对象的列表并返回。作为参数的闭包函数本身也接收一个参数 `T`，这正是当前表对象，因此我们能在闭包中使用 it 引用它。获取部门 1 中所有员工的代码如下：
+这个函数接受一个闭包作为参数，使用闭包中返回的 `ColumnDeclaring<Boolean>` 作为查询的筛选条件，SQL 执行完毕后，从结果集中创建一个实体对象的列表并返回。作为参数的闭包函数本身也接收一个参数 `T`，这正是当前表对象，因此我们能在闭包中使用 it 引用它。获取部门 1 中所有员工的代码如下：
 
 ````kotlin
 val employees = Employees.findList { it.departmentId eq 1 }

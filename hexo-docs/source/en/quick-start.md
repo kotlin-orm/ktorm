@@ -112,7 +112,7 @@ Employees.count { it.departmentId eq 1 }
 Employees.sumBy { it.salary }
 Employees.maxBy { it.salary }
 Employees.minBy { it.salary }
-Employees.avgBy { it.salary }
+Employees.averageBy { it.salary }
 Employees.any { it.salary greater 200L }
 Employees.none { it.salary greater 200L }
 Employees.all { it.salary lessEq 1000L }

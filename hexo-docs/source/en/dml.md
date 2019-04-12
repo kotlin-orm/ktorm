@@ -186,7 +186,7 @@ Departments.batchUpdate {
 Ktorm uses an extension function `delete` of `Table` class to support data deletion, the signature of which is given as follows: 
 
 ```kotlin
-fun <T : Table<*>> T.delete(block: (T) -> ScalarExpression<Boolean>): Int
+fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 ```
 
 The `delete` function accepts a closure as its parameter, in which we need to specify our conditions. After the deletion completes, the effected record number will be returned. The closure accpets a parameter of type `T`, which is actually the current table object, so we can use `it` to access current table in the closure. The usage is very simple: 

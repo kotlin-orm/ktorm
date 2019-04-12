@@ -13,7 +13,7 @@ Ktorm provides many extension functions to obtain entity objects from databases,
 Let's discuss `findList` function fist, it's an extension function of `Table` class, and its signature is given as follows: 
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>> T.findList(block: (T) -> ScalarExpression<Boolean>): List<E>
+inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E>
 ```
 
 This function accepts a closure as its parameter, executes a query with the filter condition returned by the closure, then returns a list of entity objects obtained from the result set. The closure function also accepts a parameter of type `T`, which is the current table object, so we can use `it` to access the table in the closure. The code obtaining all employees in department 1: 

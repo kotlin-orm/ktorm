@@ -142,10 +142,10 @@ We can see that the generated SQL is highly corresponding to our Kotlin code. Th
 `where` is also an extension function of `Table` class, let's learn its signature first: 
 
 ```kotlin
-inline fun Query.where(block: () -> ScalarExpression<Boolean>): Query
+inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query
 ```
 
-It's an inline function that accepts a parameter of type `() -> ScalarExpression<Boolean>`, which is a closure function that returns a `ScalarExpression<Boolean>` as our filter condition. The `where` function creates a new `Query` object with all properties being copied from current query, but applying a new filter condition, the return value of the closure. Typical usage: 
+It's an inline function that accepts a parameter of type `() -> ColumnDeclaring<Boolean>`, which is a closure function that returns a `ColumnDeclaring<Boolean>` as our filter condition. The `where` function creates a new `Query` object with all properties being copied from current query, but applying a new filter condition, the return value of the closure. Typical usage: 
 
 ```kotlin
 val query = Employees
@@ -171,7 +171,7 @@ Sometimes, we need a variable number of filter conditions in our queries, those 
 val query = Employees
     .select(Employees.salary)
     .where {
-        val conditions = ArrayList<ScalarExpression<Boolean>>()
+        val conditions = ArrayList<ColumnDeclaring<Boolean>>()
 
         if (departmentId != null) {
             conditions += Employees.departmentId eq departmentId
@@ -192,7 +192,7 @@ Here, we create an `ArrayList` to hold filter conditions first, then add differe
 Obviously, there is a bug in the query above, that the reduce operation may throw an exception if the list is empty, all conditions are not matched. To avoid this exception, we can replace the reduce operation with `conditions.combineConditions`. This is a extension function provided by Ktorm, it combines all conditions with `and` operator, otherwise if the list is empty, true will be returned directly. 
 
 ```kotlin
-fun Iterable<ScalarExpression<Boolean>>.combineConditions(): ScalarExpression<Boolean> {
+fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Boolean> {
     if (this.any()) {
         return this.reduce { a, b -> a and b }
     } else {
