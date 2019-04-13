@@ -39,6 +39,37 @@ where t_employee.department_id = ?
 
 > 在使用 `references` 绑定时请注意避免循环的引用，比如 `Employees` 表引用了 `Departments`，则 `Departments` 不能再直接或间接地引用 `Employees`，否则会导致 Ktorm 在自动 left join 的过程中出现栈溢出。
 
+既然 Ktorm 会自动 left join 关联表，我们当然也能在筛选条件中使用关联表中的列。下面的代码用来获取在广州工作的员工的列表，这里我们通过列的 `referenceTable` 属性获取 `departmentId` 所引用的表对象：
+
+```kotlin
+val employees = Employees.findList {
+    val dept = it.departmentId.referenceTable as Departments
+    dept.location eq "Guangzhou"
+}
+```
+
+为了让代码看起来优雅一点，我们可以在 `Employees` 表对象中添加一个 get 属性。下面的代码和上面是完全等价的，但是阅读起来却更加自然：
+
+```kotlin
+open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
+    // 此处省略无关的列定义...
+    val department get() = departmentId.referenceTable as Departments
+}
+
+val employees = Employees.findList { it.department.location eq "Guangzhou" }
+```
+
+生成的 SQL 如下：
+
+````sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+where _ref0.location = ? 
+````
+
+> 注意：我们在通过 `it.departmentId.referenceTable` 获取到引用的表对象后，把它转型成了 `Employees`，因此这要求我们必须使用 class 而不是 object 定义表对象，并且重写 `aliased` 函数，具体参见[表别名](./joining.html#自连接查询与表别名)的相关介绍。
+
 包含 `findList` 在内，Ktorm 提供的 `find*` 系列函数的列表如下，它们都是 `Table` 类的扩展函数，都具有类似的行为：
 
 - **findList：**获取符合条件的实体对象的列表

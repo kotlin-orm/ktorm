@@ -39,6 +39,37 @@ Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s
 
 > Note: please avoid circular references while using reference bindings. For instance, now that `Employees` references `Departments`, then `Departments` can not reference `Elmployees` directly or indirectly, otherwise a stack overflow will occur when Ktorm tries to left join `Departments`. 
 
+Now that referenced tables are auto left joined, we can also use their columns in our filter conditions. The code below uses the `referenceTable` property of `Column` to access `departmentId`'s referenced table and obtains all employees who works at Guangzhou: 
+
+```kotlin
+val employees = Employees.findList {
+    val dept = it.departmentId.referenceTable as Departments
+    dept.location eq "Guangzhou"
+}
+```
+
+To make it more elegant, we can add a get property to `Employees` table. The following code is completely equivalent to the above's, but it reads more natural: 
+
+```kotlin
+open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
+    // Omit columns definitions here...
+    val department get() = departmentId.referenceTable as Departments
+}
+
+val employees = Employees.findList { it.department.location eq "Guangzhou" }
+```
+
+Generated SQL: 
+
+```sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+where _ref0.location = ? 
+```
+
+> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Employees`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be seen at [the documentation of table aliases](./joining.html#Self-Joining-and-Table-Aliases). 
+
 Including `findList`, Ktorm provides a list of `find*` functions, they are all extension functions of `Table` class and their behaviors are similar: 
 
 - **findList:** obtain a list of entity objects using the specific condition. 
