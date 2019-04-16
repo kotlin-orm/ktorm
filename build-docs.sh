@@ -3,9 +3,10 @@
 rm -rf ./hexo-docs/source/api-docs
 
 java \
-    -jar ./hexo-docs/tools/dokka-fatjar-with-hexo-format-0.9.17-SNAPSHOT.jar \
+    -jar ./hexo-docs/tools/dokka-fatjar-with-hexo-format-0.9.18-SNAPSHOT.jar \
     -src ./ktorm-core/src/main/kotlin:./ktorm-jackson/src/main/kotlin:./ktorm-support-mysql/src/main/kotlin:./ktorm-support-oracle/src/main/kotlin:./ktorm-support-postgresql/src/main/kotlin \
     -format hexo \
+	-jdkVersion 8 \
     -include ./packages.md \
     -output ./hexo-docs/source/ \
     -module api-docs
