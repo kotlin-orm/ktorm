@@ -118,7 +118,7 @@ pre .deletion { background: $highlight-deletion; }
 pre .addition { background: $highlight-addition; }
 pre .meta     { color: $highlight-purple; }
 
-pre {
+pre, code {
 
   .comment { color: $highlight-comment; }
 
