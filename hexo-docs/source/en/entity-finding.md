@@ -68,7 +68,7 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where _ref0.location = ? 
 ```
 
-> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Employees`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be seen at [the documentation of table aliases](./joining.html#Self-Joining-and-Table-Aliases). 
+> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Employees`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be found at the documentation of [table aliases](./joining.html#Self-Joining-and-Table-Aliases). 
 
 Including `findList`, Ktorm provides a list of `find*` functions, they are all extension functions of `Table` class and their behaviors are similar: 
 
