@@ -10,9 +10,15 @@ import org.junit.Test
 class EntitySequenceTest : BaseTest() {
 
     @Test
-    fun testRealSequence() {
-        val sequence = listOf(1, 2, 3).asSequence()
-        sequence.toSet()
+    fun testAsSequence() {
+        val employee = Employees
+            .asSequenceWithoutReferences()
+            .filter { it.name eq "vince" }
+            .single()
+
+        println(employee)
+        assert(employee.name == "vince")
+        assert(employee.department.name.isEmpty())
     }
 
     @Test

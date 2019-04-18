@@ -11,8 +11,11 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.min
 
-data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val expression: SelectExpression) {
-
+data class EntitySequence<E : Entity<E>, T : Table<E>>(
+    val sourceTable: T,
+    val expression: SelectExpression,
+    val entityExtractor: (row: QueryRowSet) -> E
+) {
     val query = Query(expression)
 
     val sql get() = query.sql
@@ -31,14 +34,19 @@ data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val e
         }
 
         override fun next(): E {
-            return sourceTable.createEntity(queryIterator.next())
+            return entityExtractor(queryIterator.next())
         }
     }
 }
 
 fun <E : Entity<E>, T : Table<E>> T.asSequence(): EntitySequence<E, T> {
     val query = this.joinReferencesAndSelect()
-    return EntitySequence(this, query.expression as SelectExpression)
+    return EntitySequence(this, query.expression as SelectExpression) { row -> this.createEntity(row) }
+}
+
+fun <E : Entity<E>, T : Table<E>> T.asSequenceWithoutReferences(): EntitySequence<E, T> {
+    val query = this.select(columns)
+    return EntitySequence(this, query.expression as SelectExpression) { row -> this.createEntityWithoutReferences(row) }
 }
 
 fun <E : Entity<E>, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C {

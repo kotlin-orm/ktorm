@@ -93,3 +93,65 @@ Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，�
 - 中间操作：这类函数并不会执行序列中的查询，而是修改并创建一个新的序列对象，比如 `filter` 函数会创建一个新的序列对象，应用了指定的筛选条件。中间函数的返回值类型通常都是 `EntitySequence`，以便我们继续链式调用其他序列函数。
 - 终止操作：这类函数的返回值通常是一个集合或者是某个计算的结果，他们会马上执行一个查询，并获取它的执行结果，比如 `toList`、`reduce` 等。
 
+## 中间操作
+
+就像 `kotlin.Sequence` 一样，`EntitySequence` 的中间操作并不会迭代序列执行查询，它们都返回一个新的序列对象。`EntitySequence` 的中间操作主要有如下几个。
+
+### filter
+
+````kotlin
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): EntitySequence<E, T>
+````
+
+与 `kotlin.Sequence` 的 `filter` 函数类似，`EntitySequence` 的 `filter` 函数也接受一个闭包作为参数，使用闭包中指定的筛选条件对序列进行过滤。不同的是，我们的闭包接受当前表对象 `T` 作为参数，因此我们在闭包中使用 `it` 访问到的并不是实体对象，而是表对象，另外，闭包的返回值也是 `ColumnDeclaring<Boolean>`，而不是 `Boolean`。下面使用 `filter` 获取部门 1 中的所有员工：
+
+```kotlin
+val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
+```
+
+可以看到，用法几乎与 `kotlin.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 操作符进行连接，比如：
+
+```kotlin
+val employees = Employees
+    .asSequence()
+    .filter { it.departmentId eq 1 }
+    .filter { it.managerId.isNotNull() }
+    .toList()
+```
+
+生成 SQL：
+
+````sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+where (t_employee.department_id = ?) and (t_employee.manager_id is not null) 
+````
+
+其实，Ktorm 还提供了一个 `filterNot` 函数，它的用法与 `filter` 一样，但是会将闭包中的筛选条件取反。比如上面例子中的第二个 `filter` 调用就可以改写为 `filterNot { it.managerId.isNull() }`。除此之外，Ktorm 还提供了 `filterTo` 和 `filterNotTo`，但这两个函数其实是终止操作，它们会在获取到新的序列对象后马上迭代它，将里面的元素添加到给定的集合中，其效果相当于连续调用 `filter` 和 `toCollection` 两个函数。
+
+### filterColumns
+
+### sortedBy
+
+### drop/take
+
+## 终止操作
+
+### toCollection
+
+### map
+
+### associate
+
+### elementAt
+
+### first/last
+
+### fold/reduce/forEach
+
+### joinTo
+
+## 分组与聚合
