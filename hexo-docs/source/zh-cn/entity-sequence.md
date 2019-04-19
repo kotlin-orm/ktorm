@@ -34,6 +34,8 @@ from t_employee
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ````
 
+> 我们也能使用 `asSequenceWithoutReferences` 函数获取序列对象，这样就不会自动 left join 关联表，生成的 SQL 会变成 `select * from t_employee`。
+
 除了使用 for-each 循环外，我们还能用 `toList` 扩展函数将序列中的元素保存为一个列表：
 
 ````kotlin
@@ -60,8 +62,11 @@ where t_employee.department_id = ?
 我们再来看看最核心的 `EntitySequence` 类的定义：
 
 ```kotlin
-data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val expression: SelectExpression) {
-
+data class EntitySequence<E : Entity<E>, T : Table<E>>(
+    val sourceTable: T,
+    val expression: SelectExpression,
+    val entityExtractor: (row: QueryRowSet) -> E
+) {
     val query = Query(expression)
 
     val sql get() = query.sql
@@ -80,17 +85,17 @@ data class EntitySequence<E : Entity<E>, T : Table<E>>(val sourceTable: T, val e
         }
 
         override fun next(): E {
-            return sourceTable.createEntity(queryIterator.next())
+            return entityExtractor(queryIterator.next())
         }
     }
 }
 ```
 
-可以看出，每个实体序列中都包含了一个查询，实体序列的迭代器正是包装了它内部的查询的迭代器。当序列被迭代时，会执行内部的查询，然后使用 `createEntity` 为每行创建一个实体对象。至于序列中的其他属性，比如 `sql`、`rowSet`、`totalRecords` 等，也都是直接来自它内部的查询对象，其功能与 `Query` 类中的同名属性完全相同。
+可以看出，每个实体序列中都包含了一个查询，实体序列的迭代器正是包装了它内部的查询的迭代器。当序列被迭代时，会执行内部的查询，然后使用 `entityExtractor` 为每行创建一个实体对象。在这里，`entityExtractor` 有可能是 `createEntity` 也有可能是 `createEntityWithoutReferences`，这取决于创建序列对象时使用的参数。至于序列中的其他属性，比如 `sql`、`rowSet`、`totalRecords` 等，也都是直接来自它内部的查询对象，其功能与 `Query` 类中的同名属性完全相同。
 
 Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，这些扩展函数大致可以分为两类：
 
-- 中间操作：这类函数并不会执行序列中的查询，而是修改并创建一个新的序列对象，比如 `filter` 函数会创建一个新的序列对象，应用了指定的筛选条件。中间函数的返回值类型通常都是 `EntitySequence`，以便我们继续链式调用其他序列函数。
+- 中间操作：这类函数并不会执行序列中的查询，而是修改并创建一个新的序列对象，比如 `filter` 函数会使用指定的筛选条件创建一个新的序列对象。中间函数的返回值类型通常都是 `EntitySequence`，以便我们继续链式调用其他序列函数。
 - 终止操作：这类函数的返回值通常是一个集合或者是某个计算的结果，他们会马上执行一个查询，并获取它的执行结果，比如 `toList`、`reduce` 等。
 
 ## 中间操作
@@ -130,13 +135,98 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where (t_employee.department_id = ?) and (t_employee.manager_id is not null) 
 ````
 
-其实，Ktorm 还提供了一个 `filterNot` 函数，它的用法与 `filter` 一样，但是会将闭包中的筛选条件取反。比如上面例子中的第二个 `filter` 调用就可以改写为 `filterNot { it.managerId.isNull() }`。除此之外，Ktorm 还提供了 `filterTo` 和 `filterNotTo`，但这两个函数其实是终止操作，它们会在获取到新的序列对象后马上迭代它，将里面的元素添加到给定的集合中，其效果相当于连续调用 `filter` 和 `toCollection` 两个函数。
+其实，Ktorm 还提供了一个 `filterNot` 函数，它的用法与 `filter` 一样，但是会将闭包中的筛选条件取反。比如上面例子中的第二个 `filter` 调用就可以改写为 `filterNot { it.managerId.isNull() }`。除此之外，Ktorm 还提供了 `filterTo` 和 `filterNotTo`，但这两个函数其实是终止操作，它们会在添加筛选条件之后马上迭代这个序列，将里面的元素添加到给定的集合中，其效果相当于连续调用 `filter` 和 `toCollection` 两个函数。
 
 ### filterColumns
 
+```kotlin
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(
+    selector: (T) -> List<Column<*>>
+): EntitySequence<E, T>
+```
+
+实体序列默认会查询当前表对象和关联表对象（如过启用的话）中的的所有列，这有时会造成一定的性能损失，如果你对这些损失比较敏感的话，可以使用 `filterColumns` 函数。这个函数支持我们定制查询中的列，比如我们需要获取公司的部门列表，但是不需要部门的地址数据，代码可以这样写：
+
+```kotlin
+val departments = Departments
+    .asSequence()
+    .filterColumns { it.columns - it.location }
+    .toList()
+```
+
+这时，返回的实体对象中将不再有 `location` 字段，生成的 SQL 如下：
+
+````sql
+select t_department.id as t_department_id, t_department.name as t_department_name 
+from t_department 
+````
+
 ### sortedBy
 
+```kotlin
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
+    selector: (T) -> ColumnDeclaring<*>
+): EntitySequence<E, T>
+```
+
+`sortedBy` 函数用于指定查询结果的排序方式，我们在闭包中返回一个字段或一个表达式，然后 Ktorm 就会使用它对结果进行排序。下面的代码按工资从低到高对员工进行排序：
+
+```kotlin
+val employees = Employees.asSequence().sortedBy { it.salary }.toList()
+```
+
+生成 SQL：
+
+````sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+order by t_employee.salary 
+````
+
+`sortedBy` 函数按升序进行排序，如果你希望使用降序，可以改用 `sortedByDescending` 函数，它的用法是一样的。
+
+有时候，我们的排序需要考虑多个不同的字段，这时我们需要使用 `sorted` 方法，这个方法接受一个类型为 `(T) -> List<OrderByExpression>` 的闭包作为参数。下面是一个使用示例，它将员工按工资从高到低排序，在工资相等的情况下，再按入职时间从远到近排序：
+
+```kotlin
+val employees = Employees
+    .asSequence()
+    .sorted { listOf(it.salary.desc(), it.hireDate.asc()) }
+    .toList()
+```
+
+生成 SQL：
+
+````sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+order by t_employee.salary desc, t_employee.hire_date 
+````
+
 ### drop/take
+
+```kotlin
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T>
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T>
+```
+
+`drop` 和 `take` 函数用于实现分页的功能，`drop` 函数会丢弃序列中的前 n 个元素，`take` 函数会保留前 n 个元素丢弃后面的元素。下面是一个例子：
+
+```kotlin
+val employees = Employees.asSequence().drop(1).take(1).toList()
+```
+
+如果我们使用 MySQL 数据库，会生成如下 SQL：
+
+````sql
+select * 
+from t_employee 
+left join t_department _ref0 on t_employee.department_id = _ref0.id 
+limit ?, ? 
+````
+
+需要注意的是，这两个函数依赖于数据库本身的分页功能，然而 SQL 标准中并没有规定如何进行分页查询的语法，每种数据库提供商对其都有不同的实现。因此，使用这两个函数，我们必须开启某个方言的支持，具体请参考 [查询 - limit](./query.html#limit) 一节的相关描述。
 
 ## 终止操作
 
