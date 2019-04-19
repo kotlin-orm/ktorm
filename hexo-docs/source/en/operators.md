@@ -136,5 +136,5 @@ class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
 }
 ```
 
-Now, the last thing we should do is to register this custom sql formatter into Ktorm by dialect support, you can read the later chapters for how to [enable dialects](./dialects-and-raw-sql.html#Enable-Dialects).
+Now, the last thing we should do is to register this custom sql formatter into Ktorm by dialect support, you can read the later chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
 

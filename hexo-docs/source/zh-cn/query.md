@@ -335,7 +335,7 @@ val query = Employees.select().limit(0, 1)
 java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
 ````
 
-这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何[启用方言](./dialects-and-raw-sql.html#启用方言)，可参考后面的章节。
+这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何[启用方言](./dialects-and-native-sql.html#启用方言)，可参考后面的章节。
 
 ## union/unionAll
 

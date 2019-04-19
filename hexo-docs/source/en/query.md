@@ -333,7 +333,7 @@ When we are using the `limit` function, Ktorm will generate appropriate SQLs dep
 java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
 ```
 
-This is OK, the SQL standard doesn't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to latter chapters for how to [enable dialects](./dialects-and-raw-sql.html#Enable-Dialects).
+This is OK, the SQL standard doesn't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to latter chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
 
 ## union/unionAll
 

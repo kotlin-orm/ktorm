@@ -18,7 +18,7 @@ related_path: en/entity-sequence.html
 val sequence = Employees.asSequence()
 ````
 
-这样我们就得到了一个默认的序列，它可以获得表中的所有员工。但是请放心，Ktorm 并不会马上执行这个查询，序列对象提供了一个迭代器 `Iterator<Employee>`，当我们使用它迭代序列中的数据时，查询才会执行。下面我们使用 for-each 循环打印出序列中所有的员工：
+这样我们就得到了一个默认的序列，它可以获得表中的所有员工。但是请放心，Ktorm 并不会马上执行查询，序列对象提供了一个迭代器 `Iterator<Employee>`，当我们使用它迭代序列中的数据时，查询才会执行。下面我们使用 for-each 循环打印出序列中所有的员工：
 
 ````kotlin
 for (employee in Employees.asSequence()) {
@@ -34,7 +34,7 @@ from t_employee
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ````
 
-> 我们也能使用 `asSequenceWithoutReferences` 函数获取序列对象，这样就不会自动 left join 关联表，生成的 SQL 会变成 `select * from t_employee`。
+> 我们也能使用 `asSequenceWithoutReferences` 函数获取序列对象，这样就不会自动 left join 关联表。
 
 除了使用 for-each 循环外，我们还能用 `toList` 扩展函数将序列中的元素保存为一个列表：
 
@@ -57,7 +57,7 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where t_employee.department_id = ? 
 ````
 
-上面的两个例子，其实相当于我们在上一节中介绍的 `findAll` 和 `findList` 函数。事实上，这两个函数正是基于实体序列 API 实现的，它们提供了简短的调用链，而序列 API 提供的，则是更强大灵活的使用方式。
+这就是实体序列 API 的基本使用方式，上面的两个例子，其实相当于我们在上一节中介绍的 `findAll` 和 `findList` 函数。事实上，这两个函数正是基于序列 API 实现的，它们提供了简短的调用链，而序列 API 提供的，则是更强大灵活的使用方式。
 
 我们再来看看最核心的 `EntitySequence` 类的定义：
 
@@ -91,7 +91,7 @@ data class EntitySequence<E : Entity<E>, T : Table<E>>(
 }
 ```
 
-可以看出，每个实体序列中都包含了一个查询，实体序列的迭代器正是包装了它内部的查询的迭代器。当序列被迭代时，会执行内部的查询，然后使用 `entityExtractor` 为每行创建一个实体对象。在这里，`entityExtractor` 有可能是 `createEntity` 也有可能是 `createEntityWithoutReferences`，这取决于创建序列对象时使用的参数。至于序列中的其他属性，比如 `sql`、`rowSet`、`totalRecords` 等，也都是直接来自它内部的查询对象，其功能与 `Query` 类中的同名属性完全相同。
+可以看出，每个实体序列中都包含了一个查询，而序列的迭代器正是包装了它内部的查询的迭代器。当序列被迭代时，会执行内部的查询，然后使用 `entityExtractor` 为每行创建一个实体对象。在这里，`entityExtractor` 有可能是 `createEntity` 也有可能是 `createEntityWithoutReferences`，这取决于创建序列对象时使用的参数。至于序列中的其他属性，比如 `sql`、`rowSet`、`totalRecords` 等，也都是直接来自它内部的查询对象，其功能与 `Query` 类中的同名属性完全相同。
 
 Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，这些扩展函数大致可以分为两类：
 
@@ -145,7 +145,7 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(
 ): EntitySequence<E, T>
 ```
 
-实体序列默认会查询当前表对象和关联表对象（如过启用的话）中的的所有列，这有时会造成一定的性能损失，如果你对这些损失比较敏感的话，可以使用 `filterColumns` 函数。这个函数支持我们定制查询中的列，比如我们需要获取公司的部门列表，但是不需要部门的地址数据，代码可以这样写：
+实体序列默认会查询当前表对象和关联表对象（如果启用的话）中的的所有列，这有时会造成一定的性能损失，如果你对这些损失比较敏感的话，可以使用 `filterColumns` 函数。这个函数支持我们定制查询中的列，比如我们需要获取公司的部门列表，但是不需要部门的地址数据，代码可以这样写：
 
 ```kotlin
 val departments = Departments
