@@ -65,6 +65,10 @@ main:
     type: link
     path: zh-cn/entity-sequence.html
 
+  - text: 序列聚合
+    type: link
+    path: zh-cn/sequence-aggregation.html
+
   - text: 实体增删改
     type: link
     path: zh-cn/entity-dml.html

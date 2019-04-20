@@ -65,6 +65,10 @@ main:
     type: link
     path: en/entity-sequence.html
 
+  - text: Sequence Aggregation
+    type: link
+    path: en/sequence-aggregation.html
+
   - text: Entity Manipulation
     type: link
     path: en/entity-dml.html

@@ -254,16 +254,118 @@ inline fun <E : Entity<E>, R> EntitySequence<E, *>.map(transform: (E) -> R): Lis
 
 根据以往函数式编程的经验，你很可能会认为 `map` 是中间操作，但是很遗憾，在 Ktorm 中，它是终止操作，这是我们在设计上的一个妥协。
 
+`map` 函数会马上执行查询，迭代查询结果中的元素，对每一个元素都应用参数 `transform` 所指定的转换，然后把转换的结果保存到一个列表中返回。下面的代码可以获取所有员工的名字：
 
+```kotlin
+val names = Employees.asSequenceWithoutReferences().map { it.name }
+```
+
+生成 SQL：
+
+````sql
+select * 
+from t_employee 
+````
+
+请注意，虽然在这里我们只需要获取员工的名字，但是生成的 SQL 仍然查询了所有的字段，这是因为 Ktorm 无法通过我们传入的 `transform` 函数识别出所需的具体字段。如果你对这点性能的损失比较敏感，可以把 `map` 函数与 `filterColumns` 函数配合使用，也可以使用下面将要介绍的 `mapColumns` 函数代替。
+
+除了基本的 `map` 函数，Ktorm 还提供了 `mapTo`、`mapIndexed`、`mapIndexedTo`，他们的功能与 `kotlin.Sequence` 中的同名函数是一样的，在此不再赘述。
+
+### mapColumns
+
+```kotlin
+inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumns(
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): List<C?>
+```
+
+`mapColumns` 函数的功能与 `map` 类似，不同的是，它的闭包函数接受当前表对象 `T` 作为参数，因此我们在闭包中使用 `it` 访问到的并不是实体对象，而是表对象，另外，闭包的返回值也是 `ColumnDeclaring<C>`，我们需要在闭包中返回希望从数据库中查询的列或表达式。还是前面的例子，使用 `mapColumns` 获取所有员工的名字：
+
+```kotlin
+val names = Employees.asSequenceWithoutReferences().mapColumns { it.name }
+```
+
+可以看到，这时生成的 SQL 中就只包含了我们需要的字段：
+
+````sql
+select t_employee.name 
+from t_employee 
+````
+
+如果你希望 `mapColumns` 能一次查询多个字段，可以改用 `mapColumns2` 或 `mapColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些字段，函数的返回值也相应变成了 `List<Pair<C1?, C2?>>` 或 `List<Triple<C1?, C2?, C3?>>`。下面的例子会打印出部门 1 中所有员工的 ID，姓名和入职天数：
+
+```kotlin
+// MySQL datediff function
+fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>) = FunctionExpression(
+    functionName = "datediff",
+    arguments = listOf(right.wrapArgument(left), right.asExpression()),
+    sqlType = IntSqlType
+)
+
+Employees
+    .asSequenceWithoutReferences()
+    .filter { it.departmentId eq 1 }
+    .mapColumns3 { Triple(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
+    .forEach { (id, name, days) ->
+        println("$id:$name:$days")
+    }
+```
+
+运行上面的代码，会产生如下输出：
+
+````plain
+1:vince:473
+2:marry:108
+````
+
+生成 SQL：
+
+````sql
+select t_employee.id, t_employee.name, datediff(?, t_employee.hire_date) 
+from t_employee 
+where t_employee.department_id = ? 
+````
+
+> 那么有没有 `mapColumns4` 或更多的函数呢，很遗憾并没有，我们认为这并不是一个十分常用而且不可代替的功能。就连 Kotlin 标准库，也只提供了 `Pair` 和 `Triple`，而没有四元组，不是吗？如果你确实需要的话，可以参考源码自己实现，或者给我们提 issue。
+
+除了基本的 `mapColumns` 函数，Ktorm 还提供了 `mapColumnsTo`、`mapColumnsNotNull`、`mapColumnsNotNullTo`、`mapColumns2To`、`mapColumns3To`，通过名字你应该也猜到了它们的用法，在此就不重复说明了。
 
 ### associate
 
-### elementAt
+`associate` 系列函数会马上执行查询，然后迭代查询的结果集，把序列转换为 `Map`。它们的用法与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
 
-### first/last
+除了基本的 `associate` 函数以外，Ktorm 还提供了其他的一些变体，它们分别是：`associateBy`、`associateWith`、`associateTo`、`associateByTo`、`associateWithTo`。
+
+### elementAt/first/last/find/findLast/single
+
+这一系列函数用于获取序列中指定位置的元素，它们的用法也与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
+
+特别的是，如果我们启用了方言支持的话，这些函数会使用分页功能，尽量只查询一条数据。假如我们使用 MySQL，并且使用 `elementAt(10)` 获取下标为 10 的记录的话，会生成 `limit 10, 1` 这样的 SQL。但如果分页功能不可用，则会查出所有的记录，然后再根据下标获取指定元素。
+
+另外，除了基本的形式外，这些函数还具有许多的变体，这里就不一一列举了。
 
 ### fold/reduce/forEach
 
-### joinTo
+这一系列函数及其变体为序列提供了迭代、折叠等功能，它们的用法也与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。下面使用 `fold` 计算所有员工的工资总和：
 
-## 分组与聚合
+```kotlin
+val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
+```
+
+当然，如果仅仅为了获得工资总和，我们没必要这样做。这是性能低下的写法，它会查询出所有员工的数据，然后对它们进行迭代，这里仅用作示范，更好的写法是使用 `sumBy` 函数：
+
+```kotlin
+val totalSalary = Employees.sumBy { it.salary }
+```
+
+### joinTo/joinToString
+
+这两个函数提供了将序列中的元素组装为字符串的功能，它们的用法也与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
+
+下面使用 `joinToString` 把所有员工的名字拼成一个字符串：
+
+```kotlin
+val names = Employees.asSequence().joinToString(separator = ":") { it.name }
+```
+
