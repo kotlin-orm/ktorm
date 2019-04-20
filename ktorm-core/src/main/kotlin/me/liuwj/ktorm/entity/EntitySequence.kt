@@ -2,6 +2,7 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
+import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.expression.OrderByExpression
 import me.liuwj.ktorm.expression.SelectExpression
 import me.liuwj.ktorm.schema.Column
@@ -163,7 +164,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any, R : MutableCollection<in C?>> 
     val column = columnSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(column.asDeclaringExpression()),
+        columns = listOf(ColumnDeclaringExpression(column.asExpression())),
         isDistinct = isDistinct
     )
 
@@ -185,7 +186,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any, R : MutableCollection<in C>> E
     val column = columnSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(column.asDeclaringExpression()),
+        columns = listOf(ColumnDeclaringExpression(column.asExpression())),
         isDistinct = isDistinct
     )
 
@@ -207,7 +208,7 @@ inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, R> EntitySequence<E
     val (c1, c2) = columnSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(c1.asDeclaringExpression(), c2.asDeclaringExpression()),
+        columns = listOf(c1, c2).map { ColumnDeclaringExpression(it.asExpression()) },
         isDistinct = isDistinct
     )
 
@@ -229,7 +230,7 @@ inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any, R> Entity
     val (c1, c2, c3) = columnSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(c1.asDeclaringExpression(), c2.asDeclaringExpression(), c3.asDeclaringExpression()),
+        columns = listOf(c1, c2, c3).map { ColumnDeclaringExpression(it.asExpression()) },
         isDistinct = isDistinct
     )
 
@@ -276,7 +277,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
     val aggregation = aggregationSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(aggregation.asDeclaringExpression())
+        columns = listOf(ColumnDeclaringExpression(aggregation.asExpression()))
     )
 
     val rowSet = Query(expr).rowSet
@@ -286,7 +287,47 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
         return aggregation.sqlType.getResult(rowSet, 1)
     } else {
         val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
-        throw IllegalStateException("Expected 1 result but ${rowSet.size()} returned from sql: \n\n$sql")
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T>.aggregate2(
+    aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
+): Pair<C1?, C2?> {
+    val (c1, c2) = aggregationSelector(sourceTable)
+
+    val expr = expression.copy(
+        columns = listOf(c1, c2).map { ColumnDeclaringExpression(it.asExpression()) }
+    )
+
+    val rowSet = Query(expr).rowSet
+
+    if (rowSet.size() == 1) {
+        assert(rowSet.next())
+        return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
+    } else {
+        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySequence<E, T>.aggregate3(
+    aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
+): Triple<C1?, C2?, C3?> {
+    val (c1, c2, c3) = aggregationSelector(sourceTable)
+
+    val expr = expression.copy(
+        columns = listOf(c1, c2, c3).map { ColumnDeclaringExpression(it.asExpression()) }
+    )
+
+    val rowSet = Query(expr).rowSet
+
+    if (rowSet.size() == 1) {
+        assert(rowSet.next())
+        return Triple(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2), c3.sqlType.getResult(rowSet, 3))
+    } else {
+        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
     }
 }
 

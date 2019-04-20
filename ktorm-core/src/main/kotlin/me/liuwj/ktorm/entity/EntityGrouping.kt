@@ -39,22 +39,74 @@ inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any> EntityGrouping<E, T, 
     return aggregateTo(LinkedHashMap(), aggregationSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.aggregateTo(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M> EntityGrouping<E, T, K>.aggregateTo(
     destination: M,
     aggregationSelector: (T) -> ColumnDeclaring<C>
-): M {
-    val keyColumn = keySelector(sequence.sourceTable).asExpression()
+): M where M : MutableMap<in K?, in C?> {
+    val keyColumn = keySelector(sequence.sourceTable)
     val aggregation = aggregationSelector(sequence.sourceTable)
 
     val expr = sequence.expression.copy(
-        columns = listOf(keyColumn, aggregation.asExpression()).map { ColumnDeclaringExpression(it) },
-        groupBy = listOf(keyColumn)
+        columns = listOf(keyColumn, aggregation).map { ColumnDeclaringExpression(it.asExpression()) },
+        groupBy = listOf(keyColumn.asExpression())
     )
 
     for (row in Query(expr)) {
         val key = keyColumn.sqlType.getResult(row, 1)
         val value = aggregation.sqlType.getResult(row, 2)
         destination[key] = value
+    }
+
+    return destination
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any> EntityGrouping<E, T, K>.aggregate2(
+    aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
+): MutableMap<K?, Pair<C1?, C2?>> {
+    return aggregate2To(LinkedHashMap(), aggregationSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, M> EntityGrouping<E, T, K>.aggregate2To(
+    destination: M,
+    aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
+): M where M : MutableMap<in K?, in Pair<C1?, C2?>> {
+    val keyColumn = keySelector(sequence.sourceTable)
+    val (c1, c2) = aggregationSelector(sequence.sourceTable)
+
+    val expr = sequence.expression.copy(
+        columns = listOf(keyColumn, c1, c2).map { ColumnDeclaringExpression(it.asExpression()) },
+        groupBy = listOf(keyColumn.asExpression())
+    )
+
+    for (row in Query(expr)) {
+        val key = keyColumn.sqlType.getResult(row, 1)
+        destination[key] = Pair(c1.sqlType.getResult(row, 2), c2.sqlType.getResult(row, 3))
+    }
+
+    return destination
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any> EntityGrouping<E, T, K>.aggregate3(
+    aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
+): MutableMap<K?, Triple<C1?, C2?, C3?>> {
+    return aggregate3To(LinkedHashMap(), aggregationSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any, M> EntityGrouping<E, T, K>.aggregate3To(
+    destination: M,
+    aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
+): M where M : MutableMap<in K?, in Triple<C1?, C2?, C3?>> {
+    val keyColumn = keySelector(sequence.sourceTable)
+    val (c1, c2, c3) = aggregationSelector(sequence.sourceTable)
+
+    val expr = sequence.expression.copy(
+        columns = listOf(keyColumn, c1, c2, c3).map { ColumnDeclaringExpression(it.asExpression()) },
+        groupBy = listOf(keyColumn.asExpression())
+    )
+
+    for (row in Query(expr)) {
+        val key = keyColumn.sqlType.getResult(row, 1)
+        destination[key] = Triple(c1.sqlType.getResult(row, 2), c2.sqlType.getResult(row, 3), c3.sqlType.getResult(row, 4))
     }
 
     return destination
