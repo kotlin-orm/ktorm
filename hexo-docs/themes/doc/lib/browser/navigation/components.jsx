@@ -22,56 +22,75 @@ function Logo ({page, url_for}) {
   );
 }
 
-function Sidebar ({items, page, url_for, config, uncollapse, tocItems, visibleHeaderId}) {
+class Sidebar extends React.Component {
+  constructor(props) {
+    super(props)
+  }
 
-  const renderItems = () => {
-    return (items || []).map((item, i) => {
-      return (<SidebarItem
-        key={i + 'sidebar-item' }
-        item={item}
-        page={page}
-        config={config}
-        tocItems={tocItems}
-        visibleHeaderId={visibleHeaderId}
-        url_for={url_for} />
-      );
-    });
-  };
+  componentDidMount() {
+    setTimeout(function () {
+      const $sidebar = $('.doc-sidebar');
+      const $firstItem = $($('.doc-sidebar-list').children('li').get(0));
+      const $currentItem = $('.doc-sidebar-list__item--current');
 
-  return (
-    <nav className="doc-sidebar">
-      <div className="doc-sidebar__vertical-menu">
-        <SidebarToggle
-          className="doc-sidebar-toggle--primary doc-sidebar__vertical-menu__item"
-          onClick={uncollapse} />
-        <i className="dc-icon
+      if ($currentItem.length > 0) {
+        $sidebar.animate({scrollTop: $currentItem.position().top - $firstItem.position().top}, 800);
+      }
+    }, 100);
+  }
+
+  render() {
+    const {items, page, url_for, config, uncollapse, tocItems, visibleHeaderId} = this.props;
+
+    const renderItems = () => {
+      return (items || []).map((item, i) => {
+        return (<SidebarItem
+            key={i + 'sidebar-item' }
+            item={item}
+            page={page}
+            config={config}
+            tocItems={tocItems}
+            visibleHeaderId={visibleHeaderId}
+            url_for={url_for} />
+        );
+      });
+    };
+
+    return (
+      <nav className="doc-sidebar">
+        <div className="doc-sidebar__vertical-menu">
+          <SidebarToggle
+            className="doc-sidebar-toggle--primary doc-sidebar__vertical-menu__item"
+            onClick={uncollapse} />
+          <i className="dc-icon
             dc-icon--search
             dc-icon--interactive
             doc-sidebar__vertical-menu__item
             doc-sidebar__vertical-menu__item--primary"
-        onClick={uncollapse}>
-        </i>
-      </div>
-
-      <div className="doc-sidebar-content">
-        <div className="doc-sidebar__search-form">
-          <div className="dc-search-form doc-search-form">
-            <input type="search"
-              id="doc-search-input"
-              className="dc-input dc-search-form__input doc-search-form__input"
-              placeholder={page.lang === 'zh-cn' ? '搜索文档' : 'Search documents'}
-              autoFocus={true} />
-            <button className="dc-btn dc-search-form__btn doc-search-form__btn" aria-label="Search">
-              <i className="dc-icon dc-icon--search"/>
-            </button>
-          </div>
+             onClick={uncollapse}>
+          </i>
         </div>
-        <ul className="doc-sidebar-list">
-          { renderItems() }
-        </ul>
-      </div>
-    </nav>
-  );
+
+        <div className="doc-sidebar-content">
+          <div className="doc-sidebar__search-form">
+            <div className="dc-search-form doc-search-form">
+              <input type="search"
+                     id="doc-search-input"
+                     className="dc-input dc-search-form__input doc-search-form__input"
+                     placeholder={page.lang === 'zh-cn' ? '搜索文档' : 'Search documents'}
+                     autoFocus={true} />
+              <button className="dc-btn dc-search-form__btn doc-search-form__btn" aria-label="Search">
+                <i className="dc-icon dc-icon--search"/>
+              </button>
+            </div>
+          </div>
+          <ul className="doc-sidebar-list">
+            { renderItems() }
+          </ul>
+        </div>
+      </nav>
+    );
+  }
 }
 
 class SidebarItem extends React.Component  {
