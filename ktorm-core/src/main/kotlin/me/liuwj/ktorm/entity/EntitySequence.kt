@@ -148,6 +148,96 @@ inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.
     return mapTo(destination) { transform(index++, it) }
 }
 
+inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumns(
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): List<C?> {
+    return mapColumnsTo(ArrayList(), isDistinct, columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C : Any, R : MutableCollection<in C?>> EntitySequence<E, T>.mapColumnsTo(
+    destination: R,
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): R {
+    val column = columnSelector(sourceTable)
+
+    val expr = expression.copy(
+        columns = listOf(column.asDeclaringExpression()),
+        isDistinct = isDistinct
+    )
+
+    return Query(expr).mapTo(destination) { row -> column.sqlType.getResult(row, 1) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumnsNotNull(
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): List<C> {
+    return mapColumnsNotNullTo(ArrayList(), isDistinct, columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C : Any, R : MutableCollection<in C>> EntitySequence<E, T>.mapColumnsNotNullTo(
+    destination: R,
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): R {
+    val column = columnSelector(sourceTable)
+
+    val expr = expression.copy(
+        columns = listOf(column.asDeclaringExpression()),
+        isDistinct = isDistinct
+    )
+
+    return Query(expr).mapNotNullTo(destination) { row -> column.sqlType.getResult(row, 1) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T>.mapColumns2(
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
+): List<Pair<C1?, C2?>> {
+    return mapColumns2To(ArrayList(), isDistinct, columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, R> EntitySequence<E, T>.mapColumns2To(
+    destination: R,
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
+): R where R : MutableCollection<in Pair<C1?, C2?>> {
+    val (c1, c2) = columnSelector(sourceTable)
+
+    val expr = expression.copy(
+        columns = listOf(c1.asDeclaringExpression(), c2.asDeclaringExpression()),
+        isDistinct = isDistinct
+    )
+
+    return Query(expr).mapTo(destination) { row -> Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySequence<E, T>.mapColumns3(
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
+): List<Triple<C1?, C2?, C3?>> {
+    return mapColumns3To(ArrayList(), isDistinct, columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any, R> EntitySequence<E, T>.mapColumns3To(
+    destination: R,
+    isDistinct: Boolean = false,
+    columnSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
+): R where R : MutableCollection<in Triple<C1?, C2?, C3?>> {
+    val (c1, c2, c3) = columnSelector(sourceTable)
+
+    val expr = expression.copy(
+        columns = listOf(c1.asDeclaringExpression(), c2.asDeclaringExpression(), c3.asDeclaringExpression()),
+        isDistinct = isDistinct
+    )
+
+    return Query(expr).mapTo(destination) { row ->
+        Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
+    }
+}
+
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
     selector: (T) -> List<OrderByExpression>
 ): EntitySequence<E, T> {

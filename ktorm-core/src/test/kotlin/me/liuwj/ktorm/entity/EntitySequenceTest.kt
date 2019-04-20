@@ -199,4 +199,13 @@ class EntitySequenceTest : BaseTest() {
         val employee = Employees.asSequence().singleOrNull { it.departmentId eq 1 }
         assert(employee == null)
     }
+
+    @Test
+    fun testMapColumns() {
+        val names = Employees.asSequence().sortedBy { it.id }.mapColumns { it.name }
+
+        println(names)
+        assert(names.size == 4)
+        assert(names[0] == "vince")
+    }
 }

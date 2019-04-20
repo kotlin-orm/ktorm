@@ -230,9 +230,31 @@ limit ?, ?
 
 ## 终止操作
 
+实体序列的终止操作会马上执行一个查询，获取查询的执行结果，然后执行一定的计算，下面介绍 Ktorm 为 `EntitySequence` 提供的一些终止操作，他们其实与 `kotlin.Sequence` 的终止操作几乎一样。
+
 ### toCollection
 
+```
+fun <E : Entity<E>, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C
+```
+
+`toCollection` 函数用于获取序列中的所有元素，它会马上执行查询，迭代查询结果中的元素，把它们添加到 `destination` 集合中：
+
+````kotlin
+val employees = Employees.asSequence().toCollection(ArrayList())
+````
+
+除此之外，Ktorm 还提供了一些简便的 `toXxx` 系列函数，用于将序列中的元素保存为特定类型的集合，它们分别是：`toList`、`toMutableList`、`toSet`、`toMutableSet`、`toHashSet`、`toSortedSet`。
+
 ### map
+
+```kotlin
+inline fun <E : Entity<E>, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
+```
+
+根据以往函数式编程的经验，你很可能会认为 `map` 是中间操作，但是很遗憾，在 Ktorm 中，它是终止操作，这是我们在设计上的一个妥协。
+
+
 
 ### associate
 
