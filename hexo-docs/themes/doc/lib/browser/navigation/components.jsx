@@ -24,19 +24,21 @@ function Logo ({page, url_for}) {
 
 class Sidebar extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
   }
 
-  componentDidMount() {
-    setTimeout(function () {
-      const $sidebar = $('.doc-sidebar');
-      const $firstItem = $($('.doc-sidebar-list').children('li').get(0));
-      const $currentItem = $('.doc-sidebar-list__item--current');
+  componentDidUpdate() {
+    if (this.props.visibleHeaderId) {
+      setTimeout(function () {
+        const $sidebar = $('.doc-sidebar');
+        const $firstItem = $($('.doc-sidebar-list').children('li').get(0));
+        const $currentItem = $('.doc-sidebar-list__item--current');
 
-      if ($currentItem.length > 0) {
-        $sidebar.animate({scrollTop: $currentItem.position().top - $firstItem.position().top}, 800);
-      }
-    }, 100);
+        if ($currentItem.length > 0) {
+          $sidebar.animate({scrollTop: $currentItem.position().top - $firstItem.position().top}, 800);
+        }
+      }, 100);
+    }
   }
 
   render() {

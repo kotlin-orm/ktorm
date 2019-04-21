@@ -45,8 +45,7 @@ class Navigation extends React.Component {
     }
 
     this.setState({
-      tocItems,
-      visibleHeaderId: window.location.hash.replace('#', '')
+      tocItems
     });
   }
 
