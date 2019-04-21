@@ -8,8 +8,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 
-/* internal */
-class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>>) : InvocationHandler {
+@PublishedApi
+internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>>) : InvocationHandler {
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         when (method.declaringClass.kotlin) {

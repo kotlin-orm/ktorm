@@ -43,7 +43,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
             else -> { }
         }
 
-        assert(_depth >= 0)
+        check(_depth >= 0) { "Incorrect indent depth: $_depth" }
 
         if (beautifySql) {
             _builder.appendln()
@@ -89,7 +89,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super.visit(expr)
-        assert(result === expr)
+        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
         return result
     }
 

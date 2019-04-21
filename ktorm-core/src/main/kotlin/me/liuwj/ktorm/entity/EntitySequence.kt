@@ -283,7 +283,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
     val rowSet = Query(expr).rowSet
 
     if (rowSet.size() == 1) {
-        assert(rowSet.next())
+        check(rowSet.next())
         return aggregation.sqlType.getResult(rowSet, 1)
     } else {
         val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
@@ -303,7 +303,7 @@ inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T
     val rowSet = Query(expr).rowSet
 
     if (rowSet.size() == 1) {
-        assert(rowSet.next())
+        check(rowSet.next())
         return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
     } else {
         val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
@@ -323,7 +323,7 @@ inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySeq
     val rowSet = Query(expr).rowSet
 
     if (rowSet.size() == 1) {
-        assert(rowSet.next())
+        check(rowSet.next())
         return Triple(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2), c3.sqlType.getResult(rowSet, 3))
     } else {
         val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)

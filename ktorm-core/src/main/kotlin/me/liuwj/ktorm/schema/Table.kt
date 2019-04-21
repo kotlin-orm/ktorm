@@ -137,13 +137,14 @@ open class Table<E : Entity<E>>(
         /**
          * Current table object.
          */
-        val table = this@Table
+        @PublishedApi
+        internal val table = this@Table
 
         /**
          * 获取该列，实现从 [ReadOnlyProperty] 来的 getValue 方法，以支持 by 语法
          */
         override operator fun getValue(thisRef: Table<E>, property: KProperty<*>): Column<C> {
-            assert(thisRef === table)
+            check(thisRef === this@Table)
             return getColumn()
         }
 
@@ -174,23 +175,25 @@ open class Table<E : Entity<E>>(
          * @see me.liuwj.ktorm.entity.createEntity
          */
         inline fun <R : Entity<R>> references(referenceTable: Table<R>, selector: (E) -> R?): ColumnRegistration<C> {
-            val entityClass = table.entityClass ?: error("No entity class configured for table: ${table.tableName}")
-            val properties = ArrayList<KProperty1<*, *>>()
+            val properties = detectBindingProperties(selector)
 
-            val proxy = ColumnBindingHandler.createProxy(entityClass, properties)
-            selector(proxy as E)
-
-            if (properties.isEmpty()) {
-                throw IllegalArgumentException("No binding properties found.")
-            }
             if (properties.size > 1) {
                 throw IllegalArgumentException("Reference binding doesn't support nested properties.")
+            } else {
+                return doBind(ReferenceBinding(referenceTable, properties[0]))
             }
-
-            return bindTo(ReferenceBinding(referenceTable, properties[0]))
         }
 
+        /**
+         * Bind the column to nested properties, eg. employee.manager.department.id
+         */
         inline fun bindTo(selector: (E) -> C?): ColumnRegistration<C> {
+            val properties = detectBindingProperties(selector)
+            return doBind(NestedBinding(properties))
+        }
+
+        @PublishedApi
+        internal inline fun detectBindingProperties(selector: (E) -> Any?): List<KProperty1<*, *>> {
             val entityClass = table.entityClass ?: error("No entity class configured for table: ${table.tableName}")
             val properties = ArrayList<KProperty1<*, *>>()
 
@@ -199,12 +202,13 @@ open class Table<E : Entity<E>>(
 
             if (properties.isEmpty()) {
                 throw IllegalArgumentException("No binding properties found.")
+            } else {
+                return properties
             }
-
-            return bindTo(NestedBinding(properties))
         }
 
-        fun bindTo(binding: ColumnBinding): ColumnRegistration<C> {
+        @PublishedApi
+        internal fun doBind(binding: ColumnBinding): ColumnRegistration<C> {
             val checkedBinding = when (binding) {
                 is NestedBinding -> binding
                 is ReferenceBinding -> {
