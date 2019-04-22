@@ -33,13 +33,13 @@ data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
     }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregate(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
-): MutableMap<K?, C?> {
-    return aggregateTo(LinkedHashMap(), aggregationSelector)
+): Map<K?, C?> {
+    return aggregateColumnsTo(LinkedHashMap(), aggregationSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M> EntityGrouping<E, T, K>.aggregateTo(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
     destination: M,
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): M where M : MutableMap<in K?, in C?> {
@@ -60,13 +60,13 @@ inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M> EntityGrouping<E, 
     return destination
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any> EntityGrouping<E, T, K>.aggregate2(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any> EntityGrouping<E, T, K>.aggregateColumns2(
     aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
-): MutableMap<K?, Pair<C1?, C2?>> {
-    return aggregate2To(LinkedHashMap(), aggregationSelector)
+): Map<K?, Pair<C1?, C2?>> {
+    return aggregateColumns2To(LinkedHashMap(), aggregationSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, M> EntityGrouping<E, T, K>.aggregate2To(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, M> EntityGrouping<E, T, K>.aggregateColumns2To(
     destination: M,
     aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
 ): M where M : MutableMap<in K?, in Pair<C1?, C2?>> {
@@ -86,13 +86,13 @@ inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, M> EntityG
     return destination
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any> EntityGrouping<E, T, K>.aggregate3(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any> EntityGrouping<E, T, K>.aggregateColumns3(
     aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
-): MutableMap<K?, Triple<C1?, C2?, C3?>> {
-    return aggregate3To(LinkedHashMap(), aggregationSelector)
+): Map<K?, Triple<C1?, C2?, C3?>> {
+    return aggregateColumns3To(LinkedHashMap(), aggregationSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any, M> EntityGrouping<E, T, K>.aggregate3To(
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any, M> EntityGrouping<E, T, K>.aggregateColumns3To(
     destination: M,
     aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
 ): M where M : MutableMap<in K?, in Triple<C1?, C2?, C3?>> {
@@ -110,6 +110,69 @@ inline fun <E : Entity<E>, T : Table<E>, K : Any, C1 : Any, C2 : Any, C3 : Any, 
     }
 
     return destination
+}
+
+fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): Map<K?, Int> {
+    return eachCountTo(LinkedHashMap())
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, Int>> EntityGrouping<E, T, K>.eachCountTo(
+    destination: M
+): M {
+    return aggregateColumnsTo(destination as MutableMap<in K?, Int?>) { count() } as M
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachSumBy(
+    columnSelector: (T) -> ColumnDeclaring<C>
+): Map<K?, C?> {
+    return eachSumByTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachSumByTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): M {
+    return aggregateColumnsTo(destination) { sum(columnSelector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMaxBy(
+    columnSelector: (T) -> ColumnDeclaring<C>
+): Map<K?, C?> {
+    return eachMaxByTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMaxByTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): M {
+    return aggregateColumnsTo(destination) { max(columnSelector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMinBy(
+    columnSelector: (T) -> ColumnDeclaring<C>
+): Map<K?, C?> {
+    return eachMinByTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMinByTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<C>
+): M {
+    return aggregateColumnsTo(destination) { min(columnSelector(it)) }
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachAverageBy(
+    columnSelector: (T) -> ColumnDeclaring<out Number>
+): Map<K?, Double?> {
+    return eachAverageByTo(LinkedHashMap(), columnSelector)
+}
+
+inline fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, in Double?>> EntityGrouping<E, T, K>.eachAverageByTo(
+    destination: M,
+    columnSelector: (T) -> ColumnDeclaring<out Number>
+): M {
+    return aggregateColumnsTo(destination) { avg(columnSelector(it)) }
 }
 
 inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.aggregate(
@@ -166,67 +229,4 @@ inline fun <E : Entity<E>, K : Any, M : MutableMap<in K?, E>> EntityGrouping<E, 
     operation: (key: K?, accumulator: E, element: E) -> E
 ): M {
     return asKotlinGrouping().reduceTo(destination, operation)
-}
-
-fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): Map<K?, Int> {
-    return eachCountTo(LinkedHashMap())
-}
-
-@Suppress("RedundantLambdaArrow", "UNCHECKED_CAST")
-fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, Int>> EntityGrouping<E, T, K>.eachCountTo(
-    destination: M
-): M {
-    return aggregateTo(destination as MutableMap<in K?, Int?>) { _ -> count() } as M
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachSumBy(
-    columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
-    return eachSumByTo(LinkedHashMap(), columnSelector)
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachSumByTo(
-    destination: M,
-    columnSelector: (T) -> ColumnDeclaring<C>
-): M {
-    return aggregateTo(destination) { sum(columnSelector(it)) }
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMaxBy(
-    columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
-    return eachMaxByTo(LinkedHashMap(), columnSelector)
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMaxByTo(
-    destination: M,
-    columnSelector: (T) -> ColumnDeclaring<C>
-): M {
-    return aggregateTo(destination) { max(columnSelector(it)) }
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMinBy(
-    columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
-    return eachMinByTo(LinkedHashMap(), columnSelector)
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMinByTo(
-    destination: M,
-    columnSelector: (T) -> ColumnDeclaring<C>
-): M {
-    return aggregateTo(destination) { min(columnSelector(it)) }
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachAverageBy(
-    columnSelector: (T) -> ColumnDeclaring<out Number>
-): Map<K?, Double?> {
-    return eachAverageByTo(LinkedHashMap(), columnSelector)
-}
-
-inline fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, in Double?>> EntityGrouping<E, T, K>.eachAverageByTo(
-    destination: M,
-    columnSelector: (T) -> ColumnDeclaring<out Number>
-): M {
-    return aggregateTo(destination) { avg(columnSelector(it)) }
 }

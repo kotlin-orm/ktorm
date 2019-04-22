@@ -1,10 +1,7 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.entity.aggregate
-import me.liuwj.ktorm.entity.aggregate2
-import me.liuwj.ktorm.entity.asSequence
-import me.liuwj.ktorm.entity.groupingBy
+import me.liuwj.ktorm.entity.*
 import org.junit.Test
 
 /**
@@ -65,14 +62,14 @@ class AggregationTest : BaseTest() {
 
     @Test
     fun testAggregate() {
-        val result = Employees.asSequence().aggregate { max(it.salary) - min(it.salary) }
+        val result = Employees.asSequence().aggregateColumns { max(it.salary) - min(it.salary) }
         println(result)
         assert(result == 150L)
     }
 
     @Test
     fun testAggregate2() {
-        val (max, min) = Employees.asSequence().aggregate2 { Pair(max(it.salary), min(it.salary)) }
+        val (max, min) = Employees.asSequence().aggregateColumns2 { Pair(max(it.salary), min(it.salary)) }
         assert(max == 200L)
         assert(min == 50L)
     }
@@ -82,7 +79,7 @@ class AggregationTest : BaseTest() {
         Employees
             .asSequence()
             .groupingBy { it.departmentId }
-            .aggregate2 { Pair(max(it.salary), min(it.salary)) }
+            .aggregateColumns2 { Pair(max(it.salary), min(it.salary)) }
             .forEach { departmentId, (max, min) ->
                 println("$departmentId:$max:$min")
             }

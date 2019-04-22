@@ -271,7 +271,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySeque
     return this.copy(expression = expression.copy(limit = min(limit, n)))
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate(
+inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): C? {
     val aggregation = aggregationSelector(sourceTable)
@@ -291,7 +291,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
     }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T>.aggregate2(
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T>.aggregateColumns2(
     aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
 ): Pair<C1?, C2?> {
     val (c1, c2) = aggregationSelector(sourceTable)
@@ -311,7 +311,7 @@ inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T
     }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySequence<E, T>.aggregate3(
+inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySequence<E, T>.aggregateColumns3(
     aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
 ): Triple<C1?, C2?, C3?> {
     val (c1, c2, c3) = aggregationSelector(sourceTable)
@@ -332,7 +332,7 @@ inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySeq
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(): Int {
-    return aggregate { me.liuwj.ktorm.dsl.count() } ?: error("Count expression returns null, which never happens.")
+    return aggregateColumns { me.liuwj.ktorm.dsl.count() } ?: error("Count expression returns null, which never happens.")
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(
@@ -370,25 +370,25 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.all(
 inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.sumBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
-    return aggregate { sum(selector(it)) }
+    return aggregateColumns { sum(selector(it)) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.maxBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
-    return aggregate { max(selector(it)) }
+    return aggregateColumns { max(selector(it)) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>, C : Number> EntitySequence<E, T>.minBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
-    return aggregate { min(selector(it)) }
+    return aggregateColumns { min(selector(it)) }
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.averageBy(
     selector: (T) -> ColumnDeclaring<out Number>
 ): Double? {
-    return aggregate { avg(selector(it)) }
+    return aggregateColumns { avg(selector(it)) }
 }
 
 inline fun <E : Entity<E>, K, V> EntitySequence<E, *>.associate(
