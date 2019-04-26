@@ -95,7 +95,7 @@ Here is a list of features provided by module ktorm-support-mysql:
 - Add `naturalJoin` function for natural joining, based on `natural join` keyword. 
 - Add `jsonContains` function to determine if the specific item exists in a json array, based on the `json_contains` function in MySQL. 
 - Add `jsonExtract` function to obtain fields in a json, that's the `->` grammar in MySQL, based on `json_extract` function. 
-- Add other functions such as `rand`, `ifnull`, `greatest`, `least`, etc, supporting the corresponding functions in MySQL. 
+- Add other functions such as `rand`, `ifnull`, `greatest`, `least`, `dateDiff`, etc, supporting the corresponding functions in MySQL. 
 
 The features of ktorm-support-postgresql are listed below: 
 

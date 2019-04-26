@@ -95,7 +95,7 @@ on duplicate key update t_employee.salary = t_employee.salary + ?
 - 增加了 `naturalJoin` 函数，支持自然连接，基于 `natural join` 关键字
 - 增加了 `jsonContains` 函数，判断 json 数组中是否存在指定元素，基于 `json_contains` 函数
 - 增加了 `jsonExtract` 函数，支持从 json 中获取字段，即 MySQL 中的 -> 语法，基于 `json_extract` 函数
-- 增加了 `rand`、`ifnull`、`greatest`、`least` 等函数，支持 MySQL 中的同名函数
+- 增加了 `rand`、`ifnull`、`greatest`、`least`、`dateDiff` 等函数，支持 MySQL 中的同名函数
 
 ktorm-support-postgresql 提供的功能有：
 

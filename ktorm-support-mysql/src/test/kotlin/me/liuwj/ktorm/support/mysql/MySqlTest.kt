@@ -5,9 +5,6 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.expression.FunctionExpression
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.IntSqlType
 import org.junit.Test
 import java.time.LocalDate
 
@@ -183,13 +180,6 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testMapColumns3() {
-        // MySQL datediff function
-        fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>) = FunctionExpression(
-            functionName = "datediff",
-            arguments = listOf(right.wrapArgument(left), right.asExpression()),
-            sqlType = IntSqlType
-        )
-
         Employees
             .asSequence()
             .filter { it.departmentId eq 1 }

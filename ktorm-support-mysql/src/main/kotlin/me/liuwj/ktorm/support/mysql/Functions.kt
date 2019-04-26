@@ -3,6 +3,7 @@ package me.liuwj.ktorm.support.mysql
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.FunctionExpression
 import me.liuwj.ktorm.schema.*
+import java.time.LocalDate
 
 fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): FunctionExpression<Boolean> {
     val listSqlType = this.sqlType
@@ -101,4 +102,21 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpr
 
 fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
     return this.ifNull(wrapArgument(right))
+}
+
+fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
+    // datediff(left, right)
+    return FunctionExpression(
+        functionName = "datediff",
+        arguments = listOf(left.asExpression(), right.asExpression()),
+        sqlType = IntSqlType
+    )
+}
+
+fun dateDiff(left: ColumnDeclaring<LocalDate>, right: LocalDate): FunctionExpression<Int> {
+    return dateDiff(left, left.wrapArgument(right))
+}
+
+fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
+    return dateDiff(right.wrapArgument(left), right)
 }
