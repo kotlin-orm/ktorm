@@ -135,7 +135,7 @@ We can see that the generated SQL is highly corresponding to our Kotlin code. Th
 
 ## selectDistinct
 
-`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be transalated to a `select distinct` statement in SQL. Besides of this, it's usage is totally the same with `select` function, so we won't repeat it. 
+`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be transalated to a `select distinct` statement in SQL, and it's usage is totally the same with `select` function, so we won't repeat it. 
 
 ## where
 
@@ -308,7 +308,7 @@ order by avg(t_employee.salary) desc
 
 ## limit
 
-The SQL standard doesn't say how to implement paging queries, so different databases provides different implementations on that. For example, MySQL uses `limit m, n` syntax for pagination; PostgreSQL uses `limit m offset n` syntax; Oracle doesn't even provide any keyword, we need to limit our pages in where clause by rownum. 
+The SQL standard doesn't say how to implement paging queries, so different databases provide different implementations on that. For example, MySQL uses `limit m, n` syntax for pagination; PostgreSQL uses `limit m offset n` syntax; Oracle doesn't even provide any keyword, we need to limit our pages in where clause by rownum. 
 
 To hide the paging syntax's differences among databases, Ktorm provides a `limit` function to support pagination: 
 

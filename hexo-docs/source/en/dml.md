@@ -67,7 +67,7 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
 
 > Because the member function `to` doesn't return any values, we are not likely to mix it with the `kotlin.to` function of Kotlin standard lib. If you really want to use `kotlin.to` in the closure, but found it's resolved to `AssignmentsBuilder.to` and compiler error occurs. We recommend you to refactor your code and move the calling of `kotlin.to` outside the closure. 
 
-Sometimes we may use auto-increment keys in our tables, we may need to obtain the auto generated keys from databases after records are inserted. This time we can use `insertAndGenerateKey` function. Different from `insert`, it doesn't return the effected record numbers anymore, but returns the auto generated keys instead. Besides of this, it's usage is totally the same with `insert`. 
+Sometimes we may use auto-increment keys in our tables, we may need to obtain the auto generated keys from databases after records are inserted. This time we can use `insertAndGenerateKey` function, the usage of which is similar with `insert`. But differently, it doesn't return the effected record numbers anymore, but returns the auto generated keys instead. 
 
 ```kotlin
 val id = Employees.insertAndGenerateKey {

@@ -52,7 +52,7 @@ infix operator fun <T : Number> ColumnDeclaring<T>.plus(expr: ColumnDeclaring<T>
 }
 ```
 
-**Normal operator functions:** There are many limits overloading Kotlin's built-in operators. For example, the `equals` function is restricted to return `Boolean` values only, but Ktorm's operator functions need to return SQL expressions, so Ktorm provides another function `eq` for us to implement equality comparisons. Besides of this, there are also many operators that doesn't exist in Kotlin, such as like, Ktorm provides a `like` function for string matching in SQL. Here is the implementation of `like` function, these group of functions are generally marked with an infix keyword: 
+**Normal operator functions:** There are many limits overloading Kotlin's built-in operators. For example, the `equals` function is restricted to return `Boolean` values only, but Ktorm's operator functions need to return SQL expressions, so Ktorm provides another function `eq` for us to implement equality comparisons. Additionally, there are also many operators that doesn't exist in Kotlin, such as like, Ktorm provides a `like` function for string matching in SQL. Here is the implementation of the `like` function, and these group of functions are generally marked with an infix keyword: 
 
 ```kotlin
 infix fun ColumnDeclaring<*>.like(argument: String): BinaryExpression<Boolean> {

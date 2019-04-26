@@ -6,7 +6,7 @@ related_path: zh-cn/spring-support.html
 
 # Spring Support
 
-Spring is a famous framework that deeply influences the development of JavaEE. Besides the core functions of Ioc and AOP, the Spring JDBC module also provides convenient support for JDBC, such as JdbcTemplate, transaction management, etc. Ktorm's Spring support is exactly based on this module, so you need to ensure your project contains it's dependency first: 
+Spring is a famous framework that deeply influences the development of JavaEE. In addition to the core functions of Ioc and AOP, the Spring JDBC module also provides convenient support for JDBC, such as JdbcTemplate, transaction management, etc. Ktorm's Spring support is exactly based on this module, so you need to ensure your project contains it's dependency first: 
 
 ```xml
 <dependency>
@@ -79,7 +79,7 @@ We can see it's `currentTransaction` property always returns null, and it's `new
 
 ## Exception Translation
 
-Besides transaction management, Spring JDBC also provides a feature of exception translation, which can convert any `SQLException` thrown by JDBC to [DataAccessException](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/dao/DataAccessException.html) and rethrow it. There are two benefits: 
+Besides of transaction management, Spring JDBC also provides a feature of exception translation, which can convert any `SQLException` thrown by JDBC to [DataAccessException](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/dao/DataAccessException.html) and rethrow it. There are two benefits: 
 
 - **Unchecked exceptions:** `SQLException` is checked, it forces Java users to catch and rethrow them anywhere, even if it's useless. Spring JDBC converts them to unchecked `RuntimeException` to solve this problem, which is helpful to Java users to make their code clean. However, for Kotlin users, this is not so significant. 
 - **Unified exception system of data access layer:** in JDBC, different drivers throw different types of exceptions, they are all subclasses of `SQLException`, but the exception system is too complex and ambiguity. Spring JDBC difines a system of clear and simple exception types, which can help us to exactlly handle our interested exceptions and hide the deferences among many database drivers.

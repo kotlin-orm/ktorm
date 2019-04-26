@@ -168,7 +168,7 @@ Then if we call `Foo().printName()`, the value of the property `name` will be pr
 
 > That looks natural, but the underlying implementation is not that simple. We know that Ktorm creates entity objects via JDK dynamic proxy, and the invocation on `printName` function will also be delegated into `EntityImpl`. When `EntityImpl` receives the invocation, it finds that the calling function is not abstract, then it will search the default implementation in the generated `DefaultImpls` class and call it. That's transparent to us, and it looks not different from calling the function directly for us. Moreover, if we add a `@JvmDefault` annotation to the function, Ktorm may not be able to find the `DefaultImpls` class anymore, but that has little influence for us to use Ktorm, so just let it go. If you are realy interested, please refer to [Kotlin Reference](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html).
 
-Besides non-abstract functions, Kotlin also allows us to define properties with custom getters or setters in interfaces. For example, in the following code, if we call the `upperName` property, then the value of the `name` property will be returned in upper case. The principle is the same as we discussed above. 
+Besides of non-abstract functions, Kotlin also allows us to define properties with custom getters or setters in interfaces. For example, in the following code, if we call the `upperName` property, then the value of the `name` property will be returned in upper case. The principle is the same as we discussed above. 
 
 ```kotlin
 interface Foo : Entity<Foo> {
@@ -185,7 +185,7 @@ Note that Ktorm only saves entities' property values when serialization, any oth
 
 > Java uses `ObjectOutputStream` to serialize objects, and uses `ObjectInputStream` to deserialize them, you can refer to their documentations for more details. 
 
-Besides JDK serializatiion, the ktorm-jackson module also supports serializing entities in JSON format. This module provides an extension for Jackson, the famous JSON framework in Java word. It supports serializing entity objects into JSON format, and parsing JSONs as entity objects. We just need to register the `KtormModule` into an `ObjectMapper`: 
+Besides of JDK serializatiion, the ktorm-jackson module also supports serializing entities in JSON format. This module provides an extension for Jackson, the famous JSON framework in Java word. It supports serializing entity objects into JSON format, and parsing JSONs as entity objects. We just need to register the `KtormModule` into an `ObjectMapper`: 
 
 ```kotlin
 val objectMapper = ObjectMapper()
