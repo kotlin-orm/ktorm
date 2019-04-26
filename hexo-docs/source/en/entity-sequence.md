@@ -169,7 +169,7 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
 ): EntitySequence<E, T>
 ```
 
-Ktorm provides a `sortedBy` function, which allows us to specify the *order by* closure for the sequence's internal query. The function accepts a closure as its parameter in which we need to return a column or expression. The following code obtains all the employees and sorts them by their salaries: 
+Ktorm provides a `sortedBy` function, which allows us to specify the *order by* clause for the sequence's internal query. The function accepts a closure as its parameter in which we need to return a column or expression. The following code obtains all the employees and sorts them by their salaries: 
 
 ```kotlin
 val employees = Employees.asSequence().sortedBy { it.salary }.toList()
@@ -293,7 +293,7 @@ select t_employee.name
 from t_employee 
 ```
 
-If we want to select two or more columns, we can changed to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function's return type becomes `List<Pair<C1?, C2?>>`  or  `List<Triple<C1?, C2?, C3?>>`. The example below prints the IDs, names and hired days of the employees in department 1:  
+If we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function's return type becomes `List<Pair<C1?, C2?>>`  or  `List<Triple<C1?, C2?, C3?>>`. The example below prints the IDs, names and hired days of the employees in department 1:  
 
 ```kotlin
 // MySQL datediff function
@@ -347,13 +347,13 @@ In addition to the basic forms, there are also many variants for these functions
 
 ### fold/reduce/forEach
 
-This serial of functions provide features of iteration and folding, and their usages are also the same as the corresponding ones of `kotlin.Sequence`. The following code calculates the total salaries of all employees: 
+This serial of functions provide features of iteration and folding, and their usages are also the same as the corresponding ones of `kotlin.Sequence`. The following code calculates the total salary of all employees: 
 
 ```kotlin
 val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
 ```
 
-Of course, if only the total salaries are needed, we don't have to write codes in that way. Because the performance is really poor, as all employees are obtained from the database. Here we just show you the usage of the `fold` function. It's better to use `sumBy`: 
+Of course, if only the total salary is needed, we don't have to write codes in that way. Because the performance is really poor, as all employees are obtained from the database. Here we just show you the usage of the `fold` function. It's better to use `sumBy`: 
 
 ```kotlin
 val totalSalary = Employees.sumBy { it.salary }
