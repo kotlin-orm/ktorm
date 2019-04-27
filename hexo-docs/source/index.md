@@ -3,6 +3,7 @@ title: Overview
 slogan: Kotlin ORM lib with SQL DSL
 lang: en
 related_path: zh-cn/
+layout: home
 ---
 
 ## What's Ktorm?
