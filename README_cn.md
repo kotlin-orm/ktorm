@@ -35,6 +35,10 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
  - 易扩展的设计，可以灵活编写扩展，支持更多操作符、数据类型和 SQL 函数等
  - 方言支持，MySQL、Oracle、PostgreSQL，你也可以自己编写方言支持，只需要实现 `SqlDialect` 接口即可
 
+<p align="center">
+    <img src="hexo-docs/source/images/ktorm-example.jpg">
+</p>
+
 # 快速开始
 
 Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
