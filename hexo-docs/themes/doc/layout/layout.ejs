@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
 
-    <title><%- config.title %> | <%- page.slogan || page.title %> </title>
+    <title><%- config.title %> | <%- page.slogan || page.title %></title>
+    <meta name="keywords" content="Kotlin, ORM, SQL, DSL, sequence">
     <meta name="description" content="<%- page.description %>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -13,23 +14,17 @@
     <meta name="referrer" content="always" />
 
     <!-- Disable Baidu transformation -->
-    <meta http-equiv="Cache-Control" content="no-transform" />
-    <meta http-equiv="Cache-Control" content="no-siteapp" />
-
-    <meta name="keywords" content="Kotlin, ORM, SQL, DSL, vince" />
-
-    <!-- fonts -->
-    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
-    <link href="//fonts.googleapis.com/css?family=Ubuntu:300,400,500,600,700" rel="stylesheet">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
 
     <!-- stylesheets -->
-    <link rel="stylesheet" href="<%- url_for('style/doc.css') %>">
+    <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link href="//fonts.googleapis.com/css?family=Ubuntu:300,400,500,600,700" rel="stylesheet">
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="<%- url_for('style/doc.css') %>" rel="stylesheet">
 
     <!-- favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="<%- url_for('images/favicon.ico') %>">
-
-    <link rel="canonical" href="<%- theme.url + theme.root + page.canonical_path.replace('index.html', '') %>">
   </head>
   <body>
 
@@ -60,7 +55,6 @@
         &copy; <%- year %> Vince. Hosted by <a href="https://github.com/vincentlauvlwj/Ktorm">GitHub</a>
       </div>
     </div>
-
 
     <!-- js vendors -->
     <script src="//code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>

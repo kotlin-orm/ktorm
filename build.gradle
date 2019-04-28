@@ -56,7 +56,7 @@ subprojects { project ->
 
                 pom {
                     name = project.name
-                    description = "A lightweight ORM Framework for Kotlin with strong typed SQL DSL."
+                    description = "A lightweight ORM Framework for Kotlin with strong typed SQL DSL and sequence APIs."
                     url = "https://github.com/vincentlauvlwj/Ktorm"
                     licenses {
                         license {

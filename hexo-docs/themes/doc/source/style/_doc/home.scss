@@ -1,3 +1,4 @@
+
 .doc-logo-section {
   text-align: center;
 
@@ -39,17 +40,13 @@
       margin: 15px;
       padding: 30px 5px 0 5px;
       height: 200px;
+      text-align: center;
+      box-shadow: 0 1px 9px 1px #f0f0f0;
       border: 1px solid #f0f0f0;
       border-top: 3px solid;
       border-radius: 4px;
       -webkit-border-radius: 4px;
       -moz-border-radius: 4px;
-      box-shadow: 0 1px 9px 1px #f0f0f0;
-      text-align: center;
-
-      a {
-        color: rgb(74, 74, 74);
-      }
 
       &:hover {
         background-color: #ededed;
@@ -70,7 +67,7 @@
 
         a {
           font-weight: 300;
-          font-style: italic;
+          color: rgb(74, 74, 74);
           border-bottom: 1px solid #d1d1d1;
         }
       }

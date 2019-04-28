@@ -29,9 +29,9 @@
     </section>
 
     <section class="doc-cards-section" >
-        <% var navigation = site.data['navigation-' + page.lang] %>
+        <% var navigation = site.data['navigation-' + page.lang]; %>
         <% for (var i = 0; i < navigation.home.length; i++) { %>
-        <% var item = navigation.home[i]; %>
+            <% var item = navigation.home[i]; %>
             <div class="cards-item cards-item-<%- item.color %>" >
                 <div class="cards-item-inner" >
                     <a href="<%- url_for(item.link) %>">
