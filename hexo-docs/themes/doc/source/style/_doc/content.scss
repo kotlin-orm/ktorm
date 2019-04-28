@@ -31,32 +31,11 @@
     transform: translateX(0);
     margin-right: 0;
   }
-
-  .doc-logo-section p {
-    text-align: center;
-
-    .full-logo {
-      width: 300px;
-      margin-top: 20px;
-    }
-
-    .badge {
-      padding: 0 2px;
-    }
-  }
-
-  .doc-example-section {
-    text-align: center;
-
-    img {
-      width: 880px;
-    }
-  }
 }
 
 .doc-support-footer {
   margin-top: 3.8rem;
-  border-top: 2px solid $doc-support-footer-border-color;
+  border-top: 1px solid $doc-support-footer-border-color;
   padding: 2.4rem 0;
   color: $doc-support-footer-color;
 }

@@ -1,4 +1,29 @@
 
+home:
+  - title: Quick Start
+    link: en/quick-start.html
+    color: purple
+    icon: flash
+    description: Setting up Ktorm and starting up.
+
+  - title: SQL DSL
+    link: en/query.html
+    color: blue
+    icon: code
+    description: Use the strong-typed and flexible <a href="/en/query.html">query DSL</a> after <a href="/en/schema-definition.html">defining table schemas</a>.
+
+  - title: Entity Sequence
+    link: en/entity-sequence.html
+    color: green
+    icon: line-chart
+    description: Obtain entities via <a href="/en/entity-sequence.html">sequence APIs</a> after <a href="/en/entities-and-column-binding.html">column bindings</a> configured.
+
+  - title: API Documents
+    link: api-docs/index.html
+    color: red
+    icon: paperclip
+    description: API documents for Ktorm's classes and functions.
+
 main:
   - text: Overview
     type: link

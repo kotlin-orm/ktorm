@@ -1,0 +1,143 @@
+.doc-logo-section {
+  text-align: center;
+
+  .full-logo {
+    width: 300px;
+    margin-top: 20px;
+  }
+
+  .badge {
+    padding: 0 2px;
+  }
+}
+
+.doc-example-section {
+  text-align: center;
+
+  img {
+    width: 1000px;
+  }
+}
+
+.doc-cards-section {
+  max-width: 1000px;
+  margin: 20px auto 0 auto;
+
+  .cards-item {
+    width: 100%;
+    display: inline-block;
+
+    @media screen and (min-width: 500px) {
+      width: 50%;
+    }
+
+    @media screen and (min-width: 1200px) {
+      width: 25%;
+    }
+
+    .cards-item-inner {
+      margin: 15px;
+      padding: 30px 5px 0 5px;
+      height: 200px;
+      border: 1px solid #f0f0f0;
+      border-top: 3px solid;
+      border-radius: 4px;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      box-shadow: 0 1px 9px 1px #f0f0f0;
+      text-align: center;
+
+      a {
+        color: rgb(74, 74, 74);
+      }
+
+      &:hover {
+        background-color: #ededed;
+      }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .card-description {
+        font-size: 14px;
+        font-weight: 300;
+        margin: 0;
+        height: 72px;
+        overflow: hidden;
+
+        a {
+          font-weight: 300;
+          font-style: italic;
+          border-bottom: 1px solid #d1d1d1;
+        }
+      }
+    }
+  }
+
+  .cards-item-purple {
+    .cards-item-inner {
+      border-top-color: #8A40A7;
+
+      .card-icon {
+        color: #8A40A7;
+      }
+
+      &:hover {
+        .card-title {
+          color: #8A40A7;
+        }
+      }
+    }
+  }
+
+  .cards-item-blue {
+    .cards-item-inner {
+      border-top-color: #40babd;
+
+      .card-icon {
+        color: #40babd;
+      }
+
+      &:hover {
+        .card-title {
+          color: #40babd;
+        }
+      }
+    }
+  }
+
+  .cards-item-green {
+    .cards-item-inner {
+      border-top-color: #75c181;
+
+      .card-icon {
+        color: #75c181;
+      }
+
+      &:hover {
+        .card-title {
+          color: #75c181;
+        }
+      }
+    }
+  }
+
+  .cards-item-red {
+    .cards-item-inner {
+      border-top-color: #f77b6b;
+
+      .card-icon {
+        color: #f77b6b;
+      }
+
+      &:hover {
+        .card-title {
+          color: #f77b6b;
+        }
+      }
+    }
+  }
+}

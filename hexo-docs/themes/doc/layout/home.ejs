@@ -25,8 +25,26 @@
     <%- page.content %>
 
     <section class="doc-example-section" >
-        <img src="<%- url_for('images/query-example.png') %>">
-        <img src="<%- url_for('images/sequence-example.png') %>">
+        <img src="<%- url_for('images/ktorm-example.jpg') %>">
+    </section>
+
+    <section class="doc-cards-section" >
+        <% var navigation = site.data['navigation-' + page.lang] %>
+        <% for (var i = 0; i < navigation.home.length; i++) { %>
+        <% var item = navigation.home[i]; %>
+            <div class="cards-item cards-item-<%- item.color %>" >
+                <div class="cards-item-inner" >
+                    <a href="<%- url_for(item.link) %>">
+                        <i class="card-icon fa fa-3x fa-<%- item.icon %>"></i>
+                        <h3 class="card-title"><%- item.title %></h3>
+                    </a>
+                    <p class="card-description">
+                        <%- item.description %>
+                        <br/><br/><br/><br/>
+                    </p>
+                </div>
+            </div>
+        <% } %>
     </section>
 
     <div id="support-footer-container">
