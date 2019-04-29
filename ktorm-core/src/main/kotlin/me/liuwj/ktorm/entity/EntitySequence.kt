@@ -193,52 +193,6 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any, R : MutableCollection<in C>> E
     return Query(expr).mapNotNullTo(destination) { row -> column.sqlType.getResult(row, 1) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T>.mapColumns2(
-    isDistinct: Boolean = false,
-    columnSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
-): List<Pair<C1?, C2?>> {
-    return mapColumns2To(ArrayList(), isDistinct, columnSelector)
-}
-
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, R> EntitySequence<E, T>.mapColumns2To(
-    destination: R,
-    isDistinct: Boolean = false,
-    columnSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
-): R where R : MutableCollection<in Pair<C1?, C2?>> {
-    val (c1, c2) = columnSelector(sourceTable)
-
-    val expr = expression.copy(
-        columns = listOf(c1, c2).map { ColumnDeclaringExpression(it.asExpression()) },
-        isDistinct = isDistinct
-    )
-
-    return Query(expr).mapTo(destination) { row -> Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2)) }
-}
-
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySequence<E, T>.mapColumns3(
-    isDistinct: Boolean = false,
-    columnSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
-): List<Triple<C1?, C2?, C3?>> {
-    return mapColumns3To(ArrayList(), isDistinct, columnSelector)
-}
-
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any, R> EntitySequence<E, T>.mapColumns3To(
-    destination: R,
-    isDistinct: Boolean = false,
-    columnSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
-): R where R : MutableCollection<in Triple<C1?, C2?, C3?>> {
-    val (c1, c2, c3) = columnSelector(sourceTable)
-
-    val expr = expression.copy(
-        columns = listOf(c1, c2, c3).map { ColumnDeclaringExpression(it.asExpression()) },
-        isDistinct = isDistinct
-    )
-
-    return Query(expr).mapTo(destination) { row ->
-        Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
-    }
-}
-
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sorted(
     selector: (T) -> List<OrderByExpression>
 ): EntitySequence<E, T> {
@@ -285,46 +239,6 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
     if (rowSet.size() == 1) {
         check(rowSet.next())
         return aggregation.sqlType.getResult(rowSet, 1)
-    } else {
-        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
-        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
-    }
-}
-
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any> EntitySequence<E, T>.aggregateColumns2(
-    aggregationSelector: (T) -> Pair<ColumnDeclaring<C1>, ColumnDeclaring<C2>>
-): Pair<C1?, C2?> {
-    val (c1, c2) = aggregationSelector(sourceTable)
-
-    val expr = expression.copy(
-        columns = listOf(c1, c2).map { ColumnDeclaringExpression(it.asExpression()) }
-    )
-
-    val rowSet = Query(expr).rowSet
-
-    if (rowSet.size() == 1) {
-        check(rowSet.next())
-        return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
-    } else {
-        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
-        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
-    }
-}
-
-inline fun <E : Entity<E>, T : Table<E>, C1 : Any, C2 : Any, C3 : Any> EntitySequence<E, T>.aggregateColumns3(
-    aggregationSelector: (T) -> Triple<ColumnDeclaring<C1>, ColumnDeclaring<C2>, ColumnDeclaring<C3>>
-): Triple<C1?, C2?, C3?> {
-    val (c1, c2, c3) = aggregationSelector(sourceTable)
-
-    val expr = expression.copy(
-        columns = listOf(c1, c2, c3).map { ColumnDeclaringExpression(it.asExpression()) }
-    )
-
-    val rowSet = Query(expr).rowSet
-
-    if (rowSet.size() == 1) {
-        check(rowSet.next())
-        return Triple(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2), c3.sqlType.getResult(rowSet, 3))
     } else {
         val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
         throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")

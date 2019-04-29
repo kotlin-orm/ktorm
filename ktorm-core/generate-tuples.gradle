@@ -1,0 +1,165 @@
+
+def generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
+def maxTupleNumber = 9
+
+def generateTuple(Writer writer, int tupleNumber) {
+    def typeParams = (1..tupleNumber).collect { "out E$it" }.join(", ")
+    def propertyDefinitions = (1..tupleNumber).collect { "val element$it: E$it" }.join(",\n            ")
+    def toStringTemplate = (1..tupleNumber).collect { "\$element$it" }.join(", ")
+
+    writer.write("""
+        data class Tuple$tupleNumber<$typeParams>(
+            $propertyDefinitions
+        ) : Serializable { 
+        
+            override fun toString(): String { 
+                return \"($toStringTemplate)\"
+            }
+        }
+    """.stripIndent())
+}
+
+def generateMapColumns(Writer writer, int tupleNumber) {
+    def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
+    def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
+    def resultTypes = (1..tupleNumber).collect { "C$it?" }.join(", ")
+    def variableNames = (1..tupleNumber).collect { "c$it" }.join(", ")
+    def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(row, $it)" }.join(", ")
+
+    writer.write("""
+        inline fun <E : Entity<E>, T : Table<E>, $typeParams> EntitySequence<E, T>.mapColumns$tupleNumber(
+            isDistinct: Boolean = false,
+            columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): List<Tuple$tupleNumber<$resultTypes>> {
+            return mapColumns${tupleNumber}To(ArrayList(), isDistinct, columnSelector)
+        }
+        
+        inline fun <E : Entity<E>, T : Table<E>, $typeParams, R> EntitySequence<E, T>.mapColumns${tupleNumber}To(
+            destination: R,
+            isDistinct: Boolean = false,
+            columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): R where R : MutableCollection<in Tuple$tupleNumber<$resultTypes>> {
+            val ($variableNames) = columnSelector(sourceTable)
+        
+            val expr = expression.copy(
+                columns = listOf($variableNames).map { ColumnDeclaringExpression(it.asExpression()) },
+                isDistinct = isDistinct
+            )
+        
+            return Query(expr).mapTo(destination) { row -> Tuple$tupleNumber($resultExtractors) }
+        }
+    """.stripIndent())
+}
+
+def generateAggregateColumns(Writer writer, int tupleNumber) {
+    def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
+    def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
+    def resultTypes = (1..tupleNumber).collect { "C$it?" }.join(", ")
+    def variableNames = (1..tupleNumber).collect { "c$it" }.join(", ")
+    def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(rowSet, $it)" }.join(", ")
+
+    writer.write("""
+        inline fun <E : Entity<E>, T : Table<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
+            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): Tuple$tupleNumber<$resultTypes> {
+            val ($variableNames) = aggregationSelector(sourceTable)
+        
+            val expr = expression.copy(
+                columns = listOf($variableNames).map { ColumnDeclaringExpression(it.asExpression()) }
+            )
+        
+            val rowSet = Query(expr).rowSet
+        
+            if (rowSet.size() == 1) {
+                check(rowSet.next())
+                return Tuple$tupleNumber($resultExtractors)
+            } else {
+                val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+                throw IllegalStateException("Expected 1 row but \${rowSet.size()} returned from sql: \\n\\n\$sql")
+            }
+        }
+    """.stripIndent())
+}
+
+def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
+    def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
+    def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
+    def resultTypes = (1..tupleNumber).collect { "C$it?" }.join(", ")
+    def variableNames = (1..tupleNumber).collect { "c$it" }.join(", ")
+    def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(row, ${it + 1})" }.join(", ")
+
+    writer.write("""
+        inline fun <E : Entity<E>, T : Table<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
+            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
+            return aggregateColumns${tupleNumber}To(LinkedHashMap(), aggregationSelector)
+        }
+        
+        inline fun <E : Entity<E>, T : Table<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
+            destination: M,
+            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): M where M : MutableMap<in K?, in Tuple$tupleNumber<$resultTypes>> {
+            val keyColumn = keySelector(sequence.sourceTable)
+            val ($variableNames) = aggregationSelector(sequence.sourceTable)
+        
+            val expr = sequence.expression.copy(
+                columns = listOf(keyColumn, $variableNames).map { ColumnDeclaringExpression(it.asExpression()) },
+                groupBy = listOf(keyColumn.asExpression())
+            )
+        
+            for (row in Query(expr)) {
+                val key = keyColumn.sqlType.getResult(row, 1)
+                destination[key] = Tuple$tupleNumber($resultExtractors)
+            }
+        
+            return destination
+        }
+    """.stripIndent())
+}
+
+task generateTuples {
+    doLast {
+        def file = file("$generatedSourceDir/me/liuwj/ktorm/entity/Tuples.kt")
+        file.parentFile.mkdirs()
+
+        file.withWriter { writer ->
+            writer.writeLine("// This file is auto-generated by generate-tuples.gradle, DO NOT EDIT!")
+            writer.writeLine("package me.liuwj.ktorm.entity")
+
+            writer.write("""
+                import me.liuwj.ktorm.database.Database
+                import me.liuwj.ktorm.dsl.Query
+                import me.liuwj.ktorm.expression.ColumnDeclaringExpression
+                import me.liuwj.ktorm.schema.ColumnDeclaring
+                import me.liuwj.ktorm.schema.Table
+                import java.io.Serializable
+                
+                typealias Tuple2<E1, E2> = Pair<E1, E2>
+                
+                typealias Tuple3<E1, E2, E3> = Triple<E1, E2, E3>
+            """.stripIndent())
+
+            (4..maxTupleNumber).each { num ->
+                generateTuple(writer, num)
+            }
+
+            (2..maxTupleNumber).each { num ->
+                generateMapColumns(writer, num)
+            }
+
+            (2..maxTupleNumber).each { num ->
+                generateAggregateColumns(writer, num)
+            }
+
+            (2..maxTupleNumber).each { num ->
+                generateGroupingAggregateColumns(writer, num)
+            }
+        }
+    }
+}
+
+sourceSets {
+    main.kotlin.srcDirs += generatedSourceDir
+}
+
+compileKotlin.dependsOn(generateTuples)
