@@ -16,7 +16,14 @@
   text-align: center;
 
   img {
-    width: 1000px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 0;
+    width: 800px;
+    box-shadow: 0 10px 30px 0 gray;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
   }
 }
 
