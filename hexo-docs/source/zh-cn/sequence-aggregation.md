@@ -46,7 +46,7 @@ from t_employee
 where t_employee.department_id = ? 
 ````
 
-> 那么有没有 `aggregateColumns4` 或更多函数呢，很遗憾并没有，与上一节中的 `mapColumns` 一样，我们认为这并不是一个十分常用而且不可替代的功能。如果你确实需要的话，参考源码自己实现是十分简单的，或者你也可以给我们提 issue。
+> 与 `mapColumnsN` 类似，Ktorm 提供了从 `aggregateColumns2` 到 `aggregateColumns9` 等多个函数，也就是说，我们最多可以使用 `aggregateColumnsN` 系列函数一次获得九个聚合结果。
 
 除了直接使用 `aggregateColumns` 函数以外，Ktorm 还为序列提供了许多方便的辅助函数，他们都是基于 `aggregateColumns` 函数实现的。比如 `maxBy { it.salary }` 即可获得工资的最大值，相当于 `aggregateColumns { max(it.salary) }`。下面是这些函数的一个列表：
 

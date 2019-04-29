@@ -327,9 +327,9 @@ from t_employee
 where t_employee.department_id = ? 
 ````
 
-> 那么有没有 `mapColumns4` 或更多的函数呢，很遗憾并没有，我们认为这并不是一个十分常用而且不可代替的功能。就连 Kotlin 标准库，也只提供了 `Pair` 和 `Triple`，而没有四元组，不是吗？如果你确实需要的话，参考源码自己实现是十分简单的，或者你也可以给我们提 issue。
+> Ktorm 提供了从 `mapColumns2` 到 `mapColumns9` 等多个函数和它们的变体，也就是说，我们最多可以使用 `mapColumnsN` 系列函数一次查询九个字段。但如果我们希望超过九个字段呢？很遗憾，Ktorm 认为这并不是一个常用的功能，如果你确实有这种特殊的需求，可以使用[查询 DSL](./query.html) 代替。另外，为支持这些函数， Ktorm 还提供了从 `Tuple2` 到 `Tuple9` 等一系列的元组类。其中，`Tuple2` 和 `Tuple3` 分别是 `Pair` 和 `Triple` 的别名（typealias）。
 
-除了基本的 `mapColumns` 函数，Ktorm 还提供了 `mapColumnsTo`、`mapColumnsNotNull`、`mapColumnsNotNullTo`、`mapColumns2To`、`mapColumns3To`，通过名字你应该也猜到了它们的用法，在此就不重复说明了。
+除了基本的 `mapColumns` 函数，Ktorm 还提供了 `mapColumnsTo`、`mapColumnsNotNull`、`mapColumnsNotNullTo`、`mapColumnsNTo`，通过名字你应该也猜到了它们的用法，在此就不重复说明了。
 
 ### associate
 

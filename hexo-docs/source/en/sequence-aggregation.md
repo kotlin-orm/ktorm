@@ -46,7 +46,7 @@ from t_employee
 where t_employee.department_id = ? 
 ```
 
-> Is there other functions like `aggregateColumns4` or more? I'm sorry to say no too. Just like the `mapColumns` in the former section, we doesn't think it's a frequent-used and irreplaceable feature. If you really need that, it's easy to implement it by yourself, or you can raise an issue to us. 
+> Just like `mapColumnsN`, Ktorm provides many `aggregateColumnsN` functions (from `aggregateColumns2` to `aggregateColumns9`). That's to say, we are able to aggregate a maximum of nine columns at once with these functions. 
 
 Additionally, Ktorm also provides many convenient helper functions, they are all implemented based on `aggregateColumns`. For example, we can use `maxBy { it.salary }` to obtain the max salary, that's equivalent to `aggregateColumns { max(it.salary) }`. Here is a list of these functions: 
 

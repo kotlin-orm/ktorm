@@ -327,9 +327,9 @@ from t_employee
 where t_employee.department_id = ? 
 ```
 
-> Is there other functions like `mapColumns4` or more? I'm sorry to say no. We doesn't think it's a frequent-used and irreplaceable feature. Even the Kotlin's standard lib only provides `Pair` and `Triple`, no quaternion (`Tuple4`) or more, doesn't it? If you really need that, it's easy to implement it by yourself, or you can raise an issue to us. 
+> Ktorm provides many `mapColumnsN` functions and their variants (from `mapColumns2` to `mapColumns9`). That's to say, we are able to select a maximum of nine columns at once with these functions. But what if we want ten columns or more? I'm sorry to say no. Ktorm doesn't think it's a frequent-used feature. If you really need that, you can use the [query DSL](./query.html) instead. Moreover, to implement these functions, Ktorm also provides many tuple classes (from `Tuple2` to `Tuple9`), in which `Tuple2` and `Tuple3` are type aliases of `Pair` and `Triple`. 
 
-In addition to the basic form of `mapColumns` function, Ktorm also provides `mapColumnsTo`, `mapColumnsNotNull`, `mapColumnsNotNullTo`, `mapColumns2To`, `mapColumns3To`. It's easy to know their usages by the names, so we won't repeat it. 
+In addition to the basic form of `mapColumns` function, Ktorm also provides `mapColumnsTo`, `mapColumnsNotNull`, `mapColumnsNotNullTo`, `mapColumnsNTo`. It's easy to know their usages by the names, so we won't repeat it. 
 
 ### associate
 
