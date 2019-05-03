@@ -71,14 +71,14 @@ main:
     type: link
     path: en/operators.html
 
-  - text: Dialects and Native SQL
+  - text: Dialects & Native SQL
     type: link
     path: en/dialects-and-native-sql.html
 
   - text: ENTITY API
     type: label
 
-  - text: Entities and Column Binding
+  - text: Entities & Column Binding
     type: link
     path: en/entities-and-column-binding.html
 
@@ -98,7 +98,7 @@ main:
     type: link
     path: en/entity-dml.html
 
-  - text: SUPPORT AND FEEDBACK
+  - text: SUPPORT & FEEDBACK
     type: label
 
   - text: API Documents

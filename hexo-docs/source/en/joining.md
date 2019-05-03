@@ -59,7 +59,7 @@ left join t_department on t_employee.department_id = t_department.id
 where t_employee.salary > ? 
 ```
 
-## Self Joining and Table Aliases
+## Self Joining & Table Aliases
 
 Self joining is a special usage of SQL joining, it joins a table to itself as if the table were two tables. The SQL below uses self joining and returns all employees' names, their immediate managers, and the departments they are from: 
 

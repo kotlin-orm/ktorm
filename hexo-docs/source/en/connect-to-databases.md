@@ -64,7 +64,7 @@ val db = Database.connect {
 
 Here, we call the `connect` function with a closure in which we should generally create a connection. However, the `Connection` is an interface, this allows us to return a proxy object to Ktorm instead of a real connection. The proxy overrides the `close` function as no-op. In this way, Ktorm will always get the same connection object by calling the closure, and the connection are never closed in the whole App's lifecycle. 
 
-## Global Object and Multi Databases
+## Global Object & Multi Databases
 
 The `Database.connect` function returns a new created `Database` object, you can define a variable to save the returned value if needed. But it's not necessary in general, because Ktorm will save the latest created `Database` instance automatically, then obtain it via `Database.global` when needed. 
 

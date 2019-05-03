@@ -4,7 +4,7 @@ lang: en
 related_path: zh-cn/dialects-and-native-sql.html
 ---
 
-# Dialects and Native SQL
+# Dialects & Native SQL
 
 It's known that there is a uniform standard for SQL language, but beyond the standard, many databases still have their special features. The core module of Ktorm (ktorm-core) only provides supports for standard SQL, if we want to use some special features of a database, we need dialect supports. 
 

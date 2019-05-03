@@ -4,7 +4,7 @@ lang: en
 related_path: zh-cn/entities-and-column-binding.html
 ---
 
-# Entities and Column Binding
+# Entities & Column Binding
 
 We've learned Ktorm's SQL DSL in former sections, but Ktorm is still far from being an ORM framework if it only provides the DSL. Now, we will introduce entities, and learn how to bind relational tables to them. That's exactly the core of an ORM framework: object-relational mapping. 
 

@@ -116,7 +116,7 @@ Similar to the `filter` function of `kotlin.Sequence`, the `filter` function her
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replace by a `eq`function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
+We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replace by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
 val employees = Employees
