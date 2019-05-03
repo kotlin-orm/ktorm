@@ -6,11 +6,11 @@ related_path: zh-cn/transaction-management.html
 
 # Transaction Management
 
-Database transactions allow units of work recover correctly from failures and keep a database consistent even in cases of system failure, when execution stops and many operations upon a database remain uncompleted, with unclear status. Ktorm provides convenient support for transactions based on JDBC.
+Database transactions allow units of work to recover correctly from failures and keep a database consistent even in cases of system failure, when execution stops and many operations upon a database remain uncompleted, with unclear status. Ktorm provides convenient support for transactions based on JDBC.
 
 ## useTransaction function
 
-The `Database` class provides a `useTransaction` function which accepts a parameter of type `(Transaction) -> T`, a function that accepts a `Transaction` and returns a result `T`. `useTransaction` runs the provided code in a transaction and returns it's result if the execution succeeds, otherwise, if the execution fails, the transaction will be rollback. You can use the function like this: 
+The `Database` class provides a `useTransaction` function which accepts a parameter of type `(Transaction) -> T`, a function that accepts a `Transaction` and returns a result `T`. `useTransaction` runs the provided code in a transaction and returns its result if the execution succeeds, otherwise, if the execution fails, the transaction will be rollback. You can use the function like this: 
 
 ```kotlin
 Database.global.useTransaction { 
@@ -54,12 +54,12 @@ try {
 }
 ```
 
-There has been 2 records in the `Departments` table before. The code above opens a transaction and inserts a record in the transaction. After the insertion, we assert that there are 3 records now, then throws an exeception to trigger a rollback. Finally after the rollback, we can see there are still 2 records there. This shows the execution process clearly. 
+There have been 2 records in the `Departments` table before. The code above opens a transaction and inserts a record in the transaction. After the insertion, we assert that there are 3 records now, then throws an exception to trigger a rollback. Finally, after the rollback, we can see there are still 2 records there. This shows the execution process clearly. 
 
 Note: 
 
-- Any exceptions thrown in the closure can trigger a rollback, no matter the exception is checked or unchecked. Actually, *checked exception* is a Java only concept, there is no such thing in Kotlin. 
-- `useTransaction` is reentrant, so it can be called nested. However, the inner calls doesn't open new transactions, but share the same ones with outers. 
+- Any exceptions thrown in the closure can trigger a rollback, no matter the exception is checked or unchecked. Actually, *checked exception* is a Java-only concept, there is no such thing in Kotlin. 
+- `useTransaction` is reentrant, so it can be called nested. However, the inner calls don't open new transactions but share the same ones with outers. 
 
 ## Transaction Manager
 
@@ -85,5 +85,5 @@ try {
 }
 ```
 
-`TransactionManager` is an interface that has several implementations. In general, `Database` objects created by `Database.connect` function use the `JdbcTransactionManager` implementation by default, this implementation supports transaction management directly based on raw JDBC. Ktorm also provides a `SpringManagedTransactionManager` implementation which doesn't support transaction management by itself but delegates it to Spring framework, refer to [Spring Support](./spring-support.html) for more details. 
+`TransactionManager` is an interface that has several implementations. In general, `Database` objects created by `Database.connect` function uses the `JdbcTransactionManager` implementation by default, this implementation supports transaction management directly based on raw JDBC. Ktorm also provides a `SpringManagedTransactionManager` implementation which doesn't support transaction management by itself but delegates it to Spring framework, refer to [Spring Support](./spring-support.html) for more details. 
 

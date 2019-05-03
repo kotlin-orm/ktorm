@@ -6,7 +6,7 @@ related_path: zh-cn/entity-sequence.html
 
 # Entity Sequence
 
-In addition to the `find*` functions, Ktorm also provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern is highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc. 
+In addition to the `find*` functions, Ktorm also provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc. 
 
 > Note: entity sequence APIs are only available since Ktorm version 2.0. 
 
@@ -34,7 +34,7 @@ from t_employee
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ```
 
-> We can also create a sequence object by calling `asSequenceWithoutReferences` function to disable the auto joining of reference tables. 
+> We can also create a sequence object by calling `asSequenceWithoutReferences` function to disable the auto-joining of reference tables. 
 
 In addition to the for-each loop, we can also use the extension function  `toList` to save all the items from the sequence into a list: 
 
@@ -91,16 +91,16 @@ data class EntitySequence<E : Entity<E>, T : Table<E>>(
 }
 ```
 
-We can see that any entity sequence contains a query object in it, and the it's iterator exactly wraps the query's iterator. While an entity sequence is iterated, its internal query is executed, and the `entityExtractor` is applied to create an entity object for each row. Here, the `entityExtractor` might be `createEntity` or `createEntityWithoutReferences`, that depends on the arguments used to create sequence objects. As for other properties in sequences (such as `sql`, `rowSet`, `totalRecords`, etc), all of them delegates the callings to their internal query objects, and their usages are totally the same as the corresponding properties in `Query` class. 
+We can see that any entity sequence contains a query object in it, and it's iterator exactly wraps the query's iterator. While an entity sequence is iterated, its internal query is executed, and the `entityExtractor` is applied to create an entity object for each row. Here, the `entityExtractor` might be `createEntity` or `createEntityWithoutReferences`, that depends on the arguments used to create sequence objects. As for other properties in sequences (such as `sql`, `rowSet`, `totalRecords`, etc), all of them delegates the callings to their internal query objects, and their usages are totally the same as the corresponding properties in `Query` class. 
 
 Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups: 
 
-- **Intermediate operations:** these functions doesn't execute the internal queries, but return new created sequence objects applying some modifications. For example, the `filter` function creates a new sequence object with the filter condition given by its parameter. The return types of intermediate operations are usually `EntitySequence`, so we can chaining call other sequence functions continuously.  
+- **Intermediate operations:** these functions don't execute the internal queries but return new-created sequence objects applying some modifications. For example, the `filter` function creates a new sequence object with the filter condition given by its parameter. The return types of intermediate operations are usually `EntitySequence`, so we can chaining call other sequence functions continuously.  
 - **Terminal operations:** the return types of these functions are usually a collection or a computed result, as they execute the queries right now, obtain their results and perform some calculations on them. Eg. `toList`, `reduce`, etc. 
 
 ## Intermediate Operations
 
-Just like `kotlin.Sequence`, the intermediate operations of `EntitySequence` doesn't iterate the sequences and execute the internal queries, they all return new created sequence objects instead. These intermediate operations are listed below: 
+Just like `kotlin.Sequence`, the intermediate operations of `EntitySequence` doesn't iterate the sequences and execute the internal queries, they all return new-created sequence objects instead. These intermediate operations are listed below: 
 
 ### filter
 
@@ -110,13 +110,13 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
 ): EntitySequence<E, T>
 ```
 
-Similar to the `filter` function of `kotlin.Sequence`, the `filter` function here also accepts a closure as its parameter, and the returned value from the closure will be used as a filter condition. But differently, our closure has a paramter of type `T`, the current table object, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the return type of the closure is `ColumnDeclaring<Boolean>` instead of `Boolean`. The following code obtains all the employees in department 1 by using `filter`: 
+Similar to the `filter` function of `kotlin.Sequence`, the `filter` function here also accepts a closure as its parameter, and the returned value from the closure will be used as a filter condition. Differently, our closure has a parameter of type `T`, the current table object, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<Boolean>` instead of `Boolean`. The following code obtains all the employees in department 1 by using `filter`: 
 
 ```kotlin
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replace by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
+We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
 val employees = Employees
@@ -230,7 +230,7 @@ Note that these two functions are implemented based on the pagination feature of
 
 ## Terminal Operations
 
-Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them. Now lets talk about some terminal operations of them, which are almost the same as `kotlin.Sequence`. 
+Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them. Now let's talk about some terminal operations of them, which are almost the same as `kotlin.Sequence`. 
 
 ### toCollection
 
@@ -269,7 +269,7 @@ from t_employee
 
 Note that although we only need the names here, the generated SQL still selects all columns, that's because Ktorm doesn't know which columns are required. If we are sensitive to that performance issue, we can use the `filterColumns` function cooperatively, or we can also use the `mapColumns` function instead. 
 
-In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `mapIndexed` and `mapIndexedTo`, they have the same names as the extension functions of `kotlin.Sequence` in Kotlin standard lib, and their usages are totally the same. 
+In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `mapIndexed` and `mapIndexedTo`, they have the same names as the extension functions of `kotlin.Sequence` in Kotlin standard lib and their usages are totally the same. 
 
 ### mapColumns
 
@@ -280,7 +280,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumn
 ): List<C?>
 ```
 
-The `mapColumns` function is similar to `map`. But differently, its closure accepts the current table object `T` as the paramter, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the return type of the closure is `ColumnDeclaring<C>`, and we should return a column or expression needed to be selected from the database. Let's implement the same example as before, the following code obtains all employees' names: 
+The `mapColumns` function is similar to `map`. Differently, its closure accepts the current table object `T` as the parameter, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<C>`, and we should return a column or expression needed to be selected from the database. Let's implement the same example as before, the following code obtains all employees' names: 
 
 ```kotlin
 val names = Employees.asSequenceWithoutReferences().mapColumns { it.name }
@@ -333,15 +333,15 @@ In addition to the basic form of `mapColumns` function, Ktorm also provides `map
 
 ### associate
 
-The `associate` function execute the internal query, then iterate the query results and collect them into a `Map`. Its usage is totally the same as the corresponding extension function of `kotlin.Sequence`, more details can be found in Kotlin's documents. 
+The `associate` function executes the internal query, then iterate the query results and collect them into a `Map`. Its usage is totally the same as the corresponding extension function of `kotlin.Sequence`, more details can be found in Kotlin's documents. 
 
 In addition to the basic form of `associate` function, Ktorm also provides `associateBy`, `associateWith`, `associateTo`, `associateByTo`, `associateWithTo`.
 
 ### elementAt/first/last/find/findLast/single
 
-This serial of functions are used to get the element at a specific position from the sequence. Their usages are also the same as the corresponding ones of `kotlin.Sequence`. 
+These functions are used to get the element at a specific position from the sequence. Their usages are also the same as the corresponding ones of `kotlin.Sequence`. 
 
-Specially, if a dialect is enabled, these functions will use the pagination feature to obtain the very record only. Assuming we are using MySQL and calling the `elementAt` with an index 10, a SQL containing `limit 10, 1` will be generated. But if there are no dialects enabled, then all records will be obained to insure the functions just works. 
+Especially, if a dialect is enabled, these functions will use the pagination feature to obtain the very record only. Assuming we are using MySQL and calling the `elementAt` with an index 10, a SQL containing `limit 10, 1` will be generated. But if there are no dialects enabled, then all records will be obtained to ensure the functions just works. 
 
 In addition to the basic forms, there are also many variants for these functions, and it's not necessary to list them here.  
 

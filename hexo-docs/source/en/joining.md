@@ -25,15 +25,15 @@ The functions above are all extension functions of `Table` or `JoinExpression`, 
 val joining = Employees.crossJoin(Departments)
 ```
 
-This line of code cross joins the `Employees` table to the `Departments` table, and the return value of the `crossJoin` function is a `JoinExpression`. But it's useless for us to hold a `JoinExpression` for most of time, we need a `Query` object instead to perform a query and obtain our results. 
+This line of code cross joins the `Employees` table to the `Departments` table, and the return value of the `crossJoin` function is a `JoinExpression`. But it's useless for us to hold a `JoinExpression` for most of the time, we need a `Query` object instead to perform a query and obtain our results. 
 
-In the former section, we created queries from table objects by calling `Table` class's extension function `select`. Actually, the `select` function provides an overloaded edition for `JoinExpression`, so we can create queries from join expressions in a similar way. 
+In the former section, we created queries from table objects by calling the `Table` class's extension function `select`. Actually, the `select` function provides an overloaded edition for `JoinExpression`, so we can create queries from join expressions in a similar way. 
 
 ```kotlin
 val query = Employees.crossJoin(Departments).select()
 ```
 
-This query cross joins the `Employees` table to the `Departments` table, and returns all records of the joining (cartesian product). Generated SQL: 
+This query cross joins the `Employees` table to the `Departments` table and returns all records of the joining (cartesian product). Generated SQL: 
 
 ```sql
 select * 
@@ -71,9 +71,9 @@ left join t_department dept on emp.department_id = dept.id
 order by emp.id 
 ```
 
-It can be seen that the `t_employee` table appears twice with different alias, `emp` and `mgr`, in the SQL above. It is the aliases that distinguish the two same tables in the self joining query. Then how can we achieve this with Ktorm?  
+It can be seen that the `t_employee` table appears twice with different aliases, `emp` and `mgr`, in the SQL above. It is the aliases that distinguish the two same tables in the self joining query. Then how can we achieve this with Ktorm?  
 
-If you are careful enough, you might have found that there is an `aliased` function in the `Table` class, this function returns a new created table object with all properties (including the table name and columns and so on) being copied from current table, but applying a new alias given by the parameter. Using the `aliased` function, try to implement the self joning above, we may write codes like this: 
+If you are careful enough, you might have found that there is an `aliased` function in the `Table` class, this function returns a new created table object with all properties (including the table name and columns and so on) being copied from current table, but applying a new alias given by the parameter. Using the `aliased` function, try to implement the self joining above, we may write codes like this: 
 
 ```kotlin
 data class Names(val name: String, val managerName: String?, val departmentName: String)
@@ -96,7 +96,7 @@ val results = emp
     }
 ```
 
-It's intuitive and actually the code style recommended by Ktorm's SQL DSL, but unfortunately it may not compile. To help us analysing the error, the definition of `Employees` table is given below, being copied from [Schema Definition - Table Objects](./schema-definition.html#Table-Objects). 
+It's intuitive and actually the code style recommended by Ktorm's SQL DSL, but unfortunately, it may not compile. To help us analyze the error, the definition of `Employees` table is given below, being copied from [Schema Definition - Table Objects](./schema-definition.html#Table-Objects). 
 
 ```kotlin
 object Employees : Table<Nothing>("t_employee") {
@@ -116,9 +116,9 @@ Here is the signature of the `aliased` function in the super class `Table`:
 open fun aliased(alias: String): Table<E> { ... }
 ```
 
-Obviously, according to the signature of the `aliased` function, the return value's type of `Employees.aliased("emp")` at line 3 should be `Table<E>`, and the type of the variable `mgr` at line 4 is also `Table<E>`. Then, the `emp.managerId eq mrg.id` at line 8 is clearly incorrect now, because properties `id` and `managerId` are defined in the `Employees` object, and the two aliased table objects are type of `Table<E>` instead of `Employees`. 
+Obviously, according to the signature of the `aliased` function, the return value's type of `Employees.aliased("emp")` at line 3 should be `Table<E>`, and the type of the variable `mgr` at line 4 is also `Table<E>`. Then, the `emp.managerId eq mrg.id` at line 8 is clearly incorrect now because properties `id` and `managerId` are defined in the `Employees` object, and the two aliased table objects are typed of `Table<E>` instead of `Employees`. 
 
-Limited to the Kotlin language, although the `Table.aliased` function can create a copied table object with a specific alias, it's return type cannot be the same as the caller's type but only `Table<E>`. Here we define `Employees` table by a object keyword, because the keyword defines a singleton object, it's not possible for Ktorm to create a new object of type `Employees`. 
+Limited to the Kotlin language, although the `Table.aliased` can create a copied table object with a specific alias, it's return type cannot be the same as the caller's type but only `Table<E>`. Here we define the `Employees` table by an object keyword, and because the keyword defines a singleton object, it's not possible for Ktorm to create a new object of type `Employees`. 
 
 To use self joining normally, we recommended that **if we need to use table aliases, please don't define tables as Kotlin's singleton objects, please use classes instead, and override the `aliased` function to return the same type as the concrete table classes:**
 
@@ -129,7 +129,7 @@ class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {
 }
 ```
 
-However, there can be problems by changing objects to classes, for example, we can not use `Employees.name` to obtain a column object anymore, because an instance is need to access a class member. So we also recommended that **while defining our tables as classes, please also provide a campainion object for each class as the default table object without an alias.** Finally the definition of `Employees` is:  
+However, there can be problems by changing objects to classes, for example, we can not use `Employees.name` to obtain a column object anymore because an instance is needed to access a class member. So we also recommended that **while defining our tables as classes, please also provide a companion object for each class as the default table object without an alias.** Finally the definition of `Employees` is:  
 
 ```kotlin
 open class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {
@@ -172,7 +172,7 @@ fun Table<*>.naturalJoin(right: Table<*>): NaturalJoinExpression {
 
 Actually, this `naturalJoin` function also need to provide some overloaded editions for `QuerySourceExpression` to support continuously joining. For demonstration purpose, let's ignore it now. 
 
-By default, Ktorm can not recognize our custom expression type `NaturalJoinExpression`, and are not able to generate SQLs using `natural join`. To solve the problem, we can extend the `SqlFormatter` class, override the `visitUnknown` function, detect our custom expression types and generate proper SQLs: 
+By default, Ktorm cannot recognize our custom expression type `NaturalJoinExpression`, and are not able to generate SQLs using `natural join`. To solve the problem, we can extend the `SqlFormatter` class, override the `visitUnknown` function, detect our custom expression types and generate proper SQLs: 
 
 ```kotlin
 class CustomSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
@@ -192,7 +192,7 @@ class CustomSqlFormatter(database: Database, beautifySql: Boolean, indentSize: I
 }
 ```
 
-Now, the last thing we should do is to register this custom sql formatter into Ktorm by dialect support, you can read the later chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
+Now, the last thing we should do is to register this custom SQL formatter into Ktorm by dialect support, you can read the later chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
 
 The usage of `naturalJoin`: 
 
@@ -216,6 +216,5 @@ Or Gradle:
 
 ```groovy
 compile "me.liuwj.ktorm:ktorm-support-mysql:${ktorm.version}"
-
 ```
 

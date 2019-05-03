@@ -30,7 +30,7 @@ Just like any other Ktorm programs, we need to create `Database` objects first. 
 Database.connectWithSpringSupport(dataSource)
 ```
 
-That's enough in general, `Database` objects created by `Database.connectWithSpringSupport` have support many features of Spring framework, all that's left is to enjoy our SQL DSL and Entity APIs now. 
+That's enough in general, `Database` objects created by `Database.connectWithSpringSupport` have supported many features of Spring framework, all that's left is to enjoy our SQL DSL and Entity APIs now. 
 
 Maybe you want to register the created object as a Spring bean: 
 
@@ -75,14 +75,14 @@ class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionM
 
 We can see it's `currentTransaction` property always returns null, and it's `newTransaction` function always throws an exception. So we cannot open transactions with it, the only thing we can do is to obtain a connection via `newConnection` function when needed. This function creates a proxied `Connection` instance via [TransactionAwareDataSourceProxy](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/jdbc/datasource/TransactionAwareDataSourceProxy.html), that's how the transaction delegation works. 
 
-> Note: we cannot use [useTransaction](./transaction-management.html#useTransaction-function) function anymore if the Spring support is enabled, please use Spring's `@Transactional` annotation instead, Otherwise, an exception will be throw: java.lang.UnsupportedOperationException: Transaction is managed by Spring, please use Spring's @Transactional annotation instead. 
+> Note: we cannot use [useTransaction](./transaction-management.html#useTransaction-function) function anymore if the Spring support is enabled, please use Spring's `@Transactional` annotation instead, Otherwise, an exception will be thrown: java.lang.UnsupportedOperationException: Transaction is managed by Spring, please use Spring's @Transactional annotation instead. 
 
 ## Exception Translation
 
 Besides of transaction management, Spring JDBC also provides a feature of exception translation, which can convert any `SQLException` thrown by JDBC to [DataAccessException](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/dao/DataAccessException.html) and rethrow it. There are two benefits: 
 
 - **Unchecked exceptions:** `SQLException` is checked, it forces Java users to catch and rethrow them anywhere, even if it's useless. Spring JDBC converts them to unchecked `RuntimeException` to solve this problem, which is helpful to Java users to make their code clean. However, for Kotlin users, this is not so significant. 
-- **Unified exception system of data access layer:** in JDBC, different drivers throw different types of exceptions, they are all subclasses of `SQLException`, but the exception system is too complex and ambiguity. Spring JDBC difines a system of clear and simple exception types, which can help us to exactlly handle our interested exceptions and hide the deferences among many database drivers.
+- **Unified exception system of data access layer:** in JDBC, different drivers throw different types of exceptions, they are all subclasses of `SQLException`, but the exception system is too complex and ambiguity. Spring JDBC defines a system of clear and simple exception types, which can help us to exactly handle our exceptions interested and hide the deferences among many database drivers.
 
 `Database` instances created by `Database.connectWithSpringSupport` enable the feature of exception translation by default, so we can write code like this: 
 

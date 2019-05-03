@@ -22,7 +22,7 @@ This function accepts a closure as its parameter, executes a query with the filt
 val employees = Employees.findList { it.departmentId eq 1 }
 ```
 
-That's natural, just like filtering a collection via Kotlin's built-in extension functions, the only difference is the  `==` in the lambda is replace by a `eq` function. 
+That's natural, just like filtering a collection via Kotlin's built-in extension functions, the only difference is the  `==` in the lambda is replace by the `eq` function. 
 
 Generated SQL: 
 
@@ -37,9 +37,9 @@ where t_employee.department_id = ?
 
 Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s reference table `t_department` using a foreign key. That's because we bind the `departmentId` column to `Departments` table by a reference binding in the table object. By using the reference binding, when we obtain employees via `find*` functions, Ktorm will auto left joins the referenced table, obtaining the departments at the same time, and filling them into property `Employee.department`. 
 
-> Note: please avoid circular references while using reference bindings. For instance, now that `Employees` references `Departments`, then `Departments` can not reference `Elmployees` directly or indirectly, otherwise a stack overflow will occur when Ktorm tries to left join `Departments`. 
+> Note: please avoid circular references while using reference bindings. For instance, now that `Employees` references `Departments`, then `Departments` cannot reference `Employees` directly or indirectly, otherwise a stack overflow will occur when Ktorm tries to left join `Departments`. 
 
-Now that referenced tables are auto left joined, we can also use their columns in our filter conditions. The code below uses the `referenceTable` property of `Column` to access `departmentId`'s referenced table and obtains all employees who works at Guangzhou: 
+Now that referenced tables are auto left joined, we can also use their columns in our filter conditions. The code below uses the `referenceTable` property of `Column` to access `departmentId`'s referenced table and obtains all employees who work at Guangzhou: 
 
 ```kotlin
 val employees = Employees.findList {
@@ -74,10 +74,10 @@ Including `findList`, Ktorm provides a list of `find*` functions, they are all e
 
 - **findList:** obtain a list of entity objects using the specific condition. 
 - **findAll:** obtain all the entity objects in the table. 
-- **findOne:** obtain one entity object using the specific condition. If it doesn't exist, return null, otherwise if there are more than one entities matching the condition, an exception will be thrown. 
-- **findById:** obtian an entity object by primary key. If it doesn't exist, return null, otherwise if there many, throw an exception. 
+- **findOne:** obtain one entity object using the specific condition. If it doesn't exist, return null, otherwise, if there are more than one entities matching the condition, an exception will be thrown. 
+- **findById:** obtain an entity object by primary key. If it doesn't exist, return null, otherwise if there many, throw an exception. 
 - **findListByIds:** obtain a list of entity objects by primary key.
-- **findMapByIds:** obtain a map of entity objects by primary key, in which the keys are primary key, and the values are the entities. 
+- **findMapByIds:** obtain a map of entity objects by primary key, in which the keys are the primary keys, and the values are the entities. 
 
 ## Get Entities from Queries
 
@@ -109,7 +109,7 @@ Employee{id=4, name=penny, job=assistant, manager=Employee{id=3}, hireDate=2019-
 
 ## joinReferencesAndSelect
 
-`joinReferencesAndSelect` is also an extension function of `Table` class, it returns a new created `Query` object, left joining all the reference tables recursively, and selecting all columns of them. We can not only use the returned `Query` object to obtain all entity objects, but also call any other extension functions of `Query` to modify it. Actually, `find*` functions are implemented based on `joinReferencesAndSelect`. 
+`joinReferencesAndSelect` is also an extension function of `Table` class, it returns a new-created `Query` object, left joining all the reference tables recursively, and selecting all columns of them. We can not only use the returned `Query` object to obtain all entity objects but also call any other extension functions of `Query` to modify it. Actually, `find*` functions are implemented based on `joinReferencesAndSelect`. 
 
 The example below queries all the employees along with their departments, sorting them by their IDs ascending: 
 

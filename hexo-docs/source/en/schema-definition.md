@@ -48,14 +48,14 @@ object Employees : Table<Nothing>("t_employee") {
 }
 ```
 
-We can see that both `Departments` and `Employees` are extending from `Table` whose constructor accepts a table name as parameter. There is also a generic type parameter in `Table` class, that is the entity class's type that current table is binding to. Here we don't bind to any entity classes, so `Nothing` is OK. 
+We can see that both `Departments` and `Employees` are extending from `Table` whose constructor accepts a table name as the parameter. There is also a generic type parameter in `Table` class, that is the entity class's type that current table is binding to. Here we don't bind to any entity classes, so `Nothing` is OK. 
 
-Columns are defined as properties in table objects by Kotlin's *val* and *by* keyword, their types are defined by type definition functions, such as int, long, varchar, date, etc. Commonly, these type definition functions follows the rules below:  
+Columns are defined as properties in table objects by Kotlin's *val* and *by* keyword, their types are defined by type definition functions, such as int, long, varchar, date, etc. Commonly, these type definition functions follow the rules below:  
 
-- They are all `Table` class's extension functions that are only allowed to used in table object definitions. 
+- They are all `Table` class's extension functions that are only allowed to be used in table object definitions. 
 - Their names are corresponding to the underlying SQL types' names. 
 - They all accept a parameter of string type, that is the column's name.
-- Their return types are `Table<E>.ColumnRegistration<C>`, in which E is the entity class, C is the type of current column. We can chaining call the `primaryKey` function on `ColumnRegistration` to declare current column as a primary key. 
+- Their return types are `Table<E>.ColumnRegistration<C>`, in which E is the entity class, C is the type of current column. We can chaining call the `primaryKey` function on `ColumnRegistration` to declare the current column as a primary key. 
 
 > `ColumnRegistration` implements the `ReadOnlyProperty` interface, so we can use it as a [property delegate](https://kotlinlang.org/docs/reference/delegated-properties.html) via Kotlin's *by* keyword. Therefore, in the definition `val name by varchar("name")`, although the return type of `varchar` is `ColumnRegistration<String>`, the `val name` property's type is `Column<String>`. For the same reason, the `val managerId by int("manager_id")` property's type is `Column<Int>`.
 
@@ -89,11 +89,11 @@ val t = object : Table<Nothing>("t_config") {
 val configs = t.select().associate { row -> row[t.key] to row[t.value] }
 ```
 
-Flexible usage of Kotlin's language feactures is helpful for us to reduce duplicated code and improve the maintainability of our projects. 
+Flexible usage of Kotlin's language features is helpful for us to reduce duplicated code and improve the maintainability of our projects. 
 
 ## SqlType
 
-`SqlType` is an abstract class which provides a unified abstraction for data types in SQL. Based on JDBC, it encapsulates the common operations of obtaining data from a `ResultSet` and setting parameters to a `PreparedStatement`. In the section above, we defined columns by column definition functions, eg. int, varchar, etc. All these functions have a impelemtation of `SqlType` behind them. For example, here is the implementation of `int` function: 
+`SqlType` is an abstract class which provides a unified abstraction for data types in SQL. Based on JDBC, it encapsulates the common operations of obtaining data from a `ResultSet` and setting parameters to a `PreparedStatement`. In the section above, we defined columns by column definition functions, eg. int, varchar, etc. All these functions have an implementation of `SqlType` behind them. For example, here is the implementation of `int` function: 
 
 ```kotlin
 fun <E : Entity<E>> Table<E>.int(name: String): Table<E>.ColumnRegistration<Int> {
@@ -136,7 +136,7 @@ Here is a list of SQL types supported in Ktorm by default:
 
 ## Extend More Data Types
 
-Sometimes, Ktorm built-in data types may not satisfy your requirements. For example, you may want to save a json column to a table, many relational databases have supported json data type, but raw JDBC haven't yet, nor Ktorm doesn't support it by default. Now you can do it by yourself: 
+Sometimes, Ktorm built-in data types may not satisfy your requirements. For example, you may want to save a JSON column to a table, many relational databases have supported JSON data type, but raw JDBC haven't yet, nor Ktorm doesn't support it by default. Now you can do it by yourself: 
 
 ```kotlin
 class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: ObjectMapper) 
@@ -159,7 +159,7 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 }
 ```
 
-The class above is a subclass of `SqlType`, it provides json data type support via Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that the `registerColumn` function was called. This function is exactly the entry provided by Ktorm to support data type extensions. We can also write an extension function like this: 
+The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that the `registerColumn` function was called. This function is exactly the entry provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
 
 ```kotlin
 fun <E : Entity<E>, C : Any> Table<E>.json(
@@ -179,7 +179,7 @@ object Foo : Table<Nothing>("foo") {
 }
 ```
 
-In this way, Ktorm are able to read and write json columns now. Actually, this is one of the features of ktorm-jackson module, if you really need to use json columns, you don't have to repeat the code above, please add the dependency to your project: 
+In this way, Ktorm is able to read and write JSON columns now. Actually, this is one of the features of the ktorm-jackson module, if you really need to use JSON columns, you don't have to repeat the code above, please add the dependency to your project: 
 
 Maven： 
 

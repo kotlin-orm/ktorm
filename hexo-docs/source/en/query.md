@@ -16,7 +16,7 @@ for (row in Employees.select()) {
 
 ## Query Objects
 
-In the example above, we get a `Query` from `select` function and iterates it with a for-each loop. Is there any other operations supported by `Query` besides iteration? Let's learn the `Query` class's definition first: 
+In the example above, we get a `Query` from `select` function and iterates it with a for-each loop. Are there any other operations supported by `Query` besides iteration? Let's learn the `Query` class's definition first: 
 
 ```kotlin
 data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
@@ -49,7 +49,7 @@ Employees.select()
 
 Actually, in the example above, all the work Ktorm does is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedByDescending { }.forEach { }` are all extension functions in Kotlin standard lib. That's the advantages of implementing `Iterable` interface. 
 
-There are some other useful properties in `Query` class: 
+There are some other useful properties in the `Query` class: 
 
 - **sql:** Return the generated SQL string of this query, can be used to ensure whether the generated SQL is expected while debugging. 
 - **rowSet:** Return the `ResultSet` object of this query, lazy initialized after first access, obtained from database by executing the generated SQL. 
@@ -59,12 +59,12 @@ There are some other useful properties in `Query` class:
 
 Every JDBC user knows how to obtain query results from a `ResultSet`. We need a loop to iterate rows in it, calling the getter functions (such as `getInt`, `getString`, etc) to obtain the data of the specific column. A typical usage is based on a while loop: `while (rs.netxt())  { ... } `. Moreover, after finishing these works, we also have to call `close` function to release the resources. 
 
-That's not so complex, but it's still easy to get bored to write duplicated codes. We have know that `Query` class implemented `Iterable` interaface, that provided another posibility for us. We can iterate results sets by a for-each loop, or process them via extension functions like map, filter, etc, just like the previous example. 
+That's not so complex, but it's still easy to get bored to write duplicated codes. We have known that `Query` class implemented `Iterable` interface, that provided another possibility for us. We can iterate results sets by a for-each loop, or process them via extension functions like map, filter, etc, just like the previous example. 
 
 You might have noticed that the return type of `Query.rowSet` was not a normal `ResultSet`, but a `QueryRowSet` instead. That's a special implementation provided by Ktorm, different from normal result sets, it provides additional features: 
 
-- **Available offline:** It's connection independent, it remains available after the connection closed, and it's not necessary to be closed after being used. Ktorm creates `QueryRowSet` objects with all data being retrieved from the result set into memory, so we just need to wait GC to collect them after they are not useful. 
-- **Indexed access operator:** `QueryRowSet` oveloads the [indexed access operator](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed), so we can use square brackets `[]` to obtain the value by giving a specific `Column` instance. It's not easy to get wrong by the benefit of the compiler's static checking, but we can still use `getXxx` functions in the `ResultSet` to obtain our results by labels or column indices. 
+- **Available offline:** It's connection independent, it remains available after the connection closed, and it's not necessary to be closed after being used. Ktorm creates `QueryRowSet` objects with all data being retrieved from the result set into memory, so we just need to wait for GC to collect them after they are not useful. 
+- **Indexed access operator:** `QueryRowSet` overloads the [indexed access operator](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed), so we can use square brackets `[]` to obtain the value by giving a specific `Column` instance. It's not easy to get wrong by the benefit of the compiler's static checking, but we can still use `getXxx` functions in the `ResultSet` to obtain our results by labels or column indices. 
 
 Obtain results via indexed access operator: 
 
@@ -82,13 +82,13 @@ We can see that if the column's type is `Column<Int>`, then the result's type is
 
 ## select
 
-All queries in SQL start with a select keyword. Similarly, All queries in Ktorm start with a `select` function calling. `select` is an extension function of `Table` class, so every query in Ktorm comes from a `Table` object. Here is the signature of this function: 
+All queries in SQL start with a select keyword. Similarly, All queries in Ktorm start with a `select` function call. `select` is an extension function of `Table` class, so every query in Ktorm comes from a `Table` object. Here is the signature of this function: 
 
 ```kotlin
 fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query
 ```
 
-We can see it accepts any number of columns and returns a new created `Query` object which selects specific columns from current table. The example below obtains employees' ids and names via `select` function: 
+We can see it accepts any number of columns and returns a new-created `Query` object which selects specific columns from the current table. The example below obtains employees' ids and names via the `select` function: 
 
 ```kotlin
 val query = Employees.select(Employees.id, Employees.name)
@@ -114,7 +114,7 @@ select *
 from t_employee 
 ```
 
-You might have noticed that the paramter type of `select` function was `ColumnDeclaring` instead of `Column`. So we can not only select normal columns from a table, but complex expressions and aggregation functions are also supported. For insance, if we want to know the salary difference between the max and the min in a company, we can write a query like this: 
+You might have noticed that the parameter type of `select` function was `ColumnDeclaring` instead of `Column`. So we can not only select normal columns from a table, but complex expressions and aggregation functions are also supported. For instance, if we want to know the salary difference between the max and the min in a company, we can write a query like this: 
 
 ```kotlin
 Employees
@@ -122,20 +122,20 @@ Employees
     .forEach { row -> println(row.getLong(1)) }
 ```
 
-Here we use two aggregation functions, `max` and `min`, the return types of which are both `AggregateExpression`. Then substracting the max by the min, we finally have a `BinaryExpression`, which is a subclass of `ColumnDeclaring`, so we can pass it to the `select` function. Generated SQL: 
+Here we use two aggregation functions, `max` and `min`, the return types of which are both `AggregateExpression`. Then subtracting the max by the min, we finally have a `BinaryExpression`, which is a subclass of `ColumnDeclaring`, so we can pass it to the `select` function. Generated SQL: 
 
 ```sql
 select max(t_employee.salary) - min(t_employee.salary) 
 from t_employee 
 ```
 
-We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, thats why we can use minus operator in the query above. Because of operator overloading, the minus operator here doesn't perform an actual substraction, but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
+We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, that's why we can use the minus operator in the query above. Because of operator overloading, the minus operator here doesn't perform an actual subtraction but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
 
-> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` doesn't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by lables or column indices. 
+> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` doesn't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by labels or column indices. 
 
 ## selectDistinct
 
-`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be transalated to a `select distinct` statement in SQL, and it's usage is totally the same with `select` function, so we won't repeat it. 
+`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be translated to a `select distinct` statement in SQL, and its usage is totally the same with `select` function, so we won't repeat it. 
 
 ## where
 
@@ -145,7 +145,7 @@ We can see that the generated SQL is highly corresponding to our Kotlin code. Th
 inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query
 ```
 
-It's an inline function that accepts a parameter of type `() -> ColumnDeclaring<Boolean>`, which is a closure function that returns a `ColumnDeclaring<Boolean>` as our filter condition. The `where` function creates a new `Query` object with all properties being copied from current query, but applying a new filter condition, the return value of the closure. Typical usage: 
+It's an inline function that accepts a parameter of type `() -> ColumnDeclaring<Boolean>`, which is a closure function that returns a `ColumnDeclaring<Boolean>` as our filter condition. The `where` function creates a new `Query` object with all properties being copied from the current query, but applying a new filter condition, the return value of the closure. Typical usage: 
 
 ```kotlin
 val query = Employees
@@ -161,11 +161,11 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ```
 
-We can return any filter conditions in `where` closure, here we constructed one by operators `eq`, `and` and  `like`. Ktolin provides an infix keyword, functions marked with it can be called using the [infix notation](https://kotlinlang.org/docs/reference/functions.html#infix-notation) (omitting the dot and the parentheses for the call), that's how these operators works.  
+We can return any filter conditions in `where` closure, here we constructed one by operators `eq`, `and` and  `like`. Kotlin provides an infix keyword, functions marked with it can be called using the [infix notation](https://kotlinlang.org/docs/reference/functions.html#infix-notation) (omitting the dot and the parentheses for the call), that's how these operators work.  
 
 > Ktorm's built-in operators can be divided into two groups: those that is implemented by operator overloading, such as basic arithmetic operators; and those that is based on infix notations, such as `and`, `or`, `eq`, `like`, `greater`, `less`, etc. 
 
-Sometimes, we need a variable number of filter conditions in our queries, those conditions are combined with `and` or `or` operator, and each of them can be enabled or disabled depending on different conditions. To meet this requirement, many ORM frameworks provide features like *dynamic query*, such as the `<if>` tag of MyBatis. However, this is not a problem at all in Ktorm, because queries in Ktorm are pure Kotlin codes, which is natively *dynamic*. Let's learn the query below: 
+Sometimes, we need a variable number of filter conditions in our queries, those conditions are combined with `and` or `or` operator and each of them can be enabled or disabled depending on different conditions. To meet this requirement, many ORM frameworks provide features like *dynamic query*, such as the `<if>` tag of MyBatis. However, this is not a problem at all in Ktorm, because queries in Ktorm are pure Kotlin codes, which is natively *dynamic*. Let's learn the query below: 
 
 ```kotlin
 val query = Employees
@@ -189,7 +189,7 @@ val query = Employees
 
 Here, we create an `ArrayList` to hold filter conditions first, then add different conditions to the list depending on whether the specific parameters are null or not, finally combine all of them with the  `and` operator. We don't need to do anything special with Ktorm, and the *dynamic query* is perfectly supported. 
 
-Obviously, there is a bug in the query above, that the reduce operation may throw an exception if the list is empty, all conditions are not matched. To avoid this exception, we can replace the reduce operation with `conditions.combineConditions`. This is a extension function provided by Ktorm, it combines all conditions with `and` operator, otherwise if the list is empty, true will be returned directly. 
+Obviously, there is a bug in the query above, that the reduce operation may throw an exception if the list is empty, all conditions are not matched. To avoid this exception, we can replace the reduce operation with `conditions.combineConditions`. This is an extension function provided by Ktorm, it combines all conditions with `and` operator, otherwise, if the list is empty, true will be returned directly. 
 
 ```kotlin
 fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Boolean> {
@@ -260,9 +260,9 @@ group by t_employee.department_id
 having avg(t_employee.salary) > ? 
 ```
 
-However, as any SQL users know, the generate SQL is wrong with syntax now, and it's impossible to be executed in a database. That's because the SQL's grammar restricts that if we are using group by, every select column either comes from the group by clause, or appears in an aggregation function. So, that's not Ktorm's fault, we don't understand SQL enough, Ktorm just translate our Koltin code to SQL trustily. 
+However, as any SQL users know, the generated SQL is wrong with syntax now, and it's impossible to be executed in a database. That's because the SQL's grammar restricts that if we are using group by, every select column either comes from the group by clause or appears in an aggregation function. So, that's not Ktorm's fault, we don't understand SQL enough, Ktorm just translates our Koltin code to SQL trustily. 
 
-> Note: Ktorm generates SQLs, but our design goal are never to replace SQL in Kotlin. Ktorm doesn't meant to be a "automation" ORM framework that's "large and complete". Instead, one of our goals is to provide a set of flexible and convenient DSL for SQL by making full use of Kotlin's excellent features. This requires our users to have a certain understanding on SQL, because Ktorm just translate our DSL to SQL trustily, we have to take the responsibility of our SQL's correctness and performance. 
+> Note: Ktorm generates SQLs, but our design goal is never to replace SQL in Kotlin. Ktorm doesn't mean to be an "automation" ORM framework that's "large and complete". Instead, one of our goals is to provide a set of flexible and convenient DSL for SQL by making full use of Kotlin's excellent features. This requires our users to have a certain understanding of SQL because Ktorm just translates our DSL to SQL trustily, we have to take the responsibility of our SQL's correctness and performance. 
 
 ## orderBy
 
@@ -279,7 +279,7 @@ fun ColumnDeclaring<*>.asc(): OrderByExpression
 fun ColumnDeclaring<*>.desc(): OrderByExpression
 ```
 
-A typical usage is shown below. The query obtains all employees' names, sorting them by their salaries descending: 
+Typical usage is shown below. The query obtains all employees' names, sorting them by their salaries descending: 
 
 ```kotlin
 val query = Employees
@@ -327,17 +327,17 @@ Here is an example, this query obtains the first employee in the table:
 val query = Employees.select().limit(0, 1)
 ```
 
-When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the current enabled dialect. If we doesn't use any dialects, an exception might be thrown: 
+When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the currently enabled dialect. If we don't use any dialects, an exception might be thrown: 
 
 ```
 java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
 ```
 
-This is OK, the SQL standard doesn't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to latter chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
+This is OK, the SQL standard doesn't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to later chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
 
 ## union/unionAll
 
-Ktorm also supports to merge two or more query results, that's the `union` and `unionAll` functions. The `union` function is corresponding to the union keyword in SQL, removing duplciated rows; The `unionAll` function is corresponding to the union all keyword, not removing dupliated rows. Here is an example: 
+Ktorm also supports to merge two or more query results, that's the `union` and `unionAll` functions. The `union` function is corresponding to the union keyword in SQL, removing duplicated rows; The `unionAll` function is corresponding to the union all keyword, not removing duplicated rows. Here is an example: 
 
 ```kotlin
 val query = Employees

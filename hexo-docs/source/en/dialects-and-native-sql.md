@@ -6,7 +6,7 @@ related_path: zh-cn/dialects-and-native-sql.html
 
 # Dialects & Native SQL
 
-It's known that there is a uniform standard for SQL language, but beyond the standard, many databases still have their special features. The core module of Ktorm (ktorm-core) only provides supports for standard SQL, if we want to use some special features of a database, we need dialect supports. 
+It's known that there is a uniform standard for SQL language, but beyond the standard, many databases still have their special features. The core module of Ktorm (ktorm-core) only provides support for standard SQL, if we want to use some special features of a database, we need to support dialects. 
 
 ## Enable Dialects
 
@@ -29,7 +29,7 @@ Ktorm supports three dialects now, each of them is published as a separated modu
 
 Now let's take MySQL's `on duplicate key update` feature as an example, learning how to enable dialects in Ktorm. 
 
-This feature can determine if there is a conflict while records are being inserted into databases, and automatically performs udpates if any conflict exists, which is not supported by standard SQL. To use this feature, we need to add the dependency of ktorm-support-mysql to our projects. If we are using Maven: 
+This feature can determine if there is a conflict while records are being inserted into databases, and automatically performs updates if any conflict exists, which is not supported by standard SQL. To use this feature, we need to add the dependency of ktorm-support-mysql to our projects. If we are using Maven: 
 
 ```
 <dependency>
@@ -106,11 +106,11 @@ ktorm-support-oracle provides:
 
 - Support paginations via `limit` function, translating paging expressions into Oracle's paging SQL using `rownum`. 
 
-Ktorm always claims that we are supporting many dialects, but actually the support for databases other than MySQL is really not enough. I'm so sorry about that, my time and energy is really limited, so I have to lower the precedence of supporting other databases. 
+Ktorm always claims that we are supporting many dialects, but actually, the support for databases other than MySQL is really not enough. I'm so sorry about that, my time and energy are really limited, so I have to lower the precedence of supporting other databases. 
 
 Fortunately, the standard SQL supported by the core module is enough for most requirements, so there is little influence on our business before the dialects are completed. 
 
-Ktorm's design is open, it's easy to add features to it, and we have learned how to write our own extensions in the former sections. So we can also implement dialects by ourselves if it's realy needed. Welcome to fork the repository and send your pull requests to me, I'm glad to check and merge your codes. Looking forward to your contributions!
+Ktorm's design is open, it's easy to add features to it, and we have learned how to write our own extensions in the former sections. So we can also implement dialects by ourselves if it's really needed. Welcome to fork the repository and send your pull requests to me, I'm glad to check and merge your codes. Looking forward to your contributions!
 
 ## Native SQL
 
@@ -135,10 +135,10 @@ val names = db.useConnection { conn ->
 names.forEach { println(it) }
 ```
 
-At first glance, there are only boilerplate JDBC codes in the example, but actually it's also benefit from some convenient functions of Ktorm: 
+At first glance, there are only boilerplate JDBC codes in the example, but actually, it's also benefited from some convenient functions of Ktorm: 
 
-- `useConnection` function is used to obtain or create connections. If the current thread have opened a transaction, then this transaction's connection will be passed to the closure. Otherwise, Ktorm will pass a new created connection to the closure and auto close it after it's not useful anymore. Ktorm also uses this function to obtain connections to execute generated SQLs. So, by calling `useConnection`, we can share the transactions or connection pools with Ktorm's internal SQLs. 
+- `useConnection` function is used to obtain or create connections. If the current thread has opened a transaction, then this transaction's connection will be passed to the closure. Otherwise, Ktorm will pass a new-created connection to the closure and auto close it after it's not useful anymore. Ktorm also uses this function to obtain connections to execute generated SQLs. So, by calling `useConnection`, we can share the transactions or connection pools with Ktorm's internal SQLs. 
 - `iterable` function is used to wrap `ResultSet` instances as `Iterable`, then we can iterate the result sets by for-each loops, or process them via extension functions of Kotlin standard lib, such as `map`, `filter`, etc. 
 
-> Note: Although Ktorm provides supports for native SQLs, we doesn't recommend you to use it, because it violates the design philosophy of Ktorm. Once native SQL is used, we will lost the benefits of the strong typed DSL, so please ensure whether it's really necessary to do that. In general, most complex SQLs can be converted to equivalent simple joining queries, and most special keywords and SQL functions can also be implemented by writing some extensions with Ktorm. 
+> Note: Although Ktorm provides supports for native SQLs, we don't recommend you to use it, because it violates the design philosophy of Ktorm. Once native SQL is used, we will lose the benefits of the strong typed DSL, so please ensure whether it's really necessary to do that. In general, most complex SQLs can be converted to equivalent simple joining queries, and most special keywords and SQL functions can also be implemented by writing some extensions with Ktorm. 
 

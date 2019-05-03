@@ -6,7 +6,7 @@ related_path: zh-cn/dml.html
 
 # Data Manipulation
 
-Ktorm not only provides SQL DSL for query and joining, it also supports data manipulation conveniently. Let's talk about its DML DSL now. 
+Ktorm not only provides SQL DSL for query and joining, but it also supports data manipulation conveniently. Let's talk about its DML DSL now. 
 
 ## Insert
 
@@ -16,7 +16,7 @@ Ktorm uses an extension function `insert` of `Table` class to support data inser
 fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int
 ```
 
-The function accepts a closure as its parameter in which we configure our insertion columns and values. After the insertion completes, an int number of effected records will be returned. For instance: 
+The function accepts a closure as its parameter in which we configure our insertion columns and values. After the insertion completes, an int number of affected records will be returned. For instance: 
 
 ```kotlin
 Employees.insert {
@@ -35,9 +35,9 @@ Generated SQL:
 insert into t_employee (name, job, manager_id, hire_date, salary, department_id) values (?, ?, ?, ?, ?, ?) 
 ```
 
-Here, we use `it.name to "jerry"` to set the name to jerry in the closure, do you known how it works? 
+Here, we use `it.name to "jerry"` to set the name to jerry in the closure, do you know how it works? 
 
-It can be seen that the type of the closure is `AssignmentsBuilder.(T) -> Unit`, which is a function that accepts a parameter `T`, the current table object, that's why we can use `it` to access the current table and its columns in the closure. Moreover, the closure is also an extension fuction of `AssignmentsBuilder` class, so in the scope of the closure, `this` reference is changed to a `AssignmentsBuilder` instance, that's why we can call its member function `to` there. Yes, this `to` function is a member function of `AssignmentsBuilder` class, but not the `to` function used to create `Pair` instances of Kotlin standard lib. 
+It can be seen that the type of the closure is `AssignmentsBuilder.(T) -> Unit`, which is a function that accepts a parameter `T`, the current table object, that's why we can use `it` to access the current table and its columns in the closure. Moreover, the closure is also an extension function of `AssignmentsBuilder` class, so in the scope of the closure, `this` reference is changed to a `AssignmentsBuilder` instance, that's why we can call its member function `to` there. Yes, this `to` function is a member function of `AssignmentsBuilder` class, but not the `to` function used to create `Pair` instances of Kotlin standard lib. 
 
 Here is the source code of `AssignmentsBuilder`, we can see that the `to` function doesn't return any values, it just save the current column and its value into a `MutableList`.
 
@@ -65,9 +65,9 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
 }
 ```
 
-> Because the member function `to` doesn't return any values, we are not likely to mix it with the `kotlin.to` function of Kotlin standard lib. If you really want to use `kotlin.to` in the closure, but found it's resolved to `AssignmentsBuilder.to` and compiler error occurs. We recommend you to refactor your code and move the calling of `kotlin.to` outside the closure. 
+> Because the member function `to` doesn't return any values, we are not likely to mix it with the `kotlin.to`  of Kotlin standard lib. If you really want to use `kotlin.to` in the closure, but found it's resolved to `AssignmentsBuilder.to` and compiler error occurs. We recommend you to refactor your code and move the calling of `kotlin.to` outside the closure. 
 
-Sometimes we may use auto-increment keys in our tables, we may need to obtain the auto generated keys from databases after records are inserted. This time we can use `insertAndGenerateKey` function, the usage of which is similar with `insert`. But differently, it doesn't return the effected record numbers anymore, but returns the auto generated keys instead. 
+Sometimes we may use auto-increment keys in our tables, we may need to obtain the auto-generated keys from databases after records are inserted. This time we can use `insertAndGenerateKey` function, the usage of which is similar to `insert`, but differently, it doesn't return the affected record numbers anymore, but returns the auto-generated keys instead. 
 
 ```kotlin
 val id = Employees.insertAndGenerateKey {
@@ -103,7 +103,7 @@ Employees.batchInsert {
 }
 ```
 
-The `batchInsert` function also accepts a closure as its parameter, the type of which is `BatchInsertStatementBluilder<T>.() -> Unit`, an extension function of `BatchInsertStatementBuilder`. The `item` is actually a member function in `BatchInsertStatementBuilder`, we use this function to configure every records of the batch insertion. After the batch insertion completes, an `IntArray` will be returned, that's the effected record numbers of each sub-operation. 
+The `batchInsert` function also accepts a closure as its parameter, the type of which is `BatchInsertStatementBluilder<T>.() -> Unit`, an extension function of `BatchInsertStatementBuilder`. The `item` is actually a member function in `BatchInsertStatementBuilder`, we use this function to configure every record of the batch insertion. After the batch insertion completes, an `IntArray` will be returned, that's the affected record numbers of each sub-operation. 
 
 Sometimes, we may need to transfer data from a table to another table. Ktorm also provides an `insertTo` function, that's an extension function of `Query` class, used to insert the query's results into a specific table. Comparing to obtaining query results first and insert them via `batchInsert`, the `insertTo` function just execute one SQL, the performance is much better. 
 
@@ -131,7 +131,7 @@ Ktorm uses an extension function `update` of `Table` class to support data updat
 fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int
 ```
 
-Similar to the `insert` function, it also accepts a closure as its parameter and returns the effected record number after the update completes. The closure's type is `UpdateStatementBuilder.(T) -> Unit`, in which `UpdateStatementBuilder` is a subclass of `AssignmentsBuilder`, so we can still use `it.name to "jerry"` to set the name to jerry. Differently, `UpdateStatementBuilder` provides an additional function `where`, that's used to specify our update conditions. Usage: 
+Similar to the `insert` function, it also accepts a closure as its parameter and returns the affected record number after the update completes. The closure's type is `UpdateStatementBuilder.(T) -> Unit`, in which `UpdateStatementBuilder` is a subclass of `AssignmentsBuilder`, so we can still use `it.name to "jerry"` to set the name to jerry. Differently, `UpdateStatementBuilder` provides an additional function `where`, that's used to specify our update conditions. Usage: 
 
 ```kotlin
 Employees.update {
@@ -166,7 +166,7 @@ Generated SQL:
 update t_employee set salary = salary + ? where id = ? 
 ```
 
-Sometimes we may need to execute a large number of updates at one time, and the performance of calling `update` function in a loop may be intolerable. This time, we can use `batchUpdate` function, that can improve the performance of batch update. Similar to `batchInsert` function, it's also implemented based on `executeBatch` of JDBC. The operation below shows how to use `batchUpdate` to udpate specific departments' location to "Hong Kong". We can see that the usage is similar to `batchInsert`, the only difference is we need to specify the update conditions by `where` function. 
+Sometimes we may need to execute a large number of updates at one time, and the performance of calling `update` function in a loop may be intolerable. This time, we can use `batchUpdate` function, that can improve the performance of batch updates. Similar to `batchInsert` function, it's also implemented based on `executeBatch` of JDBC. The operation below shows how to use `batchUpdate` to update specific departments' location to "Hong Kong". We can see that the usage is similar to `batchInsert`, the only difference is we need to specify the update conditions by `where` function. 
 
 ```kotlin
 Departments.batchUpdate {
@@ -189,7 +189,7 @@ Ktorm uses an extension function `delete` of `Table` class to support data delet
 fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 ```
 
-The `delete` function accepts a closure as its parameter, in which we need to specify our conditions. After the deletion completes, the effected record number will be returned. The closure accpets a parameter of type `T`, which is actually the current table object, so we can use `it` to access current table in the closure. The usage is very simple: 
+The `delete` function accepts a closure as its parameter, in which we need to specify our conditions. After the deletion completes, the affected record number will be returned. The closure accepts a parameter of type `T`, which is actually the current table object, so we can use `it` to access the current table in the closure. The usage is very simple: 
 
 ```kotlin
 Employees.delete { it.id eq 4 }

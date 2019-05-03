@@ -20,7 +20,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
 ): C?
 ```
 
-It's a terminal operation, and it accepts a closure as its paramter, in which we need to return an aggregate expression. Ktorm will create an aggregate query, using the current filter condition and selecting the aggregate expression specified by us, then execute the query and obtain the aggregate result. The following code obtains the max salary in department 1: 
+It's a terminal operation, and it accepts a closure as its parameter, in which we need to return an aggregate expression. Ktorm will create an aggregate query, using the current filter condition and selecting the aggregate expression specified by us, then execute the query and obtain the aggregate result. The following code obtains the max salary in department 1: 
 
 ```kotlin
 val max = Employees
@@ -79,7 +79,7 @@ Obviously, `groupBy` is a terminal operation, it will execute the internal query
 val employees = Employees.asSequence().groupBy { it.department.id }
 ```
 
-Here, the type of `employees` is `Map<Int, List<Employee>>`, in which the keys are departments' IDs, and the values are the lists of employees belonging to the departments. Now we have the employees' data for every departments, we are able to do some aggregate calculations over the data. The following code calculates the average salaries for each department: 
+Here, the type of `employees` is `Map<Int, List<Employee>>`, in which the keys are departments' IDs, and the values are the lists of employees belonging to the departments. Now we have the employees' data for every department, we are able to do some aggregate calculations over the data. The following code calculates the average salaries for each department: 
 
 ```kotlin
 val averageSalaries = Employees
@@ -96,7 +96,7 @@ from t_employee
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ```
 
-Here, the only thing we need is the average salaries, but we still have to obtain all the employees' data from the database. The performance losts may be intolerable in most cases. It'll be better for us to generate proper SQLs using *group by* clauses and aggregate functions, and move the aggregate calculations back to the database. To solve this problem, we need to use the `groupingBy` function. 
+Here, the only thing we need is the average salaries, but we still have to obtain all the employees' data from the database. The performance issue may be intolerable in most cases. It'll be better for us to generate proper SQLs using *group by* clauses and aggregate functions, and move the aggregate calculations back to the database. To solve this problem, we need to use the `groupingBy` function. 
 
 > Note that these two functions are design for very different purposes. The `groupBy` is a terminal operation, as it'll obtain all the entity objects and divide them into groups inside the JVM memory; However, the `groupingBy` is an intermediate operation, it'll add a *group by* clause to the final generated SQL, and particular aggregations should be specified using the following extension functions of `EntityGrouping`. 
 
@@ -110,7 +110,7 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
 }
 ```
 
-The `groupingBy` function is an intermediate operation, and it accepts a closure as its paramter, in which we should return a `ColumnDeclaring<K>` as the grouping key. The grouping key can be a column or expression, and it'll be used in the SQL's *group by* clause. Actually, the `groupingBy` function doesn't do anything, it just returns a new created  `EntityGrouping` with the `keySelector` given by us. The definition of `EntityGrouping` is simple: 
+The `groupingBy` function is an intermediate operation, and it accepts a closure as its parameter, in which we should return a `ColumnDeclaring<K>` as the grouping key. The grouping key can be a column or expression, and it'll be used in the SQL's *group by* clause. Actually, the `groupingBy` function doesn't do anything, it just returns a new-created  `EntityGrouping` with the `keySelector` given by us. The definition of `EntityGrouping` is simple: 
 
 ```kotlin
 data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(

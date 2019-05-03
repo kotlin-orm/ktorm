@@ -22,15 +22,15 @@
 
 # What's Ktorm?
 
-Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQLs, of course, are generated automatically. For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong-typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQLs, of course, are generated automatically. For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
 
 :us: English | :cn: [简体中文](README_cn.md)
 
 # Features
 
- - No configuration files, no xml, no third-party dependencies, lightweight, easy to use.
+ - No configuration files, no XML, no third-party dependencies, lightweight, easy to use.
  - Strong typed SQL DSL, exposing low-level bugs at compile time.
- - Flexible query, fine-grained control over the generated SQLs as you wish.
+ - Flexible queries, fine-grained control over the generated SQLs as you wish.
  - Entity sequence APIs, writing queries via sequence functions such as `filter`, `map`, `sortedBy`, etc., just like using Kotlin's native collections and sequences. 
  - Extensible design, write your own extensions to support more operators, data types, SQL functions, database dialects, etc.
 
@@ -88,7 +88,7 @@ fun main() {
 }
 ````
 
-Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` are also available, eg. map/filter/reduce provided by Kotlin standard lib.
+Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use the for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` are also available, eg. map/filter/reduce provided by Kotlin standard lib.
 
 ## SQL DSL
 
@@ -110,7 +110,7 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ````
 
-That's the magic of Kotlin, writing a query with Ktorm is easy and natural, the generated SQL is exactly corresponding to the origin Kotlin code. And moreover, it's strong typed, the compiler will check your codes before it runs, and you will be benefit from the IDE's intelligent sense and code completion.
+That's the magic of Kotlin, writing a query with Ktorm is easy and natural, the generated SQL is exactly corresponding to the origin Kotlin code. And moreover, it's strong-typed, the compiler will check your codes before it runs, and you will be benefited from the IDE's intelligent sense and code completion.
 
 Dynamic query based on conditions: 
 
@@ -313,11 +313,11 @@ val employee = Employees.findById(2) ?: return
 employee.delete()
 ```
 
-Detailed usages of entity APIs can be found in the documentations of [column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html) and [entity findings](https://ktorm.liuwj.me/en/entity-finding.html).
+Detailed usages of entity APIs can be found in the documentation of [column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html) and [entity findings](https://ktorm.liuwj.me/en/entity-finding.html).
 
 ## Entity Sequence APIs
 
-In addition to the `find*` functions, Ktorm also provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern is highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc.
+In addition to the `find*` functions, Ktorm also provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc.
 
 To create an entity sequence, we can call the extension function `asSequence` on a table object:
 
@@ -329,13 +329,13 @@ Most of the entity sequence APIs are provided as extension functions, which can 
 
 ### Intermediate Operations
 
-These functions doesn’t execute the internal queries, but return new created sequence objects applying some modifications. For example, the `filter` function creates a new sequence object with the filter condition given by its parameter. The following code obtains all the employees in department 1 by using `filter`:
+These functions don’t execute the internal queries but return new-created sequence objects applying some modifications. For example, the `filter` function creates a new sequence object with the filter condition given by its parameter. The following code obtains all the employees in department 1 by using `filter`:
 
 ```kotlin
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replace by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
+We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
 val employees = Employees
@@ -396,7 +396,7 @@ The `mapColumns` function is used to obtain the results of a column:
 val names = Employees.asSequenceWithoutReferences().mapColumns { it.name }
 ```
 
-Additional, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair`or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
+Additional, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
 
 ```kotlin
 Employees
@@ -500,4 +500,4 @@ val totalSalaries = Employees
     }
 ```
 
-Detailed usages of entity sequence APIs can be found in the documentations of [entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html) and [sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html). 
+Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html) and [sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html). 
