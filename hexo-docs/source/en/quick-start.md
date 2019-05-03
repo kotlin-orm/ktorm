@@ -179,7 +179,7 @@ Refer to [detailed documentation](https://ktorm.liuwj.me/en/query.html) for more
 
 ## Entities & Column Binding
 
-In addition to SQL DSL, Entity objects are also supported just like other ORM frameworks do. We need to define entity classes firstly and bind table objects to them. In Ktorm, entity classes are defined as interfaces extending from `Entity<E>`: 
+In addition to SQL DSL, entity objects are also supported just like other ORM frameworks do. We need to define entity classes firstly and bind table objects to them. In Ktorm, entity classes are defined as interfaces extending from `Entity<E>`: 
 
 ```kotlin
 interface Department : Entity<Department> {
