@@ -85,7 +85,12 @@ internal constructor(
         val found = when (labels.size) {
             0 -> false
             1 -> true
-            else -> true.also { Database.global.logger.warn(warningConfusedColumnName(column.name)) }
+            else -> true.also {
+                val logger = Database.global.logger
+                if (logger != null && logger.isWarnEnabled()) {
+                    logger.warn(warningConfusedColumnName(column.name))
+                }
+            }
         }
 
         if (found) {

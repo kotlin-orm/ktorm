@@ -2,11 +2,11 @@
 apply from: "generate-tuples.gradle"
 
 dependencies {
-    compile "org.slf4j:slf4j-api:1.7.25"
+    compileOnly "org.slf4j:slf4j-api:1.7.25"
+    compileOnly "commons-logging:commons-logging:1.2"
     compileOnly "org.springframework:spring-jdbc:5.0.10.RELEASE"
 
     testCompile "com.h2database:h2:1.4.197"
-    testCompile "org.slf4j:slf4j-simple:1.7.25"
 }
 
 configurations {

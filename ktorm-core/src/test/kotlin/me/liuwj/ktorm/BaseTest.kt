@@ -1,6 +1,8 @@
 package me.liuwj.ktorm
 
+import me.liuwj.ktorm.database.ConsoleLogger
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.LogLevel
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.schema.*
@@ -14,7 +16,7 @@ import java.time.LocalDate
 open class BaseTest {
 
     open fun connect() {
-        Database.connect(url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+        Database.connect(url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver", logger = ConsoleLogger(threshold = LogLevel.TRACE))
     }
 
     @Before

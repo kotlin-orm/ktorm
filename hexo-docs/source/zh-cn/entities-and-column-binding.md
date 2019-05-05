@@ -122,13 +122,13 @@ object Foos : Table<Foo>("t_foo") {
 
 ## 关于 Entity 接口
 
-前面提到，Ktorm 规定，所有的实体类的应该定义为 interface，并且继承 `Entity` 接口，而实体对象的创建，则是使用 JDK 动态代理完成的。如果你对 JDK 的动态代理有所了解，你应该知道，代理对象是通过 `Proxy.newProxyInstance` 方法创建的，提供一个 `InvocationHandler` 实例作为参数，所有对接口方法的调用，都会被 JDK 代理到这个 handler 中。在 Ktorm 内部，`EntityImpl` 就是这个 handler 的实现，它被声明为 internal，因此你无法在 Ktorm 外部使用它，但是我们可以了解一下它的基本原理。
+前面提到，Ktorm 规定，所有的实体类的应该定义为 interface，并且继承 `Entity` 接口，而实体对象的创建，则是使用 JDK 动态代理完成的。如果你对 JDK 的动态代理有所了解，你应该知道，代理对象是通过 `Proxy.newProxyInstance` 方法创建的，提供一个 `InvocationHandler` 实例作为参数，所有对接口方法的调用，都会被 JDK 代理到这个 handler 中。在 Ktorm 内部，`EntityImplementation` 就是这个 handler 的实现，它被声明为 internal，因此你无法在 Ktorm 外部使用它，但是我们可以了解一下它的基本原理。
 
 ### 属性存取
 
-当我们使用 Kotlin 在实体类中定义一个属性 `var name: String`，编译成 Java 字节码后，相当于定义了两个方法，分别是 `public String getName()` 和 `public void setName(String name)`，这两个方法的调用都会被代理到 `EntityImpl` 中。
+当我们使用 Kotlin 在实体类中定义一个属性 `var name: String`，编译成 Java 字节码后，相当于定义了两个方法，分别是 `public String getName()` 和 `public void setName(String name)`，这两个方法的调用都会被代理到 `EntityImplementation` 中。
 
-`EntityImpl` 类中包含了一个 values 属性，它的类型是 `LinkedHashMap<String, Any?>`，用来保存实体中的所有属性的值。当我们使用 `e.name` 获取属性时，`EntityImpl` 就会检测到 `getName()` 方法的调用，于是从 values 中使用“name”作为键获取属性值。当我们使用 `e.name = "foo"` 修改属性，同样会发生一个 `setName()` 方法的调用，于是，`EntityImpl` 会使用“name”为键将传入的属性值保存到 values 中，同时还会记录一些额外的信息，以跟踪实体的状态变化。
+`EntityImplementation` 类中包含了一个 values 属性，它的类型是 `LinkedHashMap<String, Any?>`，用来保存实体中的所有属性的值。当我们使用 `e.name` 获取属性时，`EntityImplementation` 就会检测到 `getName()` 方法的调用，于是从 values 中使用“name”作为键获取属性值。当我们使用 `e.name = "foo"` 修改属性，同样会发生一个 `setName()` 方法的调用，于是，`EntityImplementation` 会使用“name”为键将传入的属性值保存到 values 中，同时还会记录一些额外的信息，以跟踪实体的状态变化。
 
 也就是说，每个实体对象的背后，都有一个属性表保存了它的所有属性值，所有对实体类属性的获取或修改操作，实际上都是在操作底层的这个属性表。但是，如果在获取属性值时，属性表中不存在对应的键会怎么样呢？比如一个刚刚创建的实体对象，它底层的属性表就是空的，不存在任何键。Ktorm 针对这种情况定义了一套具体的规则：
 
@@ -147,7 +147,7 @@ object Foos : Table<Foo>("t_foo") {
 - 对于集合类型，如 `Set`、`List`、`Map` 等，返回一个对应类型的新创建的空的可变集合
 - 其他未识别类型，调用其无参构造函数创建一个对象并返回，如果没有无参构造函数，则抛出异常
 
-另外，`EntityImpl` 内部对默认值存在一个缓存机制，即在没有修改属性值的情况下，多次调用 getter 获取到的默认值始终是同一个对象，以避免一些违反直觉的 bug。
+另外，`EntityImplementation` 内部对默认值存在一个缓存机制，即在没有修改属性值的情况下，多次调用 getter 获取到的默认值始终是同一个对象，以避免一些违反直觉的 bug。
 
 ### 非抽象成员
 
@@ -166,7 +166,7 @@ interface Foo : Entity<Foo> {
 
 在上面的例子中，如果我们调用 `Foo().printName()`，就会输出 `name` 属性的值。
 
-> 这看起来十分自然，但其背后的实现却没那么简单。我们知道，Ktorm 使用 JDK 动态代理创建实体对象，因此，`printName` 函数的调用实际上也会转发到 `EntityImpl` 内部。这时， `EntityImpl` 会检测到当前调用的函数并非抽象函数，然后自动查找到 `DefaultImpls` 类中的默认实现并调用之，然而在我们看起来，这跟直接调用该函数并没有任何区别。但是，如果你在方法上添加 `@JvmDefault` 注解，就可能导致 Ktorm 无法查找 `DefaultImpls` 类，具体原因有兴趣可以参考 [Kotlin 语言手册](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html)，这对我们使用 Ktorm 并无太大影响。
+> 这看起来十分自然，但其背后的实现却没那么简单。我们知道，Ktorm 使用 JDK 动态代理创建实体对象，因此，`printName` 函数的调用实际上也会转发到 `EntityImplementation` 内部。这时， `EntityImplementation` 会检测到当前调用的函数并非抽象函数，然后自动查找到 `DefaultImpls` 类中的默认实现并调用之，然而在我们看起来，这跟直接调用该函数并没有任何区别。但是，如果你在方法上添加 `@JvmDefault` 注解，就可能导致 Ktorm 无法查找 `DefaultImpls` 类，具体原因有兴趣可以参考 [Kotlin 语言手册](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html)，这对我们使用 Ktorm 并无太大影响。
 
 除了非抽象函数，Kotlin 也允许我们在接口中添加具有自定义 getter 或 setter 的属性。例如下面的代码，当调用 `upperName` 时，就会返回全大写的名称，其原理与前面所说的完全一致：
 
@@ -181,7 +181,7 @@ interface Foo : Entity<Foo> {
 
 `Entity` 接口继承了 `java.io.Serializable` 接口，所有的实体对象默认都是可序列化的，因此你可以将实体对象保存在磁盘中，或者通过网络在不同系统中传输，而不需要其他额外的工作。
 
-唯一需要注意的时，在序列化时，Ktorm 只会将保存各个属性的值，其他用于追踪实体状态变化的数据都会丢失（被标记为 transient），因此你无法在一个系统中获取实体，然后在另一个系统中调用实体的 `flushChanges` 方法将属性变化更新到数据库。
+唯一需要注意的时，在序列化时，Ktorm 将只会保存各个属性的值，其他用于追踪实体状态变化的数据都会丢失（被标记为 transient），因此你无法在一个系统中获取实体，然后在另一个系统中调用实体的 `flushChanges` 方法将属性变化更新到数据库。
 
 > Java 使用 `ObjectOutputStream` 实现对象序列化，使用 `ObjectInputStream` 实现反序列化，具体可以参考这两个类的文档。
 

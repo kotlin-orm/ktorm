@@ -1,5 +1,6 @@
 package me.liuwj.ktorm.entity
 
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.BinaryExpression
 import me.liuwj.ktorm.expression.BinaryExpressionType
@@ -114,7 +115,14 @@ private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpre
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
     val entity = doCreateEntity(row, skipReferences = false) as E
-    return entity.apply { clearChangesRecursively() }
+    entity.clearChangesRecursively()
+
+    val logger = Database.global.logger
+    if (logger != null && logger.isTraceEnabled()) {
+        logger.trace("Entity: $entity")
+    }
+
+    return entity
 }
 
 /**
@@ -123,7 +131,14 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {
     val entity = doCreateEntity(row, skipReferences = true) as E
-    return entity.apply { clearChangesRecursively() }
+    entity.clearChangesRecursively()
+
+    val logger = Database.global.logger
+    if (logger != null && logger.isTraceEnabled()) {
+        logger.trace("Entity: $entity")
+    }
+
+    return entity
 }
 
 private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): Entity<*> {

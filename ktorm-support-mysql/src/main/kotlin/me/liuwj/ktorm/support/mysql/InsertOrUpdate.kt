@@ -1,5 +1,6 @@
 package me.liuwj.ktorm.support.mysql
 
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
@@ -31,8 +32,15 @@ fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) ->
 
     val expression = InsertOrUpdateExpression(asExpression(), assignments, builder.updateAssignments)
 
-    expression.prepareStatement { statement, logger ->
-        return statement.executeUpdate().also { logger.debug("Effects: {}", it) }
+    expression.prepareStatement { statement ->
+        val effects = statement.executeUpdate()
+
+        val logger = Database.global.logger
+        if (logger != null && logger.isDebugEnabled()) {
+            logger.debug("Effects: $effects")
+        }
+
+        return effects
     }
 }
 

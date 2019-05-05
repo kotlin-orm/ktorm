@@ -2,8 +2,6 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import java.sql.Connection
 import java.sql.DatabaseMetaData
@@ -17,18 +15,18 @@ import javax.sql.DataSource
  *
  * @property transactionManager 事务管理器
  * @property dialect 数据库方言
+ * @property logger 需要使用的日志实现，默认为 null，不输出任何日志
  * @property exceptionTranslator 转换 SQL 执行过程中产生的异常，以便重新抛出，符合其他框架（如 Spring JDBC）的异常标准
  */
 class Database(
     val transactionManager: TransactionManager,
-    val dialect: SqlDialect,
+    val dialect: SqlDialect = StandardDialect,
+    val logger: Logger? = null,
     val exceptionTranslator: (SQLException) -> Throwable = { it }
 ) {
     init {
         lastConnected.set(this)
     }
-
-    val logger: Logger = LoggerFactory.getLogger(Database::class.java)
 
     /**
      * 数据库连接 URL
@@ -170,32 +168,51 @@ class Database(
         /**
          * 使用原生 JDBC 连接数据库，在回调函数中获取数据库连接
          */
-        fun connect(dialect: SqlDialect = StandardDialect, connector: () -> Connection): Database {
-            return Database(JdbcTransactionManager(connector), dialect)
+        fun connect(
+            dialect: SqlDialect = StandardDialect,
+            logger: Logger? = null,
+            connector: () -> Connection
+        ): Database {
+            return Database(JdbcTransactionManager(connector), dialect, logger)
         }
 
         /**
          * 使用原生 JDBC 连接数据库，在参数提供的数据源中获取连接
          */
-        fun connect(dataSource: DataSource, dialect: SqlDialect = StandardDialect): Database {
-            return connect(dialect) { dataSource.connection }
+        fun connect(
+            dataSource: DataSource,
+            dialect: SqlDialect = StandardDialect,
+            logger: Logger? = null
+        ): Database {
+            return connect(dialect, logger) { dataSource.connection }
         }
 
         /**
          * 使用原生 JDBC 连接数据库，参数提供数据库 url、驱动类名、用户名、密码
          */
-        fun connect(url: String, driver: String, user: String = "", password: String = "", dialect: SqlDialect = StandardDialect): Database {
+        fun connect(
+            url: String,
+            driver: String,
+            user: String = "",
+            password: String = "",
+            dialect: SqlDialect = StandardDialect,
+            logger: Logger? = null
+        ): Database {
             Class.forName(driver)
-            return connect(dialect) { DriverManager.getConnection(url, user, password) }
+            return connect(dialect, logger) { DriverManager.getConnection(url, user, password) }
         }
 
         /**
          * 使用 Spring 管理的数据源连接数据库
          */
-        fun connectWithSpringSupport(dataSource: DataSource, dialect: SqlDialect = StandardDialect): Database {
+        fun connectWithSpringSupport(
+            dataSource: DataSource,
+            dialect: SqlDialect = StandardDialect,
+            logger: Logger? = null
+        ): Database {
             val transactionManager = SpringManagedTransactionManager(dataSource)
             val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)
-            return Database(transactionManager, dialect) { exceptionTranslator.translate("Ktorm", null, it) }
+            return Database(transactionManager, dialect, logger) { exceptionTranslator.translate("Ktorm", null, it) }
         }
     }
 }

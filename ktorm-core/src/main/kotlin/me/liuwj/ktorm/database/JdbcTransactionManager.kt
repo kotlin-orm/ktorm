@@ -1,11 +1,8 @@
 package me.liuwj.ktorm.database
 
-import org.slf4j.LoggerFactory
 import java.sql.Connection
 
 class JdbcTransactionManager(val connector: () -> Connection) : TransactionManager {
-    private val logger = LoggerFactory.getLogger(javaClass)
-
     private val threadLocal = ThreadLocal<Transaction>()
 
     override val defaultIsolation = TransactionIsolation.REPEATABLE_READ
@@ -80,12 +77,12 @@ class JdbcTransactionManager(val connector: () -> Connection) : TransactionManag
                     autoCommit = true
                 }
             } catch (e: Throwable) {
-                logger.error("Error closing connection $this", e)
+                Database.global.logger?.error("Error closing connection $this", e)
             } finally {
                 try {
                     close()
                 } catch (e: Throwable) {
-                    logger.error("Error closing connection $this", e)
+                    Database.global.logger?.error("Error closing connection $this", e)
                 }
             }
         }

@@ -26,11 +26,17 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
      * 该查询的结果集对象，懒初始化，在通过 [Iterable] 对查询进行迭代的时候执行 SQL 获取结果集
      */
     val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
-        expression.prepareStatement { statement, logger ->
+        expression.prepareStatement { statement ->
             statement.executeQuery().use { rs ->
                 val rowSet = rowSetFactory.createCachedRowSet()
                 rowSet.populate(rs)
-                QueryRowSet(this, rowSet).apply { logger.debug("Results: {}", size()) }
+
+                val logger = Database.global.logger
+                if (logger != null && logger.isDebugEnabled()) {
+                    logger.debug("Results: ${rowSet.size()}")
+                }
+
+                QueryRowSet(this, rowSet)
             }
         }
     }
@@ -44,10 +50,16 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
         } else {
             val countExpr = expression.toCountExpression()
 
-            countExpr.prepareStatement { statement, logger ->
+            countExpr.prepareStatement { statement ->
                 statement.executeQuery().use { rs ->
                     if (rs.next()) {
-                        rs.getInt(1).also { logger.debug("Total Records: {}", it) }
+                        rs.getInt(1).also {
+                            val logger = Database.global.logger
+                            if (logger != null && logger.isDebugEnabled()) {
+                                logger.debug("Total Records: $it")
+                            }
+                        }
+
                     } else {
                         val (sql, _) = Database.global.formatExpression(countExpr, beautifySql = true)
                         throw IllegalStateException("No result return for sql: $sql")

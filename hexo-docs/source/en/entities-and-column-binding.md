@@ -122,13 +122,13 @@ object Foos : Table<Foo>("t_foo") {
 
 ## More About Entities
 
-We know that Ktorm's entity classes should be defined as interfaces extending from `Entity`, and we create entity objects via JDK dynamic proxy. If you have used dynamic proxy before, you may know proxy objects are created by `Proxy.newProxyInstance` method, providing an instance of `InvocationHandler`. When a method is invoked on a proxy instance, the method invocation is encoded and dispatched to the invocation handler. In Ktorm, `EntityImpl` is the implementation of entities' invocation handler. It's marked as internal, so we can not use it outside Ktorm, but we can learn its basic principles. 
+We know that Ktorm's entity classes should be defined as interfaces extending from `Entity`, and we create entity objects via JDK dynamic proxy. If you have used dynamic proxy before, you may know proxy objects are created by `Proxy.newProxyInstance` method, providing an instance of `InvocationHandler`. When a method is invoked on a proxy instance, the method invocation is encoded and dispatched to the invocation handler. In Ktorm, `EntityImplementation` is the implementation of entities' invocation handler. It's marked as internal, so we can not use it outside Ktorm, but we can learn its basic principles. 
 
 ### Getting and Setting Properties
 
-When we define a property `var name: String` in Kotlin, we actually define two methods in Java byte code, they are `public String getName()` and `public void setName(String name)`. The invocations on these two methods will also be dispatched to `EntityImpl`. 
+When we define a property `var name: String` in Kotlin, we actually define two methods in Java byte code, they are `public String getName()` and `public void setName(String name)`. The invocations on these two methods will also be dispatched to `EntityImplementation`. 
 
-There is a `values` property in `EntityImpl`, its type is `LinkedHashMap<String, Any?>`, and it holds all property values of the entity object. When we use `e.name` to obtain the property's value, `EntityImpl` receives an invocation on `getName()` method, then it will get the value from the `values` using the key "name". When we use `e.name = "foo"` to modify the property, `EntityImpl` also receives an invocation on `setName()` method, then it will put the given value to `values` and save some additional information to track the entity's status changes. 
+There is a `values` property in `EntityImplementation`, its type is `LinkedHashMap<String, Any?>`, and it holds all property values of the entity object. When we use `e.name` to obtain the property's value, `EntityImplementation` receives an invocation on `getName()` method, then it will get the value from the `values` using the key "name". When we use `e.name = "foo"` to modify the property, `EntityImplementation` also receives an invocation on `setName()` method, then it will put the given value to `values` and save some additional information to track the entity's status changes. 
 
 That is to say, behind every entity object, there is a value table that holds all the values of its properties. Any operation of getting or setting a property is actually operating the underlying value table. However, what if the value doesn't exist while we are getting a property? It's possible because any new-created entity object has an empty underlying value table. Ktorm defines a set of rules for this situation: 
 
@@ -147,7 +147,7 @@ The default values of different types are well-defined:
 - For collection types (such as `Set`, `List`, `Map`, etc), the default value is a new created mutable collection of the concrete type. 
 - For any other types, the default value is an instance created by its no-args constructor. If the constructor doesn't exist, an exception is thrown. 
 
-Moreover, there is a cache mechanism for default values in `EntityImpl`, that ensures a property always returns the same default value instance even if it's called twice or more. This can avoid some counterintuitive bugs. 
+Moreover, there is a cache mechanism for default values in `EntityImplementation`, that ensures a property always returns the same default value instance even if it's called twice or more. This can avoid some counterintuitive bugs. 
 
 ### Non-abstract Members
 
@@ -166,7 +166,7 @@ interface Foo : Entity<Foo> {
 
 Then if we call `Foo().printName()`, the value of the property `name` will be printed. 
 
-> That looks natural, but the underlying implementation is not that simple. We know that Ktorm creates entity objects via JDK dynamic proxy, and the invocation on `printName` function will also be delegated into `EntityImpl`. When `EntityImpl` receives the invocation, it finds that the calling function is not abstract, then it will search the default implementation in the generated `DefaultImpls` class and call it. That's transparent to us, and it looks no different from calling the function directly for us. Moreover, if we add a `@JvmDefault` annotation to the function, Ktorm may not be able to find the `DefaultImpls` class anymore, but that has little influence for us to use Ktorm, so just let it go. If you are really interested, please refer to [Kotlin Reference](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html).
+> That looks natural, but the underlying implementation is not that simple. We know that Ktorm creates entity objects via JDK dynamic proxy, and the invocation on `printName` function will also be delegated into `EntityImplementation`. When `EntityImplementation` receives the invocation, it finds that the calling function is not abstract, then it will search the default implementation in the generated `DefaultImpls` class and call it. That's transparent to us, and it looks no different from calling the function directly for us. Moreover, if we add a `@JvmDefault` annotation to the function, Ktorm may not be able to find the `DefaultImpls` class anymore, but that has little influence for us to use Ktorm, so just let it go. If you are really interested, please refer to [Kotlin Reference](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html).
 
 Besides of non-abstract functions, Kotlin also allows us to define properties with custom getters or setters in interfaces. For example, in the following code, if we call the `upperName` property, then the value of the `name` property will be returned in upper case. The principle is the same as we discussed above. 
 
