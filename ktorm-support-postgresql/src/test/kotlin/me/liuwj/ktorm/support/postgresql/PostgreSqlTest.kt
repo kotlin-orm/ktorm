@@ -1,11 +1,11 @@
 package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.database.ConsoleLogger
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.LogLevel
 import me.liuwj.ktorm.dsl.select
 import me.liuwj.ktorm.dsl.where
+import me.liuwj.ktorm.logging.ConsoleLogger
+import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
 
 /**

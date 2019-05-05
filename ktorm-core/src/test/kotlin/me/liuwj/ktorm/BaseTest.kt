@@ -1,10 +1,10 @@
 package me.liuwj.ktorm
 
-import me.liuwj.ktorm.database.ConsoleLogger
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.LogLevel
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.entity.Entity
+import me.liuwj.ktorm.logging.ConsoleLogger
+import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.*
 import org.junit.After
 import org.junit.Before

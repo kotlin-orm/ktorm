@@ -1,12 +1,12 @@
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.database.ConsoleLogger
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.LogLevel
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
+import me.liuwj.ktorm.logging.ConsoleLogger
+import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
 import java.time.LocalDate
 
