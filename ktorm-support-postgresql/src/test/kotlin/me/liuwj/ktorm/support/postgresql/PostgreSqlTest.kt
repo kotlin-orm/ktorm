@@ -1,7 +1,9 @@
 package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.database.ConsoleLogger
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.LogLevel
 import me.liuwj.ktorm.dsl.select
 import me.liuwj.ktorm.dsl.where
 import org.junit.Test
@@ -12,7 +14,12 @@ import org.junit.Test
 class PostgreSqlTest : BaseTest() {
 
     override fun connect() {
-        Database.connect(url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver", dialect = PostgreSqlDialect)
+        Database.connect(
+            url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
+            driver = "org.h2.Driver",
+            dialect = PostgreSqlDialect,
+            logger = ConsoleLogger(threshold = LogLevel.TRACE)
+        )
     }
 
     @Test

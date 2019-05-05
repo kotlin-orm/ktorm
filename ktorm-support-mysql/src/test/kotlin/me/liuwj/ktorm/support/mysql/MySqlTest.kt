@@ -1,7 +1,9 @@
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.database.ConsoleLogger
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.LogLevel
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
@@ -18,7 +20,8 @@ class MySqlTest : BaseTest() {
             url = "jdbc:mysql://127.0.0.1:3306/ktorm",
             driver = "com.mysql.jdbc.Driver",
             user = "root",
-            dialect = MySqlDialect
+            dialect = MySqlDialect,
+            logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
     }
 

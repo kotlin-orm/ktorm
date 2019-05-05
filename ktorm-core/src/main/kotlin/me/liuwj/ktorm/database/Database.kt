@@ -15,13 +15,13 @@ import javax.sql.DataSource
  *
  * @property transactionManager 事务管理器
  * @property dialect 数据库方言
- * @property logger 需要使用的日志实现，默认为 null，不输出任何日志
+ * @property logger 需要使用的日志实现
  * @property exceptionTranslator 转换 SQL 执行过程中产生的异常，以便重新抛出，符合其他框架（如 Spring JDBC）的异常标准
  */
 class Database(
     val transactionManager: TransactionManager,
     val dialect: SqlDialect = StandardDialect,
-    val logger: Logger? = null,
+    val logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),
     val exceptionTranslator: (SQLException) -> Throwable = { it }
 ) {
     init {
@@ -170,7 +170,7 @@ class Database(
          */
         fun connect(
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = null,
+            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),
             connector: () -> Connection
         ): Database {
             return Database(JdbcTransactionManager(connector), dialect, logger)
@@ -182,7 +182,7 @@ class Database(
         fun connect(
             dataSource: DataSource,
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = null
+            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO)
         ): Database {
             return connect(dialect, logger) { dataSource.connection }
         }
@@ -196,7 +196,7 @@ class Database(
             user: String = "",
             password: String = "",
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = null
+            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO)
         ): Database {
             Class.forName(driver)
             return connect(dialect, logger) { DriverManager.getConnection(url, user, password) }
@@ -208,7 +208,7 @@ class Database(
         fun connectWithSpringSupport(
             dataSource: DataSource,
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = null
+            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO)
         ): Database {
             val transactionManager = SpringManagedTransactionManager(dataSource)
             val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)
