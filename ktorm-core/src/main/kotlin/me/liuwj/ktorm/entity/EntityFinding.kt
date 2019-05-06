@@ -6,7 +6,7 @@ import me.liuwj.ktorm.expression.BinaryExpression
 import me.liuwj.ktorm.expression.BinaryExpressionType
 import me.liuwj.ktorm.expression.QuerySourceExpression
 import me.liuwj.ktorm.schema.*
-import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * 根据 ID 批量获取实体对象，会自动 left join 所有的引用表
@@ -167,7 +167,7 @@ private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>,
 
             when {
                 skipReferences -> {
-                    val child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = rightTable)
+                    val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = rightTable)
                     child.implementation.setColumnValue(primaryKey, columnValue)
                     intoEntity[binding.onProperty.name] = child
                 }

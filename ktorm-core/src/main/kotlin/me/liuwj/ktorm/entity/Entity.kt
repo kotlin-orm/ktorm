@@ -7,6 +7,7 @@ import java.lang.reflect.Proxy
 import java.sql.SQLException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * 实体类必须实现的接口，为实体类注入通用的操作方法
@@ -113,8 +114,7 @@ interface Entity<E : Entity<E>> : Serializable {
          */
         @Suppress("UNCHECKED_CAST")
         operator fun invoke(): E {
-            val entityClass = referencedKotlinType.classifier as KClass<E>
-            return create(entityClass, null, null) as E
+            return create(referencedKotlinType.jvmErasure, null, null) as E
         }
 
         /**

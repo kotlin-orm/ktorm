@@ -7,6 +7,7 @@ import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmErasure
 
 @PublishedApi
 internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>>) : InvocationHandler {
@@ -27,7 +28,7 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
 
                 properties += prop
 
-                val returnType = prop.returnType.classifier as KClass<*>
+                val returnType = prop.returnType.jvmErasure
                 return when {
                     returnType.isSubclassOf(Entity::class) -> createProxy(returnType, properties)
                     returnType.java.isPrimitive -> returnType.defaultValue

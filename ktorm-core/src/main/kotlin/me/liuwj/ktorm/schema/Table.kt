@@ -9,6 +9,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * SQL 数据表
@@ -30,7 +31,7 @@ open class Table<E : Entity<E>>(
     private val _columns = LinkedHashMap<String, Column<*>>()
     private var _primaryKeyName: String? = null
 
-    val entityClass: KClass<E>? = entityClass ?: (referencedKotlinType.classifier as? KClass<E>)?.takeIf { it != Nothing::class }
+    val entityClass: KClass<E>? = entityClass ?: (referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
     val columns: List<Column<*>> get() = _columns.values.toList()
 

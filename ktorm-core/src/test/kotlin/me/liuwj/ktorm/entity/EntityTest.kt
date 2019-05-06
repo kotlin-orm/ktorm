@@ -10,6 +10,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDate
 import java.util.*
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Created by vince on Dec 09, 2018.
@@ -20,7 +21,7 @@ class EntityTest : BaseTest() {
     fun testTypeReference() {
         println(Employee)
         println(Employee.referencedKotlinType)
-        assert(Employee.referencedKotlinType.classifier == Employee::class)
+        assert(Employee.referencedKotlinType.jvmErasure == Employee::class)
 
         println(Employees)
         println(Employees.entityClass)

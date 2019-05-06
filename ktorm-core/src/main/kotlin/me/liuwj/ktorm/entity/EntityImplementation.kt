@@ -13,6 +13,7 @@ import java.util.*
 import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -72,7 +73,7 @@ internal class EntityImplementation(
                     if (result != null || prop.returnType.isMarkedNullable) {
                         return result
                     } else {
-                        val defValue = (prop.returnType.classifier as KClass<*>).defaultValue
+                        val defValue = prop.returnType.jvmErasure.defaultValue
                         this.setProperty(prop.name, defValue)
                         return defValue
                     }

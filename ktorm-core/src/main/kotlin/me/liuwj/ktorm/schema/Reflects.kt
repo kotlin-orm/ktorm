@@ -11,6 +11,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaSetter
+import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -44,19 +45,12 @@ abstract class TypeReference<T> {
     }
 
     private fun findSuperclassTypeArgument(cls: KClass<*>): KType {
-        val supertype = cls.supertypes.first {
-            val rawClass = it.classifier as? KClass<*>
-            if (rawClass == null) {
-                false
-            } else {
-                !rawClass.java.isInterface
-            }
-        }
+        val supertype = cls.supertypes.first { !it.jvmErasure.java.isInterface }
 
         if (supertype.arguments.isEmpty()) {
-            if (supertype.classifier != TypeReference::class) {
+            if (supertype.jvmErasure != TypeReference::class) {
                 // Try to climb up the hierarchy until meet something useful.
-                return findSuperclassTypeArgument(supertype.classifier as KClass<*>)
+                return findSuperclassTypeArgument(supertype.jvmErasure)
             } else {
                 throw IllegalStateException("Could not find the referenced type of class $javaClass")
             }

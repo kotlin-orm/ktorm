@@ -1,8 +1,11 @@
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.schema.*
+import me.liuwj.ktorm.schema.Column
+import me.liuwj.ktorm.schema.NestedBinding
+import me.liuwj.ktorm.schema.ReferenceBinding
+import me.liuwj.ktorm.schema.Table
 import java.util.*
-import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmErasure
 
 internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? {
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
@@ -42,7 +45,7 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
         is ReferenceBinding -> {
             var child = this.getProperty(binding.onProperty.name) as Entity<*>?
             if (child == null) {
-                child = Entity.create(binding.onProperty.returnType.classifier as KClass<*>, fromTable = binding.referenceTable)
+                child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = binding.referenceTable)
                 this.setProperty(binding.onProperty.name, child, forceSet)
             }
 
@@ -54,7 +57,7 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
                 if (i != binding.properties.lastIndex) {
                     var child = curr.getProperty(prop.name) as Entity<*>?
                     if (child == null) {
-                        child = Entity.create(prop.returnType.classifier as KClass<*>, parent = curr)
+                        child = Entity.create(prop.returnType.jvmErasure, parent = curr)
                         curr.setProperty(prop.name, child, forceSet)
                     }
 
