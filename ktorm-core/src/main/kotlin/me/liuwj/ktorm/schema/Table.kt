@@ -31,7 +31,7 @@ open class Table<E : Entity<E>>(
     private val _columns = LinkedHashMap<String, Column<*>>()
     private var _primaryKeyName: String? = null
 
-    val entityClass: KClass<E>? = entityClass ?: (referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
+    val entityClass: KClass<E>? = (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
     val columns: List<Column<*>> get() = _columns.values.toList()
 
