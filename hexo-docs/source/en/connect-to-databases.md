@@ -92,3 +92,52 @@ h2 {
 ```
 
 The code above connects to two different databases using `Database.connect` and shows how to switch between them. The `Database` class overloads `invoke` operator with a closure function as the parameter. In the scope of the closure, `Database.global` will always return the current database which is exactly the one calling the `invoke` operator. This is the way Ktorm supports multi-databases. 
+
+## Logging
+
+By default, Ktorm doesn't output logs unless exceptions occurred for performance reasons. If you want to monitor Ktorm's running process, you may need to configure the logging output. 
+
+In order not to depend on any third-party logging frameworks, Ktorm adds a simple abstraction layer for logging, in which there are only two core classes: 
+
+- `LogLevel`: similar to most of the logging frameworks, it's an enum class that contains five logging levels: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`.
+- `Logger`: an interface that provides some methods used to output logs.
+
+Ktorm provides many implementations for the `Logger` interface: 
+
+| Class Name           | Description                                  |
+| -------------------- | -------------------------------------------- |
+| ConsoleLogger        | Ouput logs to the console                    |
+| JdkLoggerAdapter     | Delegate logs to java.util.logging           |
+| Slf4jLoggerAdapter   | Delegate logs to slf4j framework             |
+| CommonsLoggerAdapter | Delegate logs to  Apache commons logging lib |
+| AndroidLoggerAdapter | Delegate logs to android.util.Log            |
+
+By default, a `ConsoleLogger(threshold = LogLevel.INFO)` is configured by Ktorm, so only logs whose level is greater or equal to `INFO` can be printed to the console. If you want to print the generated SQLs and the execution arguments of them, you can modify the `threshold` to `DEBUG`: 
+
+```kotlin
+val db = Database.connect(
+    url = "jdbc:mysql://localhost:3306/ktorm", 
+    driver = "com.mysql.jdbc.Driver", 
+    user = "root", 
+    password = "***",
+    logger = ConsoleLogger(threshold = LogLevel.DEBUG)
+)
+```
+
+Moreover, if you also want to print the data of every returned entity object, you can modify the `threshold` to `TRACE`. In this way, more logs are printed. 
+
+Of course, Ktorm only supports to output logs to the console and that's not enough. If more powerful logging features are needed, you need a third-party logging framework, such as slf4j: 
+
+```kotlin
+val logger = LoggerFactory.getLogger("ktorm-logger")
+
+val db = Database.connect(
+    url = "jdbc:mysql://localhost:3306/ktorm", 
+    driver = "com.mysql.jdbc.Driver", 
+    user = "root", 
+    password = "***",
+    logger = Slf4jLoggerAdapter(logger)
+)
+```
+
+In this way, Ktorm's logs will be delegated to slf4j, and if you want to print generated SQLs in this case, you should modify the slf4j's config files instead.

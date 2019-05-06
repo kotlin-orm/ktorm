@@ -27,44 +27,58 @@ class Database(
     val logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),
     val exceptionTranslator: (SQLException) -> Throwable = { it }
 ) {
-    init {
-        lastConnected.set(this)
-    }
-
     /**
      * 数据库连接 URL
      */
-    val url: String by lazy { useMetadata { it.url } }
+    lateinit var url: String private set
 
     /**
      * 所连接的数据库名称
      */
-    val name: String get() = url.substringAfterLast('/').substringBefore('?')
+    lateinit var name: String private set
 
     /**
      * 数据库产品名称，如 MySQL
      */
-    val productName: String by lazy { useMetadata { it.databaseProductName } }
+    lateinit var productName: String private set
 
     /**
      * 数据库版本号
      */
-    val productVersion: String by lazy { useMetadata { it.databaseProductVersion } }
+    lateinit var productVersion: String private set
 
     /**
      * SQL 关键字集合（大写）
      */
-    val keywords: Set<String> by lazy { useMetadata { ANSI_SQL_2003_KEYWORDS + it.sqlKeywords.toUpperCase().split(',') } }
+    lateinit var keywords: Set<String> private set
 
     /**
      * 用于括住特殊 SQL 标识符的字符串，如 `un-standard identifier`
      */
-    val identifierQuoteString: String by lazy { useMetadata { it.identifierQuoteString.trim() } }
+    lateinit var identifierQuoteString: String private set
 
     /**
      * 可在 SQL 标识符中使用的字符（除字母、数字、下划线以外）
      */
-    val extraNameCharacters: String by lazy { useMetadata { it.extraNameCharacters } }
+    lateinit var extraNameCharacters: String private set
+
+    init {
+        lastConnected.set(this)
+
+        useMetadata { metadata ->
+            url = metadata.url
+            name = url.substringAfterLast('/').substringBefore('?')
+            productName = metadata.databaseProductName
+            productVersion = metadata.databaseProductVersion
+            keywords = ANSI_SQL_2003_KEYWORDS + metadata.sqlKeywords.toUpperCase().split(',')
+            identifierQuoteString = metadata.identifierQuoteString.trim()
+            extraNameCharacters = metadata.extraNameCharacters
+        }
+
+        if (logger != null && logger.isInfoEnabled()) {
+            logger.info("Connected to $url, productName: $productName, productVersion: $productVersion")
+        }
+    }
 
     /**
      * 在回调函数中使用数据库元数据，函数调用后，会自动关闭 metadata

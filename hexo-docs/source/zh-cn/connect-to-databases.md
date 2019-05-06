@@ -93,3 +93,51 @@ h2 {
 
 上面的代码先后使用 `connect` 方法连接上了两个数据库，并示范了如何在不同的数据库之间进行切换。因为 `Database` 重载了 `invoke` 操作符，接收一个闭包函数作为参数，在这个闭包函数中的作用域中，使用 `Database.global` 获取到的数据库对象会变成当前对象，因此达到了切换数据库的目的。
 
+## 日志输出
+
+默认情况下，为了性能考虑，除非发生异常，Ktorm 在运行过程中几乎不会输出任何日志。如果你希望能够监控到 Ktorm 的运行过程，就需要对 Ktorm 的日志输出进行配置。
+
+为了不依赖任何第三方的日志框架，Ktorm 自己对日志输出做了一个十分简单的抽象层，其中只有两个核心的类：
+
+- `LogLevel`：这是一个枚举类，与大部分日志框架类似，Ktorm 定义了五种日志级别，它们分别是 `TRACE`、`DEBUG`、`INFO`、`WARN`、`ERROR`。
+- `Logger`：这是一个接口，它里面定义了用于输出日志的各种方法。
+
+其中，`Logger` 接口有如下实现：
+
+| 类名                 | 功能                                        |
+| -------------------- | ------------------------------------------- |
+| ConsoleLogger        | 将日志输出到控制台                          |
+| JdkLoggerAdapter     | 将日志委托给 java.util.logging 中的日志框架 |
+| Slf4jLoggerAdapter   | 将日志委托给 slf4j 日志门面                 |
+| CommonsLoggerAdapter | 将日志委托给 Apache Commons 日志门面        |
+| AndroidLoggerAdapter | 将日志委托给 android.util.Log               |
+
+默认情况下，Ktorm 使用的 logger 实现为 `ConsoleLogger(threshold = LogLevel.INFO)`，因此，只有级别大于或等于 `INFO` 的日志才会输出到控制台。如果你想看到 Ktorm 生成的 SQL 以及 SQL 的执行参数，可以把 `threshold` 设置为 `DEBUG`：
+
+```kotlin
+val db = Database.connect(
+    url = "jdbc:mysql://localhost:3306/ktorm", 
+    driver = "com.mysql.jdbc.Driver", 
+    user = "root", 
+    password = "***",
+    logger = ConsoleLogger(threshold = LogLevel.DEBUG)
+)
+```
+
+如果你不仅要看到生成的 SQL，还想看到查询返回的每一个实体对象的数据，还可以把 `threshold` 设置为 `TRACE`，这样将会输出更多的日志。
+
+当然，Ktorm 本身只支持简单把日志输出到控制台，这是远远不够的。如果你希望拥有更强大的日志功能，应该使用第三方的日志框架，比如 slf4j：
+
+```kotlin
+val logger = LoggerFactory.getLogger("ktorm-logger")
+
+val db = Database.connect(
+    url = "jdbc:mysql://localhost:3306/ktorm", 
+    driver = "com.mysql.jdbc.Driver", 
+    user = "root", 
+    password = "***",
+    logger = Slf4jLoggerAdapter(logger)
+)
+```
+
+这样，Ktorm 的日志输出将会完全委托给 slf4j，此时如果要输出生成的 SQL，就需要修改 slf4j 相应的配置文件了。
