@@ -14,7 +14,9 @@ data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
 
         init {
             val keyColumn = keySelector(sequence.sourceTable)
-            val expr = sequence.expression.copy(columns = sequence.expression.columns + keyColumn.asDeclaringExpression())
+            val expr = sequence.expression.copy(
+                columns = sequence.expression.columns + keyColumn.asDeclaringExpression()
+            )
 
             for (row in Query(expr)) {
                 val entity = sequence.sourceTable.createEntity(row)
@@ -33,16 +35,16 @@ data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
     }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregateColumns(
+inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
+): Map<K?, C?> where K : Any, C : Any {
     return aggregateColumnsTo(LinkedHashMap(), aggregationSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
+inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
     destination: M,
     aggregationSelector: (T) -> ColumnDeclaring<C>
-): M where M : MutableMap<in K?, in C?> {
+): M where K : Any, C : Any, M : MutableMap<in K?, in C?> {
     val keyColumn = keySelector(sequence.sourceTable)
     val aggregation = aggregationSelector(sequence.sourceTable)
 
@@ -60,66 +62,66 @@ inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any, M> EntityGrouping<E, 
     return destination
 }
 
-fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachCount(): Map<K?, Int> {
+fun <E : Entity<E>, T : Table<E>, K> EntityGrouping<E, T, K>.eachCount(): Map<K?, Int> where K : Any {
     return eachCountTo(LinkedHashMap())
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, Int>> EntityGrouping<E, T, K>.eachCountTo(
+fun <E : Entity<E>, T : Table<E>, K, M> EntityGrouping<E, T, K>.eachCountTo(
     destination: M
-): M {
+): M where K : Any, M : MutableMap<in K?, Int> {
     return aggregateColumnsTo(destination as MutableMap<in K?, Int?>) { count() } as M
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachSumBy(
+inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachSumBy(
     columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
+): Map<K?, C?> where K : Any, C : Number {
     return eachSumByTo(LinkedHashMap(), columnSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachSumByTo(
+inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachSumByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
-): M {
+): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
     return aggregateColumnsTo(destination) { sum(columnSelector(it)) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMaxBy(
+inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachMaxBy(
     columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
+): Map<K?, C?> where K : Any, C : Number {
     return eachMaxByTo(LinkedHashMap(), columnSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMaxByTo(
+inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachMaxByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
-): M {
+): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
     return aggregateColumnsTo(destination) { max(columnSelector(it)) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number> EntityGrouping<E, T, K>.eachMinBy(
+inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachMinBy(
     columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> {
+): Map<K?, C?> where K : Any, C : Number {
     return eachMinByTo(LinkedHashMap(), columnSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Number, M : MutableMap<in K?, in C?>> EntityGrouping<E, T, K>.eachMinByTo(
+inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachMinByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
-): M {
+): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
     return aggregateColumnsTo(destination) { min(columnSelector(it)) }
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any> EntityGrouping<E, T, K>.eachAverageBy(
+inline fun <E : Entity<E>, T : Table<E>, K> EntityGrouping<E, T, K>.eachAverageBy(
     columnSelector: (T) -> ColumnDeclaring<out Number>
-): Map<K?, Double?> {
+): Map<K?, Double?> where K : Any {
     return eachAverageByTo(LinkedHashMap(), columnSelector)
 }
 
-inline fun <E : Entity<E>, T : Table<E>, K : Any, M : MutableMap<in K?, in Double?>> EntityGrouping<E, T, K>.eachAverageByTo(
+inline fun <E : Entity<E>, T : Table<E>, K, M> EntityGrouping<E, T, K>.eachAverageByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<out Number>
-): M {
+): M where K : Any, M : MutableMap<in K?, in Double?> {
     return aggregateColumnsTo(destination) { avg(columnSelector(it)) }
 }
 

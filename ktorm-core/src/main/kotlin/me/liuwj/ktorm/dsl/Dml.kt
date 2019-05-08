@@ -91,7 +91,7 @@ private fun List<SqlExpression>.executeBatch(): IntArray {
  */
 fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    AssignmentsBuilder(assignments).apply { block(this@insert) }
+    AssignmentsBuilder(assignments).block(this)
 
     val expression = AliasRemover.visit(InsertExpression(asExpression(), assignments))
     return expression.executeUpdate()
@@ -116,7 +116,7 @@ fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Uni
  */
 fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    AssignmentsBuilder(assignments).apply { block(this@insertAndGenerateKey) }
+    AssignmentsBuilder(assignments).block(this)
 
     val expression = AliasRemover.visit(InsertExpression(asExpression(), assignments))
 
@@ -138,7 +138,6 @@ fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit)
                 }
 
                 return generatedKey
-
             } else {
                 error("No generated key returns by database.")
             }
@@ -193,15 +192,19 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
     @JvmName("toAny")
     infix fun Column<*>.to(argument: Any?) {
         if (argument == null) {
-            (this as Column<Any>) to (null as Any?)
+            this as Column<Any> to null as Any?
         } else {
-            throw IllegalArgumentException("Argument type ${argument.javaClass.name} cannot assign to ${sqlType.typeName}")
+            val msg = "Argument type ${argument.javaClass.name} cannot assign to ${sqlType.typeName}"
+            throw IllegalArgumentException(msg)
         }
     }
 }
 
 @KtormDsl
-class UpdateStatementBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) : AssignmentsBuilder(assignments) {
+class UpdateStatementBuilder(
+    assignments: MutableList<ColumnAssignmentExpression<*>>
+) : AssignmentsBuilder(assignments) {
+
     internal var where: ColumnDeclaring<Boolean>? = null
 
     fun where(block: () -> ColumnDeclaring<Boolean>) {

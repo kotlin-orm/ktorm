@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.expression.OrderByExpression
@@ -27,6 +28,7 @@ data class EntitySequence<E : Entity<E>, T : Table<E>>(
 
     fun asKotlinSequence() = Sequence { iterator() }
 
+    @Suppress("IteratorNotThrowingNoSuchElementException")
     operator fun iterator() = object : Iterator<E> {
         private val queryIterator = query.iterator()
 
@@ -246,7 +248,8 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregate
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(): Int {
-    return aggregateColumns { me.liuwj.ktorm.dsl.count() } ?: error("Count expression returns null, which never happens.")
+    val count = aggregateColumns { me.liuwj.ktorm.dsl.count() }
+    return count ?: error("Count expression returns null, which should never happens.")
 }
 
 inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.count(
@@ -362,24 +365,35 @@ inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.a
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
     try {
         return drop(index).take(1).asKotlinSequence().firstOrNull()
-    } catch (e: UnsupportedOperationException) {
+    } catch (e: DialectFeatureNotSupportedException) {
+        val logger = Database.global.logger
+        if (logger != null && logger.isTraceEnabled()) {
+            logger.trace("Pagination is not supported, retrieving all records instead: ", e)
+        }
+
         return asKotlinSequence().elementAtOrNull(index)
     }
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(index: Int, defaultValue: (Int) -> E): E {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAtOrElse(
+    index: Int,
+    defaultValue: (Int) -> E
+): E {
     return elementAtOrNull(index) ?: defaultValue(index)
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.elementAt(index: Int): E {
-    return elementAtOrNull(index) ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
+    val result = elementAtOrNull(index)
+    return result ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
 }
 
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(): E? {
     return elementAtOrNull(0)
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.firstOrNull(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E? {
     return filter(predicate).elementAtOrNull(0)
 }
 
@@ -395,7 +409,9 @@ fun <E : Entity<E>> EntitySequence<E, *>.lastOrNull(): E? {
     return asKotlinSequence().lastOrNull()
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.lastOrNull(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E? {
     return filter(predicate).lastOrNull()
 }
 
@@ -419,7 +435,9 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.singleOrNull(): E? {
     return asKotlinSequence().singleOrNull()
 }
 
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.singleOrNull(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.singleOrNull(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E? {
     return filter(predicate).singleOrNull()
 }
 

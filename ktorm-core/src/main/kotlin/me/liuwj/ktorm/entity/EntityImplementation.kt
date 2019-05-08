@@ -13,6 +13,7 @@ import java.util.*
 import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
@@ -63,6 +64,7 @@ internal class EntityImplementation(
         }
     }
 
+    @Suppress("NestedBlockDepth")
     private fun handleMethodCall(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         val ktProp = method.kotlinProperty
         if (ktProp != null) {
@@ -73,9 +75,7 @@ internal class EntityImplementation(
                     if (result != null || prop.returnType.isMarkedNullable) {
                         return result
                     } else {
-                        val defValue = prop.returnType.jvmErasure.defaultValue
-                        this.setProperty(prop.name, defValue)
-                        return defValue
+                        return prop.defaultValue.also { this.setProperty(prop.name, it) }
                     }
                 } else {
                     this.setProperty(prop.name, args!![0])
@@ -94,6 +94,19 @@ internal class EntityImplementation(
         }
     }
 
+    private val KProperty1<*, *>.defaultValue: Any get() {
+        try {
+            return returnType.jvmErasure.defaultValue
+        } catch (e: Throwable) {
+            val msg =
+                "The value of non-null property [$this] doesn't exist, " +
+                "an error occurred while trying to create a default one. " +
+                "Please ensure its value exists, or you can mark the return type nullable [${this.returnType}?]"
+            throw IllegalStateException(msg, e)
+        }
+    }
+
+    @Suppress("SwallowedException")
     private fun callDefaultImpl(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         val impl = defaultImplsCache.computeIfAbsent(method) {
             val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
@@ -106,12 +119,8 @@ internal class EntityImplementation(
             } else {
                 return impl.invoke(null, proxy, *args)
             }
-
         } catch (e: InvocationTargetException) {
             throw e.targetException
-
-        } catch (e: Throwable) {
-            throw e
         }
     }
 
@@ -121,7 +130,8 @@ internal class EntityImplementation(
 
     fun setProperty(name: String, value: Any?, forceSet: Boolean = false) {
         if (!forceSet && isPrimaryKey(name) && name in values) {
-            throw UnsupportedOperationException("Cannot modify the primary key value because it's already set to ${values[name]}")
+            val msg = "Cannot modify the primary key value because it's already set to ${values[name]}"
+            throw UnsupportedOperationException(msg)
         }
 
         values[name] = value

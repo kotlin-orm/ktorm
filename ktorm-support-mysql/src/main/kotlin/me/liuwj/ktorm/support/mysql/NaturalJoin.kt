@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.expression.QuerySourceExpression

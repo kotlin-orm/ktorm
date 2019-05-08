@@ -4,9 +4,15 @@ import me.liuwj.ktorm.entity.Entity
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
+import java.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 import kotlin.reflect.jvm.jvmErasure
 
 @PublishedApi
@@ -15,15 +21,15 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         when (method.declaringClass.kotlin) {
             Any::class, Entity::class -> {
-                throw UnsupportedOperationException("Unsupported method: $method")
+                error("Unsupported method: $method")
             }
             else -> {
-                val (prop, isGetter) = method.kotlinProperty ?: throw UnsupportedOperationException("Unsupported method: $method")
+                val (prop, isGetter) = method.kotlinProperty ?: error("Unsupported method: $method")
                 if (!prop.isAbstract) {
-                    throw UnsupportedOperationException("Cannot bind a column to a non-abstract property: $prop")
+                    error("Cannot bind a column to a non-abstract property: $prop")
                 }
                 if (!isGetter) {
-                    throw UnsupportedOperationException("Cannot modify a property while we are binding a column to it, property: $prop")
+                    error("Cannot modify a property while we are binding a column to it, property: $prop")
                 }
 
                 properties += prop
@@ -38,6 +44,10 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
         }
     }
 
+    private fun error(msg: String): Nothing {
+        throw UnsupportedOperationException(msg)
+    }
+
     companion object {
 
         fun createProxy(entityClass: KClass<*>, properties: MutableList<KProperty1<*, *>>): Entity<*> {
@@ -46,4 +56,52 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
             return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), handler) as Entity<*>
         }
     }
+}
+
+internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
+    for (prop in declaringClass.kotlin.declaredMemberProperties) {
+        if (prop.javaGetter == this) {
+            return prop to true
+        }
+        if (prop is KMutableProperty<*> && prop.javaSetter == this) {
+            return prop to false
+        }
+    }
+    return null
+}
+
+internal val KClass<*>.defaultValue: Any get() {
+    val value = when {
+        this == Boolean::class -> false
+        this == Char::class -> 0.toChar()
+        this == Byte::class -> 0.toByte()
+        this == Short::class -> 0.toShort()
+        this == Int::class -> 0
+        this == Long::class -> 0L
+        this == Float::class -> 0.0F
+        this == Double::class -> 0.0
+        this == String::class -> ""
+        this.isSubclassOf(Entity::class) -> Entity.create(this)
+        this.java.isEnum -> this.java.enumConstants[0]
+        this.java.isArray -> this.java.componentType.createArray(0)
+        this == Set::class || this == MutableSet::class -> LinkedHashSet<Any?>()
+        this == List::class || this == MutableList::class -> ArrayList<Any?>()
+        this == Collection::class || this == MutableCollection::class -> ArrayList<Any?>()
+        this == Map::class || this == MutableMap::class -> LinkedHashMap<Any?, Any?>()
+        this == Queue::class || this == Deque::class -> LinkedList<Any?>()
+        this == SortedSet::class || this == NavigableSet::class -> TreeSet<Any?>()
+        this == SortedMap::class || this == NavigableMap::class -> TreeMap<Any?, Any?>()
+        else -> this.createInstance()
+    }
+
+    if (this.isInstance(value)) {
+        return value
+    } else {
+        // never happens...
+        throw AssertionError("$value must be instance of $this")
+    }
+}
+
+private fun Class<*>.createArray(length: Int): Any {
+    return java.lang.reflect.Array.newInstance(this, length)
 }

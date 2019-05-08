@@ -1,7 +1,7 @@
 package me.liuwj.ktorm.jackson
 
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonToken
+import com.fasterxml.jackson.core.JsonToken.START_OBJECT
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.module.SimpleSerializers
@@ -69,7 +69,7 @@ internal class EntitySerializers : SimpleSerializers() {
             gen.configureIndentOutputIfEnabled()
 
             val properties = entity.entityClass.memberProperties.associateBy { it.name }
-            val typeId = typeSer.writeTypePrefix(gen, typeSer.typeId(entity, entity.entityClass.java, JsonToken.START_OBJECT))
+            val typeId = typeSer.writeTypePrefix(gen, typeSer.typeId(entity, entity.entityClass.java, START_OBJECT))
 
             for ((name, value) in entity.properties) {
                 val prop = properties[name] ?: continue

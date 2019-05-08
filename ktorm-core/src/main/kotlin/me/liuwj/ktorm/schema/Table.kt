@@ -31,7 +31,8 @@ open class Table<E : Entity<E>>(
     private val _columns = LinkedHashMap<String, Column<*>>()
     private var _primaryKeyName: String? = null
 
-    val entityClass: KClass<E>? = (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
+    val entityClass: KClass<E>? =
+        (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
     val columns: List<Column<*>> get() = _columns.values.toList()
 
@@ -86,15 +87,15 @@ open class Table<E : Entity<E>>(
     private fun copyReference(table: Table<*>): Table<*> {
         val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
 
-        val columns = copy.columns.map {
-            val binding = it.binding
+        val columns = copy.columns.map { column ->
+            val binding = column.binding
             if (binding !is ReferenceBinding) {
-                it
+                column
             } else {
                 val newBinding = binding.copy(referenceTable = copyReference(binding.referenceTable))
-                when (it) {
-                    is SimpleColumn -> it.copy(binding = newBinding)
-                    is AliasedColumn -> it.copy(binding = newBinding)
+                when (column) {
+                    is SimpleColumn -> column.copy(binding = newBinding)
+                    is AliasedColumn -> column.copy(binding = newBinding)
                 }
             }
         }
@@ -228,14 +229,12 @@ open class Table<E : Entity<E>>(
             return this
         }
 
-        /**
-         * Check if the [root] table has the reference to current table.
-         */
         private fun checkCircularReference(root: Table<*>, stack: LinkedList<String> = LinkedList()) {
             stack.push(root.tableName)
 
             if (tableName == root.tableName) {
-                throw IllegalArgumentException("Circular reference detected, current table: $tableName, reference route: ${stack.asReversed()}")
+                val msg = "Circular reference detected, current table: %s, reference route: %s"
+                throw IllegalArgumentException(msg.format(tableName, stack.asReversed()))
             }
 
             for (column in root.columns) {
@@ -246,45 +245,6 @@ open class Table<E : Entity<E>>(
             }
 
             stack.pop()
-        }
-
-        @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Deprecated method, please use references(table) { it.prop } instead", level = DeprecationLevel.ERROR)
-        fun <R : Entity<R>> references(referenceTable: Table<R>, onProperty: KProperty1<E, R?>): ColumnRegistration<C> {
-            throw UnsupportedOperationException("Deprecated method, please use references(table) { it.prop } instead")
-        }
-
-        @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Deprecated method, please use bindTo { it.prop } instead", level = DeprecationLevel.ERROR)
-        fun bindTo(property: KProperty1<E, C?>): ColumnRegistration<C> {
-            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop } instead")
-        }
-
-        @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Deprecated method, please use bindTo { it.prop1.prop2 } instead", level = DeprecationLevel.ERROR)
-        fun <R : Entity<R>> bindTo(property1: KProperty1<E, R?>, property2: KProperty1<R, C?>): ColumnRegistration<C> {
-            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop1.prop2 } instead")
-        }
-
-        @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Deprecated method, please use bindTo { it.prop1.prop2.prop3 } instead", level = DeprecationLevel.ERROR)
-        fun <R : Entity<R>, S : Entity<S>> bindTo(
-            property1: KProperty1<E, R?>,
-            property2: KProperty1<R, S?>,
-            property3: KProperty1<S, C?>
-        ): ColumnRegistration<C> {
-            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop1.prop2.prop3 } instead")
-        }
-
-        @Suppress("UNUSED_PARAMETER")
-        @Deprecated("Deprecated method, please use bindTo { it.prop1.prop2.prop3.prop4 } instead", level = DeprecationLevel.ERROR)
-        fun <R : Entity<R>, S : Entity<S>, T : Entity<T>> bindTo(
-            property1: KProperty1<E, R?>,
-            property2: KProperty1<R, S?>,
-            property3: KProperty1<S, T?>,
-            property4: KProperty1<T, C?>
-        ): ColumnRegistration<C> {
-            throw UnsupportedOperationException("Deprecated method, please use bindTo { it.prop1.prop2.prop3.prop4 } instead")
         }
     }
 

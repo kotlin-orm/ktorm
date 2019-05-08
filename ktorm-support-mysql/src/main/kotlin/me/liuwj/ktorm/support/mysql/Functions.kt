@@ -43,7 +43,6 @@ infix fun Column<List<String>>.jsonContains(item: String): FunctionExpression<Bo
     return this.jsonContains(item, VarcharSqlType)
 }
 
-
 fun <T : Any> Column<*>.jsonExtract(path: String, sqlType: SqlType<T>): FunctionExpression<T> {
     // json_extract(column, path)
     return FunctionExpression(

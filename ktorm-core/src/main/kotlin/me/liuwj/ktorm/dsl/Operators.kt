@@ -175,7 +175,12 @@ infix fun <T : Comparable<T>> T.less(expr: ColumnDeclaring<T>): BinaryExpression
 // ------- LessEq ---------
 
 infix fun <T : Comparable<T>> ColumnDeclaring<T>.lessEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-    return BinaryExpression(BinaryExpressionType.LESS_THAN_OR_EQUAL, asExpression(), expr.asExpression(), BooleanSqlType)
+    return BinaryExpression(
+        type = BinaryExpressionType.LESS_THAN_OR_EQUAL,
+        left = asExpression(),
+        right = expr.asExpression(),
+        sqlType = BooleanSqlType
+    )
 }
 
 infix fun <T : Comparable<T>> ColumnDeclaring<T>.lessEq(argument: T): BinaryExpression<Boolean> {
@@ -203,7 +208,12 @@ infix fun <T : Comparable<T>> T.greater(expr: ColumnDeclaring<T>): BinaryExpress
 // -------- GreaterEq ---------
 
 infix fun <T : Comparable<T>> ColumnDeclaring<T>.greaterEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-    return BinaryExpression(BinaryExpressionType.GREATER_THAN_OR_EQUAL, asExpression(), expr.asExpression(), BooleanSqlType)
+    return BinaryExpression(
+        type = BinaryExpressionType.GREATER_THAN_OR_EQUAL,
+        left = asExpression(),
+        right = expr.asExpression(),
+        sqlType = BooleanSqlType
+    )
 }
 
 infix fun <T : Comparable<T>> ColumnDeclaring<T>.greaterEq(argument: T): BinaryExpression<Boolean> {
@@ -249,7 +259,12 @@ infix fun <T : Comparable<T>> ColumnDeclaring<T>.between(range: ClosedRange<T>):
 }
 
 infix fun <T : Comparable<T>> ColumnDeclaring<T>.notBetween(range: ClosedRange<T>): BetweenExpression<T> {
-    return BetweenExpression(asExpression(), wrapArgument(range.start), wrapArgument(range.endInclusive), notBetween = true)
+    return BetweenExpression(
+        expression = asExpression(),
+        lower = wrapArgument(range.start),
+        upper = wrapArgument(range.endInclusive),
+        notBetween = true
+    )
 }
 
 // ----- InList ------

@@ -18,6 +18,7 @@ import me.liuwj.ktorm.schema.SqlType
  * @see SqlExpressionVisitor
  * @see SqlFormatter
  */
+@Suppress("UnnecessaryAbstractClass")
 abstract class SqlExpression {
 
     /**
@@ -190,7 +191,7 @@ data class BinaryExpression<T : Any>(
     val right: ScalarExpression<*>,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false
-): ScalarExpression<T>()
+) : ScalarExpression<T>()
 
 /**
  * Table 表达式
@@ -223,7 +224,7 @@ data class ColumnExpression<T : Any>(
  * @property expression 该声明的来源表达式，一般是 [ColumnExpression] 也可以是其他表达式类型
  * @property declaredName 所声明的列别名，即 label
  */
-data class ColumnDeclaringExpression (
+data class ColumnDeclaringExpression(
     val expression: ScalarExpression<*>,
     val declaredName: String? = null,
     override val isLeafNode: Boolean = false

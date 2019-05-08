@@ -32,7 +32,7 @@ data class BulkInsertExpression(
  */
 fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(this).apply(block)
-    val expression = BulkInsertExpression(asExpression(), builder.allAssignments)
+    val expression = BulkInsertExpression(asExpression(), builder.assignments)
 
     expression.prepareStatement { statement ->
         val effects = statement.executeUpdate()
@@ -48,15 +48,15 @@ fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit)
 
 @KtormDsl
 class BulkInsertStatementBuilder<T : Table<*>>(internal val table: T) {
-    internal val allAssignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
+    internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
 
     fun item(block: AssignmentsBuilder.(T) -> Unit) {
         val itemAssignments = ArrayList<ColumnAssignmentExpression<*>>()
         val builder = AssignmentsBuilder(itemAssignments)
         builder.block(table)
 
-        if (allAssignments.isEmpty() || allAssignments[0].map { it.column.name } == itemAssignments.map { it.column.name }) {
-            allAssignments += itemAssignments
+        if (assignments.isEmpty() || assignments[0].map { it.column.name } == itemAssignments.map { it.column.name }) {
+            assignments += itemAssignments
         } else {
             throw IllegalArgumentException("Every item in a batch operation must be the same.")
         }

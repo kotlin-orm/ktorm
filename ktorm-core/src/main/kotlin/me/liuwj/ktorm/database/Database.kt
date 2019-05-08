@@ -119,15 +119,12 @@ class Database(
             val result = func(transaction)
             if (isOuter) transaction.commit()
             return result
-
         } catch (e: SQLException) {
             if (isOuter) transaction.rollback()
             throw exceptionTranslator.invoke(e)
-
         } catch (e: Throwable) {
             if (isOuter) transaction.rollback()
             throw e
-
         } finally {
             if (isOuter) transaction.close()
         }
@@ -144,10 +141,8 @@ class Database(
         try {
             threadLocal.set(this)
             return this.block()
-
         } catch (e: SQLException) {
             throw exceptionTranslator.invoke(e)
-
         } finally {
             origin?.let { threadLocal.set(it) } ?: threadLocal.remove()
         }
@@ -180,7 +175,7 @@ class Database(
         /**
          * 获取应用程序连接的全局数据库对象
          */
-        val global: Database get() = threadLocal.get() ?: lastConnected.get() ?: error("Not connected to any database yet.")
+        val global get() = threadLocal.get() ?: lastConnected.get() ?: error("Not connected to any database yet.")
 
         /**
          * 使用原生 JDBC 连接数据库，在回调函数中获取数据库连接

@@ -67,7 +67,11 @@ interface Entity<E : Entity<E>> : Serializable {
         /**
          * 创建实体类对象，此方法仅限框架内部使用
          */
-        internal fun create(entityClass: KClass<*>, parent: EntityImplementation? = null, fromTable: Table<*>? = parent?.fromTable): Entity<*> {
+        internal fun create(
+            entityClass: KClass<*>,
+            parent: EntityImplementation? = null,
+            fromTable: Table<*>? = parent?.fromTable
+        ): Entity<*> {
             if (!entityClass.isSubclassOf(Entity::class)) {
                 throw IllegalArgumentException("An entity class must be subclass of Entity.")
             }

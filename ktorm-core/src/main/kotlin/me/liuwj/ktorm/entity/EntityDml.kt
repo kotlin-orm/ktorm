@@ -77,7 +77,7 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doFlushChanges(): Int {
-    val fromTable = this.fromTable?.takeIf { this.parent == null } ?: error("The entity is not associated with any table yet.")
+    val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
     checkUnexpectedDiscarding(fromTable)
 
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
@@ -104,6 +104,7 @@ internal fun EntityImplementation.doFlushChanges(): Int {
     return expression.executeUpdate().also { doDiscardChanges() }
 }
 
+@Suppress("NestedBlockDepth")
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
@@ -145,8 +146,9 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
     return assignments
 }
 
+@Suppress("NestedBlockDepth")
 internal fun EntityImplementation.doDiscardChanges() {
-    val fromTable = this.fromTable?.takeIf { this.parent == null } ?: error("The entity is not associated with any table yet.")
+    val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
 
     for (column in fromTable.columns) {
         val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
@@ -176,6 +178,7 @@ internal fun EntityImplementation.doDiscardChanges() {
 }
 
 // Add check to avoid bug #10
+@Suppress("NestedBlockDepth")
 private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) {
     for (column in fromTable.columns) {
         val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
@@ -193,9 +196,11 @@ private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) 
 
                 check(curr is EntityImplementation)
 
-                if (i > 0 && prop.name in curr.changedProperties && curr.fromTable != null && curr.getRoot() != this) {
-                    val propPath = binding.properties.subList(0, i + 1).joinToString(separator = ".", prefix = "this.") { it.name }
-                    throw IllegalStateException("$propPath may be unexpectedly discarded, please save it to database first.")
+                val isExternalEntity = curr.fromTable != null && curr.getRoot() != this
+                if (i > 0 && prop.name in curr.changedProperties && isExternalEntity) {
+                    val propPath = binding.properties.subList(0, i + 1).joinToString(separator = ".") { it.name }
+                    val msg = "this.$propPath may be unexpectedly discarded, please save it to database first."
+                    throw IllegalStateException(msg)
                 }
 
                 curr = curr.getProperty(prop.name)
@@ -225,7 +230,7 @@ internal fun Entity<*>.clearChangesRecursively() {
 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doDelete(): Int {
-    val fromTable = this.fromTable?.takeIf { this.parent == null } ?: error("The entity is not associated with any table yet.")
+    val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
 
     val expression = AliasRemover.visit(

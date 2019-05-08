@@ -45,7 +45,10 @@ fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) ->
 }
 
 @KtormDsl
-class InsertOrUpdateStatementBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) : AssignmentsBuilder(assignments) {
+class InsertOrUpdateStatementBuilder(
+    assignments: MutableList<ColumnAssignmentExpression<*>>
+) : AssignmentsBuilder(assignments) {
+
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {

@@ -22,3 +22,13 @@ object StandardDialect : SqlDialect {
         return object : SqlFormatter(database, beautifySql, indentSize) { }
     }
 }
+
+class DialectFeatureNotSupportedException(
+    message: String? = null,
+    cause: Throwable? = null
+) : UnsupportedOperationException(message, cause) {
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}

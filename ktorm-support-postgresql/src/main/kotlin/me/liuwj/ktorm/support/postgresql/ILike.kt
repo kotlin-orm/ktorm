@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.expression.ArgumentExpression

@@ -11,6 +11,7 @@ package me.liuwj.ktorm.expression
  *
  * Created by vince on May 18, 2018.
  */
+@Suppress("UnnecessaryAbstractClass")
 abstract class SqlExpressionVisitor {
 
     open fun visit(expr: SqlExpression): SqlExpression {
@@ -140,7 +141,9 @@ abstract class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitColumnDeclaringList(original: List<ColumnDeclaringExpression>): List<ColumnDeclaringExpression> {
+    protected open fun visitColumnDeclaringList(
+        original: List<ColumnDeclaringExpression>
+    ): List<ColumnDeclaringExpression> {
         return visitExpressionList(original)
     }
 
@@ -160,6 +163,7 @@ abstract class SqlExpressionVisitor {
         val having = expr.having?.let { visitScalar(it) }
         val orderBy = visitOrderByList(expr.orderBy)
 
+        @Suppress("ComplexCondition")
         if (columns === expr.columns
             && from === expr.from
             && where === expr.where
@@ -168,7 +172,14 @@ abstract class SqlExpressionVisitor {
             && having === expr.having) {
             return expr
         } else {
-            return expr.copy(columns = columns, from = from, where = where, groupBy = groupBy, having = having, orderBy = orderBy)
+            return expr.copy(
+                columns = columns,
+                from = from,
+                where = where,
+                groupBy = groupBy,
+                having = having,
+                orderBy = orderBy
+            )
         }
     }
 
@@ -254,7 +265,9 @@ abstract class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitColumnAssignment(expr: ColumnAssignmentExpression<T>): ColumnAssignmentExpression<T> {
+    protected open fun <T : Any> visitColumnAssignment(
+        expr: ColumnAssignmentExpression<T>
+    ): ColumnAssignmentExpression<T> {
         val column = visitColumn(expr.column)
         val expression = visitScalar(expr.expression)
 
@@ -265,7 +278,9 @@ abstract class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitColumnAssignments(original: List<ColumnAssignmentExpression<*>>): List<ColumnAssignmentExpression<*>> {
+    protected open fun visitColumnAssignments(
+        original: List<ColumnAssignmentExpression<*>>
+    ): List<ColumnAssignmentExpression<*>> {
         return visitExpressionList(original)
     }
 

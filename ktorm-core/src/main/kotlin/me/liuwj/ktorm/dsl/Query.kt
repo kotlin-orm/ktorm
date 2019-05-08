@@ -53,13 +53,12 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
             countExpr.prepareStatement { statement ->
                 statement.executeQuery().use { rs ->
                     if (rs.next()) {
-                        rs.getInt(1).also {
+                        rs.getInt(1).also { total ->
                             val logger = Database.global.logger
                             if (logger != null && logger.isDebugEnabled()) {
-                                logger.debug("Total Records: $it")
+                                logger.debug("Total Records: $total")
                             }
                         }
-
                     } else {
                         val (sql, _) = Database.global.formatExpression(countExpr, beautifySql = true)
                         throw IllegalStateException("No result return for sql: $sql")
@@ -81,6 +80,7 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 /**
  * 返回 [ResultSet] 的迭代器
  */
+@Suppress("IteratorHasNextCallsNextMethod")
 operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
     private val rs = this@iterator
     private var hasNext: Boolean? = null

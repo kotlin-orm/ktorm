@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.expression
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
 
 /**
  * 使用 Visitor 设计模式对 SQL 语法树进行遍历，在遍历完成后，生成可直接执行的 SQL 字符串
@@ -13,7 +14,13 @@ import me.liuwj.ktorm.database.Database
  * @property sql 遍历完成后，获取 SQL 字符串
  * @property parameters 遍历完成后，获取 SQL 的执行参数
  */
-abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, val indentSize: Int) : SqlExpressionVisitor() {
+@Suppress("VariableNaming")
+abstract class SqlFormatter(
+    val database: Database,
+    val beautifySql: Boolean,
+    val indentSize: Int
+) : SqlExpressionVisitor() {
+
     protected var _depth = 0
     protected val _builder = StringBuilder()
     protected val _parameters = ArrayList<ArgumentExpression<*>>()
@@ -122,7 +129,6 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
             }
 
             write("${expr.type} ")
-
         } else {
             write("${expr.type} ")
 
@@ -135,6 +141,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
                 write(") ")
             }
         }
+
         return expr
     }
 
@@ -198,9 +205,11 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
 
         visit(expr.expression)
 
-        val c = expr.expression as? ColumnExpression<*>
-        if ((c == null || c.name != expr.declaredName) && expr.declaredName != null && expr.declaredName.isNotBlank()) {
-            write("as ${expr.declaredName.quoted} ")
+        val column = expr.expression as? ColumnExpression<*>
+        val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
+
+        if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
+            write("as ${expr.declaredName!!.quoted} ")
         }
 
         return expr
@@ -310,7 +319,7 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
     }
 
     protected open fun writePagination(expr: QueryExpression) {
-        throw UnsupportedOperationException("Pagination is not supported in Standard SQL.")
+        throw DialectFeatureNotSupportedException("Pagination is not supported in Standard SQL.")
     }
 
     override fun visitJoin(expr: JoinExpression): JoinExpression {
@@ -383,7 +392,9 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
         return expr
     }
 
-    override fun visitColumnAssignments(original: List<ColumnAssignmentExpression<*>>): List<ColumnAssignmentExpression<*>> {
+    override fun visitColumnAssignments(
+        original: List<ColumnAssignmentExpression<*>>
+    ): List<ColumnAssignmentExpression<*>> {
         for ((i, assignment) in original.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
@@ -451,6 +462,6 @@ abstract class SqlFormatter(val database: Database, val beautifySql: Boolean, va
     }
 
     override fun visitUnknown(expr: SqlExpression): SqlExpression {
-        throw UnsupportedOperationException("Unsupported expression type: ${expr.javaClass}")
+        throw DialectFeatureNotSupportedException("Unsupported expression type: ${expr.javaClass}")
     }
 }

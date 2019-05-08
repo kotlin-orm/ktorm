@@ -3,7 +3,7 @@ package me.liuwj.ktorm.database
 /**
  * SQL 2003 标准中的 SQL 关键字集合
  */
-val ANSI_SQL_2003_KEYWORDS = setOf(
+internal val ANSI_SQL_2003_KEYWORDS = setOf(
     "ADD",
     "ALL",
     "ALLOCATE",

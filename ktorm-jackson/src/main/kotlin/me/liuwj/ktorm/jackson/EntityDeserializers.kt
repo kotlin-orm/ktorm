@@ -73,7 +73,11 @@ internal class EntityDeserializers : SimpleDeserializers() {
             return intoValue
         }
 
-        override fun deserializeWithType(parser: JsonParser, ctxt: DeserializationContext, typeDeserializer: TypeDeserializer): Any {
+        override fun deserializeWithType(
+            parser: JsonParser,
+            ctxt: DeserializationContext,
+            typeDeserializer: TypeDeserializer
+        ): Any {
             return typeDeserializer.deserializeTypedFromObject(parser, ctxt)
         }
     }

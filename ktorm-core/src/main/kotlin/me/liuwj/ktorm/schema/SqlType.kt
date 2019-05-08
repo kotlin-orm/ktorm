@@ -49,11 +49,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is SqlType<*>) {
-            return false
-        } else {
-            return this.typeCode == other.typeCode && this.typeName == other.typeName
-        }
+        return other is SqlType<*> && this.typeCode == other.typeCode && this.typeName == other.typeName
     }
 
     override fun hashCode(): Int {

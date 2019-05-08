@@ -6,7 +6,6 @@ dependencies {
     compileOnly "commons-logging:commons-logging:1.2"
     compileOnly "com.google.android:android:1.5_r4"
     compileOnly "org.springframework:spring-jdbc:5.0.10.RELEASE"
-
     testCompile "com.h2database:h2:1.4.197"
 }
 

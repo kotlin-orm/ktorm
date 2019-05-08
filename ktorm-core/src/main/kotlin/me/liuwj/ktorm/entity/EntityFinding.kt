@@ -24,7 +24,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
         return emptyList()
     } else {
-        val primaryKey = (this.primaryKey as? Column<Any>) ?: error("Table $tableName doesn't have a primary key.")
+        val primaryKey = this.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
         return findList { primaryKey inList ids }
     }
 }
@@ -34,7 +34,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
-    val primaryKey = (this.primaryKey as? Column<Any>) ?: error("Table $tableName doesn't have a primary key.")
+    val primaryKey = this.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
     return findOne { primaryKey eq id }
 }
 
@@ -46,7 +46,7 @@ inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDecla
     when (list.size) {
         0 -> return null
         1 -> return list[0]
-        else -> throw IllegalStateException("Expected one result(or null) to be returned by findOne(), but found: ${list.size}")
+        else -> error("Expected one result(or null) to be returned by findOne(), but found: ${list.size}")
     }
 }
 
