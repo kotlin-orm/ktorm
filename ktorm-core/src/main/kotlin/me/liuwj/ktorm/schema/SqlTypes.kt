@@ -206,6 +206,7 @@ fun <E : Entity<E>> Table<E>.yearMonth(name: String): Table<E>.ColumnRegistratio
     return registerColumn(name, YearMonthSqlType)
 }
 
+@Suppress("MagicNumber")
 object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
     val formatter: DateTimeFormatter = DateTimeFormatterBuilder()
         .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)

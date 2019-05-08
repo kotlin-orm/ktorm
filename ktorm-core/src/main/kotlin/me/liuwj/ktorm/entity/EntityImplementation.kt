@@ -64,7 +64,6 @@ internal class EntityImplementation(
         }
     }
 
-    @Suppress("NestedBlockDepth")
     private fun handleMethodCall(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         val ktProp = method.kotlinProperty
         if (ktProp != null) {

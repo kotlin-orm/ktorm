@@ -38,7 +38,6 @@ internal fun EntityImplementation.setPrimaryKeyValue(fromTable: Table<*>, value:
     setColumnValue(primaryKey, value, forceSet)
 }
 
-@Suppress("NestedBlockDepth")
 internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?, forceSet: Boolean = false) {
     val binding = column.binding ?: error("Column $column has no bindings to any entity field.")
 
@@ -71,7 +70,6 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
     }
 }
 
-@Suppress("LoopWithTooManyJumpStatements")
 internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
     val binding = this.fromTable?.primaryKey?.binding
 
