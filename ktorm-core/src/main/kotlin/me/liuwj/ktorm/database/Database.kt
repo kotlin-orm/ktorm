@@ -5,7 +5,9 @@ import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.logging.Logger
+import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
+import org.springframework.transaction.annotation.Transactional
 import java.sql.Connection
 import java.sql.DatabaseMetaData
 import java.sql.DriverManager
@@ -14,51 +16,76 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.sql.DataSource
 
 /**
- * Ktorm 入口类，用于连接数据库，统一管理连接以及事务
+ * The entry class of Ktorm, represents a physical database, used to manage connections and transactions.
  *
- * @property transactionManager 事务管理器
- * @property dialect 数据库方言
- * @property logger 需要使用的日志实现
- * @property exceptionTranslator 转换 SQL 执行过程中产生的异常，以便重新抛出，符合其他框架（如 Spring JDBC）的异常标准
+ * To create instances of this class, we need to call the [connect] functions on the companion object.
+ * Ktorm also provides Spring support, to enable this feature, instances should be created by
+ * [connectWithSpringSupport] instead.
+ *
+ * The connect functions returns a new-created database object, you can define a variable to save the returned
+ * value if needed. But generally, it’s not necessary to do that, because Ktorm will save the latest created
+ * instance automatically, then obtain it via [Database.global] when needed.
+ *
+ * But sometimes, we have to operate many databases in one App, so it’s needed to create many instances
+ * and choose one while performing our database specific operations. In this case, the [invoke] operator
+ * should be used to switch among those databases.
+ *
+ * ```kotlin
+ * val mysql = Database.connect("jdbc:mysql://localhost:3306/ktorm", driver = "com.mysql.jdbc.Driver")
+ * val h2 = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+ * mysql {
+ *     assert(Database.global === mysql)
+ *     // Use MySQL database
+ * }
+ * h2 {
+ *     assert(Database.global === h2)
+ *     // Use H2 database
+ * }
+ * ```
+ *
+ * @property transactionManager the transaction manager used to manage connections and transactions
+ * @property dialect the dialect implementation, by default, [StandardDialect] is used
+ * @property logger the logger used to output logs, printed to the console by default, pass null to disable logging
+ * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users
  */
-class Database(
+class Database private constructor(
     val transactionManager: TransactionManager,
     val dialect: SqlDialect = StandardDialect,
     val logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),
     val exceptionTranslator: (SQLException) -> Throwable = { it }
 ) {
     /**
-     * 数据库连接 URL
+     * The URL of the connected database.
      */
     lateinit var url: String private set
 
     /**
-     * 所连接的数据库名称
+     * The name of the connected database.
      */
     lateinit var name: String private set
 
     /**
-     * 数据库产品名称，如 MySQL
+     * The name of the connected database product, eg. MySQL, H2.
      */
     lateinit var productName: String private set
 
     /**
-     * 数据库版本号
+     * The version of the connected database product.
      */
     lateinit var productVersion: String private set
 
     /**
-     * SQL 关键字集合（大写）
+     * A set of all of this database's SQL keywords (including SQL:2003 keywords), all in uppercase.
      */
     lateinit var keywords: Set<String> private set
 
     /**
-     * 用于括住特殊 SQL 标识符的字符串，如 `un-standard identifier`
+     * The string used to quote SQL identifiers, returns an empty string if identifier quoting is not supported.
      */
     lateinit var identifierQuoteString: String private set
 
     /**
-     * 可在 SQL 标识符中使用的字符（除字母、数字、下划线以外）
+     * All the "extra" characters that can be used in unquoted identifier names (those beyond a-z, A-Z, 0-9 and _).
      */
     lateinit var extraNameCharacters: String private set
 
@@ -81,7 +108,8 @@ class Database(
     }
 
     /**
-     * 在回调函数中使用数据库元数据，函数调用后，会自动关闭 metadata
+     * Obtain a connection and invoke the callback function with its [DatabaseMetaData],
+     * the connection will be automatically closed after the callback completes.
      */
     inline fun <T> useMetadata(func: (DatabaseMetaData) -> T): T {
         useConnection { conn ->
@@ -90,7 +118,11 @@ class Database(
     }
 
     /**
-     * 获取或创建数据库连接，在回调函数中使用，使用完毕后，会自动回收连接
+     * Obtain a connection and invoke the callback function with it.
+     *
+     * If the current thread has opened a transaction, then this transaction's connection will be used.
+     * Otherwise, Ktorm will pass a new-created connection to the function and auto close it after it's
+     * not useful anymore.
      */
     inline fun <T> useConnection(func: (Connection) -> T): T {
         try {
@@ -105,7 +137,17 @@ class Database(
     }
 
     /**
-     * 在事务中执行指定函数
+     * Execute the specific callback function in a transaction and returns its result if the execution succeeds,
+     * otherwise, if the execution fails, the transaction will be rollback.
+     *
+     * Note:
+     *
+     * - Any exceptions thrown in the callback function can trigger a rollback.
+     * - This function is reentrant, so it can be called nested. However, the inner calls don’t open new transactions
+     * but share the same ones with outers.
+     *
+     * @param isolation transaction isolation, enums defined in [TransactionIsolation]
+     * @param func the executed callback function
      */
     inline fun <T> useTransaction(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
@@ -131,7 +173,12 @@ class Database(
     }
 
     /**
-     * 将回调函数范围内的全局数据库对象设置为当前对象，函数结束后，恢复原样
+     * Execute the callback function using the current database instance.
+     *
+     * Useful when we have many database instances. Call this function to choose one to execute
+     * our database specific operations. While the callback functions are executing, the [Database.global]
+     * property will be set to the current database. And after the callback completes, it's automatically
+     * restored to the origin one.
      *
      * @see Database.global
      */
@@ -149,13 +196,12 @@ class Database(
     }
 
     /**
-     * 将表达式格式化为可直接执行的 SQL 字符串
+     * Format the specific [SqlExpression] to an executable SQL string with execution arguments.
      *
-     * @param expression 需要格式化的表达式
-     * @param beautifySql 是否需要换行、缩进
-     * @param indentSize 缩进长度
-     * @return SQL 字符串
-     * @return 该 SQL 的所有参数数据
+     * @param expression the expression to be formatted
+     * @param beautifySql output beautiful SQL strings with line-wrapping and indentation, default to false
+     * @param indentSize the indent size
+     * @return a [Pair] combines the SQL string and its execution arguments
      */
     fun formatExpression(
         expression: SqlExpression,
@@ -168,17 +214,28 @@ class Database(
         return formatter.sql to formatter.parameters
     }
 
+    /**
+     * Companion object provides functions to connect to databases and holds the [global] database instances.
+     */
     companion object {
         private val lastConnected = AtomicReference<Database>()
         private val threadLocal = ThreadLocal<Database>()
 
         /**
-         * 获取应用程序连接的全局数据库对象
+         * The global database instance, Ktorm uses this property to obtain a database when any SQL is executed.
+         *
+         * By default, it's the lasted connected one, but it may change if the [invoke] operator is used.
+         *
+         * @see invoke
          */
         val global get() = threadLocal.get() ?: lastConnected.get() ?: error("Not connected to any database yet.")
 
         /**
-         * 使用原生 JDBC 连接数据库，在回调函数中获取数据库连接
+         * Connect to a database by a specific [connector] function.
+         *
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
+         * @param connector the connector function used to obtain SQL connections
          */
         fun connect(
             dialect: SqlDialect = StandardDialect,
@@ -189,7 +246,11 @@ class Database(
         }
 
         /**
-         * 使用原生 JDBC 连接数据库，在参数提供的数据源中获取连接
+         * Connect to a database using a [DataSource].
+         *
+         * @param dataSource the data source used to obtain SQL connections
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
          */
         fun connect(
             dataSource: DataSource,
@@ -200,7 +261,14 @@ class Database(
         }
 
         /**
-         * 使用原生 JDBC 连接数据库，参数提供数据库 url、驱动类名、用户名、密码
+         * Connect to a database using the specific connection arguments.
+         *
+         * @param url the URL of the database to be connected
+         * @param driver the full qualified name of the JDBC driver class
+         * @param user the user name of the database
+         * @param password the password of the database
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
          */
         fun connect(
             url: String,
@@ -215,7 +283,18 @@ class Database(
         }
 
         /**
-         * 使用 Spring 管理的数据源连接数据库
+         * Connect to a database using a [DataSource] with the Spring support enabled.
+         *
+         * Once the Spring support enabled, the transaction management will be delegated to the Spring framework,
+         * so the [useTransaction] function is not available anymore, we need to use Spring's [Transactional]
+         * annotation instead.
+         *
+         * This also enables the exception translation, which can convert any [SQLException] thrown by JDBC to
+         * Spring's [DataAccessException] and rethrow it.
+         *
+         * @param dataSource the data source used to obtain SQL connections
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
          */
         fun connectWithSpringSupport(
             dataSource: DataSource,

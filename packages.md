@@ -1,7 +1,7 @@
 
 # Package me.liuwj.ktorm.database
 
-Entry of Ktorm Framework, providing basic features of connection and transaction management.
+Entry of Ktorm framework, providing basic features of connection and transaction management.
 
 # Package me.liuwj.ktorm.dsl
 
@@ -14,6 +14,10 @@ Entity supports, providing entity finding and sequence like query APIs.
 # Package me.liuwj.ktorm.expression
 
 Expression tree and SQL generation supports, providing expression node types, tree visitor, and SQL formatter.
+
+# Package me.liuwj.ktorm.logging
+
+Simple logging facade of Ktorm, provides adapters for variable logging frameworks.
 
 # Package me.liuwj.ktorm.schema
 

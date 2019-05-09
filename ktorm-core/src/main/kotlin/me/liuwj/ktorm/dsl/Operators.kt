@@ -234,9 +234,9 @@ infix fun <T : Any> ColumnDeclaring<T>.eq(argument: T): BinaryExpression<Boolean
     return this eq wrapArgument(argument)
 }
 
-infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-    return expr.wrapArgument(this) eq expr
-}
+//infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+//    return expr.wrapArgument(this) eq expr
+//}
 
 // ------- NotEq -------
 
@@ -248,9 +248,9 @@ infix fun <T : Any> ColumnDeclaring<T>.notEq(argument: T): BinaryExpression<Bool
     return this notEq wrapArgument(argument)
 }
 
-infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-    return expr.wrapArgument(this) notEq expr
-}
+//infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+//    return expr.wrapArgument(this) notEq expr
+//}
 
 // ---- Between ----
 
