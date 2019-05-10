@@ -1,66 +1,93 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.database
 
+import org.springframework.transaction.annotation.Transactional
 import java.io.Closeable
 import java.sql.Connection
 
 /**
- * 事务管理器
+ * Transaction manager abstraction used to manage database connections and transactions.
+ *
+ * Applications can use this interface directly, but it is not primary meant as API:
+ * Typically, transactions are used by calling the [Database.useTransaction] function or
+ * Spring's [Transactional] annotation if the Spring support is enabled.
  */
 interface TransactionManager {
 
     /**
-     * 默认事务隔离级别
+     * The default transaction isolation.
      */
     val defaultIsolation: TransactionIsolation
 
     /**
-     * 获取当前线程中的事务，若尚未开启事务，返回 null
+     * The opened transaction of the current thread, null if there is no transaction opened.
      */
     val currentTransaction: Transaction?
 
     /**
-     * 使用指定的事务隔离级别创建一个新事务，如果当前已经开启事务，则抛出异常
+     * Open a new transaction for the current thread using the specific isolation if there is no transaction opened.
      *
-     * @throws [IllegalStateException] if [currentTransaction] is not null
+     * @param isolation the transaction isolation, by default, [defaultIsolation] is used
+     * @throws [IllegalStateException] if there is already a transaction opened
      */
     fun newTransaction(isolation: TransactionIsolation = defaultIsolation): Transaction
 
     /**
-     * 创建新的数据库连接
+     * Create a native JDBC connection to the database.
      */
     fun newConnection(): Connection
 }
 
 /**
- * 数据库事务
+ * Representation of a transaction.
+ *
+ * Transactional code can use this interface to retrieve the backend connection, and
+ * to programmatically trigger a commit or rollback (instead of implicit commits and rollbacks
+ * of using [Database.useTransaction]).
  */
 interface Transaction : Closeable {
 
     /**
-     * 当前事务持有的数据库连接
+     * The backend JDBC connection of this transaction.
      */
     val connection: Connection
 
     /**
-     * 提交事务
+     * Commit the transaction.
      */
     fun commit()
 
     /**
-     * 回滚事务
+     * Rollback the transaction.
      */
     fun rollback()
 
     /**
-     * 关闭事务，释放底层的连接
+     * Close the transaction and release its underlying resources (eg. the backend connection).
      */
     override fun close()
 }
 
 /**
- * 事务隔离级别
+ * Enum class represents transaction isolation levels, wrapping the `TRANSACTION_XXX` constants
+ * defined in the [Connection] interface.
  *
- * @see Connection.getTransactionIsolation
+ * @property level the `TRANSACTION_XXX` constant values defined in the [Connection] interface
  */
 enum class TransactionIsolation(val level: Int) {
     NONE(Connection.TRANSACTION_NONE),
@@ -70,6 +97,10 @@ enum class TransactionIsolation(val level: Int) {
     SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE);
 
     companion object {
+
+        /**
+         * Find an enum value by the specific isolation level.
+         */
         fun valueOf(level: Int): TransactionIsolation {
             return TransactionIsolation.values().first { it.level == level }
         }

@@ -198,12 +198,12 @@ class Database private constructor(
      *
      * @see Database.global
      */
-    operator fun <T> invoke(block: Database.() -> T): T {
+    operator fun <T> invoke(func: Database.() -> T): T {
         val origin = threadLocal.get()
 
         try {
             threadLocal.set(this)
-            return this.block()
+            return this.func()
         } catch (e: SQLException) {
             throw exceptionTranslator.invoke(e)
         } finally {
@@ -216,7 +216,7 @@ class Database private constructor(
      *
      * @param expression the expression to be formatted
      * @param beautifySql output beautiful SQL strings with line-wrapping and indentation, default to false
-     * @param indentSize the indent size
+     * @param indentSize the indent size, default to 2
      * @return a [Pair] combines the SQL string and its execution arguments
      */
     fun formatExpression(

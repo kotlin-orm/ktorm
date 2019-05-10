@@ -1,15 +1,39 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.database
 
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
+import org.springframework.transaction.annotation.Transactional
 import java.sql.Connection
 import javax.sql.DataSource
 
 /**
- * Created by vince on Sep 24, 2018.
+ * [TransactionManager] implementation that delegates all transactions to the Spring framework.
+ *
+ * This class enables the Spring support, and its used by [Database] instances created
+ * by [Database.connectWithSpringSupport] function. Once the Spring support enabled, the
+ * transaction management will be delegated to the Spring framework, so the [Database.useTransaction]
+ * function is not available anymore, applications should use Spring's [Transactional] annotation instead.
+ *
+ * @property dataSource the data source used to obtained connections, typically comes from Spring's application context
  */
 class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionManager {
 
-    val dataSourceProxy = dataSource as? TransactionAwareDataSourceProxy ?: TransactionAwareDataSourceProxy(dataSource)
+    private val proxy = dataSource as? TransactionAwareDataSourceProxy ?: TransactionAwareDataSourceProxy(dataSource)
 
     override val defaultIsolation get() = TransactionIsolation.REPEATABLE_READ
 
@@ -21,6 +45,6 @@ class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionM
     }
 
     override fun newConnection(): Connection {
-        return dataSourceProxy.connection
+        return proxy.connection
     }
 }
