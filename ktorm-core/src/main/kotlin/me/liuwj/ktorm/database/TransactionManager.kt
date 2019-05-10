@@ -43,6 +43,7 @@ interface TransactionManager {
      * Open a new transaction for the current thread using the specific isolation if there is no transaction opened.
      *
      * @param isolation the transaction isolation, by default, [defaultIsolation] is used
+     * @return the new-created transaction
      * @throws [IllegalStateException] if there is already a transaction opened
      */
     fun newTransaction(isolation: TransactionIsolation = defaultIsolation): Transaction

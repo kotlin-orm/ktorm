@@ -164,6 +164,7 @@ class Database private constructor(
      *
      * @param isolation transaction isolation, enums defined in [TransactionIsolation]
      * @param func the executed callback function
+     * @return the result of the callback function
      */
     inline fun <T> useTransaction(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
@@ -252,6 +253,7 @@ class Database private constructor(
          * @param dialect the dialect implementation, by default, [StandardDialect] is used
          * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
          * @param connector the connector function used to obtain SQL connections
+         * @return the new-created database object
          */
         fun connect(
             dialect: SqlDialect = StandardDialect,
@@ -267,6 +269,7 @@ class Database private constructor(
          * @param dataSource the data source used to obtain SQL connections
          * @param dialect the dialect implementation, by default, [StandardDialect] is used
          * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
+         * @return the new-created database object
          */
         fun connect(
             dataSource: DataSource,
@@ -285,6 +288,7 @@ class Database private constructor(
          * @param password the password of the database
          * @param dialect the dialect implementation, by default, [StandardDialect] is used
          * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
+         * @return the new-created database object
          */
         fun connect(
             url: String,
@@ -311,6 +315,7 @@ class Database private constructor(
          * @param dataSource the data source used to obtain SQL connections
          * @param dialect the dialect implementation, by default, [StandardDialect] is used
          * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
+         * @return the new-created database object
          */
         fun connectWithSpringSupport(
             dataSource: DataSource,

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.entity.*
@@ -8,118 +24,148 @@ import me.liuwj.ktorm.schema.DoubleSqlType
 import me.liuwj.ktorm.schema.IntSqlType
 import me.liuwj.ktorm.schema.Table
 
+/**
+ * The min function, equivalent to `min(column)` in SQL.
+ */
 fun <C : Number> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MIN, column.asExpression(), false, column.sqlType)
 }
 
+/**
+ * The min function with distinct, equivalent to `min(distinct column)` in SQL.
+ */
 fun <C : Number> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MIN, column.asExpression(), true, column.sqlType)
 }
 
+/**
+ * The max function, equivalent to `max(column)` in SQL.
+ */
 fun <C : Number> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MAX, column.asExpression(), false, column.sqlType)
 }
 
+/**
+ * The max function with distinct, equivalent to `max(distinct column)` in SQL.
+ */
 fun <C : Number> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MAX, column.asExpression(), true, column.sqlType)
 }
 
+/**
+ * The avg function, equivalent to `avg(column)` in SQL.
+ */
 fun <C : Number> avg(column: ColumnDeclaring<C>): AggregateExpression<Double> {
     return AggregateExpression(AggregateType.AVG, column.asExpression(), false, DoubleSqlType)
 }
 
+/**
+ * The avg function with distinct, equivalent to `avg(distinct column)` in SQL.
+ */
 fun <C : Number> avgDistinct(column: ColumnDeclaring<C>): AggregateExpression<Double> {
     return AggregateExpression(AggregateType.AVG, column.asExpression(), true, DoubleSqlType)
 }
 
+/**
+ * The sum function, equivalent to `sum(column)` in SQL.
+ */
 fun <C : Number> sum(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.SUM, column.asExpression(), false, column.sqlType)
 }
 
+/**
+ * The sum function with distinct, equivalent to `sum(distinct column)` in SQL.
+ */
 fun <C : Number> sumDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.SUM, column.asExpression(), true, column.sqlType)
 }
 
+/**
+ * The count function, equivalent to `count(column)` in SQL.
+ */
 fun count(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> {
     return AggregateExpression(AggregateType.COUNT, column?.asExpression(), false, IntSqlType)
 }
 
+/**
+ * The count function with distinct, equivalent to `count(distinct column)` in SQL.
+ */
 fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> {
     return AggregateExpression(AggregateType.COUNT, column?.asExpression(), true, IntSqlType)
 }
 
 /**
- * 如果表中的所有行都符合指定条件，返回 true，否则 false
+ * Check if all the records in the table matches the given [predicate].
  */
 inline fun <E : Entity<E>, T : Table<E>> T.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().all(predicate)
 }
 
 /**
- * 如果表中有数据，返回 true，否则 false
+ * Check if there is any record in the table.
  */
 fun <E : Entity<E>, T : Table<E>> T.any(): Boolean {
     return asSequence().any()
 }
 
 /**
- * 如果表中存在任何一条记录满足指定条件，返回 true，否则 false
+ * Check if there is any record in the table matches the given [predicate].
  */
 inline fun <E : Entity<E>, T : Table<E>> T.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().any(predicate)
 }
 
 /**
- * 如果表中没有数据，返回 true，否则 false
+ * Return `true` if there is no records in the table.
  */
 fun <E : Entity<E>, T : Table<E>> T.none(): Boolean {
     return asSequence().none()
 }
 
 /**
- * 如果表中所有记录都不满足指定条件，返回 true，否则 false
+ * Return `true` if there is no records in the table that matches the given [predicate].
  */
 inline fun <E : Entity<E>, T : Table<E>> T.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().none(predicate)
 }
 
 /**
- * 返回表中的记录数
+ * Return the records count in the table.
  */
 fun <E : Entity<E>, T : Table<E>> T.count(): Int {
     return asSequence().count()
 }
 
 /**
- * 返回表中满足指定条件的记录数
+ * Return the records count in the table that matches the given [predicate].
  */
 inline fun <E : Entity<E>, T : Table<E>> T.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return asSequence().count(predicate)
 }
 
 /**
- * 返回表中指定字段的和，若表中没有数据，返回 null
+ * Return the sum of the given column or expression of all the records, null if there are no records in the table.
  */
 inline fun <E : Entity<E>, T : Table<E>, C : Number> T.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().sumBy(selector)
 }
 
 /**
- * 返回表中指定字段的最大值，若表中没有数据，返回 null
+ * Return the max value of the given column or expression of all the records, null if there are no records in the table.
  */
 inline fun <E : Entity<E>, T : Table<E>, C : Number> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().maxBy(selector)
 }
 
 /**
- * 返回表中指定字段的最小值，若表中没有数据，返回 null
+ * Return the min value of the given column or expression of all the records, null if there are no records in the table.
  */
 inline fun <E : Entity<E>, T : Table<E>, C : Number> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().minBy(selector)
 }
 
 /**
- * 返回表中指定字段的平均值，若表中没有数据，返回 null
+ * Return the average value of the given column or expression of all the records, null if there are no records.
  */
 inline fun <E : Entity<E>, T : Table<E>> T.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
     return asSequence().averageBy(selector)
