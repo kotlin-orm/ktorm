@@ -13,7 +13,7 @@ home:
     description: <a href="/zh-cn/schema-definition.html">定义表结构</a>，使用强类型的灵活的<a href="/zh-cn/query.html">查询 DSL</a>
 
   - title: 实体序列
-    link: en/entity-sequence.html
+    link: zh-cn/entity-sequence.html
     color: green
     icon: line-chart
     description: <a href="/zh-cn/entities-and-column-binding.html">配置列绑定</a>，使用<a href="/zh-cn/entity-sequence.html">序列 API</a> 获取实体对象
