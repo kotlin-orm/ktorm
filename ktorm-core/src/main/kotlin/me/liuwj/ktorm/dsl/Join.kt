@@ -21,7 +21,7 @@ import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.Table
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `cross join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 fun QuerySourceExpression.crossJoin(
     right: QuerySourceExpression,
@@ -31,7 +31,7 @@ fun QuerySourceExpression.crossJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `cross join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 fun QuerySourceExpression.crossJoin(
     right: Table<*>,
@@ -41,7 +41,7 @@ fun QuerySourceExpression.crossJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `cross join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 fun Table<*>.crossJoin(
     right: QuerySourceExpression,
@@ -51,7 +51,7 @@ fun Table<*>.crossJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `cross join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 fun Table<*>.crossJoin(
     right: Table<*>,
@@ -61,7 +61,7 @@ fun Table<*>.crossJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `inner join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
 fun QuerySourceExpression.innerJoin(
     right: QuerySourceExpression,
@@ -71,7 +71,7 @@ fun QuerySourceExpression.innerJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `inner join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
 fun QuerySourceExpression.innerJoin(
     right: Table<*>,
@@ -81,7 +81,7 @@ fun QuerySourceExpression.innerJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `inner join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
 fun Table<*>.innerJoin(
     right: QuerySourceExpression,
@@ -91,7 +91,7 @@ fun Table<*>.innerJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `inner join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
 fun Table<*>.innerJoin(
     right: Table<*>,
@@ -101,7 +101,7 @@ fun Table<*>.innerJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `left join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
 fun QuerySourceExpression.leftJoin(
     right: QuerySourceExpression,
@@ -111,7 +111,7 @@ fun QuerySourceExpression.leftJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `left join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
 fun QuerySourceExpression.leftJoin(
     right: Table<*>,
@@ -121,7 +121,7 @@ fun QuerySourceExpression.leftJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `left join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
 fun Table<*>.leftJoin(
     right: QuerySourceExpression,
@@ -131,7 +131,7 @@ fun Table<*>.leftJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `left join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
 fun Table<*>.leftJoin(
     right: Table<*>,
@@ -141,7 +141,7 @@ fun Table<*>.leftJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `right join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
 fun QuerySourceExpression.rightJoin(
     right: QuerySourceExpression,
@@ -151,7 +151,7 @@ fun QuerySourceExpression.rightJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `right join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
 fun QuerySourceExpression.rightJoin(
     right: Table<*>,
@@ -161,7 +161,7 @@ fun QuerySourceExpression.rightJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `right join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
 fun Table<*>.rightJoin(
     right: QuerySourceExpression,
@@ -171,7 +171,7 @@ fun Table<*>.rightJoin(
 }
 
 /**
- * Join the right table and return a [JoinExpression], equivalent to `right join` in SQL.
+ * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
 fun Table<*>.rightJoin(
     right: Table<*>,
