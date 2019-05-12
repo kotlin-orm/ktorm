@@ -19,10 +19,10 @@ package me.liuwj.ktorm.dsl
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.SqlType
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.*
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Proxy
+import java.sql.PreparedStatement
 import java.sql.Statement
 import java.util.*
 import kotlin.collections.ArrayList
@@ -331,11 +331,31 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
     @Suppress("UNCHECKED_CAST")
     @JvmName("toAny")
     infix fun Column<*>.to(argument: Any?) {
-        if (argument == null) {
-            this as Column<Any> to null as Any?
-        } else {
-            val msg = "Argument type ${argument.javaClass.name} cannot assign to ${sqlType.typeName}"
-            throw IllegalArgumentException(msg)
+        this as Column<Any>
+        checkAssignableFrom(argument)
+        this to argument
+    }
+
+    private fun Column<Any>.checkAssignableFrom(argument: Any?) {
+        if (argument == null) return
+
+        val handler = InvocationHandler { _, method, _ ->
+            // Do nothing...
+            @Suppress("ForbiddenVoid")
+            if (method.returnType == Void.TYPE || !method.returnType.isPrimitive) {
+                null
+            } else {
+                method.returnType.kotlin.defaultValue
+            }
+        }
+
+        val classloader = Thread.currentThread().contextClassLoader
+        val proxy = Proxy.newProxyInstance(classloader, arrayOf(PreparedStatement::class.java), handler)
+
+        try {
+            sqlType.setParameter(proxy as PreparedStatement, 1, argument)
+        } catch (e: ClassCastException) {
+            throw IllegalArgumentException("Argument type doesn't match the column's type, column: $this", e)
         }
     }
 }

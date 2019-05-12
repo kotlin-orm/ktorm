@@ -52,15 +52,13 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
     infix fun <C : Any> Column<C>.to(argument: C?) {
         this to wrapArgument(argument)
     }
-
+    
     @Suppress("UNCHECKED_CAST")
     @JvmName("toAny")
     infix fun Column<*>.to(argument: Any?) {
-        if (argument == null) {
-            (this as Column<Any>) to (null as Any?)
-        } else {
-            throw IllegalArgumentException("Argument type ${argument.javaClass.name} cannot assign to ${sqlType.typeName}")
-        }
+        this as Column<Any>
+        checkAssignableFrom(argument)
+        this to argument
     }
 }
 ```
