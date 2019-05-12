@@ -53,7 +53,7 @@ subprojects { project ->
 
     detekt {
         toolVersion = detektVersion
-        config = files("${project.rootDir}/detekt-config.yml")
+        config = files("${project.rootDir}/detekt.yml")
         reports {
             xml.enabled = false
             html.enabled = false
