@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
@@ -7,11 +23,29 @@ import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.SqlType
 import me.liuwj.ktorm.schema.Table
+import java.sql.Statement
 import java.util.*
 import kotlin.collections.ArrayList
 
 /**
- * 更新表中的记录，返回受影响的记录数
+ * Construct an update expression in the given closure, then execute it and return the effected row count.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.update {
+ *     it.job to "engineer"
+ *     it.managerId to null
+ *     it.salary to 100
+ *
+ *     where {
+ *         it.id eq 2
+ *     }
+ * }
+ * ```
+ *
+ * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression
+ * @return the effected row count
  */
 fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
@@ -21,6 +55,9 @@ fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     return expression.executeUpdate()
 }
 
+/**
+ * Execute the current SQL expression, and return the effected row count. Used by Ktorm internal.
+ */
 internal fun SqlExpression.executeUpdate(): Int {
     this.prepareStatement { statement ->
         val effects = statement.executeUpdate()
@@ -35,7 +72,29 @@ internal fun SqlExpression.executeUpdate(): Int {
 }
 
 /**
- * 批量执行多条更新，返回受影响的记录数
+ * Construct update expressions in the given closure, then batch execute them and return the effected
+ * row counts for each expression.
+ *
+ * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
+ * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Departments.batchUpdate {
+ *     for (i in 1..2) {
+ *         item {
+ *             it.location to "Hong Kong"
+ *             where {
+ *                 it.id eq i
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * @param block the DSL block, an extension function of [BatchUpdateStatementBuilder], used to construct the expressions
+ * @return the effected row counts for each sub-operation
  */
 fun <T : Table<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
     val builder = BatchUpdateStatementBuilder(this).apply(block)
@@ -87,7 +146,23 @@ private fun List<SqlExpression>.executeBatch(): IntArray {
 }
 
 /**
- * 往表中插入一条记录，返回受影响的记录数
+ * Construct an insert expression in the given closure, then execute it and return the effected row count.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.insert {
+ *     it.name to "jerry"
+ *     it.job to "trainee"
+ *     it.managerId to 1
+ *     it.hireDate to LocalDate.now()
+ *     it.salary to 50
+ *     it.departmentId to 1
+ * }
+ * ```
+ *
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression
+ * @return the effected row count
  */
 fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
@@ -98,7 +173,37 @@ fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
 }
 
 /**
- * 批量往表中插入记录，返回受影响的记录数
+ * Construct insert expressions in the given closure, then batch execute them and return the effected
+ * row counts for each expression.
+ *
+ * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
+ * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.batchInsert {
+ *     item {
+ *         it.name to "jerry"
+ *         it.job to "trainee"
+ *         it.managerId to 1
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 50
+ *         it.departmentId to 1
+ *     }
+ *     item {
+ *         it.name to "linda"
+ *         it.job to "assistant"
+ *         it.managerId to 3
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 100
+ *         it.departmentId to 2
+ *     }
+ * }
+ * ```
+ *
+ * @param block the DSL block, an extension function of [BatchInsertStatementBuilder], used to construct the expressions
+ * @return the effected row counts for each sub-operation
  */
 fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
     val builder = BatchInsertStatementBuilder(this).apply(block)
@@ -112,7 +217,23 @@ fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Uni
 }
 
 /**
- * 往表中插入记录，并且返回主键
+ * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val id = Employees.insertAndGenerateKey {
+ *     it.name to "jerry"
+ *     it.job to "trainee"
+ *     it.managerId to 1
+ *     it.hireDate to LocalDate.now()
+ *     it.salary to 50
+ *     it.departmentId to 1
+ * }
+ * ```
+ *
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression
+ * @return the auto-generated key
  */
 fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
@@ -146,7 +267,7 @@ fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit)
 }
 
 /**
- * 将当前查询的返回结果批量插入到表中，返回受影响的记录数
+ * Insert the current [Query]'s results into the given table, useful when transfer data from a table to another table.
  */
 fun Query.insertTo(table: Table<*>, vararg columns: Column<*>): Int {
     val expression = InsertFromQueryExpression(
@@ -159,7 +280,7 @@ fun Query.insertTo(table: Table<*>, vararg columns: Column<*>): Int {
 }
 
 /**
- * 根据条件删除表中的记录，返回受影响的记录数
+ * Delete the records in the table that matches the given [predicate].
  */
 fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     val expression = AliasRemover.visit(DeleteExpression(asExpression(), predicate(this).asExpression()))
@@ -167,27 +288,46 @@ fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
 }
 
 /**
- * 删除表中所有数据
+ * Delete all the records in the table.
  */
 fun Table<*>.deleteAll(): Int {
     val expression = AliasRemover.visit(DeleteExpression(asExpression(), where = null))
     return expression.executeUpdate()
 }
 
+/**
+ * Marker annotation for Ktorm DSL builder classes.
+ */
 @DslMarker
 annotation class KtormDsl
 
+/**
+ * Base class of DSL builders, provide basic functions used to build assignments for insert or update DSL.
+ */
 @KtormDsl
 open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignmentExpression<*>>) {
 
+    /**
+     * Assign the current column to another column or an expression's result.
+     */
     infix fun <C : Any> Column<C>.to(expr: ColumnDeclaring<C>) {
         assignments += ColumnAssignmentExpression(asExpression(), expr.asExpression())
     }
 
+    /**
+     * Assign the current column to a specific value.
+     */
     infix fun <C : Any> Column<C>.to(argument: C?) {
         this to wrapArgument(argument)
     }
 
+    /**
+     * Assign the current column to a specific value.
+     *
+     * Note that this function accepts an argument type `Any?`, that's because it is designed to avoid
+     * applications call [kotlin.to] unexpectedly in the DSL closures. An exception will be thrown
+     * by this function if the argument type doesn't match the column's type.
+     */
     @Suppress("UNCHECKED_CAST")
     @JvmName("toAny")
     infix fun Column<*>.to(argument: Any?) {
@@ -200,6 +340,9 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
     }
 }
 
+/**
+ * DSL builder for update statements.
+ */
 @KtormDsl
 class UpdateStatementBuilder(
     assignments: MutableList<ColumnAssignmentExpression<*>>
@@ -207,16 +350,25 @@ class UpdateStatementBuilder(
 
     internal var where: ColumnDeclaring<Boolean>? = null
 
+    /**
+     * Specify the where clause for this update statement.
+     */
     fun where(block: () -> ColumnDeclaring<Boolean>) {
         this.where = block()
     }
 }
 
+/**
+ * DSL builder for batch update statements.
+ */
 @KtormDsl
 class BatchUpdateStatementBuilder<T : Table<*>>(internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
     internal val sqls = HashSet<String>()
 
+    /**
+     * Add an update statement to the current batch operation.
+     */
     fun item(block: UpdateStatementBuilder.(T) -> Unit) {
         val assignments = ArrayList<ColumnAssignmentExpression<*>>()
         val builder = UpdateStatementBuilder(assignments)
@@ -235,11 +387,17 @@ class BatchUpdateStatementBuilder<T : Table<*>>(internal val table: T) {
     }
 }
 
+/**
+ * DSL builder for batch insert statements.
+ */
 @KtormDsl
 class BatchInsertStatementBuilder<T : Table<*>>(internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
     internal val sqls = HashSet<String>()
 
+    /**
+     * Add an insert statement to the current batch operation.
+     */
     fun item(block: AssignmentsBuilder.(T) -> Unit) {
         val assignments = ArrayList<ColumnAssignmentExpression<*>>()
         val builder = AssignmentsBuilder(assignments)
@@ -258,6 +416,9 @@ class BatchInsertStatementBuilder<T : Table<*>>(internal val table: T) {
     }
 }
 
+/**
+ * [SqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
+ */
 internal object AliasRemover : SqlExpressionVisitor() {
 
     override fun visitTable(expr: TableExpression): TableExpression {

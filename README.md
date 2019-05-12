@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="hexo-docs/source/images/logo-full.png" alt="Ktorm" width="300" />
+    <img src="docs/source/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
     <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">
@@ -35,7 +35,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
  - Extensible design, write your own extensions to support more operators, data types, SQL functions, database dialects, etc.
 
 <p align="center">
-    <img src="hexo-docs/source/images/ktorm-example.jpg">
+    <img src="docs/source/images/ktorm-example.jpg">
 </p>
 
 # Quick Start

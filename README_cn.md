@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="hexo-docs/source/images/logo-full.png" alt="Ktorm" width="300" />
+    <img src="docs/source/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
     <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">
@@ -35,7 +35,7 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
  - 易扩展的设计，可以灵活编写扩展，支持更多操作符、数据类型、 SQL 函数、数据库方言等
 
 <p align="center">
-    <img src="hexo-docs/source/images/ktorm-example.jpg">
+    <img src="docs/source/images/ktorm-example.jpg">
 </p>
 
 # 快速开始
