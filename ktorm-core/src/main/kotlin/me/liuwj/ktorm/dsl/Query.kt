@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
@@ -8,22 +24,63 @@ import java.sql.ResultSet
 import javax.sql.rowset.RowSetProvider
 
 /**
- * [Query] 对象表示一个查询操作，此类实现了 [Iterable] 接口，因此支持使用 for 循环迭代查询结果集中的数据，
- * 也天然支持了针对 [Iterable] 的一系列 Kotlin 扩展函数，如 map, filter, associateBy 等
+ * [Query] is an abstraction of query operations and the core class of Ktorm's query DSL.
  *
- * @property expression 该查询的 SQL 表达式
+ * The constructor of this class accepts a parameter of type [QueryExpression], which is the abstract
+ * representation of the executing SQL statements. Usually, we don't use the constructor to create query
+ * objects but use the [Table.select] extension function instead.
+ *
+ * [Query] implements the [Iterable] interface, so we can iterate the results by a for-each loop:
+ *
+ * ```kotlin
+ * for (row in Employees.select()) {
+ *     println(row[Employees.name])
+ * }
+ * ```
+ *
+ * Moreover, there are many extension functions for [Iterable] in Kotlin standard lib, so we can also
+ * process the results via functions such as [Iterable.map], [Iterable.filter], [Iterable.reduce], etc.
+ *
+ * Query objects are immutable. Query DSL functions are provided as its extension functions normally. We can
+ * chaining call these functions to modify them and create new query objects. Here is a simple example:
+ *
+ * ```kotlin
+ * val query = Employees
+ *     .select(Employees.salary)
+ *     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
+ * ```
+ *
+ * Easy to know that the query obtains the salary of an employee named vince in department 1. The generated
+ * SQL is easy too:
+ *
+ * ```sql
+ * select t_employee.salary as t_employee_salary
+ * from t_employee
+ * where (t_employee.department_id = ?) and (t_employee.name like ?)
+ * ```
+ *
+ * More usages can be found in the documentations of those DSL functions.
+ *
+ * @property expression the underlying SQL expression of this query object
  */
 data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 
     /**
-     * 返回该查询的 SQL 字符串，提供换行、缩进支持，可在 debug 时确认所生成的 SQL 是否符合预期
+     * The executable SQL string of this query.
+     *
+     * Useful when we want to ensure if the generated SQL is expected while debugging.
      */
     val sql: String by lazy(LazyThreadSafetyMode.NONE) {
         Database.global.formatExpression(expression, beautifySql = true).first
     }
 
     /**
-     * 该查询的结果集对象，懒初始化，在通过 [Iterable] 对查询进行迭代的时候执行 SQL 获取结果集
+     * The [ResultSet] object of this query, lazy initialized after first access, obtained from the database by
+     * executing the generated SQL.
+     *
+     * Note that the return type of this property is not a normal [ResultSet], but a [QueryRowSet] instead. That's
+     * a special implementation provided by Ktorm, different from normal result sets, it is available offline and
+     * overrides the indexed access operator. More details can be found in the documentation of [QueryRowSet].
      */
     val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
         expression.prepareStatement { statement ->
@@ -42,7 +99,11 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
     }
 
     /**
-     * 获取符合该查询条件（去除 offset, limit）的总记录数，用于支持分页
+     * The total records count of this query ignoring the pagination params.
+     *
+     * If the query doesn't limits the results via [Query.limit] function, return the size of the result set. Or if
+     * it does, return the total records count of the query ignoring the offset and limit parameters. This property
+     * is provided to support pagination, we can calculate the page count through dividing it by out page size.
      */
     val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
         if (expression.offset == null && expression.limit == null) {
@@ -68,6 +129,15 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
         }
     }
 
+    /**
+     * Return an iterator over the rows of this query.
+     *
+     * Note that this function is simply implemented as `rowSet.iterator()`, so every element returned by the iterator
+     * exactly shares the same instance as the [rowSet] property.
+     *
+     * @see rowSet
+     * @see ResultSet.iterator
+     */
     override fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
     }
