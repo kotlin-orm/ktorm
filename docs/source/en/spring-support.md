@@ -49,6 +49,8 @@ class KtOrmConfiguration {
 
 Yes, that's all. Ktorm's Spring support is easy, the only thing required is a `DataSource` bean in your container. But how can we create the `DataSource` bean? That is not Ktorm's duty anymore, we believe every Spring user can do this by him/her self. 
 
+> If you need a simple example project integrating Ktorm with Spring Boot, click here: [vincentlauvlwj/ktorm-example-spring-boot](https://github.com/vincentlauvlwj/ktorm-example-spring-boot)
+
 ## Transaction Delegation
 
 Differently, instances created by `Database.connectWithSpringSupport` function use `SpringManagedTransactionManager` as their transaction manager implementation. This implementation delegates all transaction operations to Spring framework: 
