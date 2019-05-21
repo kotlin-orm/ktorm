@@ -148,7 +148,10 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 }
 
 /**
- * 返回 [ResultSet] 的迭代器
+ * Return an iterator over the rows of this [ResultSet].
+ *
+ * The returned iterator just wraps the [ResultSet.next] method and every element returned by the iterator is
+ * exactly the same reference as the this [ResultSet].
  */
 @Suppress("IteratorHasNextCallsNextMethod")
 operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
@@ -165,46 +168,94 @@ operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
 }
 
 /**
- * 将 [ResultSet] 转换为 [Iterable] 对象，以支持 Kotlin 提供的 map, filter 等扩展函数的使用
+ * Wrap this [ResultSet] as [Iterable].
+ *
+ * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
+ * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
+ *
+ * @see ResultSet.iterator
  */
 fun <T : ResultSet> T.iterable(): Iterable<T> {
     return Iterable { iterator() }
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression].
+ *
+ * Note that the specific columns can be empty, that means `select *` in SQL.
+ */
 fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
     return Query(SelectExpression(columns = declarations, from = this))
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression].
+ *
+ * Note that the specific columns can be empty, that means `select *` in SQL.
+ */
 fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
     return select(columns.asList())
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [Table].
+ *
+ * Note that the specific columns can be empty, that means `select *` in SQL.
+ */
 fun Table<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
     return asExpression().select(columns)
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [Table].
+ *
+ * Note that the specific columns can be empty, that means `select *` in SQL.
+ */
 fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().select(columns.asList())
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression] distinctly.
+ *
+ * Note that the specific columns can be empty, that means `select distinct *` in SQL.
+ */
 fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
     return Query(SelectExpression(columns = declarations, from = this, isDistinct = true))
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression] distinctly.
+ *
+ * Note that the specific columns can be empty, that means `select distinct *` in SQL.
+ */
 fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [Table] distinctly.
+ *
+ * Note that the specific columns can be empty, that means `select distinct *` in SQL.
+ */
 fun Table<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     return asExpression().selectDistinct(columns)
 }
 
+/**
+ * Create a query object, selecting the specific columns or expressions from this [Table] distinctly.
+ *
+ * Note that the specific columns can be empty, that means `select distinct *` in SQL.
+ */
 fun Table<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().selectDistinct(columns.asList())
 }
 
+/**
+ * Specify the `where` clause of this query using the expression returned by the given callback function.
+ */
 inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
     return this.copy(
         expression = when (expression) {
@@ -214,6 +265,12 @@ inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
     )
 }
 
+/**
+ * Create a mutable list, then add filter conditions to the list in the given callback function, finally combine
+ * them with the [and] operator and set the combined condition as the `where` clause of this query.
+ *
+ * Note that if we don't add any conditions to the list, the `where` clause would not be set.
+ */
 inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     val conditions = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
 
@@ -224,6 +281,12 @@ inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean
     }
 }
 
+/**
+ * Create a mutable list, then add filter conditions to the list in the given callback function, finally combine
+ * them with the [or] operator and set the combined condition as the `where` clause of this query.
+ *
+ * Note that if we don't add any conditions to the list, the `where` clause would not be set.
+ */
 inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     val conditions = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
 
@@ -234,6 +297,11 @@ inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boole
     }
 }
 
+/**
+ * Combine this iterable of boolean expressions with the [and] operator.
+ *
+ * If the iterable is empty, `true` will be returned.
+ */
 fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Boolean> {
     if (this.any()) {
         return this.reduce { a, b -> a and b }
@@ -242,6 +310,9 @@ fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Bool
     }
 }
 
+/**
+ * Specify the `group by` clause of this query using the given columns or expressions.
+ */
 fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
     return this.copy(
         expression = when (expression) {
@@ -251,6 +322,9 @@ fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
     )
 }
 
+/**
+ * Specify the `having` clause of this query using the expression returned by the given callback function.
+ */
 inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
     return this.copy(
         expression = when (expression) {
@@ -260,6 +334,9 @@ inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
     )
 }
 
+/**
+ * Specify the `order by` clause of this query using the given order-by expressions.
+ */
 fun Query.orderBy(vararg orders: OrderByExpression): Query {
     return this.copy(
         expression = when (expression) {
@@ -293,14 +370,28 @@ private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {
     }
 }
 
+/**
+ * Order this column or expression in ascending order.
+ */
 fun ColumnDeclaring<*>.asc(): OrderByExpression {
     return OrderByExpression(asExpression(), OrderType.ASCENDING)
 }
 
+/**
+ * Order this column or expression in descending order, corresponding to the `desc` keyword in SQL.
+ */
 fun ColumnDeclaring<*>.desc(): OrderByExpression {
     return OrderByExpression(asExpression(), OrderType.DESCENDING)
 }
 
+/**
+ * Specify the pagination parameters of this query.
+ *
+ * This function requires a dialect enabled, different SQLs will be generated in different dialects. For example,
+ * `limit ?, ?` in MySQL, `limit m offset n` in PostgreSQL.
+ *
+ * Note that if both [offset] and [limit] are zero, they will be ignored.
+ */
 fun Query.limit(offset: Int, limit: Int): Query {
     if (offset == 0 && limit == 0) {
         return this
@@ -314,10 +405,16 @@ fun Query.limit(offset: Int, limit: Int): Query {
     )
 }
 
+/**
+ * Union this query with the given one, corresponding to the `union` keyword in SQL.
+ */
 fun Query.union(right: Query): Query {
     return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = false))
 }
 
+/**
+ * Union this query with the given one, corresponding to the `union all` keyword in SQL.
+ */
 fun Query.unionAll(right: Query): Query {
     return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = true))
 }
