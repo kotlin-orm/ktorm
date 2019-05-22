@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
@@ -9,7 +25,7 @@ import me.liuwj.ktorm.schema.*
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * 根据 ID 批量获取实体对象，会自动 left join 所有的引用表
+ * Obtain a map of entity objects by IDs, auto left joining all the reference tables.
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E> {
@@ -17,7 +33,7 @@ fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E
 }
 
 /**
- * 根据 ID 批量获取实体对象，会自动 left join 所有的引用表
+ * Obtain a list of entity objects by IDs, auto left joining all the reference tables.
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
@@ -30,7 +46,9 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
 }
 
 /**
- * 根据 ID 获取对象，会自动 left join 所有的引用表
+ * Obtain a entity object by its ID, auto left joining all the reference tables.
+ *
+ * This function will return `null` if no records found, and throw an exception if there are more than one record.
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
@@ -39,7 +57,9 @@ fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
 }
 
 /**
- * 根据指定条件获取对象，会自动 left join 所有的引用表
+ * Obtain a entity object matching the given [predicate], auto left joining all the reference tables.
+ *
+ * This function will return `null` if no records found, and throw an exception if there are more than one record.
  */
 inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     val list = findList(predicate)
@@ -51,7 +71,7 @@ inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDecla
 }
 
 /**
- * 获取表中的所有记录，会自动 left join 所有的引用表
+ * Obtain all the entity objects from this table, auto left joining all the reference tables.
  */
 fun <E : Entity<E>> Table<E>.findAll(): List<E> {
     // return this.asSequence().toList()
@@ -61,7 +81,7 @@ fun <E : Entity<E>> Table<E>.findAll(): List<E> {
 }
 
 /**
- * 根据指定条件获取对象列表，会自动 left join 所有的引用表
+ * Obtain a list of entity objects matching the given [predicate], auto left joining all the reference tables.
  */
 inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
     // return this.asSequence().filter(predicate).toList()
@@ -72,7 +92,7 @@ inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDecl
 }
 
 /**
- * 返回一个查询对象 [Query]，left join 所有引用表，select 所有字段
+ * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
 fun Table<*>.joinReferencesAndSelect(): Query {
     val joinedTables = ArrayList<Table<*>>()
@@ -110,7 +130,11 @@ private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpre
 }
 
 /**
- * 从结果集中创建实体对象，会自动级联创建引用表的实体对象
+ * Create an entity object from the specific row of [Query] results.
+ *
+ * This function uses the binding configurations of this table object, filling columns' values into corresponding
+ * entities' properties. And if there are any reference bindings to other tables, it will also create the referenced
+ * entity objects recursively.
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
@@ -126,7 +150,15 @@ fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
 }
 
 /**
- * 从结果集中创建实体对象，不会自动级联创建引用表的实体对象
+ * Create an entity object from the specific row without obtaining referenced entities' data automatically.
+ *
+ * Similar to [Table.createEntity], this function uses the binding configurations of this table object, filling
+ * columns' values into corresponding entities' properties. But differently, it treats all reference bindings
+ * as nested bindings to the referenced entities’ primary keys.
+ *
+ * For example the binding `c.references(Departments) { it.department }`, it is equivalent to
+ * `c.bindTo { it.department.id }` for this function, that avoids unnecessary object creations and
+ * some exceptions raised by conflict column names.
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {

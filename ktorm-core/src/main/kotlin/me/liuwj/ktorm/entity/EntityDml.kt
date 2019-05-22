@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
@@ -8,7 +24,13 @@ import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 
 /**
- * 将给定的实体对象插入的表中，如果插入后有主键生成，会将生成的主键设置到实体对象中的相应属性，返回受影响的记录数
+ * Insert the given entity into this table and return the affected record number.
+ *
+ * If we use an auto-increment key in our table, we need to tell Ktorm which column is the primary key by calling
+ * the [Table.ColumnRegistration.primaryKey] function on the column registration, then this function will obtain
+ * the generated key from the database and fill it into the corresponding property after the insertion completes.
+ * But this requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
+ * will be inserted into the database, and no keys generated.
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>> Table<E>.add(entity: E): Int {
