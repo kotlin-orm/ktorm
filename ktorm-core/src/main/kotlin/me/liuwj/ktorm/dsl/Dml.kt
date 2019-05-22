@@ -37,7 +37,6 @@ import kotlin.collections.ArrayList
  *     it.job to "engineer"
  *     it.managerId to null
  *     it.salary to 100
- *
  *     where {
  *         it.id eq 2
  *     }

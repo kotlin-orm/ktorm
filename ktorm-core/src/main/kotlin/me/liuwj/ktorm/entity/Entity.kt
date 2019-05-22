@@ -41,7 +41,7 @@ import kotlin.reflect.jvm.jvmErasure
  * }
  * ```
  *
- * ## Creating Entity Objects
+ * ### Creating Entity Objects
  *
  * As everyone knows, interfaces cannot be instantiated, so Ktorm provides [Entity.create] functions for us to
  * create entity objects. Those functions generate implementations for entity interfaces via JDK dynamic proxy
@@ -52,7 +52,7 @@ import kotlin.reflect.jvm.jvmErasure
  * object to our entity class extending from [Entity.Factory], then entity objects can be created just like there
  * is a constructor: `val department = Department()`.
  *
- * ## Getting and Setting Properties
+ * ### Getting and Setting Properties
  *
  * Entity objects in Ktorm are proxies, that's why Ktorm can intercepts all the invocations on entities and listen
  * the status changes of them. Behind those entity objects, there is a value table that holds all the values of the
@@ -61,9 +61,9 @@ import kotlin.reflect.jvm.jvmErasure
  * rules for this situation:
  *
  * - If the value doesn’t exist and the property’s type is nullable (eg. `var name: String?`), then we’ll return null.
- * - If the value doesn’t exist and the property’s type is not nullable (eg. var name: String), then we can not return
- * null anymore, because the null value here can cause an unexpected null pointer exception, we’ll return the type’s
- * default value instead.
+ * - If the value doesn’t exist and the property’s type is not nullable (eg. `var name: String`), then we can not
+ * return null anymore, because the null value here can cause an unexpected null pointer exception, we’ll return the
+ * type’s default value instead.
  *
  * The default values of different types are well-defined:
  *
@@ -82,7 +82,7 @@ import kotlin.reflect.jvm.jvmErasure
  * Moreover, there is a cache mechanism for default values, that ensures a property always returns the same default
  * value instance even if it’s called twice or more. This can avoid some counterintuitive bugs.
  *
- * ## Non-abstract members
+ * ### Non-abstract members
  *
  * If we are using domain driven design, then entities are not only data containers that hold property values, there
  * are also some behaviors, so we need to add some business functions to our entities. Fortunately, Kotlin allows us
@@ -93,7 +93,6 @@ import kotlin.reflect.jvm.jvmErasure
  * interface Foo : Entity<Foo> {
  *     companion object : Entity.Factory<Foo>()
  *     val name: String
- *
  *     fun printName() {
  *         println(name)
  *     }
@@ -116,7 +115,7 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * More details can be found in our website: https://ktorm.liuwj.me/en/entities-and-column-binding.html#More-About-Entities
  *
- * ## Serialization
+ * ### Serialization
  *
  * The [Entity] interface extends from [Serializable], so all entity objects are serializable by default. We can save
  * them to our disks, or transfer them between systems through networks.
@@ -125,7 +124,7 @@ import kotlin.reflect.jvm.jvmErasure
  * status are lost (marked as transient). So we can not obtain an entity object from one system, then flush its changes
  * into the database in another system.
  *
- * > Java uses [ObjectOutputStream] to serialize objects, and uses [ObjectInputStream] to deserialize them, you can
+ * Java uses [ObjectOutputStream] to serialize objects, and uses [ObjectInputStream] to deserialize them, you can
  * refer to their documentation for more details.
  *
  * Besides of JDK serialization, the ktorm-jackson module also supports serializing entities in JSON format. This
