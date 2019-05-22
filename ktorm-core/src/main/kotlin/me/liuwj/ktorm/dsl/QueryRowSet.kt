@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
@@ -15,15 +31,24 @@ import java.util.*
 import javax.sql.rowset.CachedRowSet
 
 /**
- * [ResultSet] 的实现，[Query] 查询返回的结果均使用此类保存，与 [ResultSet] 不同，
- * [ResultSet] 依赖于数据库连接，一旦连接关闭，将无法继续获取数据；此类的对象在创建时即已全部读取了结果集的数据，连接关闭后仍然可用
+ * Special implementation of [ResultSet], used to hold the [Query] results for Ktorm.
  *
- * Created by vince on Jun 04, 2018.
+ * Different from normal result sets, this class provides additional features:
  *
+ * - **Available offline:** It’s connection independent, it remains available after the connection closed, and it’s
+ * not necessary to be closed after being used. Ktorm creates [QueryRowSet] objects with all data being retrieved from
+ * the result set into memory, so we just need to wait for GC to collect them after they are not useful.
+ *
+ * - **Indexed access operator:** It overloads the indexed access operator, so we can use square brackets `[]` to obtain
+ * the value by giving a specific [Column] instance. It’s not easy to get wrong by the benefit of the compiler’s static
+ * checking, but we can still use getXxx functions in the [ResultSet] to obtain our results by labels or column indices.
+ *
+ * This class is implemented based on [CachedRowSet], more details can be found in its documentation.
+ *
+ * @see Query.rowSet
  * @see CachedRowSet
  */
-class QueryRowSet
-internal constructor(
+class QueryRowSet internal constructor(
     private val query: Query,
     private val nativeRowSet: CachedRowSet
 ) : CachedRowSet by nativeRowSet {
@@ -48,7 +73,7 @@ internal constructor(
     }
 
     /**
-     * 从结果集中获取指定列的数据
+     * Obtain the value of the specific [Column] instance.
      */
     operator fun <C : Any> get(column: Column<C>): C? {
         // Try to get result by label first.
@@ -70,9 +95,9 @@ internal constructor(
     }
 
     /**
-     * 判断结果集中是否存在给定的列
+     * Check if the specific [Column] exists in this result set.
      *
-     * Note: 如果结果集中有此列，但是值为 NULL，此方法也返回 true
+     * Note that if the column exists but its value is null, this function still returns `true`.
      */
     fun hasColumn(column: Column<*>): Boolean {
         // Try to find by label first.
@@ -106,8 +131,12 @@ internal constructor(
     }
 
     /**
-     * Fix bug of [com.sun.rowset.CachedRowSetImpl.findColumn]
-     * See https://stackoverflow.com/questions/15184709/cachedrowsetimpl-getstring-based-on-column-label-throws-invalid-column-name
+     * Maps the given column label to its column index.
+     *
+     * This function overrides the implementation of [com.sun.rowset.CachedRowSetImpl.findColumn] to fix a legacy bug,
+     * we can found this problem on StackOverflow:
+     *
+     * https://stackoverflow.com/questions/15184709/cachedrowsetimpl-getstring-based-on-column-label-throws-invalid-column-name
      */
     override fun findColumn(columnLabel: String?): Int {
         if (columnLabel == null) {
