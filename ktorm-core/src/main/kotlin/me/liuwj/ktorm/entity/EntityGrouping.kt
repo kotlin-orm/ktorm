@@ -31,7 +31,7 @@ import me.liuwj.ktorm.schema.Table
  * Entity groups are created by attaching `keySelector: (T) -> ColumnDeclaring<K>` function to an entity sequence.
  * To get an instance of [EntityGrouping], use the extension function [EntitySequence.groupingBy].
  *
- * For the list of group-and-fold operations available, see the [extension functions](#extension-functions).
+ * For the list of group-and-fold operations available, see the extension functions below.
  *
  * @property sequence the source entity sequence of this grouping.
  * @property keySelector a function used to extract the key of a record in the source table.
