@@ -37,10 +37,10 @@ interface SqlDialect {
     /**
      * Create a [SqlFormatter] instance, formatting SQL expressions as strings with their execution arguments.
      *
-     * @param database the current database instance executing the formatted SQL
-     * @param beautifySql if we should output beautiful SQL strings with line-wrapping and indentation
-     * @param indentSize the indent size
-     * @return a [SqlFormatter] object, typically typed of subclasses to support dialect-specific sql expressions
+     * @param database the current database instance executing the formatted SQL.
+     * @param beautifySql if we should output beautiful SQL strings with line-wrapping and indentation.
+     * @param indentSize the indent size.
+     * @return a [SqlFormatter] object, typically typed of subclasses to support dialect-specific sql expressions.
      */
     fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter
 }
@@ -58,8 +58,8 @@ object StandardDialect : SqlDialect {
 /**
  * Thrown to indicate that a feature is not supported by the current dialect.
  *
- * @param message the detail message, which is saved for later retrieval by [Throwable.message]
- * @param cause the cause, which is saved for later retrieval by [Throwable.cause]
+ * @param message the detail message, which is saved for later retrieval by [Throwable.message].
+ * @param cause the cause, which is saved for later retrieval by [Throwable.cause].
  */
 class DialectFeatureNotSupportedException(
     message: String? = null,

@@ -43,8 +43,8 @@ import kotlin.collections.ArrayList
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression
- * @return the effected row count
+ * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
+ * @return the effected row count.
  */
 fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
@@ -92,8 +92,8 @@ internal fun SqlExpression.executeUpdate(): Int {
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [BatchUpdateStatementBuilder], used to construct the expressions
- * @return the effected row counts for each sub-operation
+ * @param block the DSL block, an extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
+ * @return the effected row counts for each sub-operation.
  */
 fun <T : Table<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
     val builder = BatchUpdateStatementBuilder(this).apply(block)
@@ -160,8 +160,8 @@ private fun List<SqlExpression>.executeBatch(): IntArray {
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression
- * @return the effected row count
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
+ * @return the effected row count.
  */
 fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
@@ -201,8 +201,8 @@ fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [BatchInsertStatementBuilder], used to construct the expressions
- * @return the effected row counts for each sub-operation
+ * @param block the DSL block, an extension function of [BatchInsertStatementBuilder], used to construct the expressions.
+ * @return the effected row counts for each sub-operation.
  */
 fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
     val builder = BatchInsertStatementBuilder(this).apply(block)
@@ -231,8 +231,8 @@ fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Uni
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression
- * @return the auto-generated key
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
+ * @return the auto-generated key.
  */
 fun <T : Table<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()

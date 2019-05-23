@@ -59,10 +59,10 @@ import javax.sql.DataSource
  * }
  * ```
  *
- * @property transactionManager the transaction manager used to manage connections and transactions
- * @property dialect the dialect implementation, by default, [StandardDialect] is used
- * @property logger the logger used to output logs, printed to the console by default, pass null to disable logging
- * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users
+ * @property transactionManager the transaction manager used to manage connections and transactions.
+ * @property dialect the dialect implementation, by default, [StandardDialect] is used.
+ * @property logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+ * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database private constructor(
     val transactionManager: TransactionManager,
@@ -162,9 +162,9 @@ class Database private constructor(
      * - This function is reentrant, so it can be called nested. However, the inner calls don’t open new transactions
      * but share the same ones with outers.
      *
-     * @param isolation transaction isolation, enums defined in [TransactionIsolation]
-     * @param func the executed callback function
-     * @return the result of the callback function
+     * @param isolation transaction isolation, enums defined in [TransactionIsolation].
+     * @param func the executed callback function.
+     * @return the result of the callback function.
      */
     inline fun <T> useTransaction(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
@@ -215,10 +215,10 @@ class Database private constructor(
     /**
      * Format the specific [SqlExpression] to an executable SQL string with execution arguments.
      *
-     * @param expression the expression to be formatted
-     * @param beautifySql output beautiful SQL strings with line-wrapping and indentation, default to false
-     * @param indentSize the indent size, default to 2
-     * @return a [Pair] combines the SQL string and its execution arguments
+     * @param expression the expression to be formatted.
+     * @param beautifySql output beautiful SQL strings with line-wrapping and indentation, default to `false`.
+     * @param indentSize the indent size, default to 2.
+     * @return a [Pair] combines the SQL string and its execution arguments.
      */
     fun formatExpression(
         expression: SqlExpression,
@@ -250,10 +250,10 @@ class Database private constructor(
         /**
          * Connect to a database by a specific [connector] function.
          *
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
-         * @param connector the connector function used to obtain SQL connections
-         * @return the new-created database object
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @param connector the connector function used to obtain SQL connections.
+         * @return the new-created database object.
          */
         fun connect(
             dialect: SqlDialect = StandardDialect,
@@ -266,10 +266,10 @@ class Database private constructor(
         /**
          * Connect to a database using a [DataSource].
          *
-         * @param dataSource the data source used to obtain SQL connections
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
-         * @return the new-created database object
+         * @param dataSource the data source used to obtain SQL connections.
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @return the new-created database object.
          */
         fun connect(
             dataSource: DataSource,
@@ -282,13 +282,13 @@ class Database private constructor(
         /**
          * Connect to a database using the specific connection arguments.
          *
-         * @param url the URL of the database to be connected
-         * @param driver the full qualified name of the JDBC driver class
-         * @param user the user name of the database
-         * @param password the password of the database
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
-         * @return the new-created database object
+         * @param url the URL of the database to be connected.
+         * @param driver the full qualified name of the JDBC driver class.
+         * @param user the user name of the database.
+         * @param password the password of the database.
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @return the new-created database object.
          */
         fun connect(
             url: String,
@@ -312,10 +312,10 @@ class Database private constructor(
          * This also enables the exception translation, which can convert any [SQLException] thrown by JDBC to
          * Spring's [DataAccessException] and rethrow it.
          *
-         * @param dataSource the data source used to obtain SQL connections
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging
-         * @return the new-created database object
+         * @param dataSource the data source used to obtain SQL connections.
+         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @return the new-created database object.
          */
         fun connectWithSpringSupport(
             dataSource: DataSource,

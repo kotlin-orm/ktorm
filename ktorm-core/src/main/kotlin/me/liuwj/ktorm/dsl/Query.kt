@@ -61,7 +61,7 @@ import javax.sql.rowset.RowSetProvider
  *
  * More usages can be found in the documentations of those DSL functions.
  *
- * @property expression the underlying SQL expression of this query object
+ * @property expression the underlying SQL expression of this query object.
  */
 data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 

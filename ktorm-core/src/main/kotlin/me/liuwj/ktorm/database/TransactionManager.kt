@@ -42,9 +42,9 @@ interface TransactionManager {
     /**
      * Open a new transaction for the current thread using the specific isolation if there is no transaction opened.
      *
-     * @param isolation the transaction isolation, by default, [defaultIsolation] is used
-     * @return the new-created transaction
-     * @throws [IllegalStateException] if there is already a transaction opened
+     * @param isolation the transaction isolation, by default, [defaultIsolation] is used.
+     * @return the new-created transaction.
+     * @throws [IllegalStateException] if there is already a transaction opened.
      */
     fun newTransaction(isolation: TransactionIsolation = defaultIsolation): Transaction
 
@@ -88,7 +88,7 @@ interface Transaction : Closeable {
  * Enum class represents transaction isolation levels, wrapping the `TRANSACTION_XXX` constants
  * defined in the [Connection] interface.
  *
- * @property level the `TRANSACTION_XXX` constant values defined in the [Connection] interface
+ * @property level the `TRANSACTION_XXX` constant values defined in the [Connection] interface.
  */
 enum class TransactionIsolation(val level: Int) {
     NONE(Connection.TRANSACTION_NONE),

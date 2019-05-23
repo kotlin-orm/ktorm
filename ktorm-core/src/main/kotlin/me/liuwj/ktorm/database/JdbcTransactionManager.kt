@@ -30,7 +30,7 @@ import javax.sql.DataSource
  *
  * [Database] instances created by [Database.connect] functions use this implementation by default.
  *
- * @property connector the callback function used to obtain SQL connections
+ * @property connector the callback function used to obtain SQL connections.
  */
 class JdbcTransactionManager(val connector: () -> Connection) : TransactionManager {
     private val threadLocal = ThreadLocal<Transaction>()

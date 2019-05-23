@@ -29,7 +29,7 @@ import javax.sql.DataSource
  * transaction management will be delegated to the Spring framework, so the [Database.useTransaction]
  * function is not available anymore, applications should use Spring's [Transactional] annotation instead.
  *
- * @property dataSource the data source used to obtained connections, typically comes from Spring's application context
+ * @property dataSource the data source used to obtained connections, typically comes from Spring's application context.
  */
 class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionManager {
 
