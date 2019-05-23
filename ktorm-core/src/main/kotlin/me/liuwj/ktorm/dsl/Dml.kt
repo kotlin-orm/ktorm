@@ -92,7 +92,7 @@ internal fun SqlExpression.executeUpdate(): Int {
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
+ * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
 fun <T : Table<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
@@ -201,7 +201,7 @@ fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * }
  * ```
  *
- * @param block the DSL block, an extension function of [BatchInsertStatementBuilder], used to construct the expressions.
+ * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
 fun <T : Table<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {

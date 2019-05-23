@@ -251,7 +251,7 @@ class Database private constructor(
          * Connect to a database by a specific [connector] function.
          *
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
          * @param connector the connector function used to obtain SQL connections.
          * @return the new-created database object.
          */
@@ -268,7 +268,7 @@ class Database private constructor(
          *
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connect(
@@ -287,7 +287,7 @@ class Database private constructor(
          * @param user the user name of the database.
          * @param password the password of the database.
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connect(
@@ -314,7 +314,7 @@ class Database private constructor(
          *
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connectWithSpringSupport(
