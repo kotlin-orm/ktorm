@@ -64,7 +64,7 @@ import javax.sql.DataSource
  * @property logger the logger used to output logs, printed to the console by default, pass null to disable logging.
  * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
-class Database private constructor(
+class Database(
     val transactionManager: TransactionManager,
     val dialect: SqlDialect = StandardDialect,
     val logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),

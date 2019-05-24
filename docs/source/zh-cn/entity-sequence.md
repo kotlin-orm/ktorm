@@ -100,7 +100,7 @@ Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，�
 
 ## 中间操作
 
-就像 `kotlin.Sequence` 一样，`EntitySequence` 的中间操作并不会迭代序列执行查询，它们都返回一个新的序列对象。`EntitySequence` 的中间操作主要有如下几个。
+就像 `kotlin.sequences.Sequence` 一样，`EntitySequence` 的中间操作并不会迭代序列执行查询，它们都返回一个新的序列对象。`EntitySequence` 的中间操作主要有如下几个。
 
 ### filter
 
@@ -110,13 +110,13 @@ inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
 ): EntitySequence<E, T>
 ````
 
-与 `kotlin.Sequence` 的 `filter` 函数类似，`EntitySequence` 的 `filter` 函数也接受一个闭包作为参数，使用闭包中指定的筛选条件对序列进行过滤。不同的是，我们的闭包接受当前表对象 `T` 作为参数，因此我们在闭包中使用 `it` 访问到的并不是实体对象，而是表对象，另外，闭包的返回值也是 `ColumnDeclaring<Boolean>`，而不是 `Boolean`。下面使用 `filter` 获取部门 1 中的所有员工：
+与 `kotlin.sequences.Sequence` 的 `filter` 函数类似，`EntitySequence` 的 `filter` 函数也接受一个闭包作为参数，使用闭包中指定的筛选条件对序列进行过滤。不同的是，我们的闭包接受当前表对象 `T` 作为参数，因此我们在闭包中使用 `it` 访问到的并不是实体对象，而是表对象，另外，闭包的返回值也是 `ColumnDeclaring<Boolean>`，而不是 `Boolean`。下面使用 `filter` 获取部门 1 中的所有员工：
 
 ```kotlin
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-可以看到，用法几乎与 `kotlin.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 操作符进行连接，比如：
+可以看到，用法几乎与 `kotlin.sequences.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 操作符进行连接，比如：
 
 ```kotlin
 val employees = Employees
@@ -230,7 +230,7 @@ limit ?, ?
 
 ## 终止操作
 
-实体序列的终止操作会马上执行一个查询，获取查询的执行结果，然后执行一定的计算，下面介绍 Ktorm 为 `EntitySequence` 提供的一些终止操作，他们其实与 `kotlin.Sequence` 的终止操作几乎一样。
+实体序列的终止操作会马上执行一个查询，获取查询的执行结果，然后执行一定的计算，下面介绍 Ktorm 为 `EntitySequence` 提供的一些终止操作，他们其实与 `kotlin.sequences.Sequence` 的终止操作几乎一样。
 
 ### toCollection
 
@@ -269,7 +269,7 @@ from t_employee
 
 请注意，虽然在这里我们只需要获取员工的名字，但是生成的 SQL 仍然查询了所有的字段，这是因为 Ktorm 无法通过我们传入的 `transform` 函数识别出所需的具体字段。如果你对这点性能的损失比较敏感，可以把 `map` 函数与 `filterColumns` 函数配合使用，也可以使用下面将要介绍的 `mapColumns` 函数代替。
 
-除了基本的 `map` 函数，Ktorm 还提供了 `mapTo`、`mapIndexed`、`mapIndexedTo`，他们的功能与 `kotlin.Sequence` 中的同名函数是一样的，在此不再赘述。
+除了基本的 `map` 函数，Ktorm 还提供了 `mapTo`、`mapIndexed`、`mapIndexedTo`，他们的功能与 `kotlin.sequences.Sequence` 中的同名函数是一样的，在此不再赘述。
 
 ### mapColumns
 
@@ -333,13 +333,13 @@ where t_employee.department_id = ?
 
 ### associate
 
-`associate` 系列函数会马上执行查询，然后迭代查询的结果集，把序列转换为 `Map`。它们的用法与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
+`associate` 系列函数会马上执行查询，然后迭代查询的结果集，把序列转换为 `Map`。它们的用法与 `kotlin.sequences.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
 
 除了基本的 `associate` 函数以外，Ktorm 还提供了其他的一些变体，它们分别是：`associateBy`、`associateWith`、`associateTo`、`associateByTo`、`associateWithTo`。
 
 ### elementAt/first/last/find/findLast/single
 
-这一系列函数用于获取序列中指定位置的元素，它们的用法也与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
+这一系列函数用于获取序列中指定位置的元素，它们的用法也与 `kotlin.sequences.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
 
 特别的是，如果我们启用了方言支持的话，这些函数会使用分页功能，尽量只查询一条数据。假如我们使用 MySQL，并且使用 `elementAt(10)` 获取下标为 10 的记录的话，会生成 `limit 10, 1` 这样的 SQL。但如果分页功能不可用，则会查出所有的记录，然后再根据下标获取指定元素。
 
@@ -347,7 +347,7 @@ where t_employee.department_id = ?
 
 ### fold/reduce/forEach
 
-这一系列函数及其变体为序列提供了迭代、折叠等功能，它们的用法也与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。下面使用 `fold` 计算所有员工的工资总和：
+这一系列函数及其变体为序列提供了迭代、折叠等功能，它们的用法也与 `kotlin.sequences.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。下面使用 `fold` 计算所有员工的工资总和：
 
 ```kotlin
 val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
@@ -361,7 +361,7 @@ val totalSalary = Employees.sumBy { it.salary }
 
 ### joinTo/joinToString
 
-这两个函数提供了将序列中的元素组装为字符串的功能，它们的用法也与 `kotlin.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
+这两个函数提供了将序列中的元素组装为字符串的功能，它们的用法也与 `kotlin.sequences.Sequence` 的同名函数一模一样，具体可以参考 Kotlin 标准库的相关文档。
 
 下面使用 `joinToString` 把所有员工的名字拼成一个字符串：
 

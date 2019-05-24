@@ -335,7 +335,7 @@ These functions don’t execute the internal queries but return new-created sequ
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-We can see that the usage is almost the same as `kotlin.Sequence`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
+We can see that the usage is almost the same as `kotlin.sequences.Sequence`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
 val employees = Employees
@@ -424,7 +424,7 @@ val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + emplo
 
 ### Sequence Aggregation
 
-The entity sequence APIs not only allow us to obtain entities from databases just like using `kotlin.Sequence`, but they also provide rich support for aggregations, so we can conveniently count the columns, sum them, or calculate their averages, etc.
+The entity sequence APIs not only allow us to obtain entities from databases just like using `kotlin.sequences.Sequence`, but they also provide rich support for aggregations, so we can conveniently count the columns, sum them, or calculate their averages, etc.
 
 The following code obtains the max salary in department 1:
 

@@ -301,7 +301,7 @@ Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，�
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-可以看到，用法几乎与 `kotlin.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 操作符进行连接，比如：
+可以看到，用法几乎与 `kotlin.sequences.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 操作符进行连接，比如：
 
 ```kotlin
 val employees = Employees
@@ -390,7 +390,7 @@ val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + emplo
 
 ### 序列聚合
 
-实体序列 API 不仅可以让我们使用类似 `kotlin.Sequence` 的方式获取数据库中的实体对象，它还支持丰富的聚合功能，让我们可以方便地对指定字段进行计数、求和、求平均值等操作。
+实体序列 API 不仅可以让我们使用类似 `kotlin.sequences.Sequence` 的方式获取数据库中的实体对象，它还支持丰富的聚合功能，让我们可以方便地对指定字段进行计数、求和、求平均值等操作。
 
 下面使用 `aggregateColumns` 函数获取部门 1 中工资的最大值：
 
