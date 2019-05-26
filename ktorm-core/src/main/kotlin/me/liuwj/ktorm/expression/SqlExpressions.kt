@@ -588,7 +588,7 @@ data class UpdateExpression(
  * Delete expression, represents the `delete` statement in SQL.
  *
  * @property table the table to be deleted.
- * @property where the delete condition. 
+ * @property where the delete condition.
  */
 data class DeleteExpression(
     val table: TableExpression,
