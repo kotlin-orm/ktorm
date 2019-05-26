@@ -18,7 +18,6 @@ package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.expression.ColumnExpression
-import me.liuwj.ktorm.expression.findDeclaringColumns
 import me.liuwj.ktorm.schema.Column
 import java.io.InputStream
 import java.io.Reader

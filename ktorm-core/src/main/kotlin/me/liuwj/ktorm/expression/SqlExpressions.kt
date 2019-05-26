@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.expression
 
 import me.liuwj.ktorm.schema.BooleanSqlType
@@ -5,15 +21,18 @@ import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.SqlType
 
 /**
- * SQL 表达式，树形结构，可以视为 SQL 的抽象语法树（AST）.
+ * Root class of SQL expressions or statements.
  *
- * SQL 表达式的子类必须遵守如下约定：
+ * SQL expressions are tree structures, and can be regarded as SQL's abstract syntax trees (AST).
  *
- * - 必须为 data 类，以提供解构、copy 等通用能力
- * - 必须为不可变对象（immutable），每次执行修改时都应返回一个新对象
+ * Subclasses must satisfy the following rules:
  *
- * 如何方便地遍历 SQL 语法树，参见 [SqlExpressionVisitor]
- * 如何将 SQL 表达式格式化为可直接执行的 SQL 字符串，参见 [SqlFormatter]
+ * - Must be data class, providing common abilities such as destruction, `copy` function, `equals` function, etc.
+ * - Must be immutable, any modify operation should return a new expression instance.
+ *
+ * To visit or modify expression trees, use [SqlExpressionVisitor].
+ *
+ * To format expressions as executable SQL strings, use [SqlFormatter].
  *
  * @see SqlExpressionVisitor
  * @see SqlFormatter
@@ -22,13 +41,15 @@ import me.liuwj.ktorm.schema.SqlType
 abstract class SqlExpression {
 
     /**
-     * 是否叶子节点
+     * Check if this expression is a leaf node in expression trees.
      */
     abstract val isLeafNode: Boolean
 }
 
 /**
- * 标量 SQL 表达式，此类表达式具有一个计算结果，该结果的类型是 T，如：a + 1
+ * Base class of scalar expressions. An expression is "scalar" if it has a return value (eg. `a + 1`).
+ *
+ * @param T the return value's type of this scalar expression.
  */
 abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
 
@@ -48,7 +69,9 @@ abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
 }
 
 /**
- * 包装一个 SQL 表达式，改变其返回类型
+ * Wrap a SQL expression, changing its return type.
+ *
+ * @property expression the wrapped expression.
  */
 data class CastingExpression<T : Any>(
     val expression: SqlExpression,
@@ -57,17 +80,17 @@ data class CastingExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * Query source expression, used in the `from` clause of a [SelectExpression]
+ * Query source expression, used in the `from` clause of a [SelectExpression].
  */
 abstract class QuerySourceExpression : SqlExpression()
 
 /**
- * 查询表达式的基类
+ * Base class of query expressions, provide common properties for [SelectExpression] and [UnionExpression].
  *
- * @property orderBy 排序条件列表
- * @property offset 返回结果的起始记录数
- * @property limit 限制返回结果的条数
- * @property tableAlias 根据 SQL 语法，当 select 语句作为另一个 select 语句的查询源时（嵌套查询），必须设置表别名，即此字段
+ * @property orderBy a list of order-by expressions, used in the `order by` clause of a query.
+ * @property offset the offset of the first returned record.
+ * @property limit max record numbers returned by the query.
+ * @property tableAlias the alias when this query is nested in another query's source, eg. `select * from (...) alias`.
  */
 sealed class QueryExpression : QuerySourceExpression() {
     abstract val orderBy: List<OrderByExpression>
@@ -77,22 +100,15 @@ sealed class QueryExpression : QuerySourceExpression() {
     final override val isLeafNode: Boolean = false
 }
 
-tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclaringExpression> {
-    return when (this) {
-        is SelectExpression -> columns
-        is UnionExpression -> left.findDeclaringColumns()
-    }
-}
-
 /**
- * Select 表达式
+ * Select expression, represents a `select` statement of SQL.
  *
- * @property columns 查询的列声明列表，若为空，则 select *
- * @property from 查询的来源，一般为 [TableExpression] 或 [JoinExpression]，也可以是嵌套的 [QueryExpression]
- * @property where 查询的条件
- * @property groupBy 分组
- * @property having Having 子句
- * @property isDistinct 是否将返回结果去重
+ * @property columns the selected column declarations, empty means `select *`.
+ * @property from the query's source, represents the `from` clause of SQL.
+ * @property where the filter condition, represents the `where` clause of SQL.
+ * @property groupBy the grouping conditions, represents the `group by` clause of SQL.
+ * @property having the having condition, represents the `having` clause of SQL.
+ * @property isDistinct mark if this query is distinct, true means the SQL is `select distinct ...`.
  */
 data class SelectExpression(
     val columns: List<ColumnDeclaringExpression> = emptyList(),
@@ -108,11 +124,11 @@ data class SelectExpression(
 ) : QueryExpression()
 
 /**
- * Union 表达式
+ * Union expression, represents a `union` statement of SQL.
  *
- * @property left 左查询
- * @property right 右查询
- * @property isUnionAll 是否 union all，即保留所有记录，不去重
+ * @property left the left query of this union expression.
+ * @property right the right query of this union expression.
+ * @property isUnionAll mark if this union statement is `union all`.
  */
 data class UnionExpression(
     val left: QueryExpression,
@@ -125,13 +141,33 @@ data class UnionExpression(
 ) : QueryExpression()
 
 /**
- * 一元表达式类型
+ * Enum for unary expressions.
  */
 enum class UnaryExpressionType(private val value: String) {
+
+    /**
+     * Check if a column or expression is null.
+     */
     IS_NULL("is null"),
+
+    /**
+     * Check if a column or expression is not null.
+     */
     IS_NOT_NULL("is not null"),
+
+    /**
+     * Unary minus operator, translated to `-` in SQL.
+     */
     UNARY_MINUS("-"),
+
+    /**
+     * Unary plus operator, translated to `+` in SQL.
+     */
     UNARY_PLUS("+"),
+
+    /**
+     * Negate operator, translated to the `not` keyword in SQL.
+     */
     NOT("not");
 
     override fun toString(): String {
@@ -140,10 +176,10 @@ enum class UnaryExpressionType(private val value: String) {
 }
 
 /**
- * 一元表达式
+ * Unary expression.
  *
- * @property type 表达式类型
- * @property operand 操作数表达式
+ * @property type the expression's type.
+ * @property operand the expression's operand.
  */
 data class UnaryExpression<T : Any>(
     val type: UnaryExpressionType,
@@ -153,24 +189,88 @@ data class UnaryExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * 二元表达式类型
+ * Enum for binary expressions.
  */
 enum class BinaryExpressionType(private val value: String) {
+
+    /**
+     * Plus operator, translated to `+` in SQL.
+     */
     PLUS("+"),
+
+    /**
+     * Minus operator, translated to `-` in SQL.
+     */
     MINUS("-"),
+
+    /**
+     * Multiply operator, translated to `*` in SQL.
+     */
     TIMES("*"),
+
+    /**
+     * Divide operator, translated to `/` in SQL.
+     */
     DIV("/"),
+
+    /**
+     * Mod operator, translated to `%` in SQL.
+     */
     REM("%"),
+
+    /**
+     * Like operator, translated to the `like` keyword in SQL.
+     */
     LIKE("like"),
+
+    /**
+     * Not like operator, translated to the `not like` keyword in SQL.
+     */
     NOT_LIKE("not like"),
+
+    /**
+     * And operator, translated to the `and` keyword in SQL.
+     */
     AND("and"),
+
+    /**
+     * Or operator, translated to the `or` keyword in SQL.
+     */
     OR("or"),
+
+    /**
+     * Xor operator, translated to the `xor` keyword in SQL.
+     */
     XOR("xor"),
+
+    /**
+     * Less operator, translated to `<` in SQL.
+     */
     LESS_THAN("<"),
+
+    /**
+     * Less-eq operator, translated to `<=` in SQL.
+     */
     LESS_THAN_OR_EQUAL("<="),
+
+    /**
+     * Greater operator, translated to `>` in SQL.
+     */
     GREATER_THAN(">"),
+
+    /**
+     * Greater-eq operator, translated to `>=` in SQL.
+     */
     GREATER_THAN_OR_EQUAL(">="),
+
+    /**
+     * Equal operator, translated to `=` in SQL.
+     */
     EQUAL("="),
+
+    /**
+     * Not-equal operator, translated to `<>` in SQL.
+     */
     NOT_EQUAL("<>");
 
     override fun toString(): String {
@@ -179,11 +279,11 @@ enum class BinaryExpressionType(private val value: String) {
 }
 
 /**
- * 二元表达式
+ * Binary expression.
  *
- * @property type 表达式类型
- * @property left 左操作数
- * @property right 右操作数
+ * @property type the expression's type.
+ * @property left the expression's left operand.
+ * @property right the expression's right operand.
  */
 data class BinaryExpression<T : Any>(
     val type: BinaryExpressionType,
@@ -194,10 +294,10 @@ data class BinaryExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * Table 表达式
+ * Table expression.
  *
- * @property name 表名
- * @property tableAlias 表别名
+ * @property name the table's name.
+ * @property tableAlias the table's alias.
  */
 data class TableExpression(
     val name: String,
@@ -206,10 +306,10 @@ data class TableExpression(
 ) : QuerySourceExpression()
 
 /**
- * 列表达式
+ * Column expression.
  *
- * @property tableAlias 该列所属的表的别名
- * @property name 列名
+ * @property tableAlias the owner table's alias.
+ * @property name the column's name.
  */
 data class ColumnExpression<T : Any>(
     val tableAlias: String?,
@@ -219,10 +319,12 @@ data class ColumnExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * 列声明表达式，select a.name as label from dual 语句中的 a.name as label 部分
+ * Column declaring expression, represents the selected columns in a [SelectExpression].
  *
- * @property expression 该声明的来源表达式，一般是 [ColumnExpression] 也可以是其他表达式类型
- * @property declaredName 所声明的列别名，即 label
+ * For example, `select a.name as label from dual`, `a.name as label` is a column declaring.
+ *
+ * @property expression the source expression, might be a [ColumnExpression] or other scalar expression types.
+ * @property declaredName the declaring label.
  */
 data class ColumnDeclaringExpression(
     val expression: ScalarExpression<*>,
@@ -231,10 +333,18 @@ data class ColumnDeclaringExpression(
 ) : SqlExpression()
 
 /**
- * Order by 排序方向
+ * The enum of order directions in a [OrderByExpression]
  */
 enum class OrderType(private val value: String) {
+
+    /**
+     * The ascending order direction.
+     */
     ASCENDING("asc"),
+
+    /**
+     * The descending order direction.
+     */
     DESCENDING("desc");
 
     override fun toString(): String {
@@ -243,10 +353,10 @@ enum class OrderType(private val value: String) {
 }
 
 /**
- * Order by 表达式
+ * Order-by expression.
  *
- * @property expression 排序来源表达式，一般是 [ColumnExpression] 也可以说其他表达式类型
- * @property orderType 排序方向
+ * @property expression the sorting column, might be a [ColumnExpression] or other scalar expression types.
+ * @property orderType the sorting direction.
  */
 data class OrderByExpression(
     val expression: ScalarExpression<*>,
@@ -255,12 +365,28 @@ data class OrderByExpression(
 ) : SqlExpression()
 
 /**
- * 表联接类型
+ * The enum of joining types in a [JoinExpression].
  */
 enum class JoinType(private val value: String) {
+
+    /**
+     * Cross join, translated to the `cross join` keyword in SQL.
+     */
     CROSS_JOIN("cross join"),
+
+    /**
+     * Inner join, translated to the `inner join` keyword in SQL.
+     */
     INNER_JOIN("inner join"),
+
+    /**
+     * Left join, translated to the `left join` keyword in SQL.
+     */
     LEFT_JOIN("left join"),
+
+    /**
+     * Right join, translated to the `right join` keyword in SQL.
+     */
     RIGHT_JOIN("right join");
 
     override fun toString(): String {
@@ -269,12 +395,12 @@ enum class JoinType(private val value: String) {
 }
 
 /**
- * 联表表达式
+ * Join expression.
  *
- * @property type 联接类型
- * @property left 左表
- * @property right 右表
- * @property condition 联接条件
+ * @property type the expression's type.
+ * @property left the left table.
+ * @property right the right table.
+ * @property condition the joining condition.
  */
 data class JoinExpression(
     val type: JoinType,
@@ -285,12 +411,12 @@ data class JoinExpression(
 ) : QuerySourceExpression()
 
 /**
- * SQL in 表达式，判断左操作数是否在右操作数集合中存在
+ * In-list expression, translated to the `in` keyword in SQL.
  *
- * @property left 左操作数
- * @property query 右操作数可为查询，不可与 [values] 字段共存
- * @property values 右操作数可为集合，不可与 [query] 字段共存
- * @property notInList 是否取反
+ * @property left the expression's left operand.
+ * @property query the expression's right operand query, cannot be used along with the [values] property.
+ * @property values the expression's right operand collection, cannot be used along with the [query] property.
+ * @property notInList mark if this expression is translated to `not in`.
  */
 data class InListExpression<T : Any>(
     val left: ScalarExpression<T>,
@@ -302,10 +428,10 @@ data class InListExpression<T : Any>(
 ) : ScalarExpression<Boolean>()
 
 /**
- * SQL exists 表达式，判断指定查询是否至少返回一条结果
+ * Exists expression, check if the specific query has at least one result.
  *
- * @property query 查询表达式
- * @property notExists 是否取反
+ * @property query the query expression.
+ * @property notExists mark if this expression is translated to `not exists`.
  */
 data class ExistsExpression(
     val query: QueryExpression,
@@ -315,13 +441,33 @@ data class ExistsExpression(
 ) : ScalarExpression<Boolean>()
 
 /**
- * 字段聚合类型
+ * The enum of aggregate functions in a [AggregateExpression].
  */
 enum class AggregateType(private val value: String) {
+
+    /**
+     * The min function, translated to `min(column)` in SQL.
+     */
     MIN("min"),
+
+    /**
+     * The max function, translated to `max(column)` in SQL.
+     */
     MAX("max"),
+
+    /**
+     * The avg function, translated to `avg(column)` in SQL.
+     */
     AVG("avg"),
+
+    /**
+     * The sum function, translated to `sum(column)` in SQL.
+     */
     SUM("sum"),
+
+    /**
+     * The count function, translated to `count(column)` in SQL.
+     */
     COUNT("count");
 
     override fun toString(): String {
@@ -330,11 +476,11 @@ enum class AggregateType(private val value: String) {
 }
 
 /**
- * 聚合表达式
+ * Aggregate expression.
  *
- * @property type 聚合类型
- * @property argument 所聚合的内容，一般为 [ColumnExpression] 也可为其他表达式类型
- * @property isDistinct 是否去重
+ * @property type the expression's type.
+ * @property argument the aggregated column, might be a [ColumnExpression] or other scalar expression types.
+ * @property isDistinct mark if this aggregation is distinct.
  */
 data class AggregateExpression<T : Any>(
     val type: AggregateType,
@@ -345,12 +491,12 @@ data class AggregateExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * SQL between 表达式，判断左操作数是否在给定范围中
+ * Between expression, check if a scalar expression is in the given range.
  *
- * @property expression 左操作数
- * @property lower 下界
- * @property upper 上界
- * @property notBetween 是否取反
+ * @property expression the left operand.
+ * @property lower the lower bound of the range.
+ * @property upper the upper bound of the range.
+ * @property notBetween mark if this expression is translated to `not between`.
  */
 data class BetweenExpression<T : Any>(
     val expression: ScalarExpression<T>,
@@ -362,10 +508,10 @@ data class BetweenExpression<T : Any>(
 ) : ScalarExpression<Boolean>()
 
 /**
- * 参数表达式
+ * Argument expression, wraps an argument passed to the executed SQL.
  *
- * @property value 所包装的参数值
- * @property sqlType 该参数的 SQL 类型
+ * @property value the argument value.
+ * @property sqlType the argument's [SqlType].
  */
 data class ArgumentExpression<T : Any>(
     val value: T?,
@@ -374,10 +520,10 @@ data class ArgumentExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * 函数调用表达式
+ * Function expression, represents a SQL function call.
  *
- * @property functionName 函数名
- * @property arguments 函数调用的参数列表
+ * @property functionName the name of the SQL function.
+ * @property arguments arguments passed to the function.
  */
 data class FunctionExpression<T : Any>(
     val functionName: String,
@@ -387,10 +533,10 @@ data class FunctionExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * 列赋值表达式
+ * Column assignment expression, represents a column assignment for insert or update statements.
  *
- * @property column 要被赋值的列，左值
- * @property expression 被赋予的值，右值
+ * @property column the left value of the assignment.
+ * @property expression the right value of the assignment, might be an [ArgumentExpression] or other scalar expressions.
  */
 data class ColumnAssignmentExpression<T : Any>(
     val column: ColumnExpression<T>,
@@ -399,10 +545,10 @@ data class ColumnAssignmentExpression<T : Any>(
 ) : SqlExpression()
 
 /**
- * 插入表达式
+ * Insert expression, represents the `insert` statement in SQL.
  *
- * @property table 要插入的表
- * @property assignments 赋值列表
+ * @property table the table to be inserted.
+ * @property assignments column assignments of the insert statement.
  */
 data class InsertExpression(
     val table: TableExpression,
@@ -411,11 +557,11 @@ data class InsertExpression(
 ) : SqlExpression()
 
 /**
- * 从查询中批量插入数据表达式，insert into tmp(num) select 1 from dual
+ * Insert-from-query expression, eg. `insert into tmp(num) select 1 from dual`.
  *
- * @property table 要插入的表
- * @property columns 要插入数据的字段
- * @property query 查询表达式
+ * @property table the table to be inserted.
+ * @property columns the columns to be inserted.
+ * @property query the query expression.
  */
 data class InsertFromQueryExpression(
     val table: TableExpression,
@@ -425,11 +571,11 @@ data class InsertFromQueryExpression(
 ) : SqlExpression()
 
 /**
- * 更新表达式
+ * Update expression, represents the `update` statement in SQL.
  *
- * @property table 要更新的表
- * @property assignments 赋值列表
- * @property where 更新条件
+ * @property table the table to be updated.
+ * @property assignments column assignments of the update statement.
+ * @property where the update condition.
  */
 data class UpdateExpression(
     val table: TableExpression,
@@ -439,10 +585,10 @@ data class UpdateExpression(
 ) : SqlExpression()
 
 /**
- * 删除表达式
+ * Delete expression, represents the `delete` statement in SQL.
  *
- * @property table 要删除的记录所在的表
- * @property where 删除条件
+ * @property table the table to be deleted.
+ * @property where the delete condition. 
  */
 data class DeleteExpression(
     val table: TableExpression,
