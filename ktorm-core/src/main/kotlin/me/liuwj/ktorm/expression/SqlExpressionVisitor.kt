@@ -1,19 +1,46 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.expression
 
 /**
- * 使用 Visitor 设计模式对 SQL 语法树进行遍历
+ * Base class designed to visit or modify SQL expression trees using visitor pattern.
  *
- * 本类提供一个通用的 [visit] 方法来根据类型将不同的表达式分发到不同的 visit* 方法中，对于未知类型的表达式，则调用 [visitUnknown] 方法，
- * 子类可以选择性地覆盖具体的 visit* 方法，以在遍历过程中选择自己感兴趣的节点
+ * This class provides a general [visit] function to dispatch different type of expression nodes to the specific
+ * `visit*` functions. Custom expression types that are unknown to Ktorm will be dispatched to [visitUnknown].
  *
- * 如果要在遍历过程中修改表达式，则重写某个 visit* 方法，在其中返回修改后的新节点。本类中的所有 visit* 方法在遍历其子节点之后，都会检查子节点
- * 是否发生改变，如果子节点发生改变，则返回一个新的父节点表达式，新表达式中包含了新的子节点，最终 [visit] 方法返回的表达式就是我们遍历修改后的结果
+ * For each expression type, there is a corresponding `visit*` function in this class; for [SelectExpression], it's
+ * [visitSelect]; for [TableExpression], it's [visitTable]; and so on. Those functions generally accept an expression
+ * instance of the specific type and dispatch the children nodes to their own `visit*` functions. Finally, after all
+ * children nodes are visited, the parent expression instance will be directly returned if no children are modified.
  *
- * Created by vince on May 18, 2018.
+ * To modify an expression tree, we need to override a `visit*` function, and return a new-created expression in it.
+ * Then the parent's `visit*` function will detect it and create a new parent expression using the modified child node
+ * returned by us. That's recursive, so the ancestor nodes also returns new-created instances. Finally, when we call
+ * [visit], a new expression tree will be returned with our modifications applied.
+ *
+ * [SqlFormatter] is a typical example used to format expressions as executable SQL strings.
  */
 @Suppress("UnnecessaryAbstractClass")
 abstract class SqlExpressionVisitor {
 
+    /**
+     * Dispatch different type of expression nodes to the specific `visit*` functions. Custom expression types that
+     * are unknown to Ktorm will be dispatched to [visitUnknown].
+     */
     open fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {
             is ScalarExpression<*> -> visitScalar(expr)
