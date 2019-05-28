@@ -1,18 +1,33 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.expression
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
 
 /**
- * 使用 Visitor 设计模式对 SQL 语法树进行遍历，在遍历完成后，生成可直接执行的 SQL 字符串
+ * Subclass of [SqlExpressionVisitor], visiting SQL expression trees using visitor pattern. After the visit completes,
+ * the executable SQL string will be generated in the [sql] property with its execution parameters in [parameters].
  *
- * Created by vince on May 18, 2018.
- *
- * @property database [Database] 对象，用于获取需要的元数据
- * @property beautifySql 是否需要换行、缩进
- * @property indentSize 缩进长度
- * @property sql 遍历完成后，获取 SQL 字符串
- * @property parameters 遍历完成后，获取 SQL 的执行参数
+ * @property database the current database object used to obtain metadata such as identifier quote string.
+ * @property beautifySql mark if we should output beautiful SQL strings with line-wrapping and indentation.
+ * @property indentSize the indent size.
+ * @property sql return the executable SQL string after the visit completes.
+ * @property parameters return the SQL's execution parameters after the visit completes.
  */
 @Suppress("VariableNaming")
 abstract class SqlFormatter(
