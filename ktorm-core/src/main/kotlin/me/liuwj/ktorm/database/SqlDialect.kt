@@ -40,7 +40,7 @@ interface SqlDialect {
      * @param database the current database instance executing the formatted SQL.
      * @param beautifySql if we should output beautiful SQL strings with line-wrapping and indentation.
      * @param indentSize the indent size.
-     * @return a [SqlFormatter] object, typically typed of subclasses to support dialect-specific sql expressions.
+     * @return a [SqlFormatter] object, generally typed of subclasses to support dialect-specific sql expressions.
      */
     fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter
 }

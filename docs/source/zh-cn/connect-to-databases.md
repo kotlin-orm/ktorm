@@ -112,7 +112,7 @@ h2 {
 | CommonsLoggerAdapter | 将日志委托给 Apache Commons 日志门面        |
 | AndroidLoggerAdapter | 将日志委托给 android.util.Log               |
 
-默认情况下，Ktorm 使用的 logger 实现为 `ConsoleLogger(threshold = LogLevel.INFO)`，因此，只有级别大于或等于 `INFO` 的日志才会输出到控制台。如果你想看到 Ktorm 生成的 SQL 以及 SQL 的执行参数，可以把 `threshold` 设置为 `DEBUG`：
+默认情况下，Ktorm 使用的 logger 实现为 `ConsoleLogger(threshold = LogLevel.INFO)`，因此，日志会输出到控制台而且只有级别大于或等于 `INFO` 的日志才会输出。如果你想看到 Ktorm 生成的 SQL 以及 SQL 的执行参数，可以把 `threshold` 设置为 `DEBUG`：
 
 ```kotlin
 val db = Database.connect(

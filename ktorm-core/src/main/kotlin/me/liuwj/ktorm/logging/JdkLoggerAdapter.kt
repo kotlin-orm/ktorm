@@ -3,7 +3,9 @@ package me.liuwj.ktorm.logging
 import java.util.logging.Level
 
 /**
- * Created by vince on May 05, 2019.
+ * Adapter [Logger] implementation integrating [java.util.logging] with Ktorm.
+ *
+ * @property logger a logger instance of JDK logging.
  */
 class JdkLoggerAdapter(val logger: java.util.logging.Logger) : Logger {
 

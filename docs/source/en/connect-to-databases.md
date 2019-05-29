@@ -106,13 +106,13 @@ Ktorm provides many implementations for the `Logger` interface:
 
 | Class Name           | Description                                  |
 | -------------------- | -------------------------------------------- |
-| ConsoleLogger        | Ouput logs to the console                    |
+| ConsoleLogger        | Output logs to the console                    |
 | JdkLoggerAdapter     | Delegate logs to java.util.logging           |
 | Slf4jLoggerAdapter   | Delegate logs to slf4j framework             |
 | CommonsLoggerAdapter | Delegate logs to  Apache commons logging lib |
 | AndroidLoggerAdapter | Delegate logs to android.util.Log            |
 
-By default, a `ConsoleLogger(threshold = LogLevel.INFO)` is configured by Ktorm, so only logs whose level is greater or equal to `INFO` can be printed to the console. If you want to print the generated SQLs and the execution arguments of them, you can modify the `threshold` to `DEBUG`: 
+By default, Ktorm uses the `ConsoleLogger` with a threshold of `LogLevel.Info`, that means logs are printed to the console and those whose level is less than `INFO` are ignored. If you want to print the generated SQLs and the execution arguments of them, you can modify the `threshold` to `DEBUG`: 
 
 ```kotlin
 val db = Database.connect(

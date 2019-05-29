@@ -1,7 +1,9 @@
 package me.liuwj.ktorm.logging
 
 /**
- * Created by vince on May 05, 2019.
+ * Adapter [Logger] implementation integrating Apache Commons Logging with Ktorm.
+ *
+ * @property logger a logger instance of Apache Commons Logging.
  */
 class CommonsLoggerAdapter(val logger: org.apache.commons.logging.Log) : Logger {
 

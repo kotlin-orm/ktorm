@@ -3,7 +3,9 @@ package me.liuwj.ktorm.logging
 import android.util.Log
 
 /**
- * Created by vince on May 05, 2019.
+ * Adapter [Logger] implementation integrating [android.util.Log] with Ktorm.
+ *
+ * @property tag the tag for android logging.
  */
 class AndroidLoggerAdapter(val tag: String = "Ktorm") : Logger {
 

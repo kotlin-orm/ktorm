@@ -1,7 +1,10 @@
 package me.liuwj.ktorm.logging
 
 /**
- * Created by vince on May 05, 2019.
+ * Simple [Logger] implementation printing logs to the console. While messages at WARN or ERROR levels are printed to
+ * [System.err], others are printed to [System.out].
+ *
+ * @property threshold a threshold controlling which log levels are enabled.
  */
 class ConsoleLogger(val threshold: LogLevel) : Logger {
 

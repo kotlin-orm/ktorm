@@ -1,7 +1,9 @@
 package me.liuwj.ktorm.logging
 
 /**
- * Created by vince on May 05, 2019.
+ * Adapter [Logger] implementation integrating Slf4j with Ktorm.
+ *
+ * @property logger a logger instance of Slf4j.
  */
 class Slf4jLoggerAdapter(val logger: org.slf4j.Logger) : Logger {
 
