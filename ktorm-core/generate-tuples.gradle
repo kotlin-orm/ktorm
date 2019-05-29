@@ -8,6 +8,12 @@ def generateTuple(Writer writer, int tupleNumber) {
     def toStringTemplate = (1..tupleNumber).collect { "\$element$it" }.join(", ")
 
     writer.write("""
+        /** 
+         * Represents a tuple of $tupleNumber values.
+         *
+         * There is no meaning attached to values in this class, it can be used for any purpose.
+         * Two tuples are equal if all the components are equal.
+         */
         data class Tuple$tupleNumber<$typeParams>(
             $propertyDefinitions
         ) : Serializable { 
@@ -27,6 +33,18 @@ def generateMapColumns(Writer writer, int tupleNumber) {
     def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(row, $it)" }.join(", ")
 
     writer.write("""
+        /**
+         * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
+         * containing the query results.
+         *
+         * See [EntitySequence.mapColumns] for more details. 
+         *
+         * The operation is terminal.
+         *
+         * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
+         * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
+         * @return a list of the query results.
+         */
         inline fun <E : Entity<E>, T : Table<E>, $typeParams> EntitySequence<E, T>.mapColumns$tupleNumber(
             isDistinct: Boolean = false,
             columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
@@ -34,6 +52,19 @@ def generateMapColumns(Writer writer, int tupleNumber) {
             return mapColumns${tupleNumber}To(ArrayList(), isDistinct, columnSelector)
         }
         
+        /**
+         * Customize the selected columns of the internal query by the given [columnSelector] function, and append the query
+         * results to the given [destination].
+         *
+         * See [EntitySequence.mapColumnsTo] for more details. 
+         * 
+         * The operation is terminal.
+         *
+         * @param destination a [MutableCollection] used to store the results.
+         * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
+         * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
+         * @return the [destination] collection of the query results.
+         */
         inline fun <E : Entity<E>, T : Table<E>, $typeParams, R> EntitySequence<E, T>.mapColumns${tupleNumber}To(
             destination: R,
             isDistinct: Boolean = false,
@@ -59,6 +90,17 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
     def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(rowSet, $it)" }.join(", ")
 
     writer.write("""
+        /**
+         * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
+         * and return the aggregate results.
+         *
+         * See [EntitySequence.aggregateColumns] for more details. 
+         *
+         * The operation is terminal.
+         *
+         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
+         * @return a tuple of the aggregate results.
+         */
         inline fun <E : Entity<E>, T : Table<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): Tuple$tupleNumber<$resultTypes> {
@@ -89,12 +131,31 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
     def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(row, ${it + 1})" }.join(", ")
 
     writer.write("""
+        /**
+         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
+         * then store the results in a new [Map].
+         * 
+         * See [EntityGrouping.aggregateColumns] for more details. 
+         *
+         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
+         * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
+         */
         inline fun <E : Entity<E>, T : Table<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
             return aggregateColumns${tupleNumber}To(LinkedHashMap(), aggregationSelector)
         }
         
+        /**
+         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
+         * then store the results in the [destination] map.
+         *
+         * See [EntityGrouping.aggregateColumnsTo] for more details. 
+         *
+         * @param destination a [MutableMap] used to store the results.
+         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
+         * @return the [destination] map associating the key of each group with the result of aggregations of the group elements.
+         */
         inline fun <E : Entity<E>, T : Table<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
             destination: M,
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
@@ -119,14 +180,17 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
 
 task generateTuples {
     doLast {
-        def file = file("$generatedSourceDir/me/liuwj/ktorm/entity/Tuples.kt")
-        file.parentFile.mkdirs()
+        def outputFile = file("$generatedSourceDir/me/liuwj/ktorm/entity/Tuples.kt")
+        outputFile.parentFile.mkdirs()
 
-        file.withWriter { writer ->
-            writer.writeLine("// This file is auto-generated by generate-tuples.gradle, DO NOT EDIT!")
-            writer.writeLine("package me.liuwj.ktorm.entity")
+        outputFile.withWriter { writer ->
+            file("${project.rootDir}/license-header.txt").readLines().each { writer.writeLine(it) }
 
             writer.write("""
+                // This file is auto-generated by generate-tuples.gradle, DO NOT EDIT!
+                
+                package me.liuwj.ktorm.entity
+                
                 import me.liuwj.ktorm.database.Database
                 import me.liuwj.ktorm.dsl.Query
                 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
@@ -134,8 +198,14 @@ task generateTuples {
                 import me.liuwj.ktorm.schema.Table
                 import java.io.Serializable
                 
+                /**
+                 * Set a typealias `Tuple2` for `Pair`. 
+                 */
                 typealias Tuple2<E1, E2> = Pair<E1, E2>
                 
+                /**
+                 * Set a typealias `Tuple3` for `Triple`.
+                 */
                 typealias Tuple3<E1, E2, E3> = Triple<E1, E2, E3>
             """.stripIndent())
 

@@ -339,7 +339,7 @@ inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.
  * element. Besides, the function’s return type is `ColumnDeclaring<C>`, and we should return a column or expression
  * to customize the `select` clause of the generated SQL.
  *
- * Ktorm also supports selecting two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need
+ * Ktorm also supports selecting two or more columns, we can change to [mapColumns2] or [mapColumns3], then we need
  * to wrap our selected columns by [Pair] or [Triple] in the closure, and the function’s return type becomes
  * `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`.
  *
@@ -347,6 +347,7 @@ inline fun <E : Entity<E>, R, C : MutableCollection<in R>> EntitySequence<E, *>.
  *
  * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
  * @param columnSelector a function in which we should return a column or expression to be selected.
+ * @return a list of the query results.
  */
 inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumns(
     isDistinct: Boolean = false,
@@ -364,7 +365,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumn
  * element. Besides, the function’s return type is `ColumnDeclaring<C>`, and we should return a column or expression
  * to customize the `select` clause of the generated SQL.
  *
- * Ktorm also supports selecting two or more columns, we can change to `mapColumns2To` or `mapColumns3To`, then we need
+ * Ktorm also supports selecting two or more columns, we can change to [mapColumns2To] or [mapColumns3To], then we need
  * to wrap our selected columns by [Pair] or [Triple] in the closure, and the function’s return type becomes
  * `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`.
  *
@@ -373,6 +374,7 @@ inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumn
  * @param destination a [MutableCollection] used to store the results.
  * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
  * @param columnSelector a function in which we should return a column or expression to be selected.
+ * @return the [destination] collection of the query results.
  */
 inline fun <E : Entity<E>, T : Table<E>, C : Any, R : MutableCollection<in C?>> EntitySequence<E, T>.mapColumnsTo(
     destination: R,
@@ -505,9 +507,9 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySeque
  * Perform an aggregation given by [aggregationSelector] for all elements in the sequence,
  * and return the aggregate result.
  *
- * Ktorm also supports aggregating two or more columns, we can change to `aggregateColumns2` or `aggregateColumns3`,
- * then we need to wrap our aggregate expressions by [Pair] or [Triple] in the closure, and the function’s return
- * type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`.
+ * Ktorm also supports aggregating two or more columns, we can change to [EntitySequence.aggregateColumns2] or
+ * [EntitySequence.aggregateColumns3], then we need to wrap our aggregate expressions by [Pair] or [Triple] in
+ * the closure, and the function’s return type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`.
  *
  * The operation is terminal.
  *

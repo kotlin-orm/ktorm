@@ -13,19 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package me.liuwj.ktorm.jackson
-
-import com.fasterxml.jackson.core.Version
-import com.fasterxml.jackson.core.Versioned
-import com.fasterxml.jackson.core.util.VersionUtil
-
-/**
- * Automatically generated from PackageVersion.kt.tmpl.
- */
-internal object PackageVersion : Versioned {
-
-    val VERSION: Version = VersionUtil.parseVersion("${version}", "${group}", "${name}")
-
-    override fun version() = VERSION
-}
