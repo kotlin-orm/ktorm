@@ -38,8 +38,39 @@ subprojects { project ->
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+        // dependsOn "checkCopyrightHeader"
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.allWarningsAsErrors = true
+    }
+
+    task checkCopyrightHeader {
+        doLast {
+            def headerLines = file("${project.rootDir}/copyright-header.txt").readLines()
+
+            sourceSets.main.kotlin.srcDirs.each { dir ->
+                def tree = fileTree(dir)
+                tree.include("**/*.kt")
+
+                tree.visit {
+                    if (!it.isDirectory()) {
+                        def failed = false
+
+                        it.file.withReader { reader ->
+                            for (line in headerLines) {
+                                if (line != reader.readLine()) {
+                                    failed = true
+                                    break
+                                }
+                            }
+                        }
+
+                        if (failed) {
+                            throw new IllegalStateException("Copyright header not found in file: " + it.file)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     task generateSourcesJar(type: Jar) {
