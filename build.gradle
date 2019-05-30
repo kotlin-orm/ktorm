@@ -25,7 +25,7 @@ subprojects { project ->
     apply plugin: "maven-publish"
     apply plugin: "com.jfrog.bintray"
     apply plugin: "io.gitlab.arturbosch.detekt"
-    apply from: "${project.rootDir}/license-header.gradle"
+    apply from: "${project.rootDir}/check-source-header.gradle"
 
     repositories {
         jcenter()
