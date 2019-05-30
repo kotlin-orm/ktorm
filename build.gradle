@@ -45,7 +45,7 @@ subprojects { project ->
 
     task checkCopyrightHeader {
         doLast {
-            def headerLines = file("${project.rootDir}/copyright-header.txt").readLines()
+            def headerLines = file("${project.rootDir}/.source-header.txt").readLines()
 
             sourceSets.main.kotlin.srcDirs.each { dir ->
                 def tree = fileTree(dir)
