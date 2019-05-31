@@ -22,7 +22,9 @@
 
 # Ktorm 是什么？
 
-Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL 和方便的序列 API，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me/zh-cn)。
+Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL 和方便的序列 API，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。Ktorm 基于 Apache 2.0 协议开放源代码，如果对你有帮助的话，请留下你的 star。
+
+查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me/zh-cn)。
 
 :cn: 简体中文 | :us: [English](README.md)
 

@@ -46,4 +46,12 @@
   white-space: nowrap;
   text-align: center;
   margin-bottom: 2.4rem;
+
+  img {
+    display: inline-block;
+    padding: 0 5px;
+    max-width: 100%;
+    position: relative;
+    vertical-align: text-bottom;
+  }
 }

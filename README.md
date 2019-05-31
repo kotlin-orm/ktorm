@@ -22,7 +22,9 @@
 
 # What's Ktorm?
 
-Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong-typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQLs, of course, are generated automatically. For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong-typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQLs, of course, are generated automatically. Ktorm is open source under the license of Apache 2.0. Leave your star if it's helpful to you. 
+
+For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
 
 :us: English | :cn: [简体中文](README_cn.md)
 
