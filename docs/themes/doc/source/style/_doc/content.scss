@@ -55,3 +55,44 @@
     vertical-align: text-bottom;
   }
 }
+
+.page-link-to-github {
+  position: relative;
+  float: right;
+  z-index: 1;
+  display: inline-block;
+  border: 1px solid #b5b5b5;
+  border-radius: 5px;
+  color: #828282;
+  font-size: 12px;
+  font-weight: 400 !important;
+  padding: 4px 10px;
+  text-decoration: none;
+  
+  &:hover {
+    color: #333;
+    border-color: #333;
+
+    .icon {
+      background-position: 0 0;
+    }
+  }
+
+  @media screen and (max-width: 500px) {
+    display: none;
+  }
+
+  .icon {
+    font-size: 20px;
+    vertical-align: sub;
+    margin-right: 2px;
+  }
+}
+
+.page-link-to-github-wrapper {
+  text-align: right;
+
+  .page-link-to-github {
+    float: none;
+  }
+}

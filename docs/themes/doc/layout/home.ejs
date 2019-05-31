@@ -1,4 +1,11 @@
 <article id="page-content" class="doc-formatting">
+    <div class="page-link-to-github-wrapper">
+        <a class="page-link-to-github" target="_blank" href="<%- 'https://github.com/vincentlauvlwj/Ktorm/edit/master/docs/source/' + page.path.replace('.html', '.md') %>">
+            <i class="icon fa fa-github"></i>
+            <span class="text"><%- page.lang === 'zh-cn' ? '编辑本页' : 'Edit Page' %></span>
+        </a>
+    </div>
+
     <section class="doc-logo-section">
         <p>
             <img class="full-logo" src="<%- url_for('images/logo-full.png') %>" alt="Ktorm" />
