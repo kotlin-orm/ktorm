@@ -181,11 +181,13 @@ class Navigation extends React.Component {
 
   collapseSidebar () {
     this.$body.addClass(NAVIGATION_IS_COLLAPSED_CLASS);
+    window.localStorage.setItem('navigation_collapsed', 'true');
   }
 
   uncollapseSidebar () {
     this.$body.removeClass(NAVIGATION_IS_COLLAPSED_CLASS);
     this.$searchFormInput().focus();
+    window.localStorage.setItem('navigation_collapsed', 'false');
   }
 
   toggleSidebar () {

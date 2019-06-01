@@ -28,7 +28,15 @@
   </head>
   <body>
 
-    <script>window.__INITIAL_STATE__ = <%- JSON.stringify(initial_state) %></script>
+    <script type="text/javascript">
+      window.__INITIAL_STATE__ = <%- JSON.stringify(initial_state) %>;
+
+      if (window.localStorage) {
+        if (window.localStorage.getItem('navigation_collapsed') === 'true') {
+          document.getElementsByTagName('body')[0].classList.add('doc-navigation--is-collapsed')
+        }
+      }
+    </script>
 
     <div id="navigation-container"><%- react_component('Navigation', {page, config, url_for, data: site.data}) %></div>
 
