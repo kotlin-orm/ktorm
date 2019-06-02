@@ -147,7 +147,7 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
 
     /**
      * Indicates whether some other object is "equal to" this column.
-     * Two columns are equal only if the are the same instance.
+     * Two columns are equal only if they are the same instance.
      */
     final override fun equals(other: Any?): Boolean {
         return this === other
