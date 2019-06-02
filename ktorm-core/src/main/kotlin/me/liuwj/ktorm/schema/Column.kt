@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.expression.ArgumentExpression
@@ -7,118 +23,138 @@ import me.liuwj.ktorm.expression.ScalarExpression
 import kotlin.reflect.KProperty1
 
 /**
- * Base class of column bindings.
- * A column might be bound to a simple property, nested properties, or a reference to another table.
+ * Base class of column bindings. A column might be bound to a simple property, nested properties,
+ * or a reference to another table.
  */
 sealed class ColumnBinding
 
 /**
- * Bind the column to nested properties, eg. employee.manager.department.id
+ * Bind the column to nested properties, eg. `employee.manager.department.id`.
+ *
+ * @property properties the nested properties, cannot be empty.
  */
 data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding()
 
 /**
  * Bind the column to a reference table, equivalent to a foreign key in relational databases.
- * Note that find* extension functions left joins all references(recursively) of a table.
+ * Entity finding functions would automatically left join all references (recursively) by default.
  *
+ * @property referenceTable the reference table.
+ * @property onProperty the property used to hold the referenced entity object.
  * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
  * @see me.liuwj.ktorm.entity.createEntity
  */
 data class ReferenceBinding(val referenceTable: Table<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
 
 /**
- * 列声明
+ * Common interface of [Column] and [ScalarExpression].
  */
 interface ColumnDeclaring<T : Any> {
 
     /**
-     * 该列的 SQL 数据类型
+     * The [SqlType] of this column or expression.
      */
     val sqlType: SqlType<T>
 
     /**
-     * 转换成 SQL 表达式
+     * Convert this instance to a [ScalarExpression].
+     *
+     * If this instance is a [Column], return a [ColumnExpression], otherwise if it's already a [ScalarExpression],
+     * return `this` directly.
      */
     fun asExpression(): ScalarExpression<T>
 
     /**
-     * 转换成列声明表达式 [ColumnDeclaringExpression]
+     * Wrap this instance as a [ColumnDeclaringExpression].
+     *
+     * This function is useful when we use columns or expressions as the selected columns in a query. If this instance
+     * is a [Column], a label identifying the selected columns will be set to [ColumnDeclaringExpression.declaredName],
+     * otherwise if it's a [ScalarExpression], the property will be set to null.
      */
     fun asDeclaringExpression(): ColumnDeclaringExpression
 
     /**
-     * 将给定参数包装为 SQL 表达式 [ArgumentExpression]
+     * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
      */
     fun wrapArgument(argument: T?): ArgumentExpression<T>
 }
 
 /**
- * 数据列
+ * Represents database columns.
  */
 sealed class Column<T : Any> : ColumnDeclaring<T> {
 
     /**
-     * 该列所属的表
+     * The [Table] that this column belongs to.
      */
     abstract val table: Table<*>
 
     /**
-     * 列名
+     * The column's name.
      */
     abstract val name: String
 
     /**
-     * 标签，即 SQL 中 select name as label dual 中的 label 部分，一般来说，从结果集中获取数据时，使用 label 而不是 name
+     * The column's label, used to identify the selected columns and obtain query results.
+     *
+     * For example, `select a.name as label from dual`, in which `a.name as label` is a column declaring, and `label`
+     * is the label.
+     *
+     * @see ColumnDeclaringExpression
      */
     abstract val label: String
 
     /**
-     * 列绑定，可将数据列绑定到一个简单属性、层级嵌套的属性、也可绑定为另一个表的引用
+     * The column's binding. A column might be bound to a simple property, nested properties,
+     * or a reference to another table, null if the column doesn't bind to any property.
      */
     abstract val binding: ColumnBinding?
 
     /**
-     * 如果该列绑定了引用表，返回该表，否则返回空，Shortcut for (binding as? ReferenceBinding)?.referenceTable
+     * If the column was bound to a reference table, return the table, otherwise return null.
+     *
+     * Shortcut for `(binding as? ReferenceBinding)?.referenceTable`.
      */
     val referenceTable: Table<*>? get() = (binding as? ReferenceBinding)?.referenceTable
 
     /**
-     * 转换成 SQL 表达式
+     * Convert this column to a [ColumnExpression].
      */
     override fun asExpression(): ColumnExpression<T> {
         return ColumnExpression(table.alias ?: table.tableName, name, sqlType)
     }
 
     /**
-     * 转换成列声明表达式 [ColumnDeclaringExpression]
+     * Wrap this column as a [ColumnDeclaringExpression].
      */
     override fun asDeclaringExpression(): ColumnDeclaringExpression {
         return ColumnDeclaringExpression(expression = asExpression(), declaredName = label)
     }
 
     /**
-     * 将给定参数包装为 SQL 表达式 [ArgumentExpression]
+     * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
      */
     override fun wrapArgument(argument: T?): ArgumentExpression<T> {
         return ArgumentExpression(argument, sqlType)
     }
 
     /**
-     * 返回此列的字符串表示形式
+     * Return a string representation of this column.
      */
     override fun toString(): String {
         return "${table.alias ?: table.tableName}.$name"
     }
 
     /**
-     * 重写 equals，并禁止子类重写，列对象只有引用相等时才视为相等
+     * Indicates whether some other object is "equal to" this column.
+     * Two columns are equal only if the are the same instance.
      */
     final override fun equals(other: Any?): Boolean {
         return this === other
     }
 
     /**
-     * 重写 hashCode，并禁止子类重写
+     * Return a hash code value for this column.
      */
     final override fun hashCode(): Int {
         return System.identityHashCode(this)
@@ -126,7 +162,7 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
 }
 
 /**
- * 简单数据列，[Column] 的默认实现
+ * Simple implementation of [Column].
  */
 data class SimpleColumn<T : Any>(
     override val table: Table<*>,
@@ -143,9 +179,19 @@ data class SimpleColumn<T : Any>(
 }
 
 /**
- * 别名列，包装了一个简单列，并额外增加了一个别名用于修改 label，
- * 查询的时候会将原数据列与别名列同时放入到 select 语句中，并赋予不同 label，以支持在同一个列上绑定多个字段，
- * 如 select name as label, name as label1 from dual
+ * Aliased column, wrapping a [SimpleColumn] and an extra [alias] to modify the lable, designed to bind a column to
+ * multiple bindings.
+ *
+ * Ktorm provides an `aliased` function to create a copy of an existing column with a specific alias, then we can bind
+ * this new-created column to any property we want, and the origin column's binding is not influenced, that’s the way
+ * Ktorm supports multiple bindings on a column.
+ *
+ * The generated SQL is like: `select name as label, name as label1 from dual`.
+ *
+ * Note that aliased bindings are only available for queries, they will be ignored when inserting or updating entities.
+ *
+ * @property originColumn the origin column.
+ * @property alias the alias used to modify the origin column's label.
  */
 data class AliasedColumn<T : Any>(
     val originColumn: SimpleColumn<T>,

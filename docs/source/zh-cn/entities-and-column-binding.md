@@ -106,7 +106,7 @@ Ktorm 提供以下几种不同的绑定类型：
 1. **简单绑定：**使用 `bindTo` 函数将列绑定到一个简单的属性上，如 `c.bindTo { it.name }`。
 2. **引用绑定：**使用 `references` 函数将列绑定到另一个表，如 `c.references(Departments) { it.department }`，相当于数据库中的外键引用。使用引用绑定的列，在通过实体查询函数（如 `findList`、`findOne` 等）从数据库中获取当前实体对象的时候，会自动递归地 left join 其关联表，并将关联的实体对象也一并获取。
 3. **嵌套绑定：**使用 `bindTo` 函数将列绑定到多层嵌套的某个属性上，如 `c.bindTo { it.manager.department.id }`；这样，从数据库中获取该列时，它的值会被填充到 `employee.manager.department.id` 中；将修改更新到数据库时，只要嵌套的属性中的任何一级发生变化，都会将新的值同步更新到所绑定的这个列。简单绑定其实也是嵌套绑定的一种特例，只不过嵌套的属性只有一层。
-4. **别名绑定：**有时候，我们可能需要将一个列绑定到多个属性，但是在 `ColumnRegistration` 上，我们只能调用一次 `bindTo` 或 `references` 函数。别名绑定使用 `aliased` 方法从一个列复制出一个别名列，这样，我们就能够在这个复制出来别名列上绑定属性，其效果相当于 SQL 中的 `select name as label` 语法。例如下面的例子，在数据库中，`t_foo` 表中其实只有一个 `bar` 列，从数据库中获取 `Foo` 实体时，这个列的值会同时填充到 `bar` 和 `barCopy` 两个属性中。请注意：别名绑定仅在查询时有效，在执行插入或更新实体的操作时，以普通的列绑定为准，Ktorm 会忽略别名绑定。
+4. **别名绑定：**有时候，我们可能需要将一个列绑定到多个属性，但是在 `ColumnRegistration` 上，我们只能调用一次 `bindTo` 或 `references` 函数。别名绑定使用 `aliased` 方法从一个列复制出一个别名列，这样，我们就能够在这个复制出来别名列上绑定属性，最终生成的 SQL 类似：`select name as label, name as label1 from dual`。例如下面的例子，在数据库中，`t_foo` 表中其实只有一个 `bar` 列，从数据库中获取 `Foo` 实体时，这个列的值会同时填充到 `bar` 和 `barCopy` 两个属性中。请注意：别名绑定仅在查询时有效，在执行插入或更新实体的操作时，以普通的列绑定为准，Ktorm 会忽略别名绑定。
 
 ```kotlin
 interface Foo : Entity<Foo> {
