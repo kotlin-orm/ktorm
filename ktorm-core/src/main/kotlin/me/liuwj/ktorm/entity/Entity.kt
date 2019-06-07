@@ -99,7 +99,7 @@ import kotlin.reflect.jvm.jvmErasure
  * }
  * ```
  *
- * Then if we call `Foo().printName()`, the value of the property name will be printed.
+ * Then if we call `Foo().printName()`, the value of the property `name` will be printed.
  *
  * Besides of non-abstract functions, Kotlin also allows us to define properties with custom getters or setters in
  * interfaces. For example, in the following code, if we call `Foo().upperName`, then the value of the `name` property

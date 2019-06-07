@@ -341,7 +341,7 @@ object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
 }
 
 /**
- * Define a column of typed [InstantSqlType].
+ * Define a column typed of [InstantSqlType].
  */
 fun <E : Entity<E>> Table<E>.timestamp(name: String): Table<E>.ColumnRegistration<Instant> {
     return registerColumn(name, InstantSqlType)

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.entity.Entity
@@ -12,13 +28,10 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * SQL 数据表
+ * Base class of Ktorm's table objects, represents relational tables in the database.
  *
- * @property tableName 表名
- * @property alias 别名
- * @property entityClass 实体类类型
- * @property columns 获取该表中的所有列
- * @property primaryKey 获取该表的主键列
+ * @property tableName the table's name.
+ * @property alias the table's alias.
  */
 @Suppress("UNCHECKED_CAST")
 open class Table<E : Entity<E>>(
@@ -31,22 +44,42 @@ open class Table<E : Entity<E>>(
     private val _columns = LinkedHashMap<String, Column<*>>()
     private var _primaryKeyName: String? = null
 
+    /**
+     * The entity class this table is bound to.
+     */
     val entityClass: KClass<E>? =
         (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
+    /**
+     * Return all columns of the table.
+     */
     val columns: List<Column<*>> get() = _columns.values.toList()
 
+    /**
+     * The primary key column of this table.
+     */
     val primaryKey: Column<*>? get() = _primaryKeyName?.let { this[it] }
 
     /**
-     * 使用列名获取表中的某列
+     * Obtain a column from this table by the name.
      */
     operator fun get(columnName: String): Column<*> {
         return _columns[columnName] ?: throw NoSuchElementException(columnName)
     }
 
     /**
-     * 返回一个新的表对象，该对象与原表具有完全相同的数据和结构，但是赋予了新的 [alias] 属性
+     * Return a new-created table object with all properties (including the table name and columns and so on) being
+     * copied from this table, but applying a new alias given by the parameter.
+     *
+     * Usually, table objects are defined as Kotlin singleton objects or subclasses extending from [Table]. But limited
+     * to the Kotlin language, although this function can create a copied table object with a specific alias, it's
+     * return type cannot be the same as the caller's type but only [Table].
+     *
+     * So we recommend that if we need to use table aliases, please don't define tables as Kotlin's singleton objects,
+     * please use classes instead, and override this [aliased] function to return the same type as the concrete table
+     * classes.
+     *
+     * More details can be found in our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
      */
     open fun aliased(alias: String): Table<E> {
         val result = Table(tableName, alias, entityClass)
@@ -105,7 +138,10 @@ open class Table<E : Entity<E>>(
     }
 
     /**
-     * 提供列名和 SQL 数据类型，往表中注册一个新列；在该方法返回的 [ColumnRegistration] 对象中可以对新注册的列添加更多的修改
+     * Register a column to this table with the given [name] and [sqlType].
+     *
+     * This function returns a [ColumnRegistration], we can perform more modificiation to the registered column by
+     * calling the returned object, such as configure a binding, mark it as the primary key, and so on.
      */
     fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): ColumnRegistration<C> {
         if (name in _columns) {
@@ -117,7 +153,16 @@ open class Table<E : Entity<E>>(
     }
 
     /**
-     * 对指定的列给定一个别名，额外注册一个别名列；在该方法返回的 [ColumnRegistration] 对象中可以对新注册的列添加更多的修改
+     * Create a copied [AliasedColumn] of the current column with a specific [alias] and register it to the table.
+     * This function is designed to bind a column to multiple bindings.
+     *
+     * This function returns a [ColumnRegistration], then we can bind the new-created column to any other property,
+     * and the origin column's binding is not influenced, that’s the way Ktorm supports multiple bindings on a column.
+     *
+     * The generated SQL is like: `select name as label, name as label1 from dual`.
+     *
+     * Note that aliased bindings are only available for query operations, they will be ignored when inserting or
+     * updating entities.
      *
      * @see AliasedColumn
      */
@@ -125,14 +170,27 @@ open class Table<E : Entity<E>>(
         if (alias in _columns) {
             throw IllegalArgumentException("Duplicate column name: $alias")
         }
+        if (this !is SimpleColumn) {
+            throw IllegalArgumentException("The aliased function is only available on a SimpleColumn.")
+        }
 
-        val originColumn = this as SimpleColumn<C>
-        _columns[alias] = AliasedColumn(originColumn.copy(binding = null), alias)
+        _columns[alias] = AliasedColumn(this.copy(binding = null), alias)
         return ColumnRegistration(alias)
     }
 
     /**
-     * 封装了对新注册的列添加更多修改的操作
+     * Wrap a new registered column, providing more operations, such as configure a binding, mark it as
+     * the primary key, and so on.
+     *
+     * This class implements the [ReadOnlyProperty] interface, so it can be used as a property delegate,
+     * and this delegate returns the registered column. For example:
+     *
+     * ```kotlin
+     * val foo by registerColumn("foo", IntSqlType)
+     * ```
+     *
+     * Here, the `registerColumn` function returns a `ColumnRegistration<Int>` and the `foo` property's
+     * type is `Column<Int>`.
      */
     inner class ColumnRegistration<C : Any>(private val key: String) : ReadOnlyProperty<Table<E>, Column<C>> {
 
@@ -143,7 +201,7 @@ open class Table<E : Entity<E>>(
         internal val table = this@Table
 
         /**
-         * 获取该列，实现从 [ReadOnlyProperty] 来的 getValue 方法，以支持 by 语法
+         * Return the registered column.
          */
         override operator fun getValue(thisRef: Table<E>, property: KProperty<*>): Column<C> {
             check(thisRef === this@Table)
@@ -151,7 +209,7 @@ open class Table<E : Entity<E>>(
         }
 
         /**
-         * 获取该列
+         * Return the registered column.
          */
         fun getColumn(): Column<C> {
             val column = _columns[key] ?: throw NoSuchElementException(key)
@@ -159,7 +217,7 @@ open class Table<E : Entity<E>>(
         }
 
         /**
-         * 将当前列设置为主键
+         * Mark the registered column as the primary key.
          */
         fun primaryKey(): ColumnRegistration<C> {
             if (getColumn() is AliasedColumn) {
@@ -171,7 +229,16 @@ open class Table<E : Entity<E>>(
         }
 
         /**
-         * 将列绑定到一个引用表，对应 SQL 中的外键引用，在使用 find* 系列 Entity 扩展函数时，引用表会自动被 left join 联接
+         * Bind the column to a reference table, equivalent to a foreign key in relational databases.
+         * Entity finding functions would automatically left join all references (recursively) by default.
+         *
+         * @param referenceTable the reference table, will be copied by calling its [aliased] function with
+         * an alias like `_refN`.
+         *
+         * @param selector a lambda in which we should return the property used to hold the referenced entities.
+         * For exmaple: `val departmentId by int("department_id").references(Departments) { it.department }`.
+         *
+         * @return this column registration.
          *
          * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
          * @see me.liuwj.ktorm.entity.createEntity
@@ -187,7 +254,12 @@ open class Table<E : Entity<E>>(
         }
 
         /**
-         * Bind the column to nested properties, eg. employee.manager.department.id
+         * Bind the column to nested properties, eg. `employee.manager.department.id`.
+         *
+         * @param selector a lambda in which we should return the property we want to bind.
+         * For example: `val name by varchar("name").bindTo { it.name }`.
+         *
+         * @return this column registration.
          */
         inline fun bindTo(selector: (E) -> C?): ColumnRegistration<C> {
             val properties = detectBindingProperties(selector)
@@ -249,14 +321,14 @@ open class Table<E : Entity<E>>(
     }
 
     /**
-     * 获取该表对应的 SQL 表达式
+     * Convert this table to a [TableExpression].
      */
     fun asExpression(): TableExpression {
         return TableExpression(tableName, alias)
     }
 
     /**
-     * 返回此表的字符串表示形式
+     * Return a string representation of this table.
      */
     override fun toString(): String {
         if (alias == null) {
@@ -267,14 +339,15 @@ open class Table<E : Entity<E>>(
     }
 
     /**
-     * 重写 equals，并禁止子类重写，列对象只有引用相等时才视为相等
+     * Indicates whether some other object is "equal to" this table.
+     * Two tables are equal only if they are the same instance.
      */
     final override fun equals(other: Any?): Boolean {
         return this === other
     }
 
     /**
-     * 重写 hashCode，并禁止子类重写
+     * Return a hash code value for this table.
      */
     final override fun hashCode(): Int {
         return System.identityHashCode(this)

@@ -120,7 +120,7 @@ Obviously, according to the signature of the `aliased` function, the return valu
 
 Limited to the Kotlin language, although the `Table.aliased` can create a copied table object with a specific alias, it's return type cannot be the same as the caller's type but only `Table<E>`. Here we define the `Employees` table by an object keyword, and because the keyword defines a singleton object, it's not possible for Ktorm to create a new object of type `Employees`. 
 
-To use self joining normally, we recommended that **if we need to use table aliases, please don't define tables as Kotlin's singleton objects, please use classes instead, and override the `aliased` function to return the same type as the concrete table classes:**
+To use self joining normally, we recommend that **if we need to use table aliases, please don't define tables as Kotlin's singleton objects, please use classes instead, and override the `aliased` function to return the same type as the concrete table classes:**
 
 ```kotlin
 class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {
@@ -129,7 +129,7 @@ class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {
 }
 ```
 
-However, there can be problems by changing objects to classes, for example, we can not use `Employees.name` to obtain a column object anymore because an instance is needed to access a class member. So we also recommended that **while defining our tables as classes, please also provide a companion object for each class as the default table object without an alias.** Finally the definition of `Employees` is:  
+However, there can be problems by changing objects to classes, for example, we can not use `Employees.name` to obtain a column object anymore because an instance is needed to access a class member. So we also recommend that **while defining our tables as classes, please also provide a companion object for each class as the default table object without an alias.** Finally the definition of `Employees` is:  
 
 ```kotlin
 open class Employees(alias: String?) : Table<Nothing>("t_employee", alias) {

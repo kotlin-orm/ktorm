@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.schema
 
 import java.lang.reflect.ParameterizedType
@@ -7,7 +23,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Base class used for obtaining full generic type information by subclassing.
+ * Base class used to obtain full generic type information by subclassing.
  */
 @Suppress("UnnecessaryAbstractClass")
 abstract class TypeReference<T> {
@@ -54,25 +70,26 @@ abstract class TypeReference<T> {
 }
 
 /**
- * Create a [TypeReference] object which references the reified type argument T.
+ * Create a [TypeReference] object which references the reified type argument [T].
  */
 inline fun <reified T> typeRef(): TypeReference<T> {
     return object : TypeReference<T>() { }
 }
 
 /**
- * Obtain the full generic type information via the reified type argument T, usage: typeOf<List<String>>()
+ * Obtain the full generic type information of the reified type argument [T], usage: `typeOf<List<String>>()`
  */
 inline fun <reified T> typeOf(): Type {
     return typeRef<T>().referencedType
 }
 
 /**
- * Obtain the full generic type information via the reified type argument T, usage: kotlinTypeOf<List<String>>()
+ * Obtain the full kotlin generic type information of the reified type argument [T],
+ * usage: `kotlinTypeOf<List<String>>()`
  *
  * Note: Do not use this function until the bug [KT-28616](https://youtrack.jetbrains.com/issue/KT-28616) fixed.
  */
-@Deprecated("Do not use this function until the bug KT-28616 fixed", ReplaceWith("typeOf<T>()"))
+@Deprecated("Do not use this function until the bug KT-28616 fixed", level = DeprecationLevel.HIDDEN)
 inline fun <reified T> kotlinTypeOf(): KType {
     return typeRef<T>().referencedKotlinType
 }
