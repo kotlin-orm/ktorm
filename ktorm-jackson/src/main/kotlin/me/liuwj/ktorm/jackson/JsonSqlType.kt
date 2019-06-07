@@ -1,28 +1,62 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.jackson
 
+import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.schema.SqlType
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.TypeReference
-import java.lang.reflect.Type
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
 
 /**
- * [Table] 扩展函数，注册一个 json 数据类型的列，默认使用 [sharedObjectMapper] 进行序列化，也可自定义
+ * A shared [ObjectMapper] instance which is used as the default mapper of [json] SQL type.
+ */
+val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModule(KtormModule())
+
+/**
+ * Define a column typed of [JsonSqlType].
+ *
+ * @param name the column's name.
+ * @param typeRef the generic type infomation of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
+ * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
+ * @return the column registration that wraps the registered column.
  */
 fun <E : Entity<E>, C : Any> Table<E>.json(
     name: String,
-    typeReference: TypeReference<C>,
-    objectMapper: ObjectMapper = sharedObjectMapper
+    typeRef: TypeReference<C>,
+    mapper: ObjectMapper = sharedObjectMapper
 ): Table<E>.ColumnRegistration<C> {
-    return registerColumn(name, JsonSqlType(typeReference.referencedType, objectMapper))
+    return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeRef.referencedType)))
 }
 
-class JsonSqlType<T : Any>(type: Type, val objectMapper: ObjectMapper) : SqlType<T>(Types.VARCHAR, "json") {
-    private val javaType = objectMapper.constructType(type)
+/**
+ * [SqlType] implementation that provides JSON data type support via Jackson framework.
+ *
+ * @property objectMapper the object mapper used to serialize column values to JSON strings and deserialize them.
+ * @property javaType the generic type infomation represented as jackson's [JavaType].
+ */
+class JsonSqlType<T : Any>(
+    val objectMapper: ObjectMapper,
+    val javaType: JavaType
+) : SqlType<T>(Types.VARCHAR, "json") {
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
         ps.setString(index, objectMapper.writeValueAsString(parameter))

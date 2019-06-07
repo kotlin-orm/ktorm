@@ -5,17 +5,21 @@ import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
+import java.util.ServiceLoader
+import me.liuwj.ktorm.entity.Entity
 
 /**
- * 用于适配 Jackson 框架的 Module，由于框架要求我们的实体类都使用 interface 而不是 data class 来声明，
- * 因此 Jackson 无法将我们的实体对象进行序列化和反序列化。
+ * Jackson [Module] implementation that supports serializing Ktorm's entity objects in JSON format.
  *
- * 在 Jackson 中注册此 Module 后，即可正常将实体对象序列化成 json，以支持 RPC 传输，或存储在数据库中。
- * 可使用 objectMapper.registerModule(JacksonOrmModule()) 手动注册，
- * 也可以使用 objectMapper.findAndRegisterModules 自动扫描并注册
+ * [Entity] classes in Ktorm are defined as interfaces, and entity objects are created by JDK dynamic proxy.
+ * That's why Jackson cannot serialize entity objects by default (because they are not normal Java classes).
+ * This module provides the Jackson serialization support for Ktorm.
  *
- * Created by vince on Aug 13, 2018.
+ * To enable this module, you need to call the [ObjectMapper.registerModule] method to register it to Jackson.
+ * You can also call [ObjectMapper.findAndRegisterModules] to automatically find and register it using JDK
+ * [ServiceLoader] facility. For more details, please see Jackson's documentation.
  *
+ * @see Entity
  * @see ObjectMapper.registerModule
  * @see ObjectMapper.findAndRegisterModules
  */
