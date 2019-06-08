@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.expression.ArgumentExpression
@@ -5,6 +21,9 @@ import me.liuwj.ktorm.expression.FunctionExpression
 import me.liuwj.ktorm.schema.*
 import java.time.LocalDate
 
+/**
+ * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
+ */
 fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): FunctionExpression<Boolean> {
     val listSqlType = this.sqlType
 
@@ -23,26 +42,44 @@ fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): Fu
     )
 }
 
+/**
+ * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
+ */
 infix fun Column<List<Int>>.jsonContains(item: Int): FunctionExpression<Boolean> {
     return this.jsonContains(item, IntSqlType)
 }
 
+/**
+ * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
+ */
 infix fun Column<List<Long>>.jsonContains(item: Long): FunctionExpression<Boolean> {
     return this.jsonContains(item, LongSqlType)
 }
 
+/**
+ * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
+ */
 infix fun Column<List<Double>>.jsonContains(item: Double): FunctionExpression<Boolean> {
     return this.jsonContains(item, DoubleSqlType)
 }
 
+/**
+ * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
+ */
 infix fun Column<List<Float>>.jsonContains(item: Float): FunctionExpression<Boolean> {
     return this.jsonContains(item, FloatSqlType)
 }
 
+/**
+ * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
+ */
 infix fun Column<List<String>>.jsonContains(item: String): FunctionExpression<Boolean> {
     return this.jsonContains(item, VarcharSqlType)
 }
 
+/**
+ * MySQL json_extract function, translated to `json_extract(column, path)`.
+ */
 fun <T : Any> Column<*>.jsonExtract(path: String, sqlType: SqlType<T>): FunctionExpression<T> {
     // json_extract(column, path)
     return FunctionExpression(
@@ -52,10 +89,16 @@ fun <T : Any> Column<*>.jsonExtract(path: String, sqlType: SqlType<T>): Function
     )
 }
 
+/**
+ * MySQL rand function, translated to `rand()`.
+ */
 fun rand(): FunctionExpression<Double> {
     return FunctionExpression(functionName = "rand", arguments = emptyList(), sqlType = DoubleSqlType)
 }
 
+/**
+ * MySQL greatest function, translated to `greatest(column1, column2, ...)`.
+ */
 fun <T : Comparable<T>> greatest(vararg columns: ColumnDeclaring<T>): FunctionExpression<T> {
     // greatest(left, right)
     return FunctionExpression(
@@ -65,14 +108,23 @@ fun <T : Comparable<T>> greatest(vararg columns: ColumnDeclaring<T>): FunctionEx
     )
 }
 
+/**
+ * MySQL greatest function, translated to `greatest(left, right)`.
+ */
 fun <T : Comparable<T>> greatest(left: ColumnDeclaring<T>, right: T): FunctionExpression<T> {
     return greatest(left, left.wrapArgument(right))
 }
 
+/**
+ * MySQL greatest function, translated to `greatest(left, right)`.
+ */
 fun <T : Comparable<T>> greatest(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
     return greatest(right.wrapArgument(left), right)
 }
 
+/**
+ * MySQL least function, translated to `least(column1, column2, ...)`.
+ */
 fun <T : Comparable<T>> least(vararg columns: ColumnDeclaring<T>): FunctionExpression<T> {
     // least(left, right)
     return FunctionExpression(
@@ -82,14 +134,23 @@ fun <T : Comparable<T>> least(vararg columns: ColumnDeclaring<T>): FunctionExpre
     )
 }
 
+/**
+ * MySQL least function, translated to `least(left, right)`.
+ */
 fun <T : Comparable<T>> least(left: ColumnDeclaring<T>, right: T): FunctionExpression<T> {
     return least(left, left.wrapArgument(right))
 }
 
+/**
+ * MySQL least function, translated to `least(left, right)`.
+ */
 fun <T : Comparable<T>> least(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
     return least(right.wrapArgument(left), right)
 }
 
+/**
+ * MySQL ifnull function, translated to `ifnull(left, right)`.
+ */
 fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpression<T> {
     // ifnull(left, right)
     return FunctionExpression(
@@ -99,10 +160,16 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpr
     )
 }
 
+/**
+ * MySQL ifnull function, translated to `ifnull(left, right)`.
+ */
 fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
     return this.ifNull(wrapArgument(right))
 }
 
+/**
+ * Mysql datediff function, translated to `datediff(left, right)`.
+ */
 fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
     // datediff(left, right)
     return FunctionExpression(
@@ -112,10 +179,16 @@ fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>
     )
 }
 
+/**
+ * Mysql datediff function, translated to `datediff(left, right)`.
+ */
 fun dateDiff(left: ColumnDeclaring<LocalDate>, right: LocalDate): FunctionExpression<Int> {
     return dateDiff(left, left.wrapArgument(right))
 }
 
+/**
+ * Mysql datediff function, translated to `datediff(left, right)`.
+ */
 fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
     return dateDiff(right.wrapArgument(left), right)
 }

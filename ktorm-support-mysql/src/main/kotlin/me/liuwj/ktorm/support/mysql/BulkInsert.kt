@@ -1,8 +1,25 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
+import me.liuwj.ktorm.dsl.batchInsert
 import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
 import me.liuwj.ktorm.expression.SqlExpression
@@ -10,10 +27,12 @@ import me.liuwj.ktorm.expression.TableExpression
 import me.liuwj.ktorm.schema.Table
 
 /**
- * 批量插入表达式
+ * Bulk insert expression, represents a bulk insert statement in MySQL.
  *
- * @property table 要插入的表
- * @property assignments 赋值列表
+ * For example: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ *
+ * @property table the table to be inserted.
+ * @property assignments column assignments of the bulk insert statement.
  */
 data class BulkInsertExpression(
     val table: TableExpression,
@@ -22,13 +41,40 @@ data class BulkInsertExpression(
 ) : SqlExpression()
 
 /**
- * 批量往表中插入数据，返回受影响的记录数
+ * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
  *
- * Note：此方法与 batchInsert 不同，batchInsert 基于 JDBC 的 executeBatch 方法实现，此方法直接使用 MySQL 提供的
- * 批量插入语法实现，性能更好，如：insert into table (field1, field2) values (value1, value2), (value11, value22)...
+ * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
+ * using MySQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
+ * is much better than [batchInsert].
  *
- * @see me.liuwj.ktorm.dsl.batchInsert
- * @see java.sql.Statement.executeBatch
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.bulkInsert {
+ *     item {
+ *         it.name to "jerry"
+ *         it.job to "trainee"
+ *         it.managerId to 1
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 50
+ *         it.departmentId to 1
+ *     }
+ *     item {
+ *         it.name to "linda"
+ *         it.job to "assistant"
+ *         it.managerId to 3
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 100
+ *         it.departmentId to 2
+ *     }
+ * }
+ * ```
+ *
+ * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
+ * @return the effected row count.
+ * @see batchInsert
  */
 fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(this).apply(block)
@@ -46,10 +92,16 @@ fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit)
     }
 }
 
+/**
+ * DSL builder for bulk insert statements.
+ */
 @KtormDsl
 class BulkInsertStatementBuilder<T : Table<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
 
+    /**
+     * Add the assignments of a new row to the bulk insert.
+     */
     fun item(block: AssignmentsBuilder.(T) -> Unit) {
         val itemAssignments = ArrayList<ColumnAssignmentExpression<*>>()
         val builder = AssignmentsBuilder(itemAssignments)

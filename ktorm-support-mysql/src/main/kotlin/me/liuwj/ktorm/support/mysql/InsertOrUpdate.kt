@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.database.Database
@@ -10,11 +26,11 @@ import me.liuwj.ktorm.expression.TableExpression
 import me.liuwj.ktorm.schema.Table
 
 /**
- * Upsert 表达式
+ * Insert or update expression, represents an insert statement with an `on duplicate key update` clause in MySQL.
  *
- * @property table 要插入的表
- * @property assignments 赋值列表
- * @property updateAssignments 当键冲突时，要更新的数据的赋值列表，on duplicate key update
+ * @property table the table to be inserted.
+ * @property assignments the inserted column assignments.
+ * @property updateAssignments the updated column assignments while any key conflict exists.
  */
 data class InsertOrUpdateExpression(
     val table: TableExpression,
@@ -24,7 +40,34 @@ data class InsertOrUpdateExpression(
 ) : SqlExpression()
 
 /**
- * 往表中插入一条记录，键冲突时更新已有记录，返回受影响的记录数
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
+ * performs an update if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.insertOrUpdate {
+ *     it.id to 1
+ *     it.name to "vince"
+ *     it.job to "engineer"
+ *     it.salary to 1000
+ *     it.hireDate to LocalDate.now()
+ *     it.departmentId to 1
+ *     onDuplicateKey {
+ *         it.salary to it.salary + 900
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * on duplicate key update t_employee.salary = t_employee.salary + ?
+ * ```
+ *
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
  */
 fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
@@ -44,6 +87,9 @@ fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) ->
     }
 }
 
+/**
+ * DSL builder for insert or update statements.
+ */
 @KtormDsl
 class InsertOrUpdateStatementBuilder(
     assignments: MutableList<ColumnAssignmentExpression<*>>
@@ -51,6 +97,9 @@ class InsertOrUpdateStatementBuilder(
 
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
     fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
         val assignments = ArrayList<ColumnAssignmentExpression<*>>()
         AssignmentsBuilder(assignments).apply(block)
