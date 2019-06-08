@@ -124,3 +124,18 @@ subprojects { project ->
         }
     }
 }
+
+task printClasspath() {
+    doLast {
+        def jars = subprojects.collect { it.configurations.compileClasspath.getFiles() }.flatten().toSet()
+        jars.removeIf { it.name.contains("ktorm") }
+
+        println("Project classpath: ")
+        jars.each { println(it.name) }
+
+        def file = file("build/ktorm.classpath")
+        file.parentFile.mkdirs()
+        file.write(jars.collect { it.absolutePath }.join(File.pathSeparator))
+        println("Classpath written to build/ktorm.classpath")
+    }
+}

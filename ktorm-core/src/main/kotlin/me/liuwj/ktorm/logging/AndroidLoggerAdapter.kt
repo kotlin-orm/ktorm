@@ -19,7 +19,7 @@ package me.liuwj.ktorm.logging
 import android.util.Log
 
 /**
- * Adapter [Logger] implementation integrating [android.util.Log] with Ktorm.
+ * Adapter [Logger] implementation integrating [android.util.Log](https://developer.android.com/reference/android/util/Log) with Ktorm.
  *
  * @property tag the tag for android logging.
  */
