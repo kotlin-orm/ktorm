@@ -77,7 +77,7 @@ inline fun <reified T> typeRef(): TypeReference<T> {
 }
 
 /**
- * Obtain the full generic type information of the reified type argument [T], usage: `typeOf<List<String>>()`
+ * Obtain the full generic type information of the reified type argument [T], usage: `typeOf<List<String>>()`.
  */
 inline fun <reified T> typeOf(): Type {
     return typeRef<T>().referencedType
@@ -85,7 +85,7 @@ inline fun <reified T> typeOf(): Type {
 
 /**
  * Obtain the full kotlin generic type information of the reified type argument [T],
- * usage: `kotlinTypeOf<List<String>>()`
+ * usage: `kotlinTypeOf<List<String>>()`.
  *
  * Note: Do not use this function until the bug [KT-28616](https://youtrack.jetbrains.com/issue/KT-28616) fixed.
  */

@@ -333,7 +333,7 @@ data class ColumnDeclaringExpression(
 ) : SqlExpression()
 
 /**
- * The enum of order directions in a [OrderByExpression]
+ * The enum of order directions in a [OrderByExpression].
  */
 enum class OrderType(private val value: String) {
 

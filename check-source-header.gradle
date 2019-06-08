@@ -46,4 +46,4 @@ task checkCopyrightHeader {
     }
 }
 
-// check.dependsOn(checkCopyrightHeader)
+check.dependsOn(checkCopyrightHeader)
