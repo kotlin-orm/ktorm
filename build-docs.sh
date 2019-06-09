@@ -9,7 +9,7 @@ java \
     -src ./ktorm-core/src/main/kotlin:./ktorm-jackson/src/main/kotlin:./ktorm-support-mysql/src/main/kotlin:./ktorm-support-oracle/src/main/kotlin:./ktorm-support-postgresql/src/main/kotlin \
     -format hexo \
     -classpath $(cat build/ktorm.classpath) \
-	-jdkVersion 8 \
+    -jdkVersion 8 \
     -include ./packages.md \
     -output ./docs/source/ \
     -module api-docs \
