@@ -67,9 +67,8 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
     companion object {
 
         fun createProxy(entityClass: KClass<*>, properties: MutableList<KProperty1<*, *>>): Entity<*> {
-            val classLoader = Thread.currentThread().contextClassLoader
             val handler = ColumnBindingHandler(properties)
-            return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), handler) as Entity<*>
+            return Proxy.newProxyInstance(entityClass.java.classLoader, arrayOf(entityClass.java), handler) as Entity<*>
         }
     }
 }

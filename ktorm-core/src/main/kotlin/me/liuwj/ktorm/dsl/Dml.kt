@@ -348,8 +348,7 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
             }
         }
 
-        val classloader = Thread.currentThread().contextClassLoader
-        val proxy = Proxy.newProxyInstance(classloader, arrayOf(PreparedStatement::class.java), handler)
+        val proxy = Proxy.newProxyInstance(javaClass.classLoader, arrayOf(PreparedStatement::class.java), handler)
 
         try {
             sqlType.setParameter(proxy as PreparedStatement, 1, argument)

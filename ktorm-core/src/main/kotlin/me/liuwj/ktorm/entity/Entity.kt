@@ -221,9 +221,8 @@ interface Entity<E : Entity<E>> : Serializable {
                 throw IllegalArgumentException("An entity class must be defined as an interface.")
             }
 
-            val classLoader = Thread.currentThread().contextClassLoader
             val handler = EntityImplementation(entityClass, fromTable, parent)
-            return Proxy.newProxyInstance(classLoader, arrayOf(entityClass.java), handler) as Entity<*>
+            return Proxy.newProxyInstance(entityClass.java.classLoader, arrayOf(entityClass.java), handler) as Entity<*>
         }
 
         /**
