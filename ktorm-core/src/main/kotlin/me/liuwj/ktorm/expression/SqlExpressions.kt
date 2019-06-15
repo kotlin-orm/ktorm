@@ -44,6 +44,11 @@ abstract class SqlExpression {
      * Check if this expression is a leaf node in expression trees.
      */
     abstract val isLeafNode: Boolean
+
+    /**
+     * Extra properties of this expression, maybe useful in [SqlFormatter] to generate some special SQLs.
+     */
+    abstract val extraProperties: Map<String, Any>
 }
 
 /**
@@ -76,7 +81,8 @@ abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
 data class CastingExpression<T : Any>(
     val expression: SqlExpression,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -120,7 +126,8 @@ data class SelectExpression(
     override val orderBy: List<OrderByExpression> = emptyList(),
     override val offset: Int? = null,
     override val limit: Int? = null,
-    override val tableAlias: String? = null
+    override val tableAlias: String? = null,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : QueryExpression()
 
 /**
@@ -137,7 +144,8 @@ data class UnionExpression(
     override val orderBy: List<OrderByExpression> = emptyList(),
     override val offset: Int? = null,
     override val limit: Int? = null,
-    override val tableAlias: String? = null
+    override val tableAlias: String? = null,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : QueryExpression()
 
 /**
@@ -185,7 +193,8 @@ data class UnaryExpression<T : Any>(
     val type: UnaryExpressionType,
     val operand: ScalarExpression<*>,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -290,7 +299,8 @@ data class BinaryExpression<T : Any>(
     val left: ScalarExpression<*>,
     val right: ScalarExpression<*>,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -302,7 +312,8 @@ data class BinaryExpression<T : Any>(
 data class TableExpression(
     val name: String,
     val tableAlias: String?,
-    override val isLeafNode: Boolean = true
+    override val isLeafNode: Boolean = true,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : QuerySourceExpression()
 
 /**
@@ -315,7 +326,8 @@ data class ColumnExpression<T : Any>(
     val tableAlias: String?,
     val name: String,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = true
+    override val isLeafNode: Boolean = true,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -329,7 +341,8 @@ data class ColumnExpression<T : Any>(
 data class ColumnDeclaringExpression(
     val expression: ScalarExpression<*>,
     val declaredName: String? = null,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
@@ -361,7 +374,8 @@ enum class OrderType(private val value: String) {
 data class OrderByExpression(
     val expression: ScalarExpression<*>,
     val orderType: OrderType,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
@@ -407,7 +421,8 @@ data class JoinExpression(
     val left: QuerySourceExpression,
     val right: QuerySourceExpression,
     val condition: ScalarExpression<Boolean>? = null,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : QuerySourceExpression()
 
 /**
@@ -424,7 +439,8 @@ data class InListExpression<T : Any>(
     val values: List<ScalarExpression<T>>? = null,
     val notInList: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<Boolean>()
 
 /**
@@ -437,7 +453,8 @@ data class ExistsExpression(
     val query: QueryExpression,
     val notExists: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<Boolean>()
 
 /**
@@ -487,7 +504,8 @@ data class AggregateExpression<T : Any>(
     val argument: ScalarExpression<*>?,
     val isDistinct: Boolean,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -504,7 +522,8 @@ data class BetweenExpression<T : Any>(
     val upper: ScalarExpression<T>,
     val notBetween: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<Boolean>()
 
 /**
@@ -516,7 +535,8 @@ data class BetweenExpression<T : Any>(
 data class ArgumentExpression<T : Any>(
     val value: T?,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = true
+    override val isLeafNode: Boolean = true,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -529,7 +549,8 @@ data class FunctionExpression<T : Any>(
     val functionName: String,
     val arguments: List<ScalarExpression<*>>,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
@@ -541,7 +562,8 @@ data class FunctionExpression<T : Any>(
 data class ColumnAssignmentExpression<T : Any>(
     val column: ColumnExpression<T>,
     val expression: ScalarExpression<T>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
@@ -553,7 +575,8 @@ data class ColumnAssignmentExpression<T : Any>(
 data class InsertExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
@@ -567,7 +590,8 @@ data class InsertFromQueryExpression(
     val table: TableExpression,
     val columns: List<ColumnExpression<*>>,
     val query: QueryExpression,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
@@ -581,7 +605,8 @@ data class UpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
     val where: ScalarExpression<Boolean>? = null,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
@@ -593,5 +618,6 @@ data class UpdateExpression(
 data class DeleteExpression(
     val table: TableExpression,
     val where: ScalarExpression<Boolean>?,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()

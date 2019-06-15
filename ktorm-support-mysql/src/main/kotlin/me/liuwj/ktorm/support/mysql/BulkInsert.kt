@@ -37,7 +37,8 @@ import me.liuwj.ktorm.schema.Table
 data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**

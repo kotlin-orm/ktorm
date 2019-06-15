@@ -30,7 +30,8 @@ import me.liuwj.ktorm.schema.Table
 data class NaturalJoinExpression(
     val left: QuerySourceExpression,
     val right: QuerySourceExpression,
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : QuerySourceExpression()
 
 /**

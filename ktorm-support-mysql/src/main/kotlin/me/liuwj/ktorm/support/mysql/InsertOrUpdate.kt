@@ -36,7 +36,8 @@ data class InsertOrUpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
-    override val isLeafNode: Boolean = false
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
