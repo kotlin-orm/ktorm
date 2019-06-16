@@ -140,7 +140,7 @@ internal fun detectLoggerImplementation(): Logger {
         if (result == null) {
             try {
                 result = init()
-            } catch (ignored: ClassNotFoundException) {
+            } catch (ignored: Throwable) {
             }
         }
     }
