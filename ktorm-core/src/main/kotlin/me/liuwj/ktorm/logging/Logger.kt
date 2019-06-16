@@ -18,6 +18,7 @@ package me.liuwj.ktorm.logging
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.logging.LogLevel.*
+import kotlin.reflect.jvm.jvmName
 
 /**
  * A simple logging interface abstracting third-party logging frameworks.
@@ -125,4 +126,44 @@ enum class LogLevel {
      * ERROR is a log level indicating a serious failure.
      */
     ERROR
+}
+
+/**
+ * Auto detect a logger implementation.
+ */
+internal fun detectLoggerImplementation(): Logger {
+    val loggerName = Database::class.jvmName
+    var result: Logger? = null
+
+    @Suppress("SwallowedException")
+    fun tryImplement(init: () -> Logger) {
+        if (result == null) {
+            try {
+                result = init()
+            } catch (ignored: ClassNotFoundException) {
+            }
+        }
+    }
+
+    tryImplement {
+        val logger = org.slf4j.LoggerFactory.getLogger(loggerName)
+        Slf4jLoggerAdapter(logger)
+    }
+
+    tryImplement {
+        val logger = org.apache.commons.logging.LogFactory.getLog(loggerName)
+        CommonsLoggerAdapter(logger)
+    }
+
+    tryImplement {
+        Class.forName("android.util.Log")
+        AndroidLoggerAdapter(loggerName)
+    }
+
+    tryImplement {
+        val logger = java.util.logging.Logger.getLogger(loggerName)
+        JdkLoggerAdapter(logger)
+    }
+
+    return result ?: ConsoleLogger(threshold = INFO)
 }

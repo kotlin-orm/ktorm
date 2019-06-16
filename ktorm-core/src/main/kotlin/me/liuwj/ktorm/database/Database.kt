@@ -16,11 +16,12 @@
 
 package me.liuwj.ktorm.database
 
+import me.liuwj.ktorm.database.Database.Companion.connect
+import me.liuwj.ktorm.database.Database.Companion.connectWithSpringSupport
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.logging.ConsoleLogger
-import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.logging.Logger
+import me.liuwj.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.transaction.annotation.Transactional
@@ -67,7 +68,7 @@ import javax.sql.DataSource
 class Database(
     val transactionManager: TransactionManager,
     val dialect: SqlDialect = StandardDialect,
-    val logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),
+    val logger: Logger? = detectLoggerImplementation(),
     val exceptionTranslator: (SQLException) -> Throwable = { it }
 ) {
     /**
@@ -119,7 +120,8 @@ class Database(
         }
 
         if (logger != null && logger.isInfoEnabled()) {
-            logger.info("Connected to $url, productName: $productName, productVersion: $productVersion")
+            logger.info("Connected to $url, productName: $productName, " +
+                "productVersion: $productVersion, logger: $logger, dialect: $dialect")
         }
     }
 
@@ -257,7 +259,7 @@ class Database(
          */
         fun connect(
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO),
+            logger: Logger? = detectLoggerImplementation(),
             connector: () -> Connection
         ): Database {
             return Database(JdbcTransactionManager(connector), dialect, logger)
@@ -274,7 +276,7 @@ class Database(
         fun connect(
             dataSource: DataSource,
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO)
+            logger: Logger? = detectLoggerImplementation()
         ): Database {
             return connect(dialect, logger) { dataSource.connection }
         }
@@ -296,7 +298,7 @@ class Database(
             user: String = "",
             password: String = "",
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO)
+            logger: Logger? = detectLoggerImplementation()
         ): Database {
             Class.forName(driver)
             return connect(dialect, logger) { DriverManager.getConnection(url, user, password) }
@@ -320,7 +322,7 @@ class Database(
         fun connectWithSpringSupport(
             dataSource: DataSource,
             dialect: SqlDialect = StandardDialect,
-            logger: Logger? = ConsoleLogger(threshold = LogLevel.INFO)
+            logger: Logger? = detectLoggerImplementation()
         ): Database {
             val transactionManager = SpringManagedTransactionManager(dataSource)
             val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)
