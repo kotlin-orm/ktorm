@@ -24,17 +24,17 @@ open class BaseTest {
     }
 
     @Before
-    fun init() {
+    open fun init() {
         connect()
         execSqlScript("init-data.sql")
     }
 
     @After
-    fun destroy() {
+    open fun destroy() {
         execSqlScript("drop-data.sql")
     }
 
-    private fun execSqlScript(filename: String) {
+    protected fun execSqlScript(filename: String) {
         useConnection { conn ->
             conn.createStatement().use { statement ->
                 javaClass.classLoader

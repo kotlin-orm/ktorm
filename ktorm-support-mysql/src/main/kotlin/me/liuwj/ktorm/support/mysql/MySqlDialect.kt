@@ -20,6 +20,7 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.SqlDialect
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.IntSqlType
+import me.liuwj.ktorm.schema.VarcharSqlType
 
 /**
  * [SqlDialect] implementation for MySQL database.
@@ -43,6 +44,16 @@ object MySqlDialect : SqlDialect {
 
             check(result === expr) { "SqlFormatter cannot modify the expression trees." }
             return result
+        }
+
+        override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
+            val result = when (expr) {
+                is MatchAgainstExpression -> visitMatchAgainst(expr)
+                else -> super.visitScalar(expr)
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            return result as ScalarExpression<T>
         }
 
         override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
@@ -107,6 +118,17 @@ object MySqlDialect : SqlDialect {
             newLine(Indentation.SAME)
             write("natural join ")
             visitQuerySource(expr.right)
+            return expr
+        }
+
+        protected open fun visitMatchAgainst(expr: MatchAgainstExpression): MatchAgainstExpression {
+            write("match (")
+            visitExpressionList(expr.matchColumns)
+            removeLastBlank()
+            write(") against (?")
+            _parameters += ArgumentExpression(expr.searchString, VarcharSqlType)
+            expr.searchModifier?.let { write(" $it") }
+            write(") ")
             return expr
         }
     }

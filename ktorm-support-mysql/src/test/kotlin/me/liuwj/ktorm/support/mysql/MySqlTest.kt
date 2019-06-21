@@ -25,6 +25,11 @@ class MySqlTest : BaseTest() {
         )
     }
 
+    override fun init() {
+        super.init()
+        execSqlScript("init-mysql-data.sql")
+    }
+
     @Test
     fun testLimit() {
         val query = Employees.select().orderBy(Employees.id.desc()).limit(0, 2)
@@ -190,5 +195,20 @@ class MySqlTest : BaseTest() {
             .forEach { (id, name, days) ->
                 println("$id:$name:$days")
             }
+    }
+
+    @Test
+    fun testMatchAgainst() {
+        val employees = Employees.findList {
+            match(it.name, it.job).against("vince", SearchModifier.IN_NATURAL_LANGUAGE_MODE)
+        }
+
+        employees.forEach { println(it)}
+    }
+
+    @Test
+    fun testReplace() {
+        val names = Employees.asSequence().mapColumns { it.name.replace("vince", "VINCE") }
+        println(names)
     }
 }

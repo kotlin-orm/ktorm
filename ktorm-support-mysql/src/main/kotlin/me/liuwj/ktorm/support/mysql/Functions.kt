@@ -168,7 +168,7 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
 }
 
 /**
- * Mysql datediff function, translated to `datediff(left, right)`.
+ * MySQL datediff function, translated to `datediff(left, right)`.
  */
 fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
     // datediff(left, right)
@@ -180,15 +180,31 @@ fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>
 }
 
 /**
- * Mysql datediff function, translated to `datediff(left, right)`.
+ * MySQL datediff function, translated to `datediff(left, right)`.
  */
 fun dateDiff(left: ColumnDeclaring<LocalDate>, right: LocalDate): FunctionExpression<Int> {
     return dateDiff(left, left.wrapArgument(right))
 }
 
 /**
- * Mysql datediff function, translated to `datediff(left, right)`.
+ * MySQL datediff function, translated to `datediff(left, right)`.
  */
 fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
     return dateDiff(right.wrapArgument(left), right)
+}
+
+/**
+ * MySQL replace function, translated to `replace(str, oldValue, newValue)`.
+ */
+fun ColumnDeclaring<String>.replace(oldValue: String, newValue: String): FunctionExpression<String> {
+    // replace(str, oldValue, newValue)
+    return FunctionExpression(
+        functionName = "replace",
+        arguments = listOf(
+            this.asExpression(),
+            ArgumentExpression(oldValue, VarcharSqlType),
+            ArgumentExpression(newValue, VarcharSqlType)
+        ),
+        sqlType = VarcharSqlType
+    )
 }
