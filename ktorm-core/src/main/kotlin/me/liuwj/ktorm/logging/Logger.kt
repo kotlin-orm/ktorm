@@ -28,9 +28,9 @@ import kotlin.reflect.jvm.jvmName
  * underlying logging system is implementation dependent. The implementation should ensure, though, that this ordering
  * behaves are expected.
  *
- * By default, Ktorm uses the [ConsoleLogger] with a threshold of [INFO], that means logs are printed to the console
- * and those whose level is less than [INFO] are ignored. If you want to output logs using a specific logging framework,
- * you can choose an adapter implementation of this interface and set the [Database.logger] property.
+ * By default, Ktorm auto detects a logging implementation from the classpath while creating [Database] instances.
+ * If you want to output logs using a specific logging framework, you can choose an adapter implementation of this
+ * interface and set the [Database.logger] property.
  *
  * Ktorm prints logs at different levels:
  *
@@ -46,52 +46,52 @@ import kotlin.reflect.jvm.jvmName
 interface Logger {
 
     /**
-     * Check if the logger instance enabled for the TRACE level.
+     * Check if the logger instance enabled for the [TRACE] level.
      */
     fun isTraceEnabled(): Boolean
 
     /**
-     * Log a message at the TRACE level.
+     * Log a message at the [TRACE] level.
      */
     fun trace(msg: String, e: Throwable? = null)
 
     /**
-     * Check if the logger instance enabled for the DEBUG level.
+     * Check if the logger instance enabled for the [DEBUG] level.
      */
     fun isDebugEnabled(): Boolean
 
     /**
-     * Log a message at the DEBUG level.
+     * Log a message at the [DEBUG] level.
      */
     fun debug(msg: String, e: Throwable? = null)
 
     /**
-     * Check if the logger instance enabled for the INFO level.
+     * Check if the logger instance enabled for the [INFO] level.
      */
     fun isInfoEnabled(): Boolean
 
     /**
-     * Log a message at the INFO level.
+     * Log a message at the [INFO] level.
      */
     fun info(msg: String, e: Throwable? = null)
 
     /**
-     * Check if the logger instance enabled for the WARN level.
+     * Check if the logger instance enabled for the [WARN] level.
      */
     fun isWarnEnabled(): Boolean
 
     /**
-     * Log a message at the WARN level.
+     * Log a message at the [WARN] level.
      */
     fun warn(msg: String, e: Throwable? = null)
 
     /**
-     * Check if the logger instance enabled for the ERROR level.
+     * Check if the logger instance enabled for the [ERROR] level.
      */
     fun isErrorEnabled(): Boolean
 
     /**
-     * Log a message at the ERROR level.
+     * Log a message at the [ERROR] level.
      */
     fun error(msg: String, e: Throwable? = null)
 }

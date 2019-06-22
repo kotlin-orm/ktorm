@@ -62,7 +62,7 @@ import javax.sql.DataSource
  *
  * @property transactionManager the transaction manager used to manage connections and transactions.
  * @property dialect the dialect implementation, by default, [StandardDialect] is used.
- * @property logger the logger used to output logs, printed to the console by default, pass null to disable logging.
+ * @property logger the logger used to output logs, auto detects an implementation by default, null to disable logging.
  * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database(
@@ -253,7 +253,7 @@ class Database(
          * Connect to a database by a specific [connector] function.
          *
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @param connector the connector function used to obtain SQL connections.
          * @return the new-created database object.
          */
@@ -270,7 +270,7 @@ class Database(
          *
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connect(
@@ -289,7 +289,7 @@ class Database(
          * @param user the user name of the database.
          * @param password the password of the database.
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connect(
@@ -316,7 +316,7 @@ class Database(
          *
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect implementation, by default, [StandardDialect] is used.
-         * @param logger the logger used to output logs, printed to the console by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connectWithSpringSupport(
