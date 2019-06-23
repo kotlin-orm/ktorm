@@ -17,7 +17,6 @@ class PostgreSqlTest : BaseTest() {
         Database.connect(
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
-            dialect = PostgreSqlDialect,
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
     }

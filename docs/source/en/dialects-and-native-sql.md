@@ -53,9 +53,10 @@ val db = Database.connect(
     driver = "com.mysql.jdbc.Driver", 
     user = "root", 
     password = "***", 
-    dialect = MySqlDialect
+    dialect = MySqlDialect()
 )
 ```
+> Since version 2.4, Ktorm's dialect modules start following the convention of JDK `ServiceLoader` SPI, so we don't need to specify the `dialect` parameter explicitly anymore while creating `Database` instances. Ktorm auto detects one for us from the classpath. We just need to insure the dialect module exists in the dependencies. 
 
 Now we have enabled MySQL's dialect implementation and all of its features are available. Try to call the `insertOrUpdate` function: 
 
@@ -95,7 +96,8 @@ Here is a list of features provided by module ktorm-support-mysql:
 - Add `naturalJoin` function for natural joining, based on `natural join` keyword. 
 - Add `jsonContains` function to determine if the specific item exists in a json array, based on the `json_contains` function in MySQL. 
 - Add `jsonExtract` function to obtain fields in a json, that's the `->` grammar in MySQL, based on `json_extract` function. 
-- Add other functions such as `rand`, `ifnull`, `greatest`, `least`, `dateDiff`, etc, supporting the corresponding functions in MySQL. 
+- Add `match` and `against` functions for fulltext search, based on MySQL's `match ... against ...` syntax. 
+- Add other functions such as `rand`, `ifnull`, `greatest`, `least`, `dateDiff`, `replace`, etc, supporting the corresponding functions in MySQL. 
 
 The features of ktorm-support-postgresql are listed below: 
 

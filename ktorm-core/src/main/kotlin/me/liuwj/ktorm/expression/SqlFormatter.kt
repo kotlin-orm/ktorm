@@ -30,7 +30,7 @@ import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
  * @property parameters return the SQL's execution parameters after the visit completes.
  */
 @Suppress("VariableNaming")
-abstract class SqlFormatter(
+open class SqlFormatter(
     val database: Database,
     val beautifySql: Boolean,
     val indentSize: Int

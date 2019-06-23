@@ -20,7 +20,6 @@ class MySqlTest : BaseTest() {
             url = "jdbc:mysql://127.0.0.1:3306/ktorm",
             driver = "com.mysql.jdbc.Driver",
             user = "root",
-            dialect = MySqlDialect,
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
     }

@@ -25,111 +25,113 @@ import me.liuwj.ktorm.schema.VarcharSqlType
 /**
  * [SqlDialect] implementation for MySQL database.
  */
-@Suppress("ProtectedInFinal", "ProtectedMemberInFinalClass", "NON_FINAL_MEMBER_IN_FINAL_CLASS")
-object MySqlDialect : SqlDialect {
+open class MySqlDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return MySqlFormatter(database, beautifySql, indentSize)
     }
+}
 
-    private class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-        : SqlFormatter(database, beautifySql, indentSize) {
+/**
+ * [SqlFormatter] implementation for MySQL, formatting SQL expressions as strings with their execution arguments.
+ */
+open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
+    : SqlFormatter(database, beautifySql, indentSize) {
 
-        override fun visit(expr: SqlExpression): SqlExpression {
-            val result = when (expr) {
-                is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
-                is BulkInsertExpression -> visitBulkInsert(expr)
-                else -> super.visit(expr)
+    override fun visit(expr: SqlExpression): SqlExpression {
+        val result = when (expr) {
+            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            is BulkInsertExpression -> visitBulkInsert(expr)
+            else -> super.visit(expr)
+        }
+
+        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        return result
+    }
+
+    override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
+        val result = when (expr) {
+            is MatchAgainstExpression -> visitMatchAgainst(expr)
+            else -> super.visitScalar(expr)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return result as ScalarExpression<T>
+    }
+
+    override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
+        return when (expr) {
+            is NaturalJoinExpression -> visitNaturalJoin(expr)
+            else -> super.visitQuerySource(expr)
+        }
+    }
+
+    override fun writePagination(expr: QueryExpression) {
+        newLine(Indentation.SAME)
+        write("limit ?, ? ")
+        _parameters += ArgumentExpression(expr.offset ?: 0, IntSqlType)
+        _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
+    }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        write("insert into ${expr.table.name.quoted} (")
+        for ((i, assignment) in expr.assignments.withIndex()) {
+            if (i > 0) write(", ")
+            write(assignment.column.name.quoted)
+        }
+        write(") values ")
+        writeValues(expr.assignments)
+
+        if (expr.updateAssignments.isNotEmpty()) {
+            write("on duplicate key update ")
+            visitColumnAssignments(expr.updateAssignments)
+        }
+
+        return expr
+    }
+
+    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+        write("insert into ${expr.table.name.quoted} (")
+        for ((i, assignment) in expr.assignments[0].withIndex()) {
+            if (i > 0) write(", ")
+            write(assignment.column.name.quoted)
+        }
+        write(") values ")
+
+        for ((i, assignments) in expr.assignments.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
             }
-
-            check(result === expr) { "SqlFormatter cannot modify the expression trees." }
-            return result
+            writeValues(assignments)
         }
 
-        override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
-            val result = when (expr) {
-                is MatchAgainstExpression -> visitMatchAgainst(expr)
-                else -> super.visitScalar(expr)
-            }
+        return expr
+    }
 
-            @Suppress("UNCHECKED_CAST")
-            return result as ScalarExpression<T>
-        }
+    private fun writeValues(assignments: List<ColumnAssignmentExpression<*>>) {
+        write("(")
+        visitExpressionList(assignments.map { it.expression as ArgumentExpression })
+        removeLastBlank()
+        write(") ")
+    }
 
-        override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
-            return when (expr) {
-                is NaturalJoinExpression -> visitNaturalJoin(expr)
-                else -> super.visitQuerySource(expr)
-            }
-        }
+    protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
+        visitQuerySource(expr.left)
+        newLine(Indentation.SAME)
+        write("natural join ")
+        visitQuerySource(expr.right)
+        return expr
+    }
 
-        override fun writePagination(expr: QueryExpression) {
-            newLine(Indentation.SAME)
-            write("limit ?, ? ")
-            _parameters += ArgumentExpression(expr.offset ?: 0, IntSqlType)
-            _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
-        }
-
-        protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-            write("insert into ${expr.table.name.quoted} (")
-            for ((i, assignment) in expr.assignments.withIndex()) {
-                if (i > 0) write(", ")
-                write(assignment.column.name.quoted)
-            }
-            write(") values ")
-            writeValues(expr.assignments)
-
-            if (expr.updateAssignments.isNotEmpty()) {
-                write("on duplicate key update ")
-                visitColumnAssignments(expr.updateAssignments)
-            }
-
-            return expr
-        }
-
-        protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-            write("insert into ${expr.table.name.quoted} (")
-            for ((i, assignment) in expr.assignments[0].withIndex()) {
-                if (i > 0) write(", ")
-                write(assignment.column.name.quoted)
-            }
-            write(") values ")
-
-            for ((i, assignments) in expr.assignments.withIndex()) {
-                if (i > 0) {
-                    removeLastBlank()
-                    write(", ")
-                }
-                writeValues(assignments)
-            }
-
-            return expr
-        }
-
-        private fun writeValues(assignments: List<ColumnAssignmentExpression<*>>) {
-            write("(")
-            visitExpressionList(assignments.map { it.expression as ArgumentExpression })
-            removeLastBlank()
-            write(") ")
-        }
-
-        protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
-            visitQuerySource(expr.left)
-            newLine(Indentation.SAME)
-            write("natural join ")
-            visitQuerySource(expr.right)
-            return expr
-        }
-
-        protected open fun visitMatchAgainst(expr: MatchAgainstExpression): MatchAgainstExpression {
-            write("match (")
-            visitExpressionList(expr.matchColumns)
-            removeLastBlank()
-            write(") against (?")
-            _parameters += ArgumentExpression(expr.searchString, VarcharSqlType)
-            expr.searchModifier?.let { write(" $it") }
-            write(") ")
-            return expr
-        }
+    protected open fun visitMatchAgainst(expr: MatchAgainstExpression): MatchAgainstExpression {
+        write("match (")
+        visitExpressionList(expr.matchColumns)
+        removeLastBlank()
+        write(") against (?")
+        _parameters += ArgumentExpression(expr.searchString, VarcharSqlType)
+        expr.searchModifier?.let { write(" $it") }
+        write(") ")
+        return expr
     }
 }

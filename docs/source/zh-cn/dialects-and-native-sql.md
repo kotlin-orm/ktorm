@@ -53,9 +53,11 @@ val db = Database.connect(
     driver = "com.mysql.jdbc.Driver", 
     user = "root", 
     password = "***", 
-    dialect = MySqlDialect
+    dialect = MySqlDialect()
 )
 ````
+
+> 从 2.4 版本开始，Ktorm 的各个方言模块遵从了 JDK `ServiceLoader` SPI 的约定，因此在创建 `Database` 实例时，我们不必再显式指定 `dialect` 参数。Ktorm 会自动从 classpath 中检测出我们使用的方言，只需要保证依赖中包含具体的方言模块即可。
 
 现在，我们就已经启用了 MySQL 的方言，可以使用它的功能了。尝试调用一下 `insertOrUpdate` 函数：
 
@@ -95,7 +97,8 @@ on duplicate key update t_employee.salary = t_employee.salary + ?
 - 增加了 `naturalJoin` 函数，支持自然连接，基于 `natural join` 关键字
 - 增加了 `jsonContains` 函数，判断 json 数组中是否存在指定元素，基于 `json_contains` 函数
 - 增加了 `jsonExtract` 函数，支持从 json 中获取字段，即 MySQL 中的 -> 语法，基于 `json_extract` 函数
-- 增加了 `rand`、`ifnull`、`greatest`、`least`、`dateDiff` 等函数，支持 MySQL 中的同名函数
+- 增加了 `match` 和 `against` 函数，支持全文搜索，基于 MySQL 的 `match ... against` 语法
+- 增加了 `rand`、`ifnull`、`greatest`、`least`、`dateDiff`、`replace` 等函数，支持 MySQL 中的同名函数
 
 ktorm-support-postgresql 提供的功能有：
 

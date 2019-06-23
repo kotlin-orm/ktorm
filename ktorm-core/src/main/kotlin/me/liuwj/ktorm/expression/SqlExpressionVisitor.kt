@@ -34,8 +34,7 @@ package me.liuwj.ktorm.expression
  *
  * [SqlFormatter] is a typical example used to format expressions as executable SQL strings.
  */
-@Suppress("UnnecessaryAbstractClass")
-abstract class SqlExpressionVisitor {
+open class SqlExpressionVisitor {
 
     /**
      * Dispatch different type of expression nodes to the specific `visit*` functions. Custom expression types that

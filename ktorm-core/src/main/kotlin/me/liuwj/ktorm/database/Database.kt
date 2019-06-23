@@ -20,6 +20,7 @@ import me.liuwj.ktorm.database.Database.Companion.connect
 import me.liuwj.ktorm.database.Database.Companion.connectWithSpringSupport
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
+import me.liuwj.ktorm.expression.SqlFormatter
 import me.liuwj.ktorm.logging.Logger
 import me.liuwj.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
@@ -30,6 +31,7 @@ import java.sql.DatabaseMetaData
 import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.concurrent.atomic.AtomicReference
+import java.util.ServiceLoader
 import javax.sql.DataSource
 
 /**
@@ -61,15 +63,15 @@ import javax.sql.DataSource
  * ```
  *
  * @property transactionManager the transaction manager used to manage connections and transactions.
- * @property dialect the dialect implementation, by default, [StandardDialect] is used.
+ * @property dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @property logger the logger used to output logs, auto detects an implementation by default, null to disable logging.
  * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database(
     val transactionManager: TransactionManager,
-    val dialect: SqlDialect = StandardDialect,
+    val dialect: SqlDialect? = detectDialectImplementation(),
     val logger: Logger? = detectLoggerImplementation(),
-    val exceptionTranslator: (SQLException) -> Throwable = { it }
+    val exceptionTranslator: ((SQLException) -> Throwable)? = null
 ) {
     /**
      * The URL of the connected database.
@@ -150,7 +152,7 @@ class Database(
                 return func(it)
             }
         } catch (e: SQLException) {
-            throw exceptionTranslator.invoke(e)
+            throw exceptionTranslator?.invoke(e) ?: e
         }
     }
 
@@ -182,7 +184,7 @@ class Database(
             return result
         } catch (e: SQLException) {
             if (isOuter) transaction.rollback()
-            throw exceptionTranslator.invoke(e)
+            throw exceptionTranslator?.invoke(e) ?: e
         } catch (e: Throwable) {
             if (isOuter) transaction.rollback()
             throw e
@@ -208,7 +210,7 @@ class Database(
             threadLocal.set(this)
             return this.func()
         } catch (e: SQLException) {
-            throw exceptionTranslator.invoke(e)
+            throw exceptionTranslator?.invoke(e) ?: e
         } finally {
             origin?.let { threadLocal.set(it) } ?: threadLocal.remove()
         }
@@ -228,7 +230,10 @@ class Database(
         indentSize: Int = 2
     ): Pair<String, List<ArgumentExpression<*>>> {
 
-        val formatter = dialect.createSqlFormatter(database = this, beautifySql = beautifySql, indentSize = indentSize)
+        val formatter = dialect
+            ?.createSqlFormatter(this, beautifySql, indentSize)
+            ?: SqlFormatter(this, beautifySql, indentSize)
+
         formatter.visit(expression)
         return formatter.sql to formatter.parameters
     }
@@ -252,13 +257,13 @@ class Database(
         /**
          * Connect to a database by a specific [connector] function.
          *
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @param connector the connector function used to obtain SQL connections.
          * @return the new-created database object.
          */
         fun connect(
-            dialect: SqlDialect = StandardDialect,
+            dialect: SqlDialect? = detectDialectImplementation(),
             logger: Logger? = detectLoggerImplementation(),
             connector: () -> Connection
         ): Database {
@@ -269,13 +274,13 @@ class Database(
          * Connect to a database using a [DataSource].
          *
          * @param dataSource the data source used to obtain SQL connections.
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connect(
             dataSource: DataSource,
-            dialect: SqlDialect = StandardDialect,
+            dialect: SqlDialect? = detectDialectImplementation(),
             logger: Logger? = detectLoggerImplementation()
         ): Database {
             return connect(dialect, logger) { dataSource.connection }
@@ -288,7 +293,7 @@ class Database(
          * @param driver the full qualified name of the JDBC driver class.
          * @param user the user name of the database.
          * @param password the password of the database.
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @return the new-created database object.
          */
@@ -297,7 +302,7 @@ class Database(
             driver: String,
             user: String = "",
             password: String = "",
-            dialect: SqlDialect = StandardDialect,
+            dialect: SqlDialect? = detectDialectImplementation(),
             logger: Logger? = detectLoggerImplementation()
         ): Database {
             Class.forName(driver)
@@ -315,13 +320,13 @@ class Database(
          * Spring's [DataAccessException] and rethrow it.
          *
          * @param dataSource the data source used to obtain SQL connections.
-         * @param dialect the dialect implementation, by default, [StandardDialect] is used.
+         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
          * @return the new-created database object.
          */
         fun connectWithSpringSupport(
             dataSource: DataSource,
-            dialect: SqlDialect = StandardDialect,
+            dialect: SqlDialect? = detectDialectImplementation(),
             logger: Logger? = detectLoggerImplementation()
         ): Database {
             val transactionManager = SpringManagedTransactionManager(dataSource)

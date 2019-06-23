@@ -24,61 +24,63 @@ import me.liuwj.ktorm.schema.IntSqlType
 /**
  * [SqlDialect] implementation for PostgreSQL database.
  */
-@Suppress("ProtectedInFinal", "ProtectedMemberInFinalClass", "NON_FINAL_MEMBER_IN_FINAL_CLASS")
-object PostgreSqlDialect : SqlDialect {
+open class PostgreSqlDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return PostgreSqlFormatter(database, beautifySql, indentSize)
     }
+}
 
-    private class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-        : SqlFormatter(database, beautifySql, indentSize) {
+/**
+ * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
+ */
+open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
+    : SqlFormatter(database, beautifySql, indentSize) {
 
-        override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
-            val result = when (expr) {
-                is ILikeExpression -> visitILike(expr)
-                else -> super.visitScalar(expr)
-            }
-
-            @Suppress("UNCHECKED_CAST")
-            return result as ScalarExpression<T>
+    override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
+        val result = when (expr) {
+            is ILikeExpression -> visitILike(expr)
+            else -> super.visitScalar(expr)
         }
 
-        override fun writePagination(expr: QueryExpression) {
-            newLine(Indentation.SAME)
+        @Suppress("UNCHECKED_CAST")
+        return result as ScalarExpression<T>
+    }
 
-            if (expr.limit != null) {
-                write("limit ? ")
-                _parameters += ArgumentExpression(expr.limit, IntSqlType)
-            }
-            if (expr.offset != null) {
-                write("offset ? ")
-                _parameters += ArgumentExpression(expr.offset, IntSqlType)
-            }
+    override fun writePagination(expr: QueryExpression) {
+        newLine(Indentation.SAME)
+
+        if (expr.limit != null) {
+            write("limit ? ")
+            _parameters += ArgumentExpression(expr.limit, IntSqlType)
+        }
+        if (expr.offset != null) {
+            write("offset ? ")
+            _parameters += ArgumentExpression(expr.offset, IntSqlType)
+        }
+    }
+
+    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
         }
 
-        protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
-            if (expr.left.removeBrackets) {
-                visit(expr.left)
-            } else {
-                write("(")
-                visit(expr.left)
-                removeLastBlank()
-                write(") ")
-            }
+        write("ilike ")
 
-            write("ilike ")
-
-            if (expr.right.removeBrackets) {
-                visit(expr.right)
-            } else {
-                write("(")
-                visit(expr.right)
-                removeLastBlank()
-                write(") ")
-            }
-
-            return expr
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
         }
+
+        return expr
     }
 }
