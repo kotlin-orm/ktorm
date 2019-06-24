@@ -53,7 +53,7 @@ fun <E : Entity<E>, C : Any> Table<E>.json(
  * [SqlType] implementation that provides JSON data type support via Jackson framework.
  *
  * @property objectMapper the object mapper used to serialize column values to JSON strings and deserialize them.
- * @property javaType the generic type infomation represented as jackson's [JavaType].
+ * @property javaType the generic type infomation represented as Jackson's [JavaType].
  */
 class JsonSqlType<T : Any>(
     val objectMapper: ObjectMapper,
