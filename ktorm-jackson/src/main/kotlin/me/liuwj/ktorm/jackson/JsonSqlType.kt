@@ -18,6 +18,8 @@ package me.liuwj.ktorm.jackson
 
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.schema.SqlType
 import me.liuwj.ktorm.schema.Table
@@ -29,7 +31,7 @@ import java.sql.Types
 /**
  * A shared [ObjectMapper] instance which is used as the default mapper of [json] SQL type.
  */
-val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModule(KtormModule())
+val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModules(KtormModule(), KotlinModule(), JavaTimeModule())
 
 /**
  * Define a column typed of [JsonSqlType].

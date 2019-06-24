@@ -30,18 +30,18 @@ import me.liuwj.ktorm.entity.Entity
 /**
  * Created by vince on Aug 13, 2018.
  */
-internal class EntityTypeResolverBuilder(val src: StdTypeResolverBuilder) : StdTypeResolverBuilder() {
+internal class EntityTypeResolverBuilder(val delegate: StdTypeResolverBuilder) : StdTypeResolverBuilder() {
     companion object {
         private const val serialVersionUID = 1L
     }
 
     init {
-        this._idType = src["_idType"] as JsonTypeInfo.Id?
-        this._includeAs = src["_includeAs"] as JsonTypeInfo.As?
-        this._typeProperty = src["_typeProperty"] as String?
-        this._typeIdVisible = src["_typeIdVisible"] as Boolean
-        this._defaultImpl = src["_defaultImpl"] as Class<*>?
-        this._customIdResolver = src["_customIdResolver"] as TypeIdResolver?
+        this._idType = delegate["_idType"] as JsonTypeInfo.Id?
+        this._includeAs = delegate["_includeAs"] as JsonTypeInfo.As?
+        this._typeProperty = delegate["_typeProperty"] as String?
+        this._typeIdVisible = delegate["_typeIdVisible"] as Boolean
+        this._defaultImpl = delegate["_defaultImpl"] as Class<*>?
+        this._customIdResolver = delegate["_customIdResolver"] as TypeIdResolver?
     }
 
     override fun getDefaultImpl(): Class<*>? {
@@ -58,7 +58,7 @@ internal class EntityTypeResolverBuilder(val src: StdTypeResolverBuilder) : StdT
             // Always use type serialization for entity types...
             return super.buildTypeSerializer(config, baseType, subtypes)
         } else {
-            return src.buildTypeSerializer(config, baseType, subtypes)
+            return delegate.buildTypeSerializer(config, baseType, subtypes)
         }
     }
 
@@ -72,32 +72,32 @@ internal class EntityTypeResolverBuilder(val src: StdTypeResolverBuilder) : StdT
             // Always use type serialization for entity types...
             return super.buildTypeDeserializer(config, baseType, subtypes)
         } else {
-            return src.buildTypeDeserializer(config, baseType, subtypes)
+            return delegate.buildTypeDeserializer(config, baseType, subtypes)
         }
     }
 
     override fun init(idType: JsonTypeInfo.Id, res: TypeIdResolver?): StdTypeResolverBuilder {
-        src.init(idType, res)
+        delegate.init(idType, res)
         return super.init(idType, res)
     }
 
     override fun inclusion(includeAs: JsonTypeInfo.As): StdTypeResolverBuilder {
-        src.inclusion(includeAs)
+        delegate.inclusion(includeAs)
         return super.inclusion(includeAs)
     }
 
     override fun typeProperty(propName: String?): StdTypeResolverBuilder {
-        src.typeProperty(propName)
+        delegate.typeProperty(propName)
         return super.typeProperty(propName)
     }
 
     override fun defaultImpl(defaultImpl: Class<*>?): StdTypeResolverBuilder {
-        src.defaultImpl(defaultImpl)
+        delegate.defaultImpl(defaultImpl)
         return super.defaultImpl(defaultImpl)
     }
 
     override fun typeIdVisibility(isVisible: Boolean): StdTypeResolverBuilder {
-        src.typeIdVisibility(isVisible)
+        delegate.typeIdVisibility(isVisible)
         return super.typeIdVisibility(isVisible)
     }
 
