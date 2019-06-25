@@ -26,7 +26,7 @@ class MySqlTest : BaseTest() {
 
     override fun init() {
         super.init()
-        execSqlScript("init-mysql-data.sql")
+        execSqlScript("init-mysql-index.sql")
     }
 
     @Test
