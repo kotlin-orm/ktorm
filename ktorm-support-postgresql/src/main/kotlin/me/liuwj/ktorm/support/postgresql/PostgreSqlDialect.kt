@@ -37,6 +37,16 @@ open class PostgreSqlDialect : SqlDialect {
 open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
     : SqlFormatter(database, beautifySql, indentSize) {
 
+    override fun visit(expr: SqlExpression): SqlExpression {
+        val result = when (expr) {
+            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            else -> super.visit(expr)
+        }
+
+        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        return result
+    }
+
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
             is ILikeExpression -> visitILike(expr)
@@ -81,6 +91,33 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
             write(") ")
         }
 
+        return expr
+    }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        write("insert into ${expr.table.name.quoted} (")
+        for ((i, assignment) in expr.assignments.withIndex()) {
+            if (i > 0) write(", ")
+            write(assignment.column.name.quoted)
+        }
+        write(") values (")
+        visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
+        removeLastBlank()
+        write(") on conflict (")
+        for ((i, column) in expr.conflictTarget.withIndex()) {
+            if (i > 0) write(", ")
+            write(column.name.quoted)
+        }
+        write(") do update set ")
+        for ((i, assignment) in expr.updateAssignments.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+            write("${assignment.column.name.quoted} ")
+            write("= ")
+            visit(assignment.expression)
+        }
         return expr
     }
 }
