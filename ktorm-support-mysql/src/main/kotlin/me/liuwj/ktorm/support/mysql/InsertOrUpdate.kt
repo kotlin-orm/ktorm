@@ -20,9 +20,7 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
-import me.liuwj.ktorm.expression.ColumnAssignmentExpression
-import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.TableExpression
+import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.Table
 
 /**
@@ -64,7 +62,7 @@ data class InsertOrUpdateExpression(
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
- * on duplicate key update t_employee.salary = t_employee.salary + ?
+ * on duplicate key update salary = salary + ?
  * ```
  *
  * @param block the DSL block used to construct the expression.
@@ -74,9 +72,9 @@ fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) ->
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(this@insertOrUpdate) }
 
-    val expression = InsertOrUpdateExpression(asExpression(), assignments, builder.updateAssignments)
+    val expr = AliasRemover.visit(InsertOrUpdateExpression(asExpression(), assignments, builder.updateAssignments))
 
-    expression.prepareStatement { statement ->
+    expr.prepareStatement { statement ->
         val effects = statement.executeUpdate()
 
         val logger = Database.global.logger
@@ -105,5 +103,27 @@ class InsertOrUpdateStatementBuilder(
         val assignments = ArrayList<ColumnAssignmentExpression<*>>()
         AssignmentsBuilder(assignments).apply(block)
         updateAssignments += assignments
+    }
+}
+
+/**
+ * [MySqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
+ */
+internal object AliasRemover : MySqlExpressionVisitor() {
+
+    override fun visitTable(expr: TableExpression): TableExpression {
+        if (expr.tableAlias == null) {
+            return expr
+        } else {
+            return expr.copy(tableAlias = null)
+        }
+    }
+
+    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
+        if (expr.tableAlias == null) {
+            return expr
+        } else {
+            return expr.copy(tableAlias = null)
+        }
     }
 }

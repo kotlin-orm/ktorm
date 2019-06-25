@@ -68,7 +68,7 @@ data class InsertOrUpdateExpression(
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set t_employee.salary = t_employee.salary + ?
+ * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
  * @param block the DSL block used to construct the expression.

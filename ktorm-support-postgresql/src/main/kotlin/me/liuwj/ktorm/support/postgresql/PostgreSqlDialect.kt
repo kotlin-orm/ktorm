@@ -121,3 +121,61 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         return expr
     }
 }
+
+/**
+ * Base class designed to visit or modify PostgreSQL's expression trees using visitor pattern.
+ *
+ * For detailed documents, see [SqlExpressionVisitor].
+ */
+open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
+
+    override fun visit(expr: SqlExpression): SqlExpression {
+        return when (expr) {
+            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            else -> super.visit(expr)
+        }
+    }
+
+    override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
+        val result = when (expr) {
+            is ILikeExpression -> visitILike(expr)
+            else -> super.visitScalar(expr)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return result as ScalarExpression<T>
+    }
+
+    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitColumnAssignments(expr.assignments)
+        val conflictTarget = visitExpressionList(expr.conflictTarget)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictTarget === expr.conflictTarget
+            && updateAssignments === expr.updateAssignments) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictTarget = conflictTarget,
+                updateAssignments = updateAssignments
+            )
+        }
+    }
+}

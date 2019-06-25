@@ -135,3 +135,98 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         return expr
     }
 }
+
+/**
+ * Base class designed to visit or modify MySQL's expression trees using visitor pattern.
+ *
+ * For detailed documents, see [SqlExpressionVisitor].
+ */
+open class MySqlExpressionVisitor : SqlExpressionVisitor() {
+
+    override fun visit(expr: SqlExpression): SqlExpression {
+        return when (expr) {
+            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            is BulkInsertExpression -> visitBulkInsert(expr)
+            else -> super.visit(expr)
+        }
+    }
+
+    override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
+        val result = when (expr) {
+            is MatchAgainstExpression -> visitMatchAgainst(expr)
+            else -> super.visitScalar(expr)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return result as ScalarExpression<T>
+    }
+
+    override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
+        return when (expr) {
+            is NaturalJoinExpression -> visitNaturalJoin(expr)
+            else -> super.visitQuerySource(expr)
+        }
+    }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitColumnAssignments(expr.assignments)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+
+        if (table === expr.table && assignments === expr.assignments && updateAssignments === expr.updateAssignments) {
+            return expr
+        } else {
+            return expr.copy(table = table, assignments = assignments, updateAssignments = updateAssignments)
+        }
+    }
+
+    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+        val table = expr.table
+        val assignments = visitBulkInsertAssignments(expr.assignments)
+
+        if (table === expr.table && assignments === expr.assignments) {
+            return expr
+        } else {
+            return expr.copy(table = table, assignments = assignments)
+        }
+    }
+
+    protected open fun visitBulkInsertAssignments(
+        assignments: List<List<ColumnAssignmentExpression<*>>>
+    ): List<List<ColumnAssignmentExpression<*>>> {
+        val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
+        var changed = false
+
+        for (row in assignments) {
+            val visited = visitColumnAssignments(row)
+            result += visited
+
+            if (visited !== row) {
+                changed = true
+            }
+        }
+
+        return if (changed) result else assignments
+    }
+
+    protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
+        val left = visitQuerySource(expr.left)
+        val right = visitQuerySource(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    protected open fun visitMatchAgainst(expr: MatchAgainstExpression): MatchAgainstExpression {
+        val matchColumns = visitExpressionList(expr.matchColumns)
+
+        if (matchColumns === expr.matchColumns) {
+            return expr
+        } else {
+            return expr.copy(matchColumns = matchColumns)
+        }
+    }
+}
