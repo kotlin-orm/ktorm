@@ -133,7 +133,7 @@ class QueryRowSet internal constructor(
      * Maps the given column label to its column index.
      *
      * This function overrides the implementation of [com.sun.rowset.CachedRowSetImpl.findColumn] to fix a legacy bug,
-     * we can found this problem on StackOverflow:
+     * we can find this problem on StackOverflow:
      *
      * https://stackoverflow.com/questions/15184709/cachedrowsetimpl-getstring-based-on-column-label-throws-invalid-column-name
      */
