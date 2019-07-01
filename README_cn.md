@@ -34,7 +34,7 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
  - 强类型 SQL DSL，将低级 bug 暴露在编译期
  - 灵活的查询，随心所欲地精确控制所生成的 SQL
  - 实体序列 API，使用 `filter`、`map`、`sortedBy` 等序列函数进行查询，就像使用 Kotlin 中的原生集合一样方便
- - 易扩展的设计，可以灵活编写扩展，支持更多操作符、数据类型、 SQL 函数、数据库方言等
+ - 易扩展的设计，可以灵活编写扩展，支持更多运算符、数据类型、 SQL 函数、数据库方言等
 
 <p align="center">
     <img src="docs/source/images/ktorm-example.jpg">
@@ -337,7 +337,7 @@ Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，�
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-可以看到，用法几乎与 `kotlin.sequences.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 操作符进行连接，比如：
+可以看到，用法几乎与 `kotlin.sequences.Sequence` 完全一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。`filter` 函数还可以连续使用，此时所有的筛选条件将使用 `and` 运算符进行连接，比如：
 
 ```kotlin
 val employees = Employees

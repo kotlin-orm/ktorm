@@ -51,7 +51,7 @@ interface Department : Entity<Department> {
 }
 ```
 
-因为 `Entity.Factory` 类重载了 invoke 操作符，所以你可以把这个伴随对象当函数一样直接加上括号进行调用，创建一个部门对象的代码变成了这样：
+因为 `Entity.Factory` 类重载了 invoke 运算符，所以你可以把这个伴随对象当函数一样直接加上括号进行调用，创建一个部门对象的代码变成了这样：
 
 ````kotlin
 val department = Department()

@@ -66,9 +66,9 @@ Employees.select()
 你可能已经发现，`Query.rowSet` 返回的结果集并不是普通的 `ResultSet`，而是 `QueryRowSet`。这是 Ktorm 提供的特殊的 `ResultSet` 的实现，与普通的 `ResultSet` 不同，它增加了如下特性：
 
 - **离线可用：**它不依赖于数据库连接，当连接关闭后，仍然可以正常使用，使用完毕也不需要调用 `close` 方法。`QueryRowSet` 在创建时，已经完整取出了结果集中的所有数据保存在内存中，因此只需要等待 GC 自动回收即可。
-- **索引访问操作符：**`QueryRowSet` 重载了[索引访问操作符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
+- **索引访问运算符：**`QueryRowSet` 重载了[索引访问运算符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
 
-使用索引访问操作符获取列的方法如下：
+使用索引访问运算符获取列的方法如下：
 
 ```kotlin
 for (row in Employees.select()) {
@@ -131,9 +131,9 @@ select max(t_employee.salary) - min(t_employee.salary)
 from t_employee 
 ````
 
-可以看到，生成的 SQL 和我们写出来的 Kotlin 代码高度一致，这得益于 Kotlin 优秀的语法特性。Ktorm 提供了许多重载的操作符，这就是我们能够在上面的查询中使用减号的原因。由于操作符的重载，这里的减号并没有执行实际的减法，而是被翻译为 SQL 中的减号送到数据库中去执行。在[操作符](./operators.html)一节中我们会介绍 Ktorm 提供的其他操作符。
+可以看到，生成的 SQL 和我们写出来的 Kotlin 代码高度一致，这得益于 Kotlin 优秀的语法特性。Ktorm 提供了许多重载的运算符，这就是我们能够在上面的查询中使用减号的原因。由于运算符的重载，这里的减号并没有执行实际的减法，而是被翻译为 SQL 中的减号送到数据库中去执行。在[运算符](./operators.html)一节中我们会介绍 Ktorm 提供的其他运算符。
 
-> 有个小遗憾：虽然 `select` 方法支持使用复杂的表达式，但是将查询的结果从 `QueryRowSet` 中取出来时，我们却不能使用前面介绍的索引访问操作符 []，只能使用继承自 `ResultSet` 中的 `getXxx` 方法，使用列的序号获取该列的值。
+> 有个小遗憾：虽然 `select` 方法支持使用复杂的表达式，但是将查询的结果从 `QueryRowSet` 中取出来时，我们却不能使用前面介绍的索引访问运算符 []，只能使用继承自 `ResultSet` 中的 `getXxx` 方法，使用列的序号获取该列的值。
 
 ## selectDistinct
 
@@ -163,11 +163,11 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ````
 
-在 `where` 闭包中，我们可以返回任何查询条件，这里我们使用 `eq`、`and` 和 `like` 操作符构造了一个。infix 是 Kotlin 提供的关键字，使用此关键字修饰的函数，在调用时可以省略点和括号，这样，代码写起来就像说话一样自然，我们这里使用的操作符正是 Ktorm 提供的 infix 函数。
+在 `where` 闭包中，我们可以返回任何查询条件，这里我们使用 `eq`、`and` 和 `like` 运算符构造了一个。infix 是 Kotlin 提供的关键字，使用此关键字修饰的函数，在调用时可以省略点和括号，这样，代码写起来就像说话一样自然，我们这里使用的运算符正是 Ktorm 提供的 infix 函数。
 
-> Ktorm 提供的内置操作符分为两类，一类是通过操作符重载实现的，比如加减乘除取反取余等常用运算，还有一类就是基于 infix 函数实现的，如 `and`、`or`、`eq`、`like`、`greater`、`less` 等 Kotlin 中无法重载的操作符。
+> Ktorm 提供的内置运算符分为两类，一类是通过运算符重载实现的，比如加减乘除取反取余等常用运算，还有一类就是基于 infix 函数实现的，如 `and`、`or`、`eq`、`like`、`greater`、`less` 等 Kotlin 中无法重载的运算符。
 
-有时候，我们的查询需要许多个筛选条件，这些条件使用 and 或 or 操作符连接，他们的数量不定，而且还会根据不同的情况启用不同的条件。为满足这种需求，许多 ORM 框架都提供了名为“动态查询”的特性，比如 MyBatis 的 `<if>` 标签。然而，在 Ktorm 中，这种需求根本就不是问题，因为 Ktorm 的查询都是纯 Kotlin 代码，因此天然具有这种“动态性”。我们看看下面这个查询：
+有时候，我们的查询需要许多个筛选条件，这些条件使用 and 或 or 运算符连接，他们的数量不定，而且还会根据不同的情况启用不同的条件。为满足这种需求，许多 ORM 框架都提供了名为“动态查询”的特性，比如 MyBatis 的 `<if>` 标签。然而，在 Ktorm 中，这种需求根本就不是问题，因为 Ktorm 的查询都是纯 Kotlin 代码，因此天然具有这种“动态性”。我们看看下面这个查询：
 
 ```kotlin
 val query = Employees
