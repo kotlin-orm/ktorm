@@ -17,3 +17,9 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
 - 灵活的查询，随心所欲地精确控制所生成的 SQL
 - 实体序列 API，使用 `filter`、`map`、`sortedBy` 等序列函数进行查询，就像使用 Kotlin 中的原生集合一样方便
 - 易扩展的设计，可以灵活编写扩展，支持更多运算符、数据类型、 SQL 函数、数据库方言等
+
+## 最新文章
+
+- 2019-06-28 [Ktorm - 让你的数据库操作更具 Kotlin 风味](https://www.liuwj.me/posts/ktorm-write-database-operations-in-kotlin-style/)
+- 2019-05-04 [你还在用 MyBatis 吗，Ktorm 了解一下？ - 专注于 Kotlin 的 ORM 框架](https://www.liuwj.me/posts/ktorm-introduction/)
+

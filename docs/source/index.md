@@ -17,3 +17,9 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 - Flexible queries, fine-grained control over the generated SQLs as you wish.
 - Entity sequence APIs, writing queries via sequence functions such as `filter`, `map`, `sortedBy`, etc., just like using Kotlin's native collections and sequences. 
 - Extensible design, write your own extensions to support more operators, data types, SQL functions, database dialects, etc.
+
+## Latest Posts
+
+- 2019-06-28 [Ktorm - Write Your Database Operations in Kotlin Style](https://www.liuwj.me/posts/ktorm-write-database-operations-in-kotlin-style/)
+- 2019-05-04 [Still Using MyBatis? Try Ktorm, an ORM Framework for Kotlin!](https://www.liuwj.me/posts/ktorm-introduction/)
+
