@@ -46,25 +46,31 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         val minRowNum = offset + 1
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-        write("select * from (")
-        newLine(Indentation.INNER)
-        write("select rownum rn, a.* ")
+        write("select * ")
         newLine(Indentation.SAME)
-        write("from ")
+        write("from ( ")
+        newLine(Indentation.INNER)
+        write("select row_number() over(order by _temp_column) _rownum, * ")
+        newLine(Indentation.SAME)
+        write("from ( ")
+        newLine(Indentation.INNER)
+        write("select top ? _temp_column = 0, * ")
+        newLine(Indentation.SAME)
+        write("from")
 
         visitQuerySource(
-                when (expr) {
-                    is SelectExpression -> expr.copy(tableAlias = "a", offset = null, limit = null)
-                    is UnionExpression -> expr.copy(tableAlias = "a", offset = null, limit = null)
-                }
+            when (expr) {
+                is SelectExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
+                is UnionExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
+            }
         )
 
-        newLine(Indentation.SAME)
-        write("where rownum <= ?")
         newLine(Indentation.OUTER)
-        write(") ")
+        write(") _t2")
+        newLine(Indentation.OUTER)
+        write(") _t3")
         newLine(Indentation.SAME)
-        write("where rn >= ?")
+        write("where _rownum >= ?")
 
         _parameters += ArgumentExpression(maxRowNum, IntSqlType)
         _parameters += ArgumentExpression(minRowNum, IntSqlType)
