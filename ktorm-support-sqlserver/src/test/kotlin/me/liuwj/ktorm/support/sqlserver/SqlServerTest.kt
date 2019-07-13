@@ -30,42 +30,25 @@ class SqlServerTest : BaseTest() {
     fun testPagingSql() {
         var query = Employees
             .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
-            .select()
-            .orderBy(Departments.id.desc())
+            .select(Employees.id, Employees.name)
+            .orderBy(Employees.id.desc())
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
-
-        query = Employees
-            .select(Employees.name)
-            .orderBy((Employees.id + 1).desc())
-            .limit(0, 1)
-
-        assert(query.totalRecords == 4)
-
-        query = Employees
-            .select(Employees.departmentId, avg(Employees.salary))
-            .groupBy(Employees.departmentId)
-            .limit(0, 1)
-
-        assert(query.totalRecords == 2)
+        assert(query.count() == 1)
 
         query = Employees
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
-
-        query = Employees
-            .select(max(Employees.salary))
-            .limit(0, 1)
-
-        assert(query.totalRecords == 1)
+        assert(query.count() == 1)
 
         query = Employees
             .select(Employees.name)
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
+        assert(query.count() == 1)
     }
 }

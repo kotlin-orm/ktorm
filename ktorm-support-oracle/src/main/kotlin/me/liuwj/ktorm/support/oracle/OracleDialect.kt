@@ -48,9 +48,9 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
 
         write("select * ")
         newLine(Indentation.SAME)
-        write("from ( ")
+        write("from (")
         newLine(Indentation.INNER)
-        write("select rownum _rn, _t.* ")
+        write("select _t.*, rownum _rn ")
         newLine(Indentation.SAME)
         write("from ")
 
@@ -66,7 +66,7 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         newLine(Indentation.OUTER)
         write(") ")
         newLine(Indentation.SAME)
-        write("where _rn >= ?")
+        write("where _rn >= ? ")
 
         _parameters += ArgumentExpression(maxRowNum, IntSqlType)
         _parameters += ArgumentExpression(minRowNum, IntSqlType)

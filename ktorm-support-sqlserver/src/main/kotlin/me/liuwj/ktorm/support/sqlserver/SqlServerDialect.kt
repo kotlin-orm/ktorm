@@ -19,7 +19,6 @@ package me.liuwj.ktorm.support.sqlserver
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.SqlDialect
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.IntSqlType
 
 /**
  * [SqlDialect] implementation for Microsoft SqlServer database.
@@ -46,34 +45,73 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         val minRowNum = offset + 1
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-        write("select * ")
-        newLine(Indentation.SAME)
-        write("from ( ")
-        newLine(Indentation.INNER)
-        write("select row_number() over(order by _temp_column) _rownum, * ")
-        newLine(Indentation.SAME)
-        write("from ( ")
-        newLine(Indentation.INNER)
-        write("select top ? _temp_column = 0, * ")
-        newLine(Indentation.SAME)
-        write("from")
+        if (expr.orderBy.isEmpty()) {
+            write("select * ")
+            newLine(Indentation.SAME)
+            write("from (")
+            newLine(Indentation.INNER)
+            write("select top $maxRowNum *, row_number() over(order by _order_by) _rownum ")
+            newLine(Indentation.SAME)
+            write("from (")
+            newLine(Indentation.INNER)
+            write("select *, _order_by = 0 ")
+            newLine(Indentation.SAME)
+            write("from ")
 
-        visitQuerySource(
-            when (expr) {
-                is SelectExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
-                is UnionExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
+            visitQuerySource(
+                when (expr) {
+                    is SelectExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
+                    is UnionExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
+                }
+            )
+
+            newLine(Indentation.OUTER)
+            write(") _t2 ")
+            newLine(Indentation.OUTER)
+            write(") _t3 ")
+            newLine(Indentation.SAME)
+            write("where _rownum >= $minRowNum ")
+        } else {
+            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+            val visitor = object : SqlExpressionVisitor() {
+                override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
+                    val alias = (expr as? SelectExpression)?.columns
+                        ?.find { it.expression == column }
+                        ?.declaredName ?: column.name
+
+                    return column.copy(tableAlias = "_t1", name = alias)
+                }
             }
-        )
 
-        newLine(Indentation.OUTER)
-        write(") _t2")
-        newLine(Indentation.OUTER)
-        write(") _t3")
-        newLine(Indentation.SAME)
-        write("where _rownum >= ?")
+            val orderBy = expr.orderBy.map { visitor.visit(it) as OrderByExpression }
 
-        _parameters += ArgumentExpression(maxRowNum, IntSqlType)
-        _parameters += ArgumentExpression(minRowNum, IntSqlType)
+            write("select * ")
+            newLine(Indentation.SAME)
+            write("from (")
+            newLine(Indentation.INNER)
+            write("select top $maxRowNum *, row_number() over(order by ")
+            visitOrderByList(orderBy)
+            removeLastBlank()
+            write(") _rownum ")
+            newLine(Indentation.SAME)
+            write("from ")
+
+            visitQuerySource(
+                when (expr) {
+                    is SelectExpression -> {
+                        expr.copy(orderBy = emptyList(), tableAlias = "_t1", offset = null, limit = null)
+                    }
+                    is UnionExpression -> {
+                        expr.copy(orderBy = emptyList(), tableAlias = "_t1", offset = null, limit = null)
+                    }
+                }
+            )
+
+            newLine(Indentation.OUTER)
+            write(") _t2 ")
+            newLine(Indentation.SAME)
+            write("where _rownum >= $minRowNum ")
+        }
 
         return expr
     }
