@@ -41,78 +41,85 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
             return super.visitQuery(expr)
         }
 
+        if (expr.orderBy.isEmpty()) {
+            writePagingQuery(expr)
+        } else {
+            writePagingQueryWithOrderBy(expr)
+        }
+
+        return expr
+    }
+
+    private fun writePagingQuery(expr: QueryExpression) {
         val offset = expr.offset ?: 0
         val minRowNum = offset + 1
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-        if (expr.orderBy.isEmpty()) {
-            write("select * ")
-            newLine(Indentation.SAME)
-            write("from (")
-            newLine(Indentation.INNER)
-            write("select top $maxRowNum *, row_number() over(order by _order_by) _rownum ")
-            newLine(Indentation.SAME)
-            write("from (")
-            newLine(Indentation.INNER)
-            write("select *, _order_by = 0 ")
-            newLine(Indentation.SAME)
-            write("from ")
+        write("select * ")
+        newLine(Indentation.SAME)
+        write("from (")
+        newLine(Indentation.INNER)
+        write("select top $maxRowNum *, row_number() over(order by _order_by) _rownum ")
+        newLine(Indentation.SAME)
+        write("from (")
+        newLine(Indentation.INNER)
+        write("select *, _order_by = 0 ")
+        newLine(Indentation.SAME)
+        write("from ")
 
-            visitQuerySource(
-                when (expr) {
-                    is SelectExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
-                    is UnionExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
-                }
-            )
-
-            newLine(Indentation.OUTER)
-            write(") _t2 ")
-            newLine(Indentation.OUTER)
-            write(") _t3 ")
-            newLine(Indentation.SAME)
-            write("where _rownum >= $minRowNum ")
-        } else {
-            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-            val visitor = object : SqlExpressionVisitor() {
-                override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
-                    val alias = (expr as? SelectExpression)?.columns
-                        ?.find { it.expression == column }
-                        ?.declaredName ?: column.name
-
-                    return column.copy(tableAlias = "_t1", name = alias)
-                }
+        visitQuerySource(
+            when (expr) {
+                is SelectExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
+                is UnionExpression -> expr.copy(tableAlias = "_t1", offset = null, limit = null)
             }
+        )
 
-            val orderBy = expr.orderBy.map { visitor.visit(it) as OrderByExpression }
+        newLine(Indentation.OUTER)
+        write(") _t2 ")
+        newLine(Indentation.OUTER)
+        write(") _t3 ")
+        newLine(Indentation.SAME)
+        write("where _rownum >= $minRowNum ")
+    }
 
-            write("select * ")
-            newLine(Indentation.SAME)
-            write("from (")
-            newLine(Indentation.INNER)
-            write("select top $maxRowNum *, row_number() over(order by ")
-            visitOrderByList(orderBy)
-            removeLastBlank()
-            write(") _rownum ")
-            newLine(Indentation.SAME)
-            write("from ")
+    private fun writePagingQueryWithOrderBy(expr: QueryExpression) {
+        val offset = expr.offset ?: 0
+        val minRowNum = offset + 1
+        val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-            visitQuerySource(
-                when (expr) {
-                    is SelectExpression -> {
-                        expr.copy(orderBy = emptyList(), tableAlias = "_t1", offset = null, limit = null)
-                    }
-                    is UnionExpression -> {
-                        expr.copy(orderBy = emptyList(), tableAlias = "_t1", offset = null, limit = null)
-                    }
-                }
-            )
-
-            newLine(Indentation.OUTER)
-            write(") _t2 ")
-            newLine(Indentation.SAME)
-            write("where _rownum >= $minRowNum ")
+        @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+        val visitor = object : SqlExpressionVisitor() {
+            override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
+                val alias = (expr as? SelectExpression)?.columns?.find { it.expression == column }?.declaredName
+                return column.copy(tableAlias = "_t1", name = alias ?: column.name)
+            }
         }
 
-        return expr
+        write("select * ")
+        newLine(Indentation.SAME)
+        write("from (")
+        newLine(Indentation.INNER)
+        write("select top $maxRowNum *, row_number() over(order by ")
+        visitOrderByList(expr.orderBy.map { visitor.visit(it) as OrderByExpression })
+        removeLastBlank()
+        write(") _rownum ")
+        newLine(Indentation.SAME)
+        write("from ")
+
+        visitQuerySource(
+            when (expr) {
+                is SelectExpression -> {
+                    expr.copy(orderBy = emptyList(), tableAlias = "_t1", offset = null, limit = null)
+                }
+                is UnionExpression -> {
+                    expr.copy(orderBy = emptyList(), tableAlias = "_t1", offset = null, limit = null)
+                }
+            }
+        )
+
+        newLine(Indentation.OUTER)
+        write(") _t2 ")
+        newLine(Indentation.SAME)
+        write("where _rownum >= $minRowNum ")
     }
 }
