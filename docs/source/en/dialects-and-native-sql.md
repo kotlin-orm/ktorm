@@ -19,13 +19,14 @@ interface SqlDialect {
 }
 ```
 
-Ktorm supports three dialects now, each of them is published as a separated module independent of ktorm-core, and they all provide their own implementation of `SqlDialect`. 
+Ktorm supports four dialects now, each of them is published as a separated module independent of ktorm-core, and they all provide their own implementation of `SqlDialect`. 
 
 | Database Name | Module Name              | SqlDialect Implementation                           |
 | ------------- | ------------------------ | --------------------------------------------------- |
 | MySQL         | ktorm-support-mysql      | me.liuwj.ktorm.support.mysql.MySqlDialect           |
 | PostgreSQL    | ktorm-support-postgresql | me.liuwj.ktorm.support.postgresql.PostgreSqlDialect |
 | Oracle        | ktorm-support-oracle     | me.liuwj.ktorm.support.oracle.OracleDialect         |
+| SqlServer     | ktorm-support-sqlserver  | me.liuwj.ktorm.support.sqlserver.SqlServerDialect   |
 
 Now let's take MySQL's `on duplicate key update` feature as an example, learning how to enable dialects in Ktorm. 
 
@@ -108,6 +109,10 @@ The features of ktorm-support-postgresql are listed below:
 ktorm-support-oracle provides: 
 
 - Support paginations via `limit` function, translating paging expressions into Oracle's paging SQL using `rownum`. 
+
+ktorm-support-sqlserver provides: 
+
+- Support paginations via `limit` function, translating paging expressions into SqlServer's paging SQL using `top` and `row_number() over(...)`. 
 
 Ktorm always claims that we are supporting many dialects, but actually, the support for databases other than MySQL is really not enough. I'm so sorry about that, my time and energy are really limited, so I have to lower the precedence of supporting other databases. 
 

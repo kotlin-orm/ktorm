@@ -29,7 +29,7 @@ Jackson extension module for Ktorm, providing json serialization for entity obje
 
 # Package me.liuwj.ktorm.support.mysql
 
-MySQL dialect module for Ktorm, providing MySQL bulk insert, insertOrUpdate, natural join, etc.
+MySQL dialect module for Ktorm.
 
 # Package me.liuwj.ktorm.support.oracle
 
@@ -38,3 +38,7 @@ Oracle dialect module for Ktorm.
 # Package me.liuwj.ktorm.support.postgresql
 
 PostgreSQL dialect module for Ktorm.
+
+# Package me.liuwj.ktorm.support.sqlserver
+
+Microsoft SqlServer dialect module for Ktorm.
