@@ -1,0 +1,7 @@
+
+dependencies {
+    compile project(":ktorm-core")
+
+    testCompile project(path: ":ktorm-core", configuration: "testOutput")
+    testCompile "org.xerial:sqlite-jdbc:3.28.0"
+}

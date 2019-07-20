@@ -15,18 +15,15 @@ import java.time.LocalDate
  */
 class MySqlTest : BaseTest() {
 
-    override fun connect() {
+    override fun init() {
         Database.connect(
             url = "jdbc:mysql://127.0.0.1:3306/ktorm",
             driver = "com.mysql.jdbc.Driver",
             user = "root",
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
-    }
 
-    override fun init() {
-        super.init()
-        execSqlScript("init-mysql-index.sql")
+        execSqlScript("init-mysql-data.sql")
     }
 
     @Test

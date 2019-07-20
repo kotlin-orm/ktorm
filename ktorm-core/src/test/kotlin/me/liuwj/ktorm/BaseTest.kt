@@ -15,17 +15,14 @@ import java.time.LocalDate
  */
 open class BaseTest {
 
-    open fun connect() {
+    @Before
+    open fun init() {
         Database.connect(
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
-    }
 
-    @Before
-    open fun init() {
-        connect()
         execSqlScript("init-data.sql")
     }
 

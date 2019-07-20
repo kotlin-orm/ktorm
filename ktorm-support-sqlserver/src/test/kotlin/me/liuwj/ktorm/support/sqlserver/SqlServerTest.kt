@@ -11,7 +11,7 @@ import org.junit.Test
 @Ignore
 class SqlServerTest : BaseTest() {
 
-    override fun connect() {
+    override fun init() {
         Database.connect(
             url = "jdbc:sqlserver://localhost:1433;DatabaseName=ktorm",
             driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver",
@@ -19,10 +19,7 @@ class SqlServerTest : BaseTest() {
             password = "123456",
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
-    }
 
-    override fun init() {
-        connect()
         execSqlScript("init-sqlserver-data.sql")
     }
 

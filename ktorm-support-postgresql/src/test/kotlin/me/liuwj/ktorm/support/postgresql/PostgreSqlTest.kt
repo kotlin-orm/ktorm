@@ -16,17 +16,14 @@ import java.time.LocalDate
  */
 class PostgreSqlTest : BaseTest() {
 
-    override fun connect() {
+    override fun init() {
         Database.connect(
             url = "jdbc:postgresql://127.0.0.1:5432/ktorm",
             driver = "org.postgresql.Driver",
             user = "postgres",
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
-    }
 
-    override fun init() {
-        connect()
         execSqlScript("init-postgresql-data.sql")
     }
 
