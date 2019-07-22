@@ -35,7 +35,7 @@ where t_employee.department_id = ?
 
 > The generated SQL contains a very long field list, that's necessary, Ktorm tries its best to avoid using `select *`. But for the sake of presentation, in later SQLs, we will still replace them with `select *`. 
 
-Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s reference table `t_department` using a foreign key. That's because we bind the `departmentId` column to `Departments` table by a reference binding in the table object. By using the reference binding, when we obtain employees via `find*` functions, Ktorm will auto left joins the referenced table, obtaining the departments at the same time, and filling them into property `Employee.department`. 
+Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s reference table `t_department` using a foreign key. That's because we bind the `departmentId` column to `Departments` table by a reference binding in the table object. By using the reference binding, when we obtain employees via `find*` functions, Ktorm will auto left join the referenced table, obtaining the departments at the same time, and filling them into property `Employee.department`. 
 
 > Note: please avoid circular references while using reference bindings. For instance, now that `Employees` references `Departments`, then `Departments` cannot reference `Employees` directly or indirectly, otherwise a stack overflow will occur when Ktorm tries to left join `Departments`. 
 
