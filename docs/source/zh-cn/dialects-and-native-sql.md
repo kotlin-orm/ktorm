@@ -19,7 +19,7 @@ interface SqlDialect {
 }
 ```
 
-Ktorm 目前支持四种数据库方言，每种方言都作为一个独立于 ktorm-core 的模块发布，他们都会提供一个自己的 `SqlDialect` 实现类：
+Ktorm 目前支持多种数据库方言，每种方言都作为一个独立于 ktorm-core 的模块发布，他们都会提供一个自己的 `SqlDialect` 实现类：
 
 | 数据库类型 | 模块名                   | SqlDialect 实现类                                   |
 | ---------- | ------------------------ | --------------------------------------------------- |
@@ -27,6 +27,7 @@ Ktorm 目前支持四种数据库方言，每种方言都作为一个独立于 k
 | PostgreSQL | ktorm-support-postgresql | me.liuwj.ktorm.support.postgresql.PostgreSqlDialect |
 | Oracle     | ktorm-support-oracle     | me.liuwj.ktorm.support.oracle.OracleDialect         |
 | SqlServer  | ktorm-support-sqlserver  | me.liuwj.ktorm.support.sqlserver.SqlServerDialect   |
+| SQLite     | ktorm-support-sqlite     | me.liuwj.ktorm.support.sqlite.SQLiteDialect         |
 
 现在我们以 MySQL 的 `on duplicate key update` 功能为例，介绍如何在 Ktorm 中启用方言。
 
@@ -114,6 +115,10 @@ ktorm-support-oracle 提供的功能有：
 ktorm-support-sqlserver 提供的功能有：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 SqlServer 中使用 `top` 和 `row_number() over(...)` 筛选分页的写法
+
+ktorm-support-sqlite 提供的功能有：
+
+- 支持使用 `limit` 函数进行分页，会自动翻译为 SQLite 的 `limit ?, ?` 语句
 
 很遗憾地告诉大家，虽然 Ktorm 一直声称支持多种方言，但是实际上除了 MySQL 以外，我们对其他数据库的特殊语法的支持实在是十分有限。这是因为作者本人的精力有限，只能做到支持工作中常用的 MySQL，对于其他数据库纷繁复杂的特殊用法只能暂时把优先级降低。
 

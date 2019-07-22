@@ -39,6 +39,10 @@ Oracle dialect module for Ktorm.
 
 PostgreSQL dialect module for Ktorm.
 
+# Package me.liuwj.ktorm.support.sqlite
+
+SQLite dialect module for Ktorm.
+
 # Package me.liuwj.ktorm.support.sqlserver
 
 Microsoft SqlServer dialect module for Ktorm.

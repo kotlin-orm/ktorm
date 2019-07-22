@@ -19,7 +19,7 @@ interface SqlDialect {
 }
 ```
 
-Ktorm supports four dialects now, each of them is published as a separated module independent of ktorm-core, and they all provide their own implementation of `SqlDialect`. 
+Ktorm supports many dialects now, each of them is published as a separated module independent of ktorm-core, and they all provide their own implementation of `SqlDialect`. 
 
 | Database Name | Module Name              | SqlDialect Implementation                           |
 | ------------- | ------------------------ | --------------------------------------------------- |
@@ -27,6 +27,7 @@ Ktorm supports four dialects now, each of them is published as a separated modul
 | PostgreSQL    | ktorm-support-postgresql | me.liuwj.ktorm.support.postgresql.PostgreSqlDialect |
 | Oracle        | ktorm-support-oracle     | me.liuwj.ktorm.support.oracle.OracleDialect         |
 | SqlServer     | ktorm-support-sqlserver  | me.liuwj.ktorm.support.sqlserver.SqlServerDialect   |
+| SQLite        | ktorm-support-sqlite     | me.liuwj.ktorm.support.sqlite.SQLiteDialect         |
 
 Now let's take MySQL's `on duplicate key update` feature as an example, learning how to enable dialects in Ktorm. 
 
@@ -114,9 +115,13 @@ ktorm-support-sqlserver provides:
 
 - Support paginations via `limit` function, translating paging expressions into SqlServer's paging SQL using `top` and `row_number() over(...)`. 
 
+ktorm-support-sqlite provides: 
+
+- Support paginations via `limit` function, translating paging expressions into SQLite's `limit ?, ?` statement. 
+
 Ktorm always claims that we are supporting many dialects, but actually, the support for databases other than MySQL is really not enough. I'm so sorry about that, my time and energy are really limited, so I have to lower the precedence of supporting other databases. 
 
-Fortunately, the standard SQL supported by the core module is enough for most requirements, so there is little influence on our business before the dialects are completed. 
+Fortunately, the standard SQL supported by the core module is enough for most scenarios, so there is little influence on our business before the dialects are completed. 
 
 Ktorm's design is open, it's easy to add features to it, and we have learned how to write our own extensions in the former sections. So we can also implement dialects by ourselves if it's really needed. Welcome to fork the repository and send your pull requests to me, I'm glad to check and merge your codes. Looking forward to your contributions!
 
