@@ -36,7 +36,7 @@ Maybe you want to register the created object as a Spring bean:
 
 ```kotlin
 @Configuration
-class KtOrmConfiguration {
+class KtormConfiguration {
     @Autowired
     lateinit var dataSource: DataSource
 

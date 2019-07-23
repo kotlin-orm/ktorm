@@ -6,7 +6,7 @@ related_path: en/entity-sequence.html
 
 # 实体序列
 
-除了 `find*` 函数以外，Ktorm 还提供了一套名为"实体序列"的 API，用来从数据库中获取实体对象。正如其名字所示，它的风格和使用方式与 Kotlin 标准库中的序列 API 及其类似，它提供了许多同名的扩展函数，比如 `filter`、`map`、`reduce` 等。
+除了 `find*` 函数以外，Ktorm 还提供了一套名为"实体序列"的 API，用来从数据库中获取实体对象。正如其名字所示，它的风格和使用方式与 Kotlin 标准库中的序列 API 极其类似，它提供了许多同名的扩展函数，比如 `filter`、`map`、`reduce` 等。
 
 > 注意：实体序列 API 仅在 Ktorm 2.0 及以上版本中提供。
 

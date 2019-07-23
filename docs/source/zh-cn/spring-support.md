@@ -34,7 +34,7 @@ Database.connectWithSpringSupport(dataSource)
 
 ```kotlin
 @Configuration
-class KtOrmConfiguration {
+class KtormConfiguration {
     @Autowired
     lateinit var dataSource: DataSource
 
@@ -51,7 +51,7 @@ class KtOrmConfiguration {
 
 ## 事务代理
 
-与普通的 `Database` 对象不一样，使用 `Database.connectWithSpringSupport` 方法创建的对象使用了 `SpringManagedTransactionManager` 作为事务管理器。这个事务管理器实际上并没有任何事务管理功能，它把事务的操作都委托给了 Spring 框架：
+与普通的 `Database` 对象不一样，通过 `Database.connectWithSpringSupport` 方法创建的对象使用了 `SpringManagedTransactionManager` 作为事务管理器。这个事务管理器实际上并没有任何事务管理功能，它把事务的操作都委托给了 Spring 框架：
 
 ```kotlin
 class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionManager {
