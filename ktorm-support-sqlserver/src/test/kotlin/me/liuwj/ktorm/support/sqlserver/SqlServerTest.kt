@@ -7,16 +7,23 @@ import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Ignore
 import org.junit.Test
+import org.testcontainers.containers.MSSQLServerContainer
 
 @Ignore
 class SqlServerTest : BaseTest() {
 
+    class KMSSQLServerContainer: MSSQLServerContainer<KMSSQLServerContainer>()
+
+    private val MSSQLServer = KMSSQLServerContainer()
+
     override fun init() {
+        MSSQLServer.start()
+
         Database.connect(
-            url = "jdbc:sqlserver://localhost:1433;DatabaseName=ktorm",
-            driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-            user = "ktorm",
-            password = "123456",
+            url = MSSQLServer.jdbcUrl,
+            driver = MSSQLServer.driverClassName,
+            user = MSSQLServer.username,
+            password = MSSQLServer.password,
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
 

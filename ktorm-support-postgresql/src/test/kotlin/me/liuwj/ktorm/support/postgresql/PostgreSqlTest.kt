@@ -9,6 +9,7 @@ import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
+import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 
 /**
@@ -16,12 +17,19 @@ import java.time.LocalDate
  */
 class PostgreSqlTest : BaseTest() {
 
+    class KPostgreSQLContainer : PostgreSQLContainer<KPostgreSQLContainer>()
+
+    private val postgreSQL = KPostgreSQLContainer()
+
     override fun init() {
+        postgreSQL.start()
+
         Database.connect(
-            url = "jdbc:postgresql://127.0.0.1:5432/ktorm",
-            driver = "org.postgresql.Driver",
-            user = "postgres",
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
+                url = postgreSQL.jdbcUrl,
+                driver = postgreSQL.driverClassName,
+                user = postgreSQL.username,
+                password = postgreSQL.password,
+                logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
 
         execSqlScript("init-postgresql-data.sql")

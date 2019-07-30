@@ -8,6 +8,7 @@ import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
+import org.testcontainers.containers.MySQLContainer
 import java.time.LocalDate
 
 /**
@@ -15,12 +16,19 @@ import java.time.LocalDate
  */
 class MySqlTest : BaseTest() {
 
+    class KMySQLContainer : MySQLContainer<KMySQLContainer>()
+
+    private val mysql = KMySQLContainer()
+
     override fun init() {
+        mysql.start()
+
         Database.connect(
-            url = "jdbc:mysql://127.0.0.1:3306/ktorm",
-            driver = "com.mysql.jdbc.Driver",
-            user = "root",
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
+                url = mysql.jdbcUrl,
+                driver = mysql.driverClassName,
+                user = mysql.username,
+                password = mysql.password,
+                logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
 
         execSqlScript("init-mysql-data.sql")
