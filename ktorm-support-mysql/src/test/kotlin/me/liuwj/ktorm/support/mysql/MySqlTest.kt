@@ -7,6 +7,7 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
+import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.MySQLContainer
 import java.time.LocalDate
@@ -16,19 +17,23 @@ import java.time.LocalDate
  */
 class MySqlTest : BaseTest() {
 
-    class KMySQLContainer : MySQLContainer<KMySQLContainer>()
+    companion object {
+        class KMySqlContainer : MySQLContainer<KMySqlContainer>()
 
-    private val mysql = KMySQLContainer()
+        @ClassRule
+        @JvmField
+        val mysql = KMySqlContainer()
+    }
 
     override fun init() {
         mysql.start()
 
         Database.connect(
-                url = mysql.jdbcUrl,
-                driver = mysql.driverClassName,
-                user = mysql.username,
-                password = mysql.password,
-                logger = ConsoleLogger(threshold = LogLevel.TRACE)
+            url = mysql.jdbcUrl,
+            driver = mysql.driverClassName,
+            user = mysql.username,
+            password = mysql.password,
+            logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
 
         execSqlScript("init-mysql-data.sql")
@@ -207,7 +212,7 @@ class MySqlTest : BaseTest() {
             match(it.name, it.job).against("vince", SearchModifier.IN_NATURAL_LANGUAGE_MODE)
         }
 
-        employees.forEach { println(it)}
+        employees.forEach { println(it) }
     }
 
     @Test
