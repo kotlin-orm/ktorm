@@ -1,4 +1,5 @@
 
 dependencies {
     compile project(":ktorm-core")
+    testCompile "org.testcontainers:oracle-xe:1.11.3"
 }

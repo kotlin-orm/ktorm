@@ -4,4 +4,5 @@ dependencies {
 
     testCompile project(path: ":ktorm-core", configuration: "testOutput")
     testCompile "org.postgresql:postgresql:42.2.5"
+    testCompile "org.testcontainers:postgresql:1.11.3"
 }

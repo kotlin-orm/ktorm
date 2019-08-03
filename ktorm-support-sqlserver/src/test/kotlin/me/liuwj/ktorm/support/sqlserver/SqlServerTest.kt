@@ -5,18 +5,30 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
+import org.junit.ClassRule
 import org.junit.Ignore
 import org.junit.Test
+import org.testcontainers.containers.MSSQLServerContainer
 
 @Ignore
 class SqlServerTest : BaseTest() {
 
+    companion object {
+        class KSqlServerContainer: MSSQLServerContainer<KSqlServerContainer>()
+
+        @ClassRule
+        @JvmField
+        val sqlServer = KSqlServerContainer()
+    }
+
     override fun init() {
+        sqlServer.start()
+
         Database.connect(
-            url = "jdbc:sqlserver://localhost:1433;DatabaseName=ktorm",
-            driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-            user = "ktorm",
-            password = "123456",
+            url = sqlServer.jdbcUrl,
+            driver = sqlServer.driverClassName,
+            user = sqlServer.username,
+            password = sqlServer.password,
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
 
