@@ -26,8 +26,6 @@ class MySqlTest : BaseTest() {
     }
 
     override fun init() {
-        mysql.start()
-
         Database.connect(
             url = mysql.jdbcUrl,
             driver = mysql.driverClassName,

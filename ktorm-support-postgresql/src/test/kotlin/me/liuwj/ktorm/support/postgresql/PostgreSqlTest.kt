@@ -23,17 +23,15 @@ class PostgreSqlTest : BaseTest() {
 
         @ClassRule
         @JvmField
-        val postgreSQL = KPostgreSqlContainer()
+        val postgres = KPostgreSqlContainer()
     }
 
     override fun init() {
-        postgreSQL.start()
-
         Database.connect(
-            url = postgreSQL.jdbcUrl,
-            driver = postgreSQL.driverClassName,
-            user = postgreSQL.username,
-            password = postgreSQL.password,
+            url = postgres.jdbcUrl,
+            driver = postgres.driverClassName,
+            user = postgres.username,
+            password = postgres.password,
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
         )
 

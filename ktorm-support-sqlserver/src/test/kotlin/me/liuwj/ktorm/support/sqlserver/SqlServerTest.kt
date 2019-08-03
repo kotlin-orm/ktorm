@@ -14,7 +14,7 @@ import org.testcontainers.containers.MSSQLServerContainer
 class SqlServerTest : BaseTest() {
 
     companion object {
-        class KSqlServerContainer: MSSQLServerContainer<KSqlServerContainer>()
+        class KSqlServerContainer : MSSQLServerContainer<KSqlServerContainer>()
 
         @ClassRule
         @JvmField
@@ -22,8 +22,6 @@ class SqlServerTest : BaseTest() {
     }
 
     override fun init() {
-        sqlServer.start()
-
         Database.connect(
             url = sqlServer.jdbcUrl,
             driver = sqlServer.driverClassName,
