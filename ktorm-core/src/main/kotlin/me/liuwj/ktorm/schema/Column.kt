@@ -44,7 +44,7 @@ data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding
  * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
  * @see me.liuwj.ktorm.entity.createEntity
  */
-data class ReferenceBinding(val referenceTable: Table<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
+data class ReferenceBinding(val referenceTable: BaseTable<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
 
 /**
  * Common interface of [Column] and [ScalarExpression].
@@ -85,9 +85,9 @@ interface ColumnDeclaring<T : Any> {
 sealed class Column<T : Any> : ColumnDeclaring<T> {
 
     /**
-     * The [Table] that this column belongs to.
+     * The table that this column belongs to.
      */
-    abstract val table: Table<*>
+    abstract val table: BaseTable<*>
 
     /**
      * The column's name.
@@ -115,7 +115,7 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
      *
      * Shortcut for `(binding as? ReferenceBinding)?.referenceTable`.
      */
-    val referenceTable: Table<*>? get() = (binding as? ReferenceBinding)?.referenceTable
+    val referenceTable: BaseTable<*>? get() = (binding as? ReferenceBinding)?.referenceTable
 
     /**
      * Convert this column to a [ColumnExpression].
@@ -165,7 +165,7 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
  * Simple implementation of [Column].
  */
 data class SimpleColumn<T : Any>(
-    override val table: Table<*>,
+    override val table: BaseTable<*>,
     override val name: String,
     override val sqlType: SqlType<T>,
     override val binding: ColumnBinding? = null
@@ -199,7 +199,7 @@ data class AliasedColumn<T : Any>(
     override val binding: ColumnBinding? = null
 ) : Column<T>() {
 
-    override val table: Table<*> = originColumn.table
+    override val table: BaseTable<*> = originColumn.table
 
     override val name: String = originColumn.name
 
