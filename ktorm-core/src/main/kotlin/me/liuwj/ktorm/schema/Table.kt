@@ -16,9 +16,11 @@
 
 package me.liuwj.ktorm.schema
 
-import me.liuwj.ktorm.entity.Entity
+import me.liuwj.ktorm.dsl.QueryRowSet
+import me.liuwj.ktorm.entity.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Base class of Ktorm's table objects, represents relational tables in the database.
@@ -26,17 +28,12 @@ import kotlin.reflect.KProperty1
  * @property tableName the table's name.
  * @property alias the table's alias.
  */
+@Suppress("UNCHECKED_CAST")
 open class Table<E : Entity<E>>(
     tableName: String,
     alias: String? = null,
     entityClass: KClass<E>? = null
 ) : BaseTable<E>(tableName, alias, entityClass) {
-
-    override fun aliased(alias: String): Table<E> {
-        val result = Table(tableName, alias, entityClass)
-        result.copyDefinitionsFrom(this)
-        return result
-    }
 
     /**
      * Bind the column to a reference table, equivalent to a foreign key in relational databases.
@@ -51,7 +48,7 @@ open class Table<E : Entity<E>>(
      * @return this column registration.
      *
      * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
-     * @see me.liuwj.ktorm.entity.createEntity
+     * @see createEntity
      */
     inline fun <C : Any, R : Entity<R>> ColumnRegistration<C>.references(
         referenceTable: Table<R>,
@@ -80,10 +77,9 @@ open class Table<E : Entity<E>>(
     }
 
     @PublishedApi
-    @Suppress("UNCHECKED_CAST")
     internal inline fun detectBindingProperties(selector: (E) -> Any?): List<KProperty1<*, *>> {
-        val entityClass = entityClass ?: error("No entity class configured for table: $tableName")
-        val properties = java.util.ArrayList<KProperty1<*, *>>()
+        val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
+        val properties = ArrayList<KProperty1<*, *>>()
 
         val proxy = ColumnBindingHandler.createProxy(entityClass, properties)
         selector(proxy as E)
@@ -92,6 +88,55 @@ open class Table<E : Entity<E>>(
             throw IllegalArgumentException("No binding properties found.")
         } else {
             return properties
+        }
+    }
+
+    override fun aliased(alias: String): Table<E> {
+        val result = Table(tableName, alias, entityClass)
+        result.copyDefinitionsFrom(this)
+        return result
+    }
+
+    override fun doCreateEntity(row: QueryRowSet, skipReferences: Boolean): E {
+        val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
+        val entity = Entity.create(entityClass, fromTable = this) as E
+
+        for (column in columns) {
+            try {
+                row.retrieveColumn(column, intoEntity = entity, skipReferences = skipReferences)
+            } catch (e: Throwable) {
+                throw IllegalStateException("Error retrieving column: $column, binding: ${column.binding}", e)
+            }
+        }
+
+        return entity.apply { clearChangesRecursively() }
+    }
+
+    private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: E, skipReferences: Boolean) {
+        val columnValue = (if (this.hasColumn(column)) this[column] else null) ?: return
+
+        val binding = column.binding ?: return
+        when (binding) {
+            is ReferenceBinding -> {
+                val refTable = binding.referenceTable as Table<*>
+                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
+
+                when {
+                    skipReferences -> {
+                        val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = refTable)
+                        child.implementation.setColumnValue(primaryKey, columnValue)
+                        intoEntity[binding.onProperty.name] = child
+                    }
+                    this.hasColumn(primaryKey) && this[primaryKey] != null -> {
+                        val child = refTable.doCreateEntity(this)
+                        child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
+                        intoEntity[binding.onProperty.name] = child
+                    }
+                }
+            }
+            is NestedBinding -> {
+                intoEntity.implementation.setColumnValue(column, columnValue)
+            }
         }
     }
 }

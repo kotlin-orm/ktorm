@@ -114,11 +114,11 @@ private fun Table<*>.joinReferences(
     for (column in columns) {
         val binding = column.binding
         if (binding is ReferenceBinding) {
-            val rightTable = binding.referenceTable
-            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
+            val refTable = binding.referenceTable
+            val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
 
-            curr = curr.leftJoin(rightTable, on = column eq primaryKey)
-            curr = rightTable.joinReferences(curr, joinedTables)
+            curr = curr.leftJoin(refTable, on = column eq primaryKey)
+            curr = refTable.joinReferences(curr, joinedTables)
         }
     }
 
@@ -127,91 +127,4 @@ private fun Table<*>.joinReferences(
 
 private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
     return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
-}
-
-/**
- * Create an entity object from the specific row of [Query] results.
- *
- * This function uses the binding configurations of this table object, filling columns' values into corresponding
- * entities' properties. And if there are any reference bindings to other tables, it will also create the referenced
- * entity objects recursively.
- */
-@Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>> Table<E>.createEntity(row: QueryRowSet): E {
-    val entity = doCreateEntity(row, skipReferences = false) as E
-    entity.clearChangesRecursively()
-
-    val logger = Database.global.logger
-    if (logger != null && logger.isTraceEnabled()) {
-        logger.trace("Entity: $entity")
-    }
-
-    return entity
-}
-
-/**
- * Create an entity object from the specific row without obtaining referenced entities' data automatically.
- *
- * Similar to [Table.createEntity], this function uses the binding configurations of this table object, filling
- * columns' values into corresponding entities' properties. But differently, it treats all reference bindings
- * as nested bindings to the referenced entities’ primary keys.
- *
- * For example the binding `c.references(Departments) { it.department }`, it is equivalent to
- * `c.bindTo { it.department.id }` for this function, that avoids unnecessary object creations and
- * some exceptions raised by conflict column names.
- */
-@Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>> Table<E>.createEntityWithoutReferences(row: QueryRowSet): E {
-    val entity = doCreateEntity(row, skipReferences = true) as E
-    entity.clearChangesRecursively()
-
-    val logger = Database.global.logger
-    if (logger != null && logger.isTraceEnabled()) {
-        logger.trace("Entity: $entity")
-    }
-
-    return entity
-}
-
-private fun Table<*>.doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): Entity<*> {
-    val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
-    val entity = Entity.create(entityClass, fromTable = this)
-
-    for (column in columns) {
-        try {
-            row.retrieveColumn(column, intoEntity = entity, skipReferences = skipReferences)
-        } catch (e: Throwable) {
-            throw IllegalStateException("Error occur while retrieving column: $column, binding: ${column.binding}", e)
-        }
-    }
-
-    return entity
-}
-
-private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: Entity<*>, skipReferences: Boolean) {
-    val columnValue = (if (this.hasColumn(column)) this[column] else null) ?: return
-
-    val binding = column.binding ?: return
-    when (binding) {
-        is ReferenceBinding -> {
-            val rightTable = binding.referenceTable
-            val primaryKey = rightTable.primaryKey ?: error("Table ${rightTable.tableName} doesn't have a primary key.")
-
-            when {
-                skipReferences -> {
-                    val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = rightTable)
-                    child.implementation.setColumnValue(primaryKey, columnValue)
-                    intoEntity[binding.onProperty.name] = child
-                }
-                this.hasColumn(primaryKey) && this[primaryKey] != null -> {
-                    val child = rightTable.doCreateEntity(this)
-                    child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
-                    intoEntity[binding.onProperty.name] = child
-                }
-            }
-        }
-        is NestedBinding -> {
-            intoEntity.implementation.setColumnValue(column, columnValue)
-        }
-    }
 }

@@ -16,6 +16,9 @@
 
 package me.liuwj.ktorm.schema
 
+import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.dsl.Query
+import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -24,9 +27,10 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.jvmErasure
 
+@Suppress("CanBePrimaryConstructorProperty", "UNCHECKED_CAST")
 abstract class BaseTable<E : Any>(
-    val tableName: String,
-    val alias: String? = null,
+    tableName: String,
+    alias: String? = null,
     entityClass: KClass<E>? = null
 ) : TypeReference<E>() {
 
@@ -35,9 +39,18 @@ abstract class BaseTable<E : Any>(
     private var _primaryKeyName: String? = null
 
     /**
+     * The table's name.
+     */
+    val tableName: String = tableName
+
+    /**
+     * The table's alias.
+     */
+    val alias: String? = alias
+
+    /**
      * The entity class this table is bound to.
      */
-    @Suppress("UNCHECKED_CAST")
     val entityClass: KClass<E>? =
         (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
@@ -56,79 +69,6 @@ abstract class BaseTable<E : Any>(
      */
     operator fun get(columnName: String): Column<*> {
         return _columns[columnName] ?: throw NoSuchElementException(columnName)
-    }
-
-    /**
-     * Return a new-created table object with all properties (including the table name and columns and so on) being
-     * copied from this table, but applying a new alias given by the parameter.
-     *
-     * Usually, table objects are defined as Kotlin singleton objects or subclasses extending from [Table]. But limited
-     * to the Kotlin language, although this function can create a copied table object with a specific alias, it's
-     * return type cannot be the same as the caller's type but only [Table].
-     *
-     * So we recommend that if we need to use table aliases, please don't define tables as Kotlin's singleton objects,
-     * please use classes instead, and override this [aliased] function to return the same type as the concrete table
-     * classes.
-     *
-     * More details can be found in our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
-     */
-    open fun aliased(alias: String): BaseTable<E> {
-        throw UnsupportedOperationException("The function 'aliased' is not supported by $javaClass")
-    }
-
-    protected fun copyDefinitionsFrom(src: BaseTable<*>) {
-        rewriteDefinitions(src.columns, src._primaryKeyName, copyReferences = true)
-    }
-
-    private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyName: String?, copyReferences: Boolean) {
-        _primaryKeyName = primaryKeyName
-        _columns.clear()
-
-        if (copyReferences) {
-            _refCounter.set(0)
-        }
-
-        for (column in columns) {
-            val binding = column.binding
-
-            val newBinding = if (copyReferences && binding is ReferenceBinding) {
-                binding.copy(referenceTable = copyReference(binding.referenceTable))
-            } else {
-                binding
-            }
-
-            when (column) {
-                is SimpleColumn -> {
-                    _columns[column.name] = column.copy(table = this, binding = newBinding)
-                }
-                is AliasedColumn -> {
-                    @Suppress("UNCHECKED_CAST")
-                    val col = column as AliasedColumn<Any>
-                    val originColumn = col.originColumn.copy(table = this)
-                    _columns[col.alias] = col.copy(originColumn = originColumn, binding = newBinding)
-                }
-            }
-        }
-    }
-
-    private fun copyReference(table: BaseTable<*>): BaseTable<*> {
-        val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
-
-        val columns = copy.columns.map { column ->
-            val binding = column.binding
-            if (binding !is ReferenceBinding) {
-                column
-            } else {
-                val newBinding = binding.copy(referenceTable = copyReference(binding.referenceTable))
-                when (column) {
-                    is SimpleColumn -> column.copy(binding = newBinding)
-                    is AliasedColumn -> column.copy(binding = newBinding)
-                }
-            }
-        }
-
-        copy.rewriteDefinitions(columns, copy._primaryKeyName, copyReferences = false)
-        return copy
     }
 
     /**
@@ -212,7 +152,6 @@ abstract class BaseTable<E : Any>(
         /**
          * Return the registered column.
          */
-        @Suppress("UNCHECKED_CAST")
         fun getColumn(): Column<C> {
             val column = _columns[key] ?: throw NoSuchElementException(key)
             return column as Column<C>
@@ -255,6 +194,120 @@ abstract class BaseTable<E : Any>(
             stack.pop()
         }
     }
+
+    /**
+     * Return a new-created table object with all properties (including the table name and columns and so on) being
+     * copied from this table, but applying a new alias given by the parameter.
+     *
+     * Usually, table objects are defined as Kotlin singleton objects or subclasses extending from [Table]. But limited
+     * to the Kotlin language, although this function can create a copied table object with a specific alias, it's
+     * return type cannot be the same as the caller's type but only [Table].
+     *
+     * So we recommend that if we need to use table aliases, please don't define tables as Kotlin's singleton objects,
+     * please use classes instead, and override this [aliased] function to return the same type as the concrete table
+     * classes.
+     *
+     * More details can be found in our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
+     */
+    open fun aliased(alias: String): BaseTable<E> {
+        throw UnsupportedOperationException("The function 'aliased' is not supported by $javaClass")
+    }
+
+    protected fun copyDefinitionsFrom(src: BaseTable<*>) {
+        rewriteDefinitions(src.columns, src._primaryKeyName, copyReferences = true)
+    }
+
+    private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyName: String?, copyReferences: Boolean) {
+        _primaryKeyName = primaryKeyName
+        _columns.clear()
+
+        if (copyReferences) {
+            _refCounter.set(0)
+        }
+
+        for (column in columns) {
+            val binding = column.binding
+
+            val newBinding = if (copyReferences && binding is ReferenceBinding) {
+                binding.copy(referenceTable = copyReference(binding.referenceTable))
+            } else {
+                binding
+            }
+
+            when (column) {
+                is SimpleColumn -> {
+                    _columns[column.name] = column.copy(table = this, binding = newBinding)
+                }
+                is AliasedColumn -> {
+                    val col = column as AliasedColumn<Any>
+                    val originColumn = col.originColumn.copy(table = this)
+                    _columns[col.alias] = col.copy(originColumn = originColumn, binding = newBinding)
+                }
+            }
+        }
+    }
+
+    private fun copyReference(table: BaseTable<*>): BaseTable<*> {
+        val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
+
+        val columns = copy.columns.map { column ->
+            val binding = column.binding
+            if (binding !is ReferenceBinding) {
+                column
+            } else {
+                val newBinding = binding.copy(referenceTable = copyReference(binding.referenceTable))
+                when (column) {
+                    is SimpleColumn -> column.copy(binding = newBinding)
+                    is AliasedColumn -> column.copy(binding = newBinding)
+                }
+            }
+        }
+
+        copy.rewriteDefinitions(columns, copy._primaryKeyName, copyReferences = false)
+        return copy
+    }
+
+    /**
+     * Create an entity object from the specific row of [Query] results.
+     *
+     * This function uses the binding configurations of this table object, filling columns' values into corresponding
+     * entities' properties. And if there are any reference bindings to other tables, it will also create the referenced
+     * entity objects recursively.
+     */
+    fun createEntity(row: QueryRowSet): E {
+        val entity = doCreateEntity(row, skipReferences = false)
+
+        val logger = Database.global.logger
+        if (logger != null && logger.isTraceEnabled()) {
+            logger.trace("Entity: $entity")
+        }
+
+        return entity
+    }
+
+    /**
+     * Create an entity object from the specific row without obtaining referenced entities' data automatically.
+     *
+     * Similar to [Table.createEntity], this function uses the binding configurations of this table object, filling
+     * columns' values into corresponding entities' properties. But differently, it treats all reference bindings
+     * as nested bindings to the referenced entities’ primary keys.
+     *
+     * For example the binding `c.references(Departments) { it.department }`, it is equivalent to
+     * `c.bindTo { it.department.id }` for this function, that avoids unnecessary object creations and
+     * some exceptions raised by conflict column names.
+     */
+    fun createEntityWithoutReferences(row: QueryRowSet): E {
+        val entity = doCreateEntity(row, skipReferences = true)
+
+        val logger = Database.global.logger
+        if (logger != null && logger.isTraceEnabled()) {
+            logger.trace("Entity: $entity")
+        }
+
+        return entity
+    }
+
+    protected abstract fun doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): E
 
     /**
      * Convert this table to a [TableExpression].
