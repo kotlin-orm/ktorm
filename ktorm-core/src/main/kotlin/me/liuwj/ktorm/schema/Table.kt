@@ -97,7 +97,7 @@ open class Table<E : Entity<E>>(
         return result
     }
 
-    override fun doCreateEntity(row: QueryRowSet, skipReferences: Boolean): E {
+    final override fun doCreateEntity(row: QueryRowSet, skipReferences: Boolean): E {
         val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
         val entity = Entity.create(entityClass, fromTable = this) as E
 

@@ -19,7 +19,7 @@
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.expression.QuerySourceExpression
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.BaseTable
 
 /**
  * MySQL natural join expression.
@@ -44,20 +44,20 @@ fun QuerySourceExpression.naturalJoin(right: QuerySourceExpression): NaturalJoin
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
-fun QuerySourceExpression.naturalJoin(right: Table<*>): NaturalJoinExpression {
+fun QuerySourceExpression.naturalJoin(right: BaseTable<*>): NaturalJoinExpression {
     return naturalJoin(right.asExpression())
 }
 
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
-fun Table<*>.naturalJoin(right: QuerySourceExpression): NaturalJoinExpression {
+fun BaseTable<*>.naturalJoin(right: QuerySourceExpression): NaturalJoinExpression {
     return asExpression().naturalJoin(right)
 }
 
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
-fun Table<*>.naturalJoin(right: Table<*>): NaturalJoinExpression {
+fun BaseTable<*>.naturalJoin(right: BaseTable<*>): NaturalJoinExpression {
     return naturalJoin(right.asExpression())
 }

@@ -200,14 +200,14 @@ abstract class BaseTable<E : Any>(
      * copied from this table, but applying a new alias given by the parameter.
      *
      * Usually, table objects are defined as Kotlin singleton objects or subclasses extending from [Table]. But limited
-     * to the Kotlin language, although this function can create a copied table object with a specific alias, it's
-     * return type cannot be the same as the caller's type but only [Table].
+     * to the Kotlin language, although the default implementation of this function can create a copied table object
+     * with a specific alias, it's return type cannot be the same as the caller's type but only [Table].
      *
      * So we recommend that if we need to use table aliases, please don't define tables as Kotlin's singleton objects,
      * please use classes instead, and override this [aliased] function to return the same type as the concrete table
      * classes.
      *
-     * More details can be found in our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
+     * More details can be found on our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
      */
     open fun aliased(alias: String): BaseTable<E> {
         throw UnsupportedOperationException("The function 'aliased' is not supported by $javaClass")
@@ -288,7 +288,7 @@ abstract class BaseTable<E : Any>(
     /**
      * Create an entity object from the specific row without obtaining referenced entities' data automatically.
      *
-     * Similar to [Table.createEntity], this function uses the binding configurations of this table object, filling
+     * Similar to [createEntity], this function uses the binding configurations of this table object, filling
      * columns' values into corresponding entities' properties. But differently, it treats all reference bindings
      * as nested bindings to the referenced entities’ primary keys.
      *

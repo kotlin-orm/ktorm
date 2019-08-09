@@ -62,7 +62,7 @@ That's the basic use pattern of entity sequence APIs. You might have found that 
 Now let's learn the definition of the core class `EntitySequence`: 
 
 ```kotlin
-data class EntitySequence<E : Entity<E>, T : Table<E>>(
+data class EntitySequence<E : Any, T : BaseTable<E>>(
     val sourceTable: T,
     val expression: SelectExpression,
     val entityExtractor: (row: QueryRowSet) -> E
@@ -105,7 +105,7 @@ Just like `kotlin.sequences.Sequence`, the intermediate operations of `EntitySeq
 ### filter
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
+inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): EntitySequence<E, T>
 ```
@@ -140,7 +140,7 @@ Actually, Ktorm provides a `filterNot` function, its usage is totally the same a
 ### filterColumns
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(
+inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
     selector: (T) -> List<Column<*>>
 ): EntitySequence<E, T>
 ```
@@ -164,7 +164,7 @@ from t_department
 ### sortedBy
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
+inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T>
 ```
@@ -207,8 +207,8 @@ order by t_employee.salary desc, t_employee.hire_date
 ### drop/take
 
 ```kotlin
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T>
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T>
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T>
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T>
 ```
 
 The `drop` and `take` functions are designed for pagination. The `drop` function returns a new sequence containing all elements except first n elements, while the `take` function returns a new sequence only containing first n elements. Usage example: 
@@ -235,7 +235,7 @@ Terminal operations of entity sequences execute the queries right now, then obta
 ### toCollection
 
 ```kotlin
-fun <E : Entity<E>, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C
+fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C
 ```
 
 The `toCollection` function is used to collect all the elements in a sequence. It'll execute the internal query right now and iterate the results, adding them to the `destination`: 
@@ -249,7 +249,7 @@ In addition, Ktorm also provides some convenient `toXxx` functions based on `toC
 ### map
 
 ```kotlin
-inline fun <E : Entity<E>, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
+inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
 ```
 
 According to our experience of functional programming, we might consider the `map` function as intermediate. However, it is terminal instead, which is a compromise of Ktorm's design. 
@@ -274,7 +274,7 @@ In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `m
 ### mapColumns
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumns(
+inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): List<C?>

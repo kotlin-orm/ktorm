@@ -62,7 +62,7 @@ where t_employee.department_id = ?
 我们再来看看最核心的 `EntitySequence` 类的定义：
 
 ```kotlin
-data class EntitySequence<E : Entity<E>, T : Table<E>>(
+data class EntitySequence<E : Any, T : BaseTable<E>>(
     val sourceTable: T,
     val expression: SelectExpression,
     val entityExtractor: (row: QueryRowSet) -> E
@@ -105,7 +105,7 @@ Ktorm 的实体序列 API，大部分都是以扩展函数的方式提供的，�
 ### filter
 
 ````kotlin
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filter(
+inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): EntitySequence<E, T>
 ````
@@ -140,7 +140,7 @@ where (t_employee.department_id = ?) and (t_employee.manager_id is not null)
 ### filterColumns
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.filterColumns(
+inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
     selector: (T) -> List<Column<*>>
 ): EntitySequence<E, T>
 ```
@@ -164,7 +164,7 @@ from t_department
 ### sortedBy
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.sortedBy(
+inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T>
 ```
@@ -207,8 +207,8 @@ order by t_employee.salary desc, t_employee.hire_date
 ### drop/take
 
 ```kotlin
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T>
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T>
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T>
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T>
 ```
 
 `drop` 和 `take` 函数用于实现分页的功能，`drop` 函数会丢弃序列中的前 n 个元素，`take` 函数会保留前 n 个元素丢弃后面的元素。下面是一个例子：
@@ -235,7 +235,7 @@ limit ?, ?
 ### toCollection
 
 ```
-fun <E : Entity<E>, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C
+fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C
 ```
 
 `toCollection` 函数用于获取序列中的所有元素，它会马上执行查询，迭代查询结果中的元素，把它们添加到 `destination` 集合中：
@@ -249,7 +249,7 @@ val employees = Employees.asSequence().toCollection(ArrayList())
 ### map
 
 ```kotlin
-inline fun <E : Entity<E>, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
+inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
 ```
 
 根据以往函数式编程的经验，你很可能会认为 `map` 是中间操作，但是很遗憾，在 Ktorm 中，它是终止操作，这是我们在设计上的一个妥协。
@@ -274,7 +274,7 @@ from t_employee
 ### mapColumns
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.mapColumns(
+inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): List<C?>

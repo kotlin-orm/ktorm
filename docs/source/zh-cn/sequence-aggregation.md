@@ -15,7 +15,7 @@ related_path: en/sequence-aggregation.html
 我们首先来看看 `aggregateColumns` 函数的定义：
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
+inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): C?
 ```
@@ -68,7 +68,7 @@ where t_employee.department_id = ?
 ### groupBy
 
 ```kotlin
-inline fun <E : Entity<E>, K> EntitySequence<E, *>.groupBy(
+inline fun <E : Any, K> EntitySequence<E, *>.groupBy(
     keySelector: (E) -> K
 ): Map<K, List<E>>
 ```
@@ -103,7 +103,7 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 ### groupingBy
 
 ```kotlin
-fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
+fun <E : Any, T : BaseTable<E>, K : Any> EntitySequence<E, T>.groupingBy(
     keySelector: (T) -> ColumnDeclaring<K>
 ): EntityGrouping<E, T, K> {
     return EntityGrouping(this, keySelector)
@@ -113,7 +113,7 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
 `groupingBy` 是一个中间操作，它接收一个闭包作为参数，我们需要在闭包中返回一个 `ColumnDeclaring<K>` 作为 SQL group by 子句中的列。实际上，`groupingBy` 函数什么也没做，它只是使用我们传入的 `keySelector` 创建了一个 `EntityGrouping` 对象而已。`EntityGrouping` 的定义也十分简单：
 
 ```kotlin
-data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
+data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
     val sequence: EntitySequence<E, T>,
     val keySelector: (T) -> ColumnDeclaring<K>
 ) {
@@ -124,7 +124,7 @@ data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
 大部分 `EntityGrouping` 的 API，都是以扩展函数的方式来提供的，我们首先来看看最基本的 `aggregateColumns` 函数：
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregateColumns(
+inline fun <E : Any, T : BaseTable<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?>
 ```

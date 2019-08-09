@@ -13,7 +13,7 @@ Ktorm 不仅提供了查询和联表的 DSL，而且还能方便地对数据进�
 Ktorm 使用 `insert` 函数来实现数据插入，它是 `Table` 类的扩展函数，签名如下：
 
 ```kotlin
-fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int
+fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int
 ```
 
 `insert` 函数接受一个闭包作为参数，我们需要在这个闭包中指定插入的字段和它们的值，插入成功后，返回受影响的记录数，例如：
@@ -126,7 +126,7 @@ where t_department.id = ?
 Ktorm 使用 `update` 函数实现数据更新，它也是 `Table` 类的扩展函数，签名如下：
 
 ```kotlin
-fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int
+fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int
 ```
 
 与 `insert` 函数类似，它也接受一个闭包作为参数，更新成功后，返回受影响的记录数。闭包函数的类型是 `UpdateStatementBuilder.(T) -> Unit`，其中，`UpdateStatementBuilder` 正是 `AssignmentsBuilder` 的子类，所以在这里我们仍然可以使用 `it.name to "jerry"` 的写法为 name 字段赋值为 jerry。不同的是，`UpdateStatementBuilder` 增加了一个 `where` 函数，用于指定更新的条件。使用方法如下：
@@ -184,7 +184,7 @@ Departments.batchUpdate {
 Ktorm 使用 `delete` 函数实现数据删除，它也是 `Table` 类的扩展函数，签名如下：
 
 ```kotlin
-fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
+fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 ```
 
 `delete` 接受一个闭包函数作为参数，我们需要在闭包函数中指定删除的数据的条件，删除完成后，返回受影响的记录数。闭包函数接受一个 `T` 作为参数，而 `T` 正是当前表对象，因此我们可以在闭包中使用 `it` 获取表对象。使用方法非常简单：

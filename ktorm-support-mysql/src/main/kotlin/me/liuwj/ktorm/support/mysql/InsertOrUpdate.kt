@@ -20,8 +20,11 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.expression.ColumnAssignmentExpression
+import me.liuwj.ktorm.expression.ColumnExpression
+import me.liuwj.ktorm.expression.SqlExpression
+import me.liuwj.ktorm.expression.TableExpression
+import me.liuwj.ktorm.schema.BaseTable
 
 /**
  * Insert or update expression, represents an insert statement with an `on duplicate key update` clause in MySQL.
@@ -68,7 +71,7 @@ data class InsertOrUpdateExpression(
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-fun <T : Table<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(this@insertOrUpdate) }
 

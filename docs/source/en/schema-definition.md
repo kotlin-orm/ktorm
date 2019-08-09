@@ -96,7 +96,7 @@ Flexible usage of Kotlin's language features is helpful for us to reduce duplica
 `SqlType` is an abstract class which provides a unified abstraction for data types in SQL. Based on JDBC, it encapsulates the common operations of obtaining data from a `ResultSet` and setting parameters to a `PreparedStatement`. In the section above, we defined columns by column definition functions, eg. int, varchar, etc. All these functions have an implementation of `SqlType` behind them. For example, here is the implementation of `int` function: 
 
 ```kotlin
-fun <E : Entity<E>> Table<E>.int(name: String): Table<E>.ColumnRegistration<Int> {
+fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
     return registerColumn(name, IntSqlType)
 }
 
@@ -162,11 +162,11 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that the `registerColumn` function was called. This function is exactly the entry provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
 
 ```kotlin
-fun <E : Entity<E>, C : Any> Table<E>.json(
+fun <E : Any, C : Any> BaseTable<E>.json(
     name: String,
     typeReference: TypeReference<C>,
     objectMapper: ObjectMapper = sharedObjectMapper
-): Table<E>.ColumnRegistration<C> {
+): BaseTable<E>.ColumnRegistration<C> {
     return registerColumn(name, JsonSqlType(typeReference.referencedType, objectMapper))
 }
 ```

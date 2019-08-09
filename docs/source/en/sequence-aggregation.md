@@ -15,7 +15,7 @@ The entity sequence APIs not only allow us to obtain entities from databases jus
 Let's learn the definition of the extension function `aggregateColumns` first: 
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
+inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): C?
 ```
@@ -68,7 +68,7 @@ To use grouping aggregations, we need to learn how to group elements in an entit
 ### groupBy
 
 ```kotlin
-inline fun <E : Entity<E>, K> EntitySequence<E, *>.groupBy(
+inline fun <E : Any, K> EntitySequence<E, *>.groupBy(
     keySelector: (E) -> K
 ): Map<K, List<E>>
 ```
@@ -103,7 +103,7 @@ Here, the only thing we need is the average salaries, but we still have to obtai
 ### groupingBy
 
 ```kotlin
-fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
+fun <E : Any, T : BaseTable<E>, K : Any> EntitySequence<E, T>.groupingBy(
     keySelector: (T) -> ColumnDeclaring<K>
 ): EntityGrouping<E, T, K> {
     return EntityGrouping(this, keySelector)
@@ -113,7 +113,7 @@ fun <E : Entity<E>, T : Table<E>, K : Any> EntitySequence<E, T>.groupingBy(
 The `groupingBy` function is an intermediate operation, and it accepts a closure as its parameter, in which we should return a `ColumnDeclaring<K>` as the grouping key. The grouping key can be a column or expression, and it'll be used in the SQL's *group by* clause. Actually, the `groupingBy` function doesn't do anything, it just returns a new-created  `EntityGrouping` with the `keySelector` given by us. The definition of `EntityGrouping` is simple: 
 
 ```kotlin
-data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
+data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
     val sequence: EntitySequence<E, T>,
     val keySelector: (T) -> ColumnDeclaring<K>
 ) {
@@ -124,7 +124,7 @@ data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
 Most of the `EntityGrouping`'s APIs are provided as extension functions. Let's learn the `aggregateColumns` first: 
 
 ```kotlin
-inline fun <E : Entity<E>, T : Table<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregateColumns(
+inline fun <E : Any, T : BaseTable<E>, K : Any, C : Any> EntityGrouping<E, T, K>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?>
 ```

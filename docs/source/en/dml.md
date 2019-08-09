@@ -13,7 +13,7 @@ Ktorm not only provides SQL DSL for query and joining, but it also supports data
 Ktorm uses an extension function `insert` of `Table` class to support data insertion, the signature of which is given as follows: 
 
 ```kotlin
-fun <T : Table<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int
+fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int
 ```
 
 The function accepts a closure as its parameter in which we configure our insertion columns and values. After the insertion completes, an int number of affected records will be returned. For instance: 
@@ -126,7 +126,7 @@ where t_department.id = ?
 Ktorm uses an extension function `update` of `Table` class to support data update, the signature of which is given as follows: 
 
 ```kotlin
-fun <T : Table<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int
+fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int
 ```
 
 Similar to the `insert` function, it also accepts a closure as its parameter and returns the affected record number after the update completes. The closure's type is `UpdateStatementBuilder.(T) -> Unit`, in which `UpdateStatementBuilder` is a subclass of `AssignmentsBuilder`, so we can still use `it.name to "jerry"` to set the name to jerry. Differently, `UpdateStatementBuilder` provides an additional function `where`, that's used to specify our update conditions. Usage: 
@@ -184,7 +184,7 @@ Departments.batchUpdate {
 Ktorm uses an extension function `delete` of `Table` class to support data deletion, the signature of which is given as follows: 
 
 ```kotlin
-fun <T : Table<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
+fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 ```
 
 The `delete` function accepts a closure as its parameter, in which we need to specify our conditions. After the deletion completes, the affected record number will be returned. The closure accepts a parameter of type `T`, which is actually the current table object, so we can use `it` to access the current table in the closure. The usage is very simple: 

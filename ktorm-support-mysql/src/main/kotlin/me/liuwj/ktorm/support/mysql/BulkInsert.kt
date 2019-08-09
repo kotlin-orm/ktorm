@@ -19,12 +19,12 @@ package me.liuwj.ktorm.support.mysql
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
-import me.liuwj.ktorm.dsl.batchInsert
 import me.liuwj.ktorm.dsl.KtormDsl
+import me.liuwj.ktorm.dsl.batchInsert
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.expression.TableExpression
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.BaseTable
 
 /**
  * Bulk insert expression, represents a bulk insert statement in MySQL.
@@ -77,7 +77,7 @@ data class BulkInsertExpression(
  * @return the effected row count.
  * @see batchInsert
  */
-fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(this).apply(block)
     val expression = BulkInsertExpression(asExpression(), builder.assignments)
 
@@ -97,7 +97,7 @@ fun <T : Table<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit)
  * DSL builder for bulk insert statements.
  */
 @KtormDsl
-class BulkInsertStatementBuilder<T : Table<*>>(internal val table: T) {
+class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
 
     /**

@@ -96,7 +96,7 @@ val configs = t.select().associate { row -> row[t.key] to row[t.value] }
 `SqlType` 是一个抽象类，它为 SQL 中的数据类型提供了统一的抽象，基于 JDBC，它封装了从 `ResultSet` 中获取数据，往 `PreparedStatement` 设置参数等通用的操作。在前面定义表中的字段时，我们曾使用了表示不同类型的 int、varchar 等列定义函数，这些函数的背后其实都有一个特定的 `SqlType` 的子类。比如 int 函数的实现是这样的：
 
 ```kotlin
-fun <E : Entity<E>> Table<E>.int(name: String): Table<E>.ColumnRegistration<Int> {
+fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
     return registerColumn(name, IntSqlType)
 }
 
@@ -162,11 +162,11 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 上面这个类使用 Jackson 框架进行 json 与对象之间的转换，提供了 json 数据类型的支持。有了 `JsonSqlType` 之后，怎样使用这个类型定义一个列呢？在前面 int 函数的实现中，我们注意到其中调用了 `registerColumn` 函数，这正是其中的秘诀，`registerColumn` 函数正是 Ktorm 提供的用来支持类型扩展的入口。我们可以写一个这样的扩展函数：
 
 ```kotlin
-fun <E : Entity<E>, C : Any> Table<E>.json(
+fun <E : Any, C : Any> BaseTable<E>.json(
     name: String,
     typeReference: TypeReference<C>,
     objectMapper: ObjectMapper = sharedObjectMapper
-): Table<E>.ColumnRegistration<C> {
+): BaseTable<E>.ColumnRegistration<C> {
     return registerColumn(name, JsonSqlType(typeReference.referencedType, objectMapper))
 }
 ```
