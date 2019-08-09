@@ -16,7 +16,6 @@
 
 package me.liuwj.ktorm.schema
 
-import me.liuwj.ktorm.entity.Entity
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.sql.*
@@ -29,7 +28,7 @@ import java.time.temporal.ChronoField
 /**
  * Define a column typed of [BooleanSqlType].
  */
-fun <E : Entity<E>> Table<E>.boolean(name: String): Table<E>.ColumnRegistration<Boolean> {
+fun <E : Any> BaseTable<E>.boolean(name: String): BaseTable<E>.ColumnRegistration<Boolean> {
     return registerColumn(name, BooleanSqlType)
 }
 
@@ -49,7 +48,7 @@ object BooleanSqlType : SqlType<Boolean>(Types.BOOLEAN, "boolean") {
 /**
  * Define a column typed of [IntSqlType].
  */
-fun <E : Entity<E>> Table<E>.int(name: String): Table<E>.ColumnRegistration<Int> {
+fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
     return registerColumn(name, IntSqlType)
 }
 
@@ -69,7 +68,7 @@ object IntSqlType : SqlType<Int>(Types.INTEGER, "int") {
 /**
  * Define a column typed of [LongSqlType].
  */
-fun <E : Entity<E>> Table<E>.long(name: String): Table<E>.ColumnRegistration<Long> {
+fun <E : Any> BaseTable<E>.long(name: String): BaseTable<E>.ColumnRegistration<Long> {
     return registerColumn(name, LongSqlType)
 }
 
@@ -89,7 +88,7 @@ object LongSqlType : SqlType<Long>(Types.BIGINT, "bigint") {
 /**
  * Define a column typed of [FloatSqlType].
  */
-fun <E : Entity<E>> Table<E>.float(name: String): Table<E>.ColumnRegistration<Float> {
+fun <E : Any> BaseTable<E>.float(name: String): BaseTable<E>.ColumnRegistration<Float> {
     return registerColumn(name, FloatSqlType)
 }
 
@@ -109,7 +108,7 @@ object FloatSqlType : SqlType<Float>(Types.FLOAT, "float") {
 /**
  * Define a column typed of [DoubleSqlType].
  */
-fun <E : Entity<E>> Table<E>.double(name: String): Table<E>.ColumnRegistration<Double> {
+fun <E : Any> BaseTable<E>.double(name: String): BaseTable<E>.ColumnRegistration<Double> {
     return registerColumn(name, DoubleSqlType)
 }
 
@@ -129,7 +128,7 @@ object DoubleSqlType : SqlType<Double>(Types.DOUBLE, "double") {
 /**
  * Define a column typed of [DecimalSqlType].
  */
-fun <E : Entity<E>> Table<E>.decimal(name: String): Table<E>.ColumnRegistration<BigDecimal> {
+fun <E : Any> BaseTable<E>.decimal(name: String): BaseTable<E>.ColumnRegistration<BigDecimal> {
     return registerColumn(name, DecimalSqlType)
 }
 
@@ -150,7 +149,7 @@ object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
 /**
  * Define a column typed of [VarcharSqlType].
  */
-fun <E : Entity<E>> Table<E>.varchar(name: String): Table<E>.ColumnRegistration<String> {
+fun <E : Any> BaseTable<E>.varchar(name: String): BaseTable<E>.ColumnRegistration<String> {
     return registerColumn(name, VarcharSqlType)
 }
 
@@ -170,7 +169,7 @@ object VarcharSqlType : SqlType<String>(Types.VARCHAR, "varchar") {
 /**
  * Define a column typed of [TextSqlType].
  */
-fun <E : Entity<E>> Table<E>.text(name: String): Table<E>.ColumnRegistration<String> {
+fun <E : Any> BaseTable<E>.text(name: String): BaseTable<E>.ColumnRegistration<String> {
     return registerColumn(name, TextSqlType)
 }
 
@@ -190,7 +189,7 @@ object TextSqlType : SqlType<String>(Types.LONGVARCHAR, "text") {
 /**
  * Define a column typed of [BlobSqlType].
  */
-fun <E : Entity<E>> Table<E>.blob(name: String): Table<E>.ColumnRegistration<ByteArray> {
+fun <E : Any> BaseTable<E>.blob(name: String): BaseTable<E>.ColumnRegistration<ByteArray> {
     return registerColumn(name, BlobSqlType)
 }
 
@@ -210,7 +209,7 @@ object BlobSqlType : SqlType<ByteArray>(Types.BLOB, "blob") {
 /**
  * Define a column typed of [LocalDateTimeSqlType].
  */
-fun <E : Entity<E>> Table<E>.datetime(name: String): Table<E>.ColumnRegistration<LocalDateTime> {
+fun <E : Any> BaseTable<E>.datetime(name: String): BaseTable<E>.ColumnRegistration<LocalDateTime> {
     return registerColumn(name, LocalDateTimeSqlType)
 }
 
@@ -230,7 +229,7 @@ object LocalDateTimeSqlType : SqlType<LocalDateTime>(Types.TIMESTAMP, "datetime"
 /**
  * Define a column typed of [LocalDateSqlType].
  */
-fun <E : Entity<E>> Table<E>.date(name: String): Table<E>.ColumnRegistration<LocalDate> {
+fun <E : Any> BaseTable<E>.date(name: String): BaseTable<E>.ColumnRegistration<LocalDate> {
     return registerColumn(name, LocalDateSqlType)
 }
 
@@ -250,7 +249,7 @@ object LocalDateSqlType : SqlType<LocalDate>(Types.DATE, "date") {
 /**
  * Define a column typed of [LocalTimeSqlType].
  */
-fun <E : Entity<E>> Table<E>.time(name: String): Table<E>.ColumnRegistration<LocalTime> {
+fun <E : Any> BaseTable<E>.time(name: String): BaseTable<E>.ColumnRegistration<LocalTime> {
     return registerColumn(name, LocalTimeSqlType)
 }
 
@@ -270,7 +269,7 @@ object LocalTimeSqlType : SqlType<LocalTime>(Types.TIME, "time") {
 /**
  * Define a column typed of [MonthDaySqlType], instances of [MonthDay] are saved as strings in format `MM-dd`.
  */
-fun <E : Entity<E>> Table<E>.monthDay(name: String): Table<E>.ColumnRegistration<MonthDay> {
+fun <E : Any> BaseTable<E>.monthDay(name: String): BaseTable<E>.ColumnRegistration<MonthDay> {
     return registerColumn(name, MonthDaySqlType)
 }
 
@@ -296,7 +295,7 @@ object MonthDaySqlType : SqlType<MonthDay>(Types.VARCHAR, "varchar") {
 /**
  * Define a column typed of [YearMonthSqlType], instances of [YearMonth] are saved as strings in format `yyyy-MM`.
  */
-fun <E : Entity<E>> Table<E>.yearMonth(name: String): Table<E>.ColumnRegistration<YearMonth> {
+fun <E : Any> BaseTable<E>.yearMonth(name: String): BaseTable<E>.ColumnRegistration<YearMonth> {
     return registerColumn(name, YearMonthSqlType)
 }
 
@@ -323,7 +322,7 @@ object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
 /**
  * Define a column typed of [YearSqlType], instances of [Year] are saved as integers.
  */
-fun <E : Entity<E>> Table<E>.year(name: String): Table<E>.ColumnRegistration<Year> {
+fun <E : Any> BaseTable<E>.year(name: String): BaseTable<E>.ColumnRegistration<Year> {
     return registerColumn(name, YearSqlType)
 }
 
@@ -343,7 +342,7 @@ object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
 /**
  * Define a column typed of [InstantSqlType].
  */
-fun <E : Entity<E>> Table<E>.timestamp(name: String): Table<E>.ColumnRegistration<Instant> {
+fun <E : Any> BaseTable<E>.timestamp(name: String): BaseTable<E>.ColumnRegistration<Instant> {
     return registerColumn(name, InstantSqlType)
 }
 
