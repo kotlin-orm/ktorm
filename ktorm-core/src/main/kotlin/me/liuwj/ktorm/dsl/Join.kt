@@ -16,9 +16,11 @@
 
 package me.liuwj.ktorm.dsl
 
-import me.liuwj.ktorm.expression.*
+import me.liuwj.ktorm.expression.JoinExpression
+import me.liuwj.ktorm.expression.JoinType
+import me.liuwj.ktorm.expression.QuerySourceExpression
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.Table
 
 /**
  * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
@@ -34,7 +36,7 @@ fun QuerySourceExpression.crossJoin(
  * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 fun QuerySourceExpression.crossJoin(
-    right: Table<*>,
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return crossJoin(right.asExpression(), on)
@@ -43,7 +45,7 @@ fun QuerySourceExpression.crossJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
-fun Table<*>.crossJoin(
+fun BaseTable<*>.crossJoin(
     right: QuerySourceExpression,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
@@ -53,8 +55,8 @@ fun Table<*>.crossJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
-fun Table<*>.crossJoin(
-    right: Table<*>,
+fun BaseTable<*>.crossJoin(
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return crossJoin(right.asExpression(), on)
@@ -74,7 +76,7 @@ fun QuerySourceExpression.innerJoin(
  * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
 fun QuerySourceExpression.innerJoin(
-    right: Table<*>,
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return innerJoin(right.asExpression(), on)
@@ -83,7 +85,7 @@ fun QuerySourceExpression.innerJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
-fun Table<*>.innerJoin(
+fun BaseTable<*>.innerJoin(
     right: QuerySourceExpression,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
@@ -93,8 +95,8 @@ fun Table<*>.innerJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
-fun Table<*>.innerJoin(
-    right: Table<*>,
+fun BaseTable<*>.innerJoin(
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return innerJoin(right.asExpression(), on)
@@ -114,7 +116,7 @@ fun QuerySourceExpression.leftJoin(
  * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
 fun QuerySourceExpression.leftJoin(
-    right: Table<*>,
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return leftJoin(right.asExpression(), on)
@@ -123,7 +125,7 @@ fun QuerySourceExpression.leftJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
-fun Table<*>.leftJoin(
+fun BaseTable<*>.leftJoin(
     right: QuerySourceExpression,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
@@ -133,8 +135,8 @@ fun Table<*>.leftJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
-fun Table<*>.leftJoin(
-    right: Table<*>,
+fun BaseTable<*>.leftJoin(
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return leftJoin(right.asExpression(), on)
@@ -154,7 +156,7 @@ fun QuerySourceExpression.rightJoin(
  * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
 fun QuerySourceExpression.rightJoin(
-    right: Table<*>,
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return rightJoin(right.asExpression(), on)
@@ -163,7 +165,7 @@ fun QuerySourceExpression.rightJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
-fun Table<*>.rightJoin(
+fun BaseTable<*>.rightJoin(
     right: QuerySourceExpression,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
@@ -173,8 +175,8 @@ fun Table<*>.rightJoin(
 /**
  * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
-fun Table<*>.rightJoin(
-    right: Table<*>,
+fun BaseTable<*>.rightJoin(
+    right: BaseTable<*>,
     on: ColumnDeclaring<Boolean>? = null
 ): JoinExpression {
     return rightJoin(right.asExpression(), on)

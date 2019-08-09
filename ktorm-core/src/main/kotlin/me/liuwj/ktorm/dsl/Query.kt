@@ -28,7 +28,7 @@ import javax.sql.rowset.RowSetProvider
  *
  * The constructor of this class accepts a parameter of type [QueryExpression], which is the abstract
  * representation of the executing SQL statements. Usually, we don't use the constructor to create query
- * objects but use the [Table.select] extension function instead.
+ * objects but use the [BaseTable.select] extension function instead.
  *
  * [Query] implements the [Iterable] interface, so we can iterate the results by a for-each loop:
  *
@@ -199,20 +199,20 @@ fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
 }
 
 /**
- * Create a query object, selecting the specific columns or expressions from this [Table].
+ * Create a query object, selecting the specific columns or expressions from this table.
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
  */
-fun Table<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
+fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
     return asExpression().select(columns)
 }
 
 /**
- * Create a query object, selecting the specific columns or expressions from this [Table].
+ * Create a query object, selecting the specific columns or expressions from this table.
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
  */
-fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query {
+fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().select(columns.asList())
 }
 
@@ -236,20 +236,20 @@ fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Qu
 }
 
 /**
- * Create a query object, selecting the specific columns or expressions from this [Table] distinctly.
+ * Create a query object, selecting the specific columns or expressions from this table distinctly.
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
  */
-fun Table<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
+fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     return asExpression().selectDistinct(columns)
 }
 
 /**
- * Create a query object, selecting the specific columns or expressions from this [Table] distinctly.
+ * Create a query object, selecting the specific columns or expressions from this table distinctly.
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
  */
-fun Table<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
+fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().selectDistinct(columns.asList())
 }
 

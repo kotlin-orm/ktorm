@@ -94,6 +94,7 @@ fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> 
     return AggregateExpression(AggregateType.COUNT, column?.asExpression(), true, IntSqlType)
 }
 
+//todo
 /**
  * Check if all the records in the table matches the given [predicate].
  */
