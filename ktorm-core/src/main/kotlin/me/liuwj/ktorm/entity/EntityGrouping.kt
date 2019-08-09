@@ -18,8 +18,8 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.Table
 
 /**
  * Wraps an [EntitySequence] with a [keySelector] function, which can be applied to each record to get its key,
@@ -36,7 +36,7 @@ import me.liuwj.ktorm.schema.Table
  * @property sequence the source entity sequence of this grouping.
  * @property keySelector a function used to extract the key of a record in the source table.
  */
-data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
+data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
     val sequence: EntitySequence<E, T>,
     val keySelector: (T) -> ColumnDeclaring<K>
 ) {
@@ -84,7 +84,7 @@ data class EntityGrouping<E : Entity<E>, T : Table<E>, K : Any>(
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return a [Map] associating the key of each group with the result of aggregation of the group elements.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.aggregateColumns(
+inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?> where K : Any, C : Any {
     return aggregateColumnsTo(LinkedHashMap(), aggregationSelector)
@@ -105,7 +105,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.aggregate
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return the [destination] map associating the key of each group with the result of aggregation of the group elements.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
+inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
     destination: M,
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): M where K : Any, C : Any, M : MutableMap<in K?, in C?> {
@@ -134,7 +134,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.aggreg
  *
  * @return a [Map] associating the key of each group with the count of elements in the group.
  */
-fun <E : Entity<E>, T : Table<E>, K> EntityGrouping<E, T, K>.eachCount(): Map<K?, Int> where K : Any {
+fun <E : Any, T : BaseTable<E>, K> EntityGrouping<E, T, K>.eachCount(): Map<K?, Int> where K : Any {
     return eachCountTo(LinkedHashMap())
 }
 
@@ -149,7 +149,7 @@ fun <E : Entity<E>, T : Table<E>, K> EntityGrouping<E, T, K>.eachCount(): Map<K?
  * @return the [destination] map associating the key of each group with the count of elements in the group.
  */
 @Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>, T : Table<E>, K, M> EntityGrouping<E, T, K>.eachCountTo(
+fun <E : Any, T : BaseTable<E>, K, M> EntityGrouping<E, T, K>.eachCountTo(
     destination: M
 ): M where K : Any, M : MutableMap<in K?, Int> {
     return aggregateColumnsTo(destination as MutableMap<in K?, Int?>) { count() } as M
@@ -165,7 +165,7 @@ fun <E : Entity<E>, T : Table<E>, K, M> EntityGrouping<E, T, K>.eachCountTo(
  * @param columnSelector a function that accepts the source table and returns the column or expression for summing.
  * @return a [Map] associating the key of each group with the summing result in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachSumBy(
+inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachSumBy(
     columnSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?> where K : Any, C : Number {
     return eachSumByTo(LinkedHashMap(), columnSelector)
@@ -182,7 +182,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachSumBy
  * @param columnSelector a function that accepts the source table and returns the column or expression for summing.
  * @return the [destination] map associating the key of each group with the summing result in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachSumByTo(
+inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachSumByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
@@ -199,7 +199,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachSu
  * @param columnSelector a function that accepts the source table and returns a column or expression.
  * @return a [Map] associating the key of each group with the max value in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachMaxBy(
+inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachMaxBy(
     columnSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?> where K : Any, C : Number {
     return eachMaxByTo(LinkedHashMap(), columnSelector)
@@ -216,7 +216,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachMaxBy
  * @param columnSelector a function that accepts the source table and returns a column or expression.
  * @return a [destination] map associating the key of each group with the max value in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachMaxByTo(
+inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachMaxByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
@@ -233,7 +233,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachMa
  * @param columnSelector a function that accepts the source table and returns a column or expression.
  * @return a [Map] associating the key of each group with the min value in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachMinBy(
+inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachMinBy(
     columnSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?> where K : Any, C : Number {
     return eachMinByTo(LinkedHashMap(), columnSelector)
@@ -250,7 +250,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C> EntityGrouping<E, T, K>.eachMinBy
  * @param columnSelector a function that accepts the source table and returns a column or expression.
  * @return a [destination] map associating the key of each group with the min value in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachMinByTo(
+inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachMinByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
@@ -267,7 +267,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, C, M> EntityGrouping<E, T, K>.eachMi
  * @param columnSelector a function that accepts the source table and returns the column or expression for averaging.
  * @return a [Map] associating the key of each group with the averaging result in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K> EntityGrouping<E, T, K>.eachAverageBy(
+inline fun <E : Any, T : BaseTable<E>, K> EntityGrouping<E, T, K>.eachAverageBy(
     columnSelector: (T) -> ColumnDeclaring<out Number>
 ): Map<K?, Double?> where K : Any {
     return eachAverageByTo(LinkedHashMap(), columnSelector)
@@ -284,7 +284,7 @@ inline fun <E : Entity<E>, T : Table<E>, K> EntityGrouping<E, T, K>.eachAverageB
  * @param columnSelector a function that accepts the source table and returns the column or expression for averaging.
  * @return the [destination] map associating the key of each group with the averaging result in the group.
  */
-inline fun <E : Entity<E>, T : Table<E>, K, M> EntityGrouping<E, T, K>.eachAverageByTo(
+inline fun <E : Any, T : BaseTable<E>, K, M> EntityGrouping<E, T, K>.eachAverageByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<out Number>
 ): M where K : Any, M : MutableMap<in K?, in Double?> {
@@ -297,7 +297,7 @@ inline fun <E : Entity<E>, T : Table<E>, K, M> EntityGrouping<E, T, K>.eachAvera
  *
  * This function is delegated to [Grouping.aggregate], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.aggregate(
+inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.aggregate(
     operation: (key: K?, accumulator: R?, element: E, first: Boolean) -> R
 ): Map<K?, R> {
     return asKotlinGrouping().aggregate(operation)
@@ -310,7 +310,7 @@ inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.aggregate(
  *
  * This function is delegated to [Grouping.aggregateTo], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.aggregateTo(
+inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.aggregateTo(
     destination: M,
     operation: (key: K?, accumulator: R?, element: E, first: Boolean) -> R
 ): M {
@@ -324,7 +324,7 @@ inline fun <E : Entity<E>, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<
  *
  * This function is delegated to [Grouping.fold], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.fold(
+inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.fold(
     initialValueSelector: (key: K?, element: E) -> R,
     operation: (key: K?, accumulator: R, element: E) -> R
 ): Map<K?, R> {
@@ -338,7 +338,7 @@ inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.fold(
  *
  * This function is delegated to [Grouping.foldTo], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.foldTo(
+inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.foldTo(
     destination: M,
     initialValueSelector: (key: K?, element: E) -> R,
     operation: (key: K?, accumulator: R, element: E) -> R
@@ -353,7 +353,7 @@ inline fun <E : Entity<E>, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<
  *
  * This function is delegated to [Grouping.fold], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.fold(
+inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.fold(
     initialValue: R,
     operation: (accumulator: R, element: E) -> R
 ): Map<K?, R> {
@@ -367,7 +367,7 @@ inline fun <E : Entity<E>, K : Any, R> EntityGrouping<E, *, K>.fold(
  *
  * This function is delegated to [Grouping.foldTo], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.foldTo(
+inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.foldTo(
     destination: M,
     initialValue: R,
     operation: (accumulator: R, element: E) -> R
@@ -383,7 +383,7 @@ inline fun <E : Entity<E>, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<
  *
  * This function is delegated to [Grouping.reduce], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any> EntityGrouping<E, *, K>.reduce(
+inline fun <E : Any, K : Any> EntityGrouping<E, *, K>.reduce(
     operation: (key: K?, accumulator: E, element: E) -> E
 ): Map<K?, E> {
     return asKotlinGrouping().reduce(operation)
@@ -397,7 +397,7 @@ inline fun <E : Entity<E>, K : Any> EntityGrouping<E, *, K>.reduce(
  *
  * This function is delegated to [Grouping.reduceTo], more details can be found in its documentation.
  */
-inline fun <E : Entity<E>, K : Any, M : MutableMap<in K?, E>> EntityGrouping<E, *, K>.reduceTo(
+inline fun <E : Any, K : Any, M : MutableMap<in K?, E>> EntityGrouping<E, *, K>.reduceTo(
     destination: M,
     operation: (key: K?, accumulator: E, element: E) -> E
 ): M {

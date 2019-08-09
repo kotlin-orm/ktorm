@@ -19,10 +19,7 @@ package me.liuwj.ktorm.dsl
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.expression.AggregateExpression
 import me.liuwj.ktorm.expression.AggregateType
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.DoubleSqlType
-import me.liuwj.ktorm.schema.IntSqlType
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.*
 
 /**
  * The min function, translated to `min(column)` in SQL.
@@ -94,80 +91,79 @@ fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> 
     return AggregateExpression(AggregateType.COUNT, column?.asExpression(), true, IntSqlType)
 }
 
-//todo
 /**
  * Check if all the records in the table matches the given [predicate].
  */
-inline fun <E : Entity<E>, T : Table<E>> T.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
+inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().all(predicate)
 }
 
 /**
  * Check if there is any record in the table.
  */
-fun <E : Entity<E>, T : Table<E>> T.any(): Boolean {
+fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
     return asSequence().any()
 }
 
 /**
  * Check if there is any record in the table matches the given [predicate].
  */
-inline fun <E : Entity<E>, T : Table<E>> T.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
+inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().any(predicate)
 }
 
 /**
  * Return `true` if there is no records in the table.
  */
-fun <E : Entity<E>, T : Table<E>> T.none(): Boolean {
+fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
     return asSequence().none()
 }
 
 /**
  * Return `true` if there is no records in the table that matches the given [predicate].
  */
-inline fun <E : Entity<E>, T : Table<E>> T.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
+inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().none(predicate)
 }
 
 /**
  * Return the records count in the table.
  */
-fun <E : Entity<E>, T : Table<E>> T.count(): Int {
+fun <E : Any, T : BaseTable<E>> T.count(): Int {
     return asSequence().count()
 }
 
 /**
  * Return the records count in the table that matches the given [predicate].
  */
-inline fun <E : Entity<E>, T : Table<E>> T.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
+inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return asSequence().count(predicate)
 }
 
 /**
  * Return the sum of the given column or expression of all the records, null if there are no records in the table.
  */
-inline fun <E : Entity<E>, T : Table<E>, C : Number> T.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().sumBy(selector)
 }
 
 /**
  * Return the max value of the given column or expression of all the records, null if there are no records in the table.
  */
-inline fun <E : Entity<E>, T : Table<E>, C : Number> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Any, T : BaseTable<E>, C : Number> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().maxBy(selector)
 }
 
 /**
  * Return the min value of the given column or expression of all the records, null if there are no records in the table.
  */
-inline fun <E : Entity<E>, T : Table<E>, C : Number> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Any, T : BaseTable<E>, C : Number> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().minBy(selector)
 }
 
 /**
  * Return the average value of the given column or expression of all the records, null if there are no records.
  */
-inline fun <E : Entity<E>, T : Table<E>> T.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
+inline fun <E : Any, T : BaseTable<E>> T.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
     return asSequence().averageBy(selector)
 }
