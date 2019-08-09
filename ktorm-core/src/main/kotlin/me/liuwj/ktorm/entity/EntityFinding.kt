@@ -16,13 +16,11 @@
 
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.BinaryExpression
 import me.liuwj.ktorm.expression.BinaryExpressionType
 import me.liuwj.ktorm.expression.QuerySourceExpression
 import me.liuwj.ktorm.schema.*
-import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Obtain a map of entity objects by IDs, auto left joining all the reference tables.
@@ -36,7 +34,7 @@ fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E
  * Obtain a list of entity objects by IDs, auto left joining all the reference tables.
  */
 @Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
+fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
         return emptyList()
     } else {
@@ -51,7 +49,7 @@ fun <E : Entity<E>> Table<E>.findListByIds(ids: Collection<Any>): List<E> {
  * This function will return `null` if no records found, and throw an exception if there are more than one record.
  */
 @Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
+fun <E : Any> BaseTable<E>.findById(id: Any): E? {
     val primaryKey = this.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
     return findOne { primaryKey eq id }
 }
@@ -61,7 +59,7 @@ fun <E : Entity<E>> Table<E>.findById(id: Any): E? {
  *
  * This function will return `null` if no records found, and throw an exception if there are more than one record.
  */
-inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     val list = findList(predicate)
     when (list.size) {
         0 -> return null
@@ -73,7 +71,7 @@ inline fun <E : Entity<E>, T : Table<E>> T.findOne(predicate: (T) -> ColumnDecla
 /**
  * Obtain all the entity objects from this table, auto left joining all the reference tables.
  */
-fun <E : Entity<E>> Table<E>.findAll(): List<E> {
+fun <E : Any> BaseTable<E>.findAll(): List<E> {
     // return this.asSequence().toList()
     return this
         .joinReferencesAndSelect()
@@ -83,7 +81,7 @@ fun <E : Entity<E>> Table<E>.findAll(): List<E> {
 /**
  * Obtain a list of entity objects matching the given [predicate], auto left joining all the reference tables.
  */
-inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
+inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
     // return this.asSequence().filter(predicate).toList()
     return this
         .joinReferencesAndSelect()
@@ -94,17 +92,17 @@ inline fun <E : Entity<E>, T : Table<E>> T.findList(predicate: (T) -> ColumnDecl
 /**
  * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
-fun Table<*>.joinReferencesAndSelect(): Query {
-    val joinedTables = ArrayList<Table<*>>()
+fun BaseTable<*>.joinReferencesAndSelect(): Query {
+    val joinedTables = ArrayList<BaseTable<*>>()
 
     return this
         .joinReferences(this.asExpression(), joinedTables)
         .select(joinedTables.flatMap { it.columns })
 }
 
-private fun Table<*>.joinReferences(
+private fun BaseTable<*>.joinReferences(
     expr: QuerySourceExpression,
-    joinedTables: MutableList<Table<*>>
+    joinedTables: MutableList<BaseTable<*>>
 ): QuerySourceExpression {
 
     var curr = expr

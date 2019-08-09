@@ -27,7 +27,7 @@ import me.liuwj.ktorm.schema.*
  * Insert the given entity into this table and return the affected record number.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which column is the primary key by calling
- * the [Table.ColumnRegistration.primaryKey] function on the column registration, then this function will obtain
+ * the [Table.primaryKey] function on the column registration, then this function will obtain
  * the generated key from the database and fill it into the corresponding property after the insertion completes.
  * But this requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
  * will be inserted into the database, and no keys generated.
@@ -136,7 +136,7 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
             is ReferenceBinding -> {
                 if (binding.onProperty.name in changedProperties) {
                     val child = this.getProperty(binding.onProperty.name) as Entity<*>?
-                    assignments[column] = child?.implementation?.getPrimaryKeyValue(binding.referenceTable)
+                    assignments[column] = child?.implementation?.getPrimaryKeyValue(binding.referenceTable as Table<*>)
                 }
             }
             is NestedBinding -> {

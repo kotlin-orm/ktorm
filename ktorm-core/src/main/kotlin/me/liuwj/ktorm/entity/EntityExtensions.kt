@@ -34,7 +34,7 @@ internal fun EntityImplementation.getColumnValue(column: Column<*>): Any? {
     when (binding) {
         is ReferenceBinding -> {
             val child = this.getProperty(binding.onProperty.name) as Entity<*>?
-            return child?.implementation?.getPrimaryKeyValue(binding.referenceTable)
+            return child?.implementation?.getPrimaryKeyValue(binding.referenceTable as Table<*>)
         }
         is NestedBinding -> {
             var curr: EntityImplementation? = this
@@ -61,11 +61,14 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
         is ReferenceBinding -> {
             var child = this.getProperty(binding.onProperty.name) as Entity<*>?
             if (child == null) {
-                child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = binding.referenceTable)
+                child = Entity.create(
+                    entityClass = binding.onProperty.returnType.jvmErasure,
+                    fromTable = binding.referenceTable as Table<*>
+                )
                 this.setProperty(binding.onProperty.name, child, forceSet)
             }
 
-            child.implementation.setPrimaryKeyValue(binding.referenceTable, value, forceSet)
+            child.implementation.setPrimaryKeyValue(binding.referenceTable as Table<*>, value, forceSet)
         }
         is NestedBinding -> {
             var curr: EntityImplementation = this

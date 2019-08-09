@@ -148,7 +148,7 @@ interface Entity<E : Entity<E>> : Serializable {
      *
      * Using this function, we need to note that:
      *
-     * 1. This function requires a primary key specified in the table object via [Table.ColumnRegistration.primaryKey],
+     * 1. This function requires a primary key specified in the table object via [Table.primaryKey],
      * otherwise Ktorm doesn’t know how to identify entity objects, then throws an exception.
      *
      * 2. The entity object calling this function must **be associated with a table** first. In Ktorm’s implementation,
@@ -175,7 +175,7 @@ interface Entity<E : Entity<E>> : Serializable {
      *
      * Similar to [flushChanges], we need to note that:
      *
-     * 1. The function requires a primary key specified in the table object via [Table.ColumnRegistration.primaryKey],
+     * 1. The function requires a primary key specified in the table object via [Table.primaryKey],
      * otherwise, Ktorm doesn’t know how to identify entity objects.
      *
      * 2. The entity object calling this function must **be associated with a table** first.
