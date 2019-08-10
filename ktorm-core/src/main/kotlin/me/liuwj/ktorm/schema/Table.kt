@@ -23,10 +23,7 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Base class of Ktorm's table objects, represents relational tables in the database.
- *
- * @property tableName the table's name.
- * @property alias the table's alias.
+ * Base class of Ktorm's table objects. This class extends from [BaseTable] and supports bindings to [Entity] classes.
  */
 @Suppress("UNCHECKED_CAST")
 open class Table<E : Entity<E>>(
@@ -34,6 +31,19 @@ open class Table<E : Entity<E>>(
     alias: String? = null,
     entityClass: KClass<E>? = null
 ) : BaseTable<E>(tableName, alias, entityClass) {
+
+    /**
+     * Bind the column to nested properties, eg. `employee.manager.department.id`.
+     *
+     * @param selector a lambda in which we should return the property we want to bind.
+     * For example: `val name by varchar("name").bindTo { it.name }`.
+     *
+     * @return this column registration.
+     */
+    inline fun <C : Any> ColumnRegistration<C>.bindTo(selector: (E) -> C?): ColumnRegistration<C> {
+        val properties = detectBindingProperties(selector)
+        return doBindInternal(NestedBinding(properties))
+    }
 
     /**
      * Bind the column to a reference table, equivalent to a foreign key in relational databases.
@@ -63,19 +73,6 @@ open class Table<E : Entity<E>>(
         }
     }
 
-    /**
-     * Bind the column to nested properties, eg. `employee.manager.department.id`.
-     *
-     * @param selector a lambda in which we should return the property we want to bind.
-     * For example: `val name by varchar("name").bindTo { it.name }`.
-     *
-     * @return this column registration.
-     */
-    inline fun <C : Any> ColumnRegistration<C>.bindTo(selector: (E) -> C?): ColumnRegistration<C> {
-        val properties = detectBindingProperties(selector)
-        return doBindInternal(NestedBinding(properties))
-    }
-
     @PublishedApi
     internal inline fun detectBindingProperties(selector: (E) -> Any?): List<KProperty1<*, *>> {
         val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
@@ -97,13 +94,13 @@ open class Table<E : Entity<E>>(
         return result
     }
 
-    final override fun doCreateEntity(row: QueryRowSet, skipReferences: Boolean): E {
+    final override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): E {
         val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
         val entity = Entity.create(entityClass, fromTable = this) as E
 
         for (column in columns) {
             try {
-                row.retrieveColumn(column, intoEntity = entity, skipReferences = skipReferences)
+                row.retrieveColumn(column, intoEntity = entity, withReferences = withReferences)
             } catch (e: Throwable) {
                 throw IllegalStateException("Error retrieving column: $column, binding: ${column.binding}", e)
             }
@@ -112,7 +109,7 @@ open class Table<E : Entity<E>>(
         return entity.apply { clearChangesRecursively() }
     }
 
-    private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: E, skipReferences: Boolean) {
+    private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: E, withReferences: Boolean) {
         val columnValue = (if (this.hasColumn(column)) this[column] else null) ?: return
 
         val binding = column.binding ?: return
@@ -122,7 +119,7 @@ open class Table<E : Entity<E>>(
                 val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
 
                 when {
-                    skipReferences -> {
+                    !withReferences -> {
                         val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = refTable)
                         child.implementation.setColumnValue(primaryKey, columnValue)
                         intoEntity[binding.onProperty.name] = child

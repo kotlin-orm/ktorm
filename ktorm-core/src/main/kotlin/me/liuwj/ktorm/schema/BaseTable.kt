@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.Query
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
@@ -27,6 +26,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.jvmErasure
 
+/**
+ * Base class of Ktorm's table objects, represents relational tables in the database.
+ */
 @Suppress("CanBePrimaryConstructorProperty", "UNCHECKED_CAST")
 abstract class BaseTable<E : Any>(
     tableName: String,
@@ -67,8 +69,8 @@ abstract class BaseTable<E : Any>(
     /**
      * Obtain a column from this table by the name.
      */
-    operator fun get(columnName: String): Column<*> {
-        return _columns[columnName] ?: throw NoSuchElementException(columnName)
+    operator fun get(name: String): Column<*> {
+        return _columns[name] ?: throw NoSuchElementException(name)
     }
 
     /**
@@ -157,6 +159,10 @@ abstract class BaseTable<E : Any>(
             return column as Column<C>
         }
 
+        /**
+         * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm
+         * library and its extension modules. Others should not use this function directly.
+         */
         fun doBindInternal(binding: ColumnBinding): ColumnRegistration<C> {
             val checkedBinding = when (binding) {
                 is NestedBinding -> binding
@@ -268,14 +274,14 @@ abstract class BaseTable<E : Any>(
     }
 
     /**
-     * Create an entity object from the specific row of [Query] results.
+     * Create an entity object from the specific row of query results.
      *
      * This function uses the binding configurations of this table object, filling columns' values into corresponding
      * entities' properties. And if there are any reference bindings to other tables, it will also create the referenced
      * entity objects recursively.
      */
     fun createEntity(row: QueryRowSet): E {
-        val entity = doCreateEntity(row, skipReferences = false)
+        val entity = doCreateEntity(row, withReferences = true)
 
         val logger = Database.global.logger
         if (logger != null && logger.isTraceEnabled()) {
@@ -297,7 +303,7 @@ abstract class BaseTable<E : Any>(
      * some exceptions raised by conflict column names.
      */
     fun createEntityWithoutReferences(row: QueryRowSet): E {
-        val entity = doCreateEntity(row, skipReferences = true)
+        val entity = doCreateEntity(row, withReferences = false)
 
         val logger = Database.global.logger
         if (logger != null && logger.isTraceEnabled()) {
@@ -307,7 +313,13 @@ abstract class BaseTable<E : Any>(
         return entity
     }
 
-    protected abstract fun doCreateEntity(row: QueryRowSet, skipReferences: Boolean = false): E
+    /**
+     * Create an entity object from the specific row of query results.
+     *
+     * This function is called by [createEntity] and [createEntityWithoutReferences]. Subclasses should override it
+     * and implement the actual logic of retrieving an entity object from the query results.
+     */
+    protected abstract fun doCreateEntity(row: QueryRowSet, withReferences: Boolean = false): E
 
     /**
      * Convert this table to a [TableExpression].

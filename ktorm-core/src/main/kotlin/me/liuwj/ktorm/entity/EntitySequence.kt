@@ -41,7 +41,7 @@ import kotlin.math.min
  *
  * This class wraps a [Query] object, and it’s iterator exactly wraps the query’s iterator. While an entity sequence is
  * iterated, its internal query is executed, and the [entityExtractor] function is applied to create an entity object
- * for each row. Here, the [entityExtractor] might be [BaseTable.createEntity] or [BaseTable.createEntityWithoutReferences],
+ * for each row. Here, the extractor might be [BaseTable.createEntity] or [BaseTable.createEntityWithoutReferences],
  * that depends on the arguments used to create sequence objects.
  *
  * Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups:
