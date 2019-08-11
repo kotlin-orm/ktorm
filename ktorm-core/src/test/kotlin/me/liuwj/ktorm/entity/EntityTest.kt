@@ -241,9 +241,24 @@ class EntityTest : BaseTest() {
     fun testForeignKeyValue() {
         val employees = Employees
             .select()
+            .orderBy(Employees.id.asc())
             .map { Employees.createEntity(it) }
 
-        employees.forEach { println(it) }
+        val vince = employees[0]
+        assert(vince.manager == null)
+        assert(vince.department.id == 1)
+
+        val marry = employees[1]
+        assert(marry.manager?.id == 1)
+        assert(marry.department.id == 1)
+
+        val tom = employees[2]
+        assert(tom.manager == null)
+        assert(tom.department.id == 2)
+
+        val penny = employees[3]
+        assert(penny.manager?.id == 3)
+        assert(penny.department.id == 2)
     }
 
     @Test

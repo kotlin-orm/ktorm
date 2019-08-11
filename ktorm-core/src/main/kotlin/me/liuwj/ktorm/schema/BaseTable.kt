@@ -319,7 +319,7 @@ abstract class BaseTable<E : Any>(
      * This function is called by [createEntity] and [createEntityWithoutReferences]. Subclasses should override it
      * and implement the actual logic of retrieving an entity object from the query results.
      */
-    protected abstract fun doCreateEntity(row: QueryRowSet, withReferences: Boolean = false): E
+    protected abstract fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): E
 
     /**
      * Convert this table to a [TableExpression].

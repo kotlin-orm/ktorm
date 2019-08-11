@@ -110,9 +110,9 @@ open class Table<E : Entity<E>>(
     }
 
     private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: E, withReferences: Boolean) {
-        val columnValue = (if (this.hasColumn(column)) this[column] else null) ?: return
-
+        val columnValue = this[column] ?: return
         val binding = column.binding ?: return
+
         when (binding) {
             is ReferenceBinding -> {
                 val refTable = binding.referenceTable as Table<*>
@@ -124,8 +124,8 @@ open class Table<E : Entity<E>>(
                         child.implementation.setColumnValue(primaryKey, columnValue)
                         intoEntity[binding.onProperty.name] = child
                     }
-                    this.hasColumn(primaryKey) && this[primaryKey] != null -> {
-                        val child = refTable.doCreateEntity(this)
+                    this[primaryKey] != null -> {
+                        val child = refTable.doCreateEntity(this, withReferences = true)
                         child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
                         intoEntity[binding.onProperty.name] = child
                     }

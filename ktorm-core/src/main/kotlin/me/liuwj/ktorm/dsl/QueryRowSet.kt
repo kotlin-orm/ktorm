@@ -73,6 +73,9 @@ class QueryRowSet internal constructor(
 
     /**
      * Obtain the value of the specific [Column] instance.
+     *
+     * Note that if the column doesn't exist in the result set, this function will return null rather than
+     * throwing an exception.
      */
     operator fun <C : Any> get(column: Column<C>): C? {
         // Try to get result by label first.
@@ -89,8 +92,13 @@ class QueryRowSet internal constructor(
             return column.sqlType.getResult(this, labels.keys.first())
         }
 
-        // Falling through, try to get result by column name directly(select * ).
-        return column.sqlType.getResult(this, column.name)
+        if (column.name.toUpperCase() in resultLabels) {
+            // Falling through, try to get result by column name directly(select * ).
+            return column.sqlType.getResult(this, column.name)
+        }
+
+        // Return null if the column doesn't exist in the result set.
+        return null
     }
 
     /**
