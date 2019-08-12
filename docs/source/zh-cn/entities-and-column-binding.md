@@ -122,7 +122,7 @@ object Foos : Table<Foo>("t_foo") {
 
 ## 关于 Entity 接口
 
-前面提到，Ktorm 规定，所有的实体类的应该定义为 interface，并且继承 `Entity` 接口，而实体对象的创建，则是使用 JDK 动态代理完成的。如果你对 JDK 的动态代理有所了解，你应该知道，代理对象是通过 `Proxy.newProxyInstance` 方法创建的，提供一个 `InvocationHandler` 实例作为参数，所有对接口方法的调用，都会被 JDK 代理到这个 handler 中。在 Ktorm 内部，`EntityImplementation` 就是这个 handler 的实现，它被声明为 internal，因此你无法在 Ktorm 外部使用它，但是我们可以了解一下它的基本原理。
+前面提到，Ktorm 规定，所有的实体类都应该定义为 interface，并且继承 `Entity` 接口，而实体对象的创建，则是使用 JDK 动态代理完成的。如果你对 JDK 的动态代理有所了解，你应该知道，代理对象是通过 `Proxy.newProxyInstance` 方法创建的，提供一个 `InvocationHandler` 实例作为参数，所有对接口方法的调用，都会被 JDK 代理到这个 handler 中。在 Ktorm 内部，`EntityImplementation` 就是这个 handler 的实现，它被声明为 internal，因此你无法在 Ktorm 外部使用它，但是我们可以了解一下它的基本原理。
 
 ### 属性存取
 
