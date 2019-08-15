@@ -118,17 +118,14 @@ open class Table<E : Entity<E>>(
                 val refTable = binding.referenceTable as Table<*>
                 val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
 
-                when {
-                    !withReferences -> {
-                        val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = refTable)
-                        child.implementation.setColumnValue(primaryKey, columnValue)
-                        intoEntity[binding.onProperty.name] = child
-                    }
-                    this[primaryKey] != null -> {
-                        val child = refTable.doCreateEntity(this, withReferences = true)
-                        child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
-                        intoEntity[binding.onProperty.name] = child
-                    }
+                if (withReferences) {
+                    val child = refTable.doCreateEntity(this, withReferences = true)
+                    child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
+                    intoEntity[binding.onProperty.name] = child
+                } else {
+                    val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = refTable)
+                    child.implementation.setColumnValue(primaryKey, columnValue)
+                    intoEntity[binding.onProperty.name] = child
                 }
             }
             is NestedBinding -> {

@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.expression.ColumnExpression
 import me.liuwj.ktorm.schema.Column
 import java.io.InputStream
 import java.io.Reader
@@ -38,9 +37,10 @@ import javax.sql.rowset.CachedRowSet
  * not necessary to be closed after being used. Ktorm creates [QueryRowSet] objects with all data being retrieved from
  * the result set into memory, so we just need to wait for GC to collect them after they are not useful.
  *
- * - **Indexed access operator:** It overloads the indexed access operator, so we can use square brackets `[]` to obtain
- * the value by giving a specific [Column] instance. It’s not easy to get wrong by the benefit of the compiler’s static
- * checking, but we can still use getXxx functions in the [ResultSet] to obtain our results by labels or column indices.
+ * - **Indexed access operator:** It overloads the indexed access operator, so we can use square brackets `[]` to
+ * obtain the value by giving a specific [Column] instance. It’s less error prone by the benefit of the compiler’s
+ * static checking. Also, we can still use getXxx functions in the [ResultSet] to obtain our results by labels or
+ * column indices.
  *
  * This class is implemented based on [CachedRowSet], more details can be found in its documentation.
  *
@@ -52,25 +52,6 @@ class QueryRowSet internal constructor(
     private val nativeRowSet: CachedRowSet
 ) : CachedRowSet by nativeRowSet {
 
-    private val resultLabels by lazy(LazyThreadSafetyMode.NONE) {
-        val labels = HashMap<String, Int>()
-        val metaData = nativeRowSet.metaData
-
-        for (i in 1..metaData.columnCount) {
-            val label = metaData.getColumnLabel(i)
-            labels.putIfAbsent(label.toUpperCase(), i)
-        }
-
-        labels as Map<String, Int>
-    }
-
-    private val queryLabels by lazy(LazyThreadSafetyMode.NONE) {
-        query.expression
-            .findDeclaringColumns()
-            .filter { it.declaredName != null }
-            .associate { it.declaredName!! to (it.expression as? ColumnExpression<*>)?.name }
-    }
-
     /**
      * Obtain the value of the specific [Column] instance.
      *
@@ -78,27 +59,32 @@ class QueryRowSet internal constructor(
      * throwing an exception.
      */
     operator fun <C : Any> get(column: Column<C>): C? {
-        // Try to get result by label first.
-        if (column.label in queryLabels) {
-            return column.sqlType.getResult(this, column.label)
-        }
+        val metadata = nativeRowSet.metaData
 
-        // Try to find labels by name.
-        val labels = queryLabels.filterValues { it == column.name }
-        if (labels.size > 1) {
-            throw IllegalArgumentException(warningConfusedColumnName(column.name))
-        }
-        if (labels.size == 1) {
-            return column.sqlType.getResult(this, labels.keys.first())
-        }
+        if (query.expression.findDeclaringColumns().isNotEmpty()) {
+            // Try to find the column by label.
+            for (index in 1..metadata.columnCount) {
+                if (metadata.getColumnLabel(index) eq column.label) {
+                    return column.sqlType.getResult(this, index)
+                }
+            }
 
-        if (column.name.toUpperCase() in resultLabels) {
-            // Falling through, try to get result by column name directly(select * ).
-            return column.sqlType.getResult(this, column.name)
-        }
+            // Return null if the column doesn't exist in the result set.
+            return null
+        } else {
+            // Try to find the column by name and its table name (happens when we are using `select *`).
+            val indices = (1..metadata.columnCount).filter { index ->
+                val columnName = metadata.getColumnName(index)
+                val tableName = metadata.getTableName(index)
+                columnName eq column.name && (tableName eq column.table.alias || tableName eq column.table.tableName)
+            }
 
-        // Return null if the column doesn't exist in the result set.
-        return null
+            return when (indices.size) {
+                0 -> null // Return null if the column doesn't exist in the result set.
+                1 -> column.sqlType.getResult(this, indices[0])
+                else -> throw IllegalArgumentException(warningConfusedColumnName(column.name))
+            }
+        }
     }
 
     /**
@@ -107,31 +93,37 @@ class QueryRowSet internal constructor(
      * Note that if the column exists but its value is null, this function still returns `true`.
      */
     fun hasColumn(column: Column<*>): Boolean {
-        // Try to find by label first.
-        if (column.label in queryLabels) {
-            return true
-        }
+        val metadata = nativeRowSet.metaData
 
-        // Try to find labels by name.
-        val labels = queryLabels.filterValues { it == column.name }
-        val found = when (labels.size) {
-            0 -> false
-            1 -> true
-            else -> true.also {
+        if (query.expression.findDeclaringColumns().isNotEmpty()) {
+            // Try to find the column by label.
+            for (index in 1..metadata.columnCount) {
+                if (metadata.getColumnLabel(index) eq column.label) {
+                    return true
+                }
+            }
+
+            return false
+        } else {
+            // Try to find the column by name and its table name (happens when we are using `select *`).
+            val indices = (1..metadata.columnCount).filter { index ->
+                val columnName = metadata.getColumnName(index)
+                val tableName = metadata.getTableName(index)
+                columnName eq column.name && (tableName eq column.table.alias || tableName eq column.table.tableName)
+            }
+
+            if (indices.size > 1) {
                 val logger = Database.global.logger
                 if (logger != null && logger.isWarnEnabled()) {
                     logger.warn(warningConfusedColumnName(column.name))
                 }
             }
-        }
 
-        if (found) {
-            return true
-        } else {
-            // Falling through, search column name in resultLabels directly(select *).
-            return column.name.toUpperCase() in resultLabels
+            return indices.isNotEmpty()
         }
     }
+
+    private infix fun String?.eq(other: String?) = this.equals(other, ignoreCase = true)
 
     private fun warningConfusedColumnName(name: String): String {
         return "Confused column name, there are more than one column named '$name' in query: \n\n${query.sql}\n"
@@ -146,10 +138,16 @@ class QueryRowSet internal constructor(
      * https://stackoverflow.com/questions/15184709/cachedrowsetimpl-getstring-based-on-column-label-throws-invalid-column-name
      */
     override fun findColumn(columnLabel: String?): Int {
-        if (columnLabel == null) {
-            throw NullPointerException("columnLabel")
+        val metadata = nativeRowSet.metaData
+
+        // Try to find the column by label first.
+        for (index in 1..metadata.columnCount) {
+            if (metadata.getColumnLabel(index) eq columnLabel) {
+                return index
+            }
         }
-        return resultLabels[columnLabel.toUpperCase()] ?: nativeRowSet.findColumn(columnLabel)
+
+        return nativeRowSet.findColumn(columnLabel)
     }
 
     override fun toCollection(column: String?): Collection<*> {

@@ -54,4 +54,27 @@ class JoinTest : BaseTest() {
         assert(results[2] == Names(name = "tom", managerName = null, departmentName = "finance"))
         assert(results[3] == Names(name = "penny", managerName = "tom", departmentName = "finance"))
     }
+
+    @Test
+    fun testHasColumn() {
+        data class Names(val name: String, val managerName: String, val departmentName: String)
+
+        val emp = Employees.aliased("emp")
+        val mgr = Employees.aliased("mgr")
+        val dept = Departments.aliased("dept")
+
+        val results = emp
+            .select(emp.name)
+            .map {
+                Names(
+                    name = it[emp.name].orEmpty(),
+                    managerName = it[mgr.name].orEmpty(),
+                    departmentName = it[dept.name].orEmpty()
+                )
+            }
+
+        results.forEach(::println)
+        assert(results.all { it.managerName == "" })
+        assert(results.all { it.departmentName == "" })
+    }
 }

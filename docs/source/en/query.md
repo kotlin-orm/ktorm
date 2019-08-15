@@ -59,12 +59,12 @@ There are some other useful properties in the `Query` class:
 
 Every JDBC user knows how to obtain query results from a `ResultSet`. We need a loop to iterate rows in it, calling the getter functions (such as `getInt`, `getString`, etc) to obtain the data of the specific column. A typical usage is based on a while loop: `while (rs.netxt())  { ... } `. Moreover, after finishing these works, we also have to call `close` function to release the resources. 
 
-That's not so complex, but it's still easy to get bored to write duplicated codes. We have known that `Query` class implemented `Iterable` interface, that provided another possibility for us. We can iterate results sets by a for-each loop, or process them via extension functions like map, filter, etc, just like the previous example. 
+That's not so hard, but it's still easy to get bored with writing those duplicated codes. We have known that `Query` class implemented `Iterable` interface, that provided another possibility for us. We can iterate results sets by a for-each loop, or process them via extension functions like map, filter, etc, just like the previous example. 
 
 You might have noticed that the return type of `Query.rowSet` was not a normal `ResultSet`, but a `QueryRowSet` instead. That's a special implementation provided by Ktorm, different from normal result sets, it provides additional features: 
 
 - **Available offline:** It's connection independent, it remains available after the connection closed, and it's not necessary to be closed after being used. Ktorm creates `QueryRowSet` objects with all data being retrieved from the result set into memory, so we just need to wait for GC to collect them after they are not useful. 
-- **Indexed access operator:** `QueryRowSet` overloads the [indexed access operator](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed), so we can use square brackets `[]` to obtain the value by giving a specific `Column` instance. It's not easy to get wrong by the benefit of the compiler's static checking, but we can still use `getXxx` functions in the `ResultSet` to obtain our results by labels or column indices. 
+- **Indexed access operator:** `QueryRowSet` overloads the [indexed access operator](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed), so we can use square brackets `[]` to obtain the value by giving a specific `Column` instance. It's less error prone by the benefit of the compiler's static checking. Also, we can still use `getXxx` functions in the `ResultSet` to obtain our results by labels or column indices. 
 
 Obtain results via indexed access operator: 
 
