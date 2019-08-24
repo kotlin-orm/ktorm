@@ -30,9 +30,9 @@ interface Employee : Entity<Employee> {
 }
 ```
 
-We can see classes above both extends from `Entity<E>` interface, which injects some useful functions into entities. Their properties are defined by keyword var or val, you can mark the types as nullable or not depending on your business requirements. 
+We can see classes above both extends from `Entity<E>` interface, which injects some useful functions into entities. Their properties are defined by keyword var or val, you can mark the types as nullable or not depending on your business requirements. It may be counterintuitive that entities in Ktorm are not data classes, even not normal classes, but interfaces instead, that's a design requirement of Ktorm. By defining entities as interfaces, Ktorm can implement some special features, you will see the significance later.
 
-It may be counterintuitive that entities in Ktorm are not data classes, even not normal classes, but interfaces instead, that's a design requirement of Ktorm. By defining entities as interfaces, Ktorm can implement some special features, you will see the significance later. 
+> Since Ktorm 2.5, it's also supported to define entities as data classes or any other classes, see [Define Entities as Any Kind of Classes](/en/define-entities-as-any-kind-of-classes.html).
 
 As everyone knows, interfaces cannot be instantiated, now that all entities are interfaces, how can we create their instances? Ktorm provides an `Entity.create` function, which generates implementations for entity interfaces via JDK dynamic proxy, and creates their instances for us. To create a department object, we can do this: 
 

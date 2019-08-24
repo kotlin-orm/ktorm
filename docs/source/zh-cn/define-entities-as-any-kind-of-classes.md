@@ -1,7 +1,7 @@
 ---
 title: 使用任意的类作为实体类
 lang: zh-cn
-related_path: en/bind-to-any-kind-of-entity-classes.html
+related_path: en/define-entities-as-any-kind-of-classes.html
 ---
 
 # 使用任意的类作为实体类

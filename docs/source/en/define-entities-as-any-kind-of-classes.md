@@ -1,7 +1,7 @@
 ---
 title: Define Entities as Any Kind of Classes
 lang: en
-related_path: zh-cn/bind-to-any-kind-of-entity-classes.html
+related_path: zh-cn/define-entities-as-any-kind-of-classes.html
 ---
 
 # Define Entities as Any Kind of Classes

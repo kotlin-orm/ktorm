@@ -20,7 +20,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
 ## Latest Posts
 
-- 2019-08-12 [Ktorm 2.5 Released, Support Defining an Entity as Data Class, POJO, or Any Kind of Classes](/en/bind-to-any-kind-of-entity-classes.html) <sup class="new-icon">NEW</sup>
+- 2019-08-24 [Ktorm 2.5 Released, Support Defining Entities as Any Kind of Classes, Such as Data Class or POJO](/en/define-entities-as-any-kind-of-classes.html) <sup class="new-icon">NEW</sup>
 - 2019-06-28 [Ktorm - Write Your Database Operations in Kotlin Style](https://www.liuwj.me/posts/ktorm-write-database-operations-in-kotlin-style/)
 - 2019-05-04 [Still Using MyBatis? Try Ktorm, an ORM Framework for Kotlin!](https://www.liuwj.me/posts/ktorm-introduction/)
 
