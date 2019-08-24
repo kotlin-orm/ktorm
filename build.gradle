@@ -17,7 +17,7 @@ buildscript {
 
 allprojects {
     group = "me.liuwj.ktorm"
-    version = "2.4"
+    version = "2.5"
 }
 
 subprojects { project ->

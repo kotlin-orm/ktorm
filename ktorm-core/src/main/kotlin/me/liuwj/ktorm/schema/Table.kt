@@ -23,7 +23,28 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Base class of Ktorm's table objects. This class extends from [BaseTable] and supports bindings to [Entity] classes.
+ * Base class of Ktorm's table objects. This class extends from [BaseTable], additionally providing a binding mechanism
+ * with [Entity] interfaces based on fucntions such as [bindTo], [references].
+ *
+ * [Table] implements the [doCreateEntity] function from the parent class. The function automatically creates an
+ * entity object using the binding configuration specified by [bindTo] and [references], reading columns’ values from
+ * the result set and filling them into corresponding entity properties.
+ *
+ * To use this class, we need to define our entities as interfaces extending from [Entity]. Here is an example. More
+ * documents can be found at https://ktorm.liuwj.me/en/entities-and-column-binding.html
+ *
+ * ```kotlin
+ * interface Department : Entity<Department> {
+ *    val id: Int
+ *    var name: String
+ *    var location: String
+ * }
+ * object Departments : Table<Department>("t_department") {
+ *    val id by int("id").primaryKey().bindTo { it.id }
+ *    val name by varchar("name").bindTo { it.name }
+ *    val location by varchar("location").bindTo { it.location }
+ * }
+ * ```
  */
 @Suppress("UNCHECKED_CAST")
 open class Table<E : Entity<E>>(

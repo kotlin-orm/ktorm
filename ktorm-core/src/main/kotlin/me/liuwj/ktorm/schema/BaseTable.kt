@@ -18,6 +18,7 @@ package me.liuwj.ktorm.schema
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.QueryRowSet
+import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -28,6 +29,39 @@ import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Base class of Ktorm's table objects, represents relational tables in the database.
+ *
+ * This class provides the basic ability of table and column definition but doesn't support any binding mechanisms.
+ * If you need the binding support to [Entity] interfaces, use [Table] instead.
+ *
+ * There is an abstract function [doCreateEntity]. Subclasses should implement this function, creating an entity object
+ * from the result set returned by a query, using the binding rules defined by themselves. Here, the type of the entity
+ * object could be an interface extending from [Entity], or a data class, POJO, or any kind of classes.
+ *
+ * Here is an example defining an entity as data class. The full documentation can be found at:
+ * https://ktorm.liuwj.me/en/define-entities-as-any-kind-of-classes.html
+ *
+ * ```kotlin
+ * data class Staff(
+ *     val id: Int,
+ *     val name: String,
+ *     val job: String,
+ *     val hireDate: LocalDate
+ * )
+ * object Staffs : BaseTable<Staff>("t_employee") {
+ *     val id by int("id").primaryKey()
+ *     val name by varchar("name")
+ *     val job by varchar("job")
+ *     val hireDate by date("hire_date")
+ *     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Staff(
+ *         id = row[id] ?: 0,
+ *         name = row[name].orEmpty(),
+ *         job = row[job].orEmpty(),
+ *         hireDate = row[hireDate] ?: LocalDate.now()
+ *     )
+ * }
+ * ```
+ *
+ * @since 2.5
  */
 @Suppress("CanBePrimaryConstructorProperty", "UNCHECKED_CAST")
 abstract class BaseTable<E : Any>(
@@ -95,7 +129,7 @@ abstract class BaseTable<E : Any>(
      * This function returns a [ColumnRegistration], then we can bind the new-created column to any other property,
      * and the origin column's binding is not influenced, that’s the way Ktorm supports multiple bindings on a column.
      *
-     * The generated SQL is like: `select name as label, name as label1 from dual`.
+     * The generated SQL is like: `select name as label, name as aliased_label from dual`.
      *
      * Note that aliased bindings are only available for query operations, they will be ignored when inserting or
      * updating entities.
@@ -219,6 +253,9 @@ abstract class BaseTable<E : Any>(
         throw UnsupportedOperationException("The function 'aliased' is not supported by $javaClass")
     }
 
+    /**
+     * Copy column definitions from [src] to this table.
+     */
     protected fun copyDefinitionsFrom(src: BaseTable<*>) {
         rewriteDefinitions(src.columns, src._primaryKeyName, copyReferences = true)
     }
