@@ -2,103 +2,122 @@ package me.liuwj.ktorm.dsl
 
 import java.io.Serializable
 import java.sql.ResultSetMetaData
+import java.sql.SQLException
 
 /**
  * Created by vince on Sep 03, 2019.
  */
 internal class QueryRowSetMetadata : ResultSetMetaData, Serializable {
+    private val colCount: Int = 0
+    private val colInfo: Array<ColInfo> = emptyArray()
 
-
-    override fun getTableName(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isNullable(column: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun <T : Any?> unwrap(iface: Class<T>?): T {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isDefinitelyWritable(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isSearchable(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getPrecision(column: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isCaseSensitive(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getScale(column: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getSchemaName(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getColumnClassName(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getCatalogName(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isWrapperFor(iface: Class<*>?): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getColumnType(column: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isCurrency(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getColumnLabel(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isWritable(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isReadOnly(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isSigned(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getColumnTypeName(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getColumnName(column: Int): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isAutoIncrement(column: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getColumnDisplaySize(column: Int): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun checkColRange(col: Int) {
+        if (col <= 0 || col > colCount) {
+            throw SQLException("Invalid column index: $col")
+        }
     }
 
     override fun getColumnCount(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return colCount
+    }
+
+    override fun isAutoIncrement(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].autoIncrement
+    }
+
+    override fun isCaseSensitive(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].caseSensitive
+    }
+
+    override fun isSearchable(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].searchable
+    }
+
+    override fun isCurrency(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].currency
+    }
+
+    override fun isNullable(columnIndex: Int): Int {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].nullable
+    }
+
+    override fun isSigned(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].signed
+    }
+
+    override fun getColumnDisplaySize(columnIndex: Int): Int {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].columnDisplaySize
+    }
+
+    override fun getColumnLabel(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].columnLabel
+    }
+
+    override fun getColumnName(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].columnName
+    }
+
+    override fun getSchemaName(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].schemaName
+    }
+
+    override fun getPrecision(columnIndex: Int): Int {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].colPrecision
+    }
+
+    override fun getScale(columnIndex: Int): Int {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].colScale
+    }
+
+    override fun getTableName(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].tableName
+    }
+
+    override fun getCatalogName(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].catName
+    }
+
+    override fun getColumnType(columnIndex: Int): Int {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].colType
+    }
+
+    override fun getColumnTypeName(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].colTypeName
+    }
+
+    override fun isReadOnly(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].readonly
+    }
+
+    override fun isWritable(columnIndex: Int): Boolean {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].writable
+    }
+
+    override fun isDefinitelyWritable(columnIndex: Int): Boolean {
+        return isWritable(columnIndex)
+    }
+
+    override fun getColumnClassName(columnIndex: Int): String {
+        checkColRange(columnIndex)
+        return colInfo[columnIndex].colClassName
     }
 
     companion object {
@@ -122,6 +141,7 @@ internal class QueryRowSetMetadata : ResultSetMetaData, Serializable {
         val catName: String,
         val colType: Int,
         val colTypeName: String,
+        val colClassName: String,
         val readonly: Boolean,
         val writable: Boolean
     ) : Serializable {
