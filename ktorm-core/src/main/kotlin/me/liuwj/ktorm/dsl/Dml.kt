@@ -455,3 +455,10 @@ internal object AliasRemover : SqlExpressionVisitor() {
         }
     }
 }
+
+/**
+ * build [ColumnDeclaringExpression] for [ScalarExpression].
+ */
+fun <T : Any> ScalarExpression<T>.alias(name: String): ColumnDeclaringExpression<T> {
+    return ColumnDeclaringExpression(this, name)
+}

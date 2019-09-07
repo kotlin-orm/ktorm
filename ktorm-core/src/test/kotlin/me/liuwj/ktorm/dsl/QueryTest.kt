@@ -116,6 +116,22 @@ class QueryTest : BaseTest() {
     }
 
     @Test
+    fun testHavingAlias() {
+        val t = Employees
+
+        val salaryAvg = avg(t.salary).alias("salary_avg")
+        val salaries = t
+            .select(t.departmentId, salaryAvg)
+            .groupBy(t.departmentId)
+            .having { salaryAvg greater 100.0 }
+            .associate { it.getInt(1) to it.getDouble(2) }
+
+        println(salaries)
+        assert(salaries.size == 1)
+        assert(salaries.keys.first() == 2)
+    }
+
+    @Test
     fun testLimit() {
         try {
             val query = Employees.select().orderBy(Employees.id.desc()).limit(0, 2)

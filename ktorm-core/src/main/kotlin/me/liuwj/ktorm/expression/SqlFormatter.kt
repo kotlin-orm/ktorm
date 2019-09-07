@@ -37,7 +37,7 @@ open class SqlFormatter(
 ) : SqlExpressionVisitor() {
 
     protected var _depth = 0
-    protected var _currentStage = FormatterStage.SELECT_CLAUSE
+    protected var _currentStage = FormatterStage.NOT_STARTED
 
     protected val _builder = StringBuilder()
     protected val _parameters = ArrayList<ArgumentExpression<*>>()
@@ -47,10 +47,11 @@ open class SqlFormatter(
 
     protected enum class FormatterStage {
         SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, GROUP_BY_CLAUSE, ORDER_BY_CLAUSE, HAVING_CLAUSE,
-        INSERT_STATEMENT, UPDATE_STATEMENT, DELETE_STATEMENT
+        INSERT_STATEMENT, UPDATE_STATEMENT, DELETE_STATEMENT,
+        NOT_STARTED
     }
 
-    protected fun withStage(stage: FormatterStage, subFormatter: () -> Unit) {
+    protected inline fun withStage(stage: FormatterStage, subFormatter: () -> Unit) {
         val parent = _currentStage
         _currentStage = stage
         subFormatter()
@@ -231,14 +232,19 @@ open class SqlFormatter(
         } else {
             visit(expr.expression)
         }*/
-
-        visit(expr.expression)
-
-        val column = expr.expression as? ColumnExpression<*>
         val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
 
-        if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
-            write("as ${expr.declaredName!!.quoted} ")
+        if (_currentStage == FormatterStage.SELECT_CLAUSE || !hasDeclaredName) {
+            visit(expr.expression)
+        }
+
+        if (_currentStage == FormatterStage.SELECT_CLAUSE) {
+            val column = expr.expression as? ColumnExpression<*>
+            if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
+                write("as ${expr.declaredName!!.quoted} ")
+            }
+        } else {
+            write("${expr.declaredName!!.quoted} ")
         }
 
         return expr
@@ -259,34 +265,46 @@ open class SqlFormatter(
         }
 
         if (expr.columns.isNotEmpty()) {
-            visitColumnDeclaringList(expr.columns)
+            withStage(FormatterStage.SELECT_CLAUSE) {
+                visitColumnDeclaringList(expr.columns)
+            }
         } else {
             write("* ")
         }
 
-        newLine(Indentation.SAME)
-        write("from ")
-        visitQuerySource(expr.from)
+        withStage(FormatterStage.FROM_CLAUSE) {
+            newLine(Indentation.SAME)
+            write("from ")
+            visitQuerySource(expr.from)
+        }
 
         if (expr.where != null) {
             newLine(Indentation.SAME)
             write("where ")
-            visit(expr.where)
+            withStage(FormatterStage.WHERE_CLAUSE) {
+                visit(expr.where)
+            }
         }
         if (expr.groupBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             write("group by ")
-            visitGroupByList(expr.groupBy)
+            withStage(FormatterStage.GROUP_BY_CLAUSE) {
+                visitGroupByList(expr.groupBy)
+            }
         }
         if (expr.having != null) {
             newLine(Indentation.SAME)
             write("having ")
-            visit(expr.having)
+            withStage(FormatterStage.HAVING_CLAUSE) {
+                visit(expr.having)
+            }
         }
         if (expr.orderBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             write("order by ")
-            visitOrderByList(expr.orderBy)
+            withStage(FormatterStage.ORDER_BY_CLAUSE) {
+                visitOrderByList(expr.orderBy)
+            }
         }
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
