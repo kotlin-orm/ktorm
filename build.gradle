@@ -88,6 +88,11 @@ subprojects { project ->
                             name = "vince"
                             email = "me@liuwj.me"
                         }
+                        developer {
+                            id = "waluo"
+                            name = "waluo"
+                            email = "1b79349b@gmail.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/vincentlauvlwj/Ktorm.git"
