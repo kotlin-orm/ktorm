@@ -71,7 +71,7 @@ interface ColumnDeclaring<T : Any> {
      * is a [Column], a label identifying the selected columns will be set to [ColumnDeclaringExpression.declaredName],
      * otherwise if it's a [ScalarExpression], the property will be set to null.
      */
-    fun asDeclaringExpression(): ColumnDeclaringExpression
+    fun asDeclaringExpression(): ColumnDeclaringExpression<T>
 
     /**
      * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
@@ -127,7 +127,7 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
     /**
      * Wrap this column as a [ColumnDeclaringExpression].
      */
-    override fun asDeclaringExpression(): ColumnDeclaringExpression {
+    override fun asDeclaringExpression(): ColumnDeclaringExpression<T> {
         return ColumnDeclaringExpression(expression = asExpression(), declaredName = label)
     }
 

@@ -207,7 +207,7 @@ open class SqlFormatter(
         return expr
     }
 
-    override fun visitColumnDeclaring(expr: ColumnDeclaringExpression): ColumnDeclaringExpression {
+    override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
         /*if (expr.expression is SelectExpression) {
             write("(")
             newLine(Indentation.INNER)

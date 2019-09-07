@@ -64,7 +64,7 @@ abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
         return this
     }
 
-    override fun asDeclaringExpression(): ColumnDeclaringExpression {
+    override fun asDeclaringExpression(): ColumnDeclaringExpression<T> {
         return ColumnDeclaringExpression(expression = this, declaredName = null)
     }
 
@@ -117,7 +117,7 @@ sealed class QueryExpression : QuerySourceExpression() {
  * @property isDistinct mark if this query is distinct, true means the SQL is `select distinct ...`.
  */
 data class SelectExpression(
-    val columns: List<ColumnDeclaringExpression> = emptyList(),
+    val columns: List<ColumnDeclaringExpression<*>> = emptyList(),
     val from: QuerySourceExpression,
     val where: ScalarExpression<Boolean>? = null,
     val groupBy: List<ScalarExpression<*>> = emptyList(),
@@ -338,12 +338,19 @@ data class ColumnExpression<T : Any>(
  * @property expression the source expression, might be a [ColumnExpression] or other scalar expression types.
  * @property declaredName the declaring label.
  */
-data class ColumnDeclaringExpression(
-    val expression: ScalarExpression<*>,
+data class ColumnDeclaringExpression<T : Any>(
+    val expression: ScalarExpression<T>,
     val declaredName: String? = null,
-    override val isLeafNode: Boolean = false,
+    override val isLeafNode: Boolean = true,
     override val extraProperties: Map<String, Any> = emptyMap()
-) : SqlExpression()
+) : ScalarExpression<T>() {
+    override val sqlType: SqlType<T>
+        get() = expression.sqlType
+
+    override fun asDeclaringExpression(): ColumnDeclaringExpression<T> {
+        return this
+    }
+}
 
 /**
  * The enum of order directions in a [OrderByExpression].
