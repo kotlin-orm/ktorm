@@ -37,11 +37,25 @@ open class SqlFormatter(
 ) : SqlExpressionVisitor() {
 
     protected var _depth = 0
+    protected var _currentStage = FormatterStage.SELECT_CLAUSE
+
     protected val _builder = StringBuilder()
     protected val _parameters = ArrayList<ArgumentExpression<*>>()
 
     val sql: String get() = _builder.toString()
     val parameters: List<ArgumentExpression<*>> get() = _parameters
+
+    protected enum class FormatterStage {
+        SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, GROUP_BY_CLAUSE, ORDER_BY_CLAUSE, HAVING_CLAUSE,
+        INSERT_STATEMENT, UPDATE_STATEMENT, DELETE_STATEMENT
+    }
+
+    protected fun withStage(stage: FormatterStage, subFormatter: () -> Unit) {
+        val parent = _currentStage
+        _currentStage = stage
+        subFormatter()
+        _currentStage = parent
+    }
 
     protected enum class Indentation {
         INNER, OUTER, SAME
