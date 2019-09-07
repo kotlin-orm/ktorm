@@ -147,8 +147,9 @@ open class SqlExpressionVisitor {
         return expr
     }
 
-    protected open fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>):
-        ColumnDeclaringExpression<T> {
+    protected open fun <T : Any> visitColumnDeclaring(
+        expr: ColumnDeclaringExpression<T>
+    ): ColumnDeclaringExpression<T> {
         val expression = visitScalar(expr.expression)
 
         if (expression === expr.expression) {

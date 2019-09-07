@@ -120,9 +120,10 @@ class QueryTest : BaseTest() {
         val t = Employees
 
         val salaryAvg = avg(t.salary).alias("salary_avg")
+        val id = t.departmentId.asExpression().alias("id")
         val salaries = t
-            .select(t.departmentId, salaryAvg)
-            .groupBy(t.departmentId)
+            .select(id, salaryAvg)
+            .groupBy(id)
             .having { salaryAvg greater 100.0 }
             .associate { it.getInt(1) to it.getDouble(2) }
 
