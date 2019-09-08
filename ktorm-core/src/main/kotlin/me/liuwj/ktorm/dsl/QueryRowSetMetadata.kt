@@ -2,148 +2,166 @@ package me.liuwj.ktorm.dsl
 
 import java.io.Serializable
 import java.sql.ResultSetMetaData
+import java.sql.ResultSetMetaData.columnNullableUnknown
 import java.sql.SQLException
+import java.sql.Types
 
 /**
  * Created by vince on Sep 03, 2019.
  */
-internal class QueryRowSetMetadata : ResultSetMetaData, Serializable {
-    private val colCount: Int = 0
-    private val colInfo: Array<ColInfo> = emptyArray()
+internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaData, Serializable {
+    private val columns = Array(metadata.columnCount) { index ->
+        val i = index + 1
 
-    private fun checkColRange(col: Int) {
-        if (col <= 0 || col > colCount) {
+        ColumnInfo(
+            autoIncrement = try { metadata.isAutoIncrement(i) } catch (_: Throwable) { false },
+            caseSensitive = try { metadata.isCaseSensitive(i) } catch (_: Throwable) { false },
+            searchable = try { metadata.isSearchable(i) } catch (_: Throwable) { false },
+            currency = try { metadata.isCurrency(i) } catch (_: Throwable) { false },
+            nullable = try { metadata.isNullable(i) } catch (_: Throwable) { columnNullableUnknown },
+            signed = try { metadata.isSigned(i) } catch (_: Throwable) { true },
+            columnDisplaySize = try { metadata.getColumnDisplaySize(i) } catch (_: Throwable) { 0 },
+            columnLabel = try { metadata.getColumnLabel(i).orEmpty() } catch (_: Throwable) { "" },
+            columnName = try { metadata.getColumnName(i).orEmpty() } catch (_: Throwable) { "" },
+            schemaName = try { metadata.getSchemaName(i).orEmpty() } catch (_: Throwable) { "" },
+            precision = try { metadata.getPrecision(i) } catch (_: Throwable) { 0 },
+            scale = try { metadata.getScale(i) } catch (_: Throwable) { 0 },
+            tableName = try { metadata.getTableName(i).orEmpty() } catch (_: Throwable) { "" },
+            catalogName = try { metadata.getCatalogName(i).orEmpty() } catch (_: Throwable) { "" },
+            columnType = try { metadata.getColumnType(i) } catch (_: Throwable) { Types.VARCHAR },
+            columnTypeName = try { metadata.getColumnTypeName(i).orEmpty() } catch (_: Throwable) { "" },
+            columnClassName = try { metadata.getColumnClassName(i).orEmpty() } catch (_: Throwable) { "" },
+            readonly = true,
+            writable = false,
+            definitelyWritable = false
+        )
+    }
+
+    private operator fun get(col: Int): ColumnInfo {
+        if (col <= 0 || col > columns.size) {
             throw SQLException("Invalid column index: $col")
         }
+
+        return columns[col - 1]
     }
 
     override fun getColumnCount(): Int {
-        return colCount
+        return columns.size
     }
 
     override fun isAutoIncrement(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].autoIncrement
+        return this[columnIndex].autoIncrement
     }
 
     override fun isCaseSensitive(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].caseSensitive
+        return this[columnIndex].caseSensitive
     }
 
     override fun isSearchable(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].searchable
+        return this[columnIndex].searchable
     }
 
     override fun isCurrency(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].currency
+        return this[columnIndex].currency
     }
 
     override fun isNullable(columnIndex: Int): Int {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].nullable
+        return this[columnIndex].nullable
     }
 
     override fun isSigned(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].signed
+        return this[columnIndex].signed
     }
 
     override fun getColumnDisplaySize(columnIndex: Int): Int {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].columnDisplaySize
+        return this[columnIndex].columnDisplaySize
     }
 
     override fun getColumnLabel(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].columnLabel
+        return this[columnIndex].columnLabel
     }
 
     override fun getColumnName(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].columnName
+        return this[columnIndex].columnName
     }
 
     override fun getSchemaName(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].schemaName
+        return this[columnIndex].schemaName
     }
 
     override fun getPrecision(columnIndex: Int): Int {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].colPrecision
+        return this[columnIndex].precision
     }
 
     override fun getScale(columnIndex: Int): Int {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].colScale
+        return this[columnIndex].scale
     }
 
     override fun getTableName(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].tableName
+        return this[columnIndex].tableName
     }
 
     override fun getCatalogName(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].catName
+        return this[columnIndex].catalogName
     }
 
     override fun getColumnType(columnIndex: Int): Int {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].colType
+        return this[columnIndex].columnType
     }
 
     override fun getColumnTypeName(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].colTypeName
+        return this[columnIndex].columnTypeName
     }
 
     override fun isReadOnly(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].readonly
+        return this[columnIndex].readonly
     }
 
     override fun isWritable(columnIndex: Int): Boolean {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].writable
+        return this[columnIndex].writable
     }
 
     override fun isDefinitelyWritable(columnIndex: Int): Boolean {
-        return isWritable(columnIndex)
+        return this[columnIndex].definitelyWritable
     }
 
     override fun getColumnClassName(columnIndex: Int): String {
-        checkColRange(columnIndex)
-        return colInfo[columnIndex].colClassName
+        return this[columnIndex].columnClassName
+    }
+
+    override fun <T : Any?> unwrap(iface: Class<T>): T {
+        return iface.cast(this)
+    }
+
+    override fun isWrapperFor(iface: Class<*>): Boolean {
+        return iface.isInstance(this)
     }
 
     companion object {
         private const val serialVersionUID = 1L
     }
 
-    private data class ColInfo(
+    private data class ColumnInfo(
         val autoIncrement: Boolean,
         val caseSensitive: Boolean,
+        val searchable: Boolean,
         val currency: Boolean,
         val nullable: Int,
         val signed: Boolean,
-        val searchable: Boolean,
         val columnDisplaySize: Int,
         val columnLabel: String,
         val columnName: String,
         val schemaName: String,
-        val colPrecision: Int,
-        val colScale: Int,
+        val precision: Int,
+        val scale: Int,
         val tableName: String,
-        val catName: String,
-        val colType: Int,
-        val colTypeName: String,
-        val colClassName: String,
+        val catalogName: String,
+        val columnType: Int,
+        val columnTypeName: String,
+        val columnClassName: String,
         val readonly: Boolean,
-        val writable: Boolean
+        val writable: Boolean,
+        val definitelyWritable: Boolean
     ) : Serializable {
         companion object {
             private const val serialVersionUID = 1L
