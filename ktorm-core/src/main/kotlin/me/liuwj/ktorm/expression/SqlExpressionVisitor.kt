@@ -45,7 +45,6 @@ open class SqlExpressionVisitor {
             is ScalarExpression<*> -> visitScalar(expr)
             is QueryExpression -> visitQuery(expr)
             is QuerySourceExpression -> visitQuerySource(expr)
-            is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
             is OrderByExpression -> visitOrderBy(expr)
             is ColumnAssignmentExpression<*> -> visitColumnAssignment(expr)
             is InsertExpression -> visitInsert(expr)
@@ -58,6 +57,7 @@ open class SqlExpressionVisitor {
 
     protected open fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
+            is ColumnDeclaringExpression<*> -> visitColumnDeclaring(expr)
             is CastingExpression -> visitCasting(expr)
             is UnaryExpression -> visitUnary(expr)
             is BinaryExpression -> visitBinary(expr)
@@ -147,7 +147,9 @@ open class SqlExpressionVisitor {
         return expr
     }
 
-    protected open fun visitColumnDeclaring(expr: ColumnDeclaringExpression): ColumnDeclaringExpression {
+    protected open fun <T : Any> visitColumnDeclaring(
+        expr: ColumnDeclaringExpression<T>
+    ): ColumnDeclaringExpression<T> {
         val expression = visitScalar(expr.expression)
 
         if (expression === expr.expression) {
@@ -168,8 +170,8 @@ open class SqlExpressionVisitor {
     }
 
     protected open fun visitColumnDeclaringList(
-        original: List<ColumnDeclaringExpression>
-    ): List<ColumnDeclaringExpression> {
+        original: List<ColumnDeclaringExpression<*>>
+    ): List<ColumnDeclaringExpression<*>> {
         return visitExpressionList(original)
     }
 

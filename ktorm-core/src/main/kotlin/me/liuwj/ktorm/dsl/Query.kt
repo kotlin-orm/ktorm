@@ -370,7 +370,7 @@ private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {
     }
 }
 
-internal tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclaringExpression> {
+internal tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclaringExpression<*>> {
     return when (this) {
         is SelectExpression -> columns
         is UnionExpression -> left.findDeclaringColumns()
