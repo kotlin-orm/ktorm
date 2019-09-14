@@ -1,5 +1,6 @@
 package me.liuwj.ktorm.dsl
 
+import java.math.BigDecimal
 import java.sql.*
 import javax.sql.rowset.serial.*
 
@@ -10,6 +11,7 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     private val metadata = QueryRowSetMetadata(rs.metaData)
     private val values = readValues(rs)
     private var cursor = -1
+    private var wasNull = false
 
     private fun readValues(rs: ResultSet): List<Array<Any?>> {
         val typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
@@ -39,7 +41,86 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         if (cursor >= -1 && cursor < values.size) {
             return ++cursor != values.size
         } else {
-            throw SQLException("Invalid cursor positionn.")
+            throw SQLException("Invalid cursor position.")
         }
+    }
+
+    override fun close() {
+        // no-op
+    }
+
+    override fun wasNull(): Boolean {
+        return wasNull
+    }
+
+    private fun getColumnValue(index: Int): Any? {
+        if (index < 1 || index > metadata.columnCount) {
+            throw SQLException("Invalid column index.")
+        }
+
+        // todo: check cursor
+
+        val value = values[cursor][index - 1]
+        wasNull = value == null
+        return value
+    }
+
+    override fun getString(columnIndex: Int): String? {
+        return getColumnValue(columnIndex)?.toString()
+    }
+
+    override fun getBoolean(columnIndex: Int): Boolean {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> false
+            is Boolean -> value
+            is Number -> value.toDouble().toBits() != 0.0.toBits()
+            else -> value.toString().toDouble().toBits() != 0.0.toBits()
+        }
+    }
+
+    override fun getByte(columnIndex: Int): Byte {
+        return when (val value = getColumnValue(columnIndex)) {
+            is Number -> value.toByte()
+            else -> value?.toString()?.toByte() ?: 0
+        }
+    }
+
+    override fun getShort(columnIndex: Int): Short {
+        return when (val value = getColumnValue(columnIndex)) {
+            is Number -> value.toShort()
+            else -> value?.toString()?.toShort() ?: 0
+        }
+    }
+
+    override fun getInt(columnIndex: Int): Int {
+        return when (val value = getColumnValue(columnIndex)) {
+            is Number -> value.toInt()
+            else -> value?.toString()?.toInt() ?: 0
+        }
+    }
+
+    override fun getLong(columnIndex: Int): Long {
+        return when (val value = getColumnValue(columnIndex)) {
+            is Number -> value.toLong()
+            else -> value?.toString()?.toLong() ?: 0
+        }
+    }
+
+    override fun getFloat(columnIndex: Int): Float {
+        return when (val value = getColumnValue(columnIndex)) {
+            is Number -> value.toFloat()
+            else -> value?.toString()?.toFloat() ?: 0.0F
+        }
+    }
+
+    override fun getDouble(columnIndex: Int): Double {
+        return when (val value = getColumnValue(columnIndex)) {
+            is Number -> value.toDouble()
+            else -> value?.toString()?.toDouble() ?: 0.0
+        }
+    }
+
+    override fun getBigDecimal(columnIndex: Int, scale: Int): BigDecimal {
+        TODO()
     }
 }
