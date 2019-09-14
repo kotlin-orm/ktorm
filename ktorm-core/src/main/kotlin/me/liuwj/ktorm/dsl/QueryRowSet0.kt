@@ -5,17 +5,45 @@ import java.io.Reader
 import java.math.BigDecimal
 import java.net.URL
 import java.sql.*
-import java.sql.Array
 import java.sql.Date
 import java.util.*
+import javax.sql.rowset.serial.*
 
 /**
  * Created by vince on Sep 02, 2019.
  */
-class QueryRowSet0 internal constructor(query: Query, rs: ResultSet) : ResultSet {
+class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : ResultSet {
+    private val metadata: ResultSetMetaData
+    private val values: List<Array<Any?>>
 
+    init {
+        val typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
+
+        this.metadata = QueryRowSetMetadata(rs.metaData)
+
+        this.values = rs.iterable().map { row ->
+            Array(metadata.columnCount) { index ->
+                val obj = if (typeMap.isNullOrEmpty()) {
+                    row.getObject(index + 1)
+                } else {
+                    row.getObject(index + 1, typeMap)
+                }
+
+                when (obj) {
+                    is Ref -> SerialRef(obj)
+                    is Struct -> SerialStruct(obj, typeMap)
+                    is SQLData -> SerialStruct(obj, typeMap)
+                    is Blob -> SerialBlob(obj)
+                    is Clob -> SerialClob(obj)
+                    is java.sql.Array -> if (typeMap != null) SerialArray(obj, typeMap) else SerialArray(obj)
+                    else -> obj
+                }
+            }
+        }
+    }
 
     override fun findColumn(columnLabel: String?): Int {
+        listOf(1).toTypedArray()
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
