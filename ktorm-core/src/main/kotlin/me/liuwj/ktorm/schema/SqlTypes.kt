@@ -16,7 +16,6 @@
 
 package me.liuwj.ktorm.schema
 
-import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.sql.*
 import java.time.*
@@ -24,6 +23,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
 import java.time.temporal.ChronoField
+import javax.sql.rowset.serial.SerialBlob
 
 /**
  * Define a column typed of [BooleanSqlType].
@@ -198,11 +198,37 @@ fun <E : Any> BaseTable<E>.blob(name: String): BaseTable<E>.ColumnRegistration<B
  */
 object BlobSqlType : SqlType<ByteArray>(Types.BLOB, "blob") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ByteArray) {
-        ByteArrayInputStream(parameter).use { ps.setBlob(index, it) }
+        ps.setBlob(index, SerialBlob(parameter))
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): ByteArray? {
-        return rs.getBlob(index)?.binaryStream?.use { it.readBytes() }
+        val blob = rs.getBlob(index) ?: return null
+
+        try {
+            return blob.binaryStream.use { it.readBytes() }
+        } finally {
+            blob.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed of [BytesSqlType].
+ */
+fun <E : Any> BaseTable<E>.bytes(name: String): BaseTable<E>.ColumnRegistration<ByteArray> {
+    return registerColumn(name, BytesSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `bytes` SQL type.
+ */
+object BytesSqlType : SqlType<ByteArray>(Types.BINARY, "bytes") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ByteArray) {
+        ps.setBytes(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): ByteArray? {
+        return rs.getBytes(index)
     }
 }
 

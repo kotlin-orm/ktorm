@@ -2,6 +2,11 @@ package me.liuwj.ktorm.dsl
 
 import java.math.BigDecimal
 import java.sql.*
+import java.text.DateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.sql.rowset.serial.*
 
 /**
@@ -120,7 +125,82 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         }
     }
 
-    override fun getBigDecimal(columnIndex: Int, scale: Int): BigDecimal {
+    override fun getBigDecimal(columnIndex: Int, scale: Int): BigDecimal? {
         TODO()
+    }
+
+    override fun getBytes(columnIndex: Int): ByteArray? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is ByteArray -> value
+            is Blob -> {
+                try {
+                    value.binaryStream.use { it.readBytes() }
+                } finally {
+                    value.free()
+                }
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to byte[].")
+            }
+        }
+    }
+
+    override fun getDate(columnIndex: Int): Date? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is java.util.Date -> Date(value.time)
+            is String -> {
+                val date = DateFormat.getDateInstance().parse(value)
+                Date(date.time)
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to Date.")
+            }
+        }
+    }
+
+    override fun getTime(columnIndex: Int): Time? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is java.util.Date -> Time(value.time)
+            is String -> {
+                val date = DateFormat.getTimeInstance().parse(value)
+                Time(date.time)
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to Time.")
+            }
+        }
+    }
+
+    override fun getTimestamp(columnIndex: Int): Timestamp? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is java.util.Date -> Timestamp(value.time)
+            is String -> {
+                val date = DateFormat.getDateTimeInstance().parse(value)
+                Timestamp(date.time)
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to Timestamp.")
+            }
+        }
+    }
+
+    fun getLocalDate(columnIndex: Int): LocalDate? {
+        return getDate(columnIndex)?.toLocalDate()
+    }
+
+    fun getLocalTime(columnIndex: Int): LocalTime? {
+        return getTime(columnIndex)?.toLocalTime()
+    }
+
+    fun getLocalDateTime(columnIndex: Int): LocalDateTime? {
+        return getTimestamp(columnIndex)?.toLocalDateTime()
+    }
+
+    fun getInstant(columnIndex: Int): Instant? {
+        return getTimestamp(columnIndex)?.toInstant()
     }
 }
