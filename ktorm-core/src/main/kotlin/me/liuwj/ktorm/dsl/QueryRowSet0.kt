@@ -263,4 +263,93 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
         }
     }
+
+    override fun getString(columnLabel: String): String? {
+        return getString(findColumn(columnLabel))
+    }
+
+    override fun getBoolean(columnLabel: String): Boolean {
+        return getBoolean(findColumn(columnLabel))
+    }
+
+    override fun getByte(columnLabel: String): Byte {
+        return getByte(findColumn(columnLabel))
+    }
+
+    override fun getShort(columnLabel: String): Short {
+        return getShort(findColumn(columnLabel))
+    }
+
+    override fun getInt(columnLabel: String): Int {
+        return getInt(findColumn(columnLabel))
+    }
+
+    override fun getLong(columnLabel: String): Long {
+        return getLong(findColumn(columnLabel))
+    }
+
+    override fun getFloat(columnLabel: String): Float {
+        return getFloat(findColumn(columnLabel))
+    }
+
+    override fun getDouble(columnLabel: String): Double {
+        return getDouble(findColumn(columnLabel))
+    }
+
+    override fun getBigDecimal(columnLabel: String, scale: Int): BigDecimal? {
+        return getBigDecimal(findColumn(columnLabel), scale)
+    }
+
+    override fun getBytes(columnLabel: String): ByteArray? {
+        return getBytes(findColumn(columnLabel))
+    }
+
+    override fun getDate(columnLabel: String): Date? {
+        return getDate(findColumn(columnLabel))
+    }
+
+    override fun getTime(columnLabel: String): Time? {
+        return getTime(findColumn(columnLabel))
+    }
+
+    override fun getTimestamp(columnLabel: String): Timestamp? {
+        return getTimestamp(findColumn(columnLabel))
+    }
+
+    fun getLocalDate(columnLabel: String): LocalDate? {
+        return getLocalDate(findColumn(columnLabel))
+    }
+
+    fun getLocalTime(columnLabel: String): LocalTime? {
+        return getLocalTime(findColumn(columnLabel))
+    }
+
+    fun getLocalDateTime(columnLabel: String): LocalDateTime? {
+        return getLocalDateTime(findColumn(columnLabel))
+    }
+
+    fun getInstant(columnLabel: String): Instant? {
+        return getInstant(findColumn(columnLabel))
+    }
+
+    override fun getAsciiStream(columnLabel: String): InputStream? {
+        return getAsciiStream(findColumn(columnLabel))
+    }
+
+    override fun getUnicodeStream(columnLabel: String): InputStream? {
+        return getUnicodeStream(findColumn(columnLabel))
+    }
+
+    override fun getBinaryStream(columnLabel: String): InputStream? {
+        return getBinaryStream(findColumn(columnLabel))
+    }
+
+    override fun findColumn(columnLabel: String): Int {
+        for (index in 1..metadata.columnCount) {
+            if (metadata.getColumnLabel(index).equals(columnLabel, ignoreCase = true)) {
+                return index
+            }
+        }
+        throw SQLException("Invalid column name: $columnLabel")
+    }
 }
