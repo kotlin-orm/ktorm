@@ -1,5 +1,7 @@
 package me.liuwj.ktorm.dsl
 
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.math.BigDecimal
 import java.sql.*
 import java.text.DateFormat
@@ -33,12 +35,48 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
                     is Ref -> SerialRef(obj)
                     is Struct -> SerialStruct(obj, typeMap)
                     is SQLData -> SerialStruct(obj, typeMap)
-                    is Blob -> SerialBlob(obj)
-                    is Clob -> SerialClob(obj)
-                    is java.sql.Array -> if (typeMap != null) SerialArray(obj, typeMap) else SerialArray(obj)
+                    is Blob -> try { MemoryBlob(obj) } finally { obj.free() }
+                    is Clob -> try { MemoryClob(obj) } finally { obj.free() }
+                    is java.sql.Array -> try { MemoryArray(obj, typeMap) } finally { obj.free() }
                     else -> obj
                 }
             }
+        }
+    }
+
+    private class MemoryBlob(blob: Blob) : Blob by SerialBlob(blob) {
+
+        override fun free() {
+            // no-op
+        }
+
+        companion object {
+            private const val serialVersionUID = 1L
+        }
+    }
+
+    private class MemoryClob(clob: Clob) : Clob by SerialClob(clob) {
+
+        override fun free() {
+            // no-op
+        }
+
+        companion object {
+            private const val serialVersionUID = 1L
+        }
+    }
+
+    private class MemoryArray(
+        array: java.sql.Array,
+        typeMap: Map<String, Class<*>>?
+    ) : java.sql.Array by if (typeMap != null) SerialArray(array, typeMap) else SerialArray(array) {
+
+        override fun free() {
+            // no-op
+        }
+
+        companion object {
+            private const val serialVersionUID = 1L
         }
     }
 
@@ -71,7 +109,10 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun getString(columnIndex: Int): String? {
-        return getColumnValue(columnIndex)?.toString()
+        return when (val value = getColumnValue(columnIndex)) {
+            is Clob -> value.characterStream.use { it.readText() }
+            else -> value?.toString()
+        }
     }
 
     override fun getBoolean(columnIndex: Int): Boolean {
@@ -133,16 +174,8 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
             is ByteArray -> value
-            is Blob -> {
-                try {
-                    value.binaryStream.use { it.readBytes() }
-                } finally {
-                    value.free()
-                }
-            }
-            else -> {
-                throw SQLException("Cannot convert ${value.javaClass.name} value to byte[].")
-            }
+            is Blob -> value.binaryStream.use { it.readBytes() }
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to byte[].")
         }
     }
 
@@ -202,5 +235,32 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
     fun getInstant(columnIndex: Int): Instant? {
         return getTimestamp(columnIndex)?.toInstant()
+    }
+
+    override fun getAsciiStream(columnIndex: Int): InputStream? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Clob -> value.asciiStream
+            is String -> ByteArrayInputStream(value.toByteArray(Charsets.US_ASCII))
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
+        }
+    }
+
+    override fun getUnicodeStream(columnIndex: Int): InputStream? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is String -> ByteArrayInputStream(value.toByteArray(Charsets.UTF_8))
+            is Clob -> ByteArrayInputStream(value.characterStream.use { it.readText().toByteArray(Charsets.UTF_8) })
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
+        }
+    }
+
+    override fun getBinaryStream(columnIndex: Int): InputStream? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is ByteArray -> ByteArrayInputStream(value)
+            is Blob -> value.binaryStream
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
+        }
     }
 }
