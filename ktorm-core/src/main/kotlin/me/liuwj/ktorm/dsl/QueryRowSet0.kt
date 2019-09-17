@@ -1,7 +1,7 @@
 package me.liuwj.ktorm.dsl
 
-import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.io.Reader
 import java.math.BigDecimal
 import java.sql.*
 import java.text.DateFormat
@@ -15,14 +15,13 @@ import javax.sql.rowset.serial.*
  * Created by vince on Sep 02, 2019.
  */
 class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : ResultSet {
+    private val typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
     private val metadata = QueryRowSetMetadata(rs.metaData)
     private val values = readValues(rs)
     private var cursor = -1
     private var wasNull = false
 
     private fun readValues(rs: ResultSet): List<Array<Any?>> {
-        val typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
-
         return rs.iterable().map { row ->
             Array(metadata.columnCount) { index ->
                 val obj = if (typeMap.isNullOrEmpty()) {
@@ -166,8 +165,11 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         }
     }
 
+    @Suppress("OverridingDeprecatedMember")
     override fun getBigDecimal(columnIndex: Int, scale: Int): BigDecimal? {
-        TODO()
+        val decimal = getBigDecimal(columnIndex)
+        decimal?.setScale(scale)
+        return decimal
     }
 
     override fun getBytes(columnIndex: Int): ByteArray? {
@@ -240,17 +242,20 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     override fun getAsciiStream(columnIndex: Int): InputStream? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
+            is Blob -> value.binaryStream
             is Clob -> value.asciiStream
-            is String -> ByteArrayInputStream(value.toByteArray(Charsets.US_ASCII))
+            is String -> value.byteInputStream(Charsets.US_ASCII)
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
         }
     }
 
+    @Suppress("OverridingDeprecatedMember")
     override fun getUnicodeStream(columnIndex: Int): InputStream? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is String -> ByteArrayInputStream(value.toByteArray(Charsets.UTF_8))
-            is Clob -> ByteArrayInputStream(value.characterStream.use { it.readText().toByteArray(Charsets.UTF_8) })
+            is Blob -> value.binaryStream
+            is Clob -> value.characterStream.use { it.readText() }.byteInputStream(Charsets.UTF_8)
+            is String -> value.byteInputStream(Charsets.UTF_8)
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
         }
     }
@@ -258,8 +263,9 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     override fun getBinaryStream(columnIndex: Int): InputStream? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is ByteArray -> ByteArrayInputStream(value)
             is Blob -> value.binaryStream
+            is Clob -> value.asciiStream
+            is ByteArray -> value.inputStream()
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to InputStream.")
         }
     }
@@ -296,6 +302,7 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         return getDouble(findColumn(columnLabel))
     }
 
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override fun getBigDecimal(columnLabel: String, scale: Int): BigDecimal? {
         return getBigDecimal(findColumn(columnLabel), scale)
     }
@@ -336,12 +343,50 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         return getAsciiStream(findColumn(columnLabel))
     }
 
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override fun getUnicodeStream(columnLabel: String): InputStream? {
         return getUnicodeStream(findColumn(columnLabel))
     }
 
     override fun getBinaryStream(columnLabel: String): InputStream? {
         return getBinaryStream(findColumn(columnLabel))
+    }
+
+    override fun getWarnings(): SQLWarning? {
+        return null
+    }
+
+    override fun clearWarnings() {
+        // no-op
+    }
+
+    @Deprecated("Positioned updates and deletes are not supported.", level = DeprecationLevel.HIDDEN)
+    override fun getCursorName(): Nothing {
+        throw SQLFeatureNotSupportedException("Positioned updates and deletes are not supported.")
+    }
+
+    override fun getMetaData(): ResultSetMetaData {
+        return metadata
+    }
+
+    override fun getObject(columnIndex: Int): Any? {
+        val value = getColumnValue(columnIndex)
+
+        if (value is Struct) {
+            val cls = typeMap?.get(value.sqlTypeName)
+            if (cls != null) {
+                val data = cls.newInstance() as SQLData
+                val input = SQLInputImpl(value.getAttributes(typeMap), typeMap)
+                data.readSQL(input, value.sqlTypeName)
+                return data
+            }
+        }
+
+        return value
+    }
+
+    override fun getObject(columnLabel: String): Any? {
+        return getObject(findColumn(columnLabel))
     }
 
     override fun findColumn(columnLabel: String): Int {
@@ -351,5 +396,31 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
             }
         }
         throw SQLException("Invalid column name: $columnLabel")
+    }
+
+    override fun getCharacterStream(columnIndex: Int): Reader? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Blob -> value.binaryStream.reader()
+            is Clob -> value.characterStream
+            is ByteArray -> value.inputStream().reader()
+            is String -> value.reader()
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Reader.")
+        }
+    }
+
+    override fun getCharacterStream(columnLabel: String): Reader? {
+        return getCharacterStream(findColumn(columnLabel))
+    }
+
+    override fun getBigDecimal(columnIndex: Int): BigDecimal? {
+        return when (val value = getColumnValue(columnIndex)) {
+            is BigDecimal -> value
+            else -> value?.toString()?.toBigDecimal()
+        }
+    }
+
+    override fun getBigDecimal(columnLabel: String): BigDecimal? {
+        return getBigDecimal(findColumn(columnLabel))
     }
 }
