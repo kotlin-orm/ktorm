@@ -423,4 +423,58 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     override fun getBigDecimal(columnLabel: String): BigDecimal? {
         return getBigDecimal(findColumn(columnLabel))
     }
+
+    override fun isBeforeFirst(): Boolean {
+        return cursor == -1 && values.isNotEmpty()
+    }
+
+    override fun isAfterLast(): Boolean {
+        return cursor == values.size && values.isNotEmpty()
+    }
+
+    override fun isFirst(): Boolean {
+        return cursor == 0 && values.isNotEmpty()
+    }
+
+    override fun isLast(): Boolean {
+        return cursor == values.size - 1 && values.isNotEmpty()
+    }
+
+    override fun beforeFirst() {
+        if (values.isNotEmpty()) {
+            cursor = -1
+        }
+    }
+
+    override fun afterLast() {
+        if (values.isNotEmpty()) {
+            cursor = values.size
+        }
+    }
+
+    override fun first(): Boolean {
+        if (values.isNotEmpty()) {
+            cursor = 0
+            return true
+        } else {
+            return false
+        }
+    }
+
+    override fun last(): Boolean {
+        if (values.isNotEmpty()) {
+            cursor = values.size - 1
+            return true
+        } else {
+            return false
+        }
+    }
+
+    override fun getRow(): Int {
+        if (cursor > -1 && cursor < values.size && values.isNotEmpty()) {
+            return cursor + 1
+        } else {
+            return 0
+        }
+    }
 }
