@@ -81,7 +81,7 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
     override fun next(): Boolean {
         if (cursor >= -1 && cursor < values.size) {
-            return ++cursor != values.size
+            return ++cursor < values.size
         } else {
             throw SQLException("Invalid cursor position.")
         }
@@ -100,7 +100,9 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
             throw SQLException("Invalid column index.")
         }
 
-        // todo: check cursor
+        if (values.isEmpty() || isAfterLast || isBeforeFirst) {
+            throw SQLException("Invalid cursor position.")
+        }
 
         val value = values[cursor][index - 1]
         wasNull = value == null
@@ -425,11 +427,11 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun isBeforeFirst(): Boolean {
-        return cursor == -1 && values.isNotEmpty()
+        return cursor <= -1 && values.isNotEmpty()
     }
 
     override fun isAfterLast(): Boolean {
-        return cursor == values.size && values.isNotEmpty()
+        return cursor >= values.size && values.isNotEmpty()
     }
 
     override fun isFirst(): Boolean {
@@ -475,6 +477,70 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
             return cursor + 1
         } else {
             return 0
+        }
+    }
+
+    override fun absolute(row: Int): Boolean {
+        when {
+            values.isEmpty() -> {
+                return false
+            }
+            row == 0 -> {
+                beforeFirst()
+                return false
+            }
+            row == 1 -> {
+                return first()
+            }
+            row == -1 -> {
+                return last()
+            }
+            row > values.size -> {
+                afterLast()
+                return false
+            }
+            row > 0 -> {
+                cursor = row - 1
+                return true
+            }
+            else -> {
+                val adjustedRow = values.size + row + 1
+                if (adjustedRow <= 0) {
+                    beforeFirst()
+                    return false
+                } else {
+                    return absolute(adjustedRow)
+                }
+            }
+        }
+    }
+
+    override fun relative(rows: Int): Boolean {
+        if (values.isEmpty()) {
+            return false
+        }
+
+        val newCursor = cursor + rows
+
+        if (newCursor >= values.size) {
+            afterLast()
+            return false
+        }
+
+        if (newCursor <= -1) {
+            beforeFirst()
+            return false
+        }
+
+        cursor = newCursor
+        return true
+    }
+
+    override fun previous(): Boolean {
+        if (cursor > -1 && cursor <= values.size) {
+            return --cursor > -1
+        } else {
+            throw SQLException("Invalid cursor position.")
         }
     }
 }
