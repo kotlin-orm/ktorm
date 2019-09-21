@@ -4,6 +4,7 @@ import java.io.InputStream
 import java.io.Reader
 import java.math.BigDecimal
 import java.sql.*
+import java.sql.ResultSet.*
 import java.text.DateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -15,28 +16,30 @@ import javax.sql.rowset.serial.*
  * Created by vince on Sep 02, 2019.
  */
 class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : ResultSet {
-    private val typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
-    private val metadata = QueryRowSetMetadata(rs.metaData)
-    private val values = readValues(rs)
-    private var cursor = -1
-    private var wasNull = false
+    private val _typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
+    private val _metadata = QueryRowSetMetadata(rs.metaData)
+    private val _values = readValues(rs)
+    private var _cursor = -1
+    private var _wasNull = false
+    private var _fetchDirection = FETCH_FORWARD
+    private var _fetchSize = 0
 
     private fun readValues(rs: ResultSet): List<Array<Any?>> {
         return rs.iterable().map { row ->
-            Array(metadata.columnCount) { index ->
-                val obj = if (typeMap.isNullOrEmpty()) {
+            Array(_metadata.columnCount) { index ->
+                val obj = if (_typeMap.isNullOrEmpty()) {
                     row.getObject(index + 1)
                 } else {
-                    row.getObject(index + 1, typeMap)
+                    row.getObject(index + 1, _typeMap)
                 }
 
                 when (obj) {
                     is Ref -> SerialRef(obj)
-                    is Struct -> SerialStruct(obj, typeMap)
-                    is SQLData -> SerialStruct(obj, typeMap)
+                    is Struct -> SerialStruct(obj, _typeMap)
+                    is SQLData -> SerialStruct(obj, _typeMap)
                     is Blob -> try { MemoryBlob(obj) } finally { obj.free() }
                     is Clob -> try { MemoryClob(obj) } finally { obj.free() }
-                    is java.sql.Array -> try { MemoryArray(obj, typeMap) } finally { obj.free() }
+                    is java.sql.Array -> try { MemoryArray(obj, _typeMap) } finally { obj.free() }
                     else -> obj
                 }
             }
@@ -80,8 +83,8 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun next(): Boolean {
-        if (cursor >= -1 && cursor < values.size) {
-            return ++cursor < values.size
+        if (_cursor >= -1 && _cursor < _values.size) {
+            return ++_cursor < _values.size
         } else {
             throw SQLException("Invalid cursor position.")
         }
@@ -92,20 +95,20 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun wasNull(): Boolean {
-        return wasNull
+        return _wasNull
     }
 
     private fun getColumnValue(index: Int): Any? {
-        if (index < 1 || index > metadata.columnCount) {
+        if (index < 1 || index > _metadata.columnCount) {
             throw SQLException("Invalid column index.")
         }
 
-        if (values.isEmpty() || isAfterLast || isBeforeFirst) {
+        if (_values.isEmpty() || isAfterLast || isBeforeFirst) {
             throw SQLException("Invalid cursor position.")
         }
 
-        val value = values[cursor][index - 1]
-        wasNull = value == null
+        val value = _values[_cursor][index - 1]
+        _wasNull = value == null
         return value
     }
 
@@ -368,17 +371,17 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun getMetaData(): ResultSetMetaData {
-        return metadata
+        return _metadata
     }
 
     override fun getObject(columnIndex: Int): Any? {
         val value = getColumnValue(columnIndex)
 
         if (value is Struct) {
-            val cls = typeMap?.get(value.sqlTypeName)
+            val cls = _typeMap?.get(value.sqlTypeName)
             if (cls != null) {
                 val data = cls.newInstance() as SQLData
-                val input = SQLInputImpl(value.getAttributes(typeMap), typeMap)
+                val input = SQLInputImpl(value.getAttributes(_typeMap), _typeMap)
                 data.readSQL(input, value.sqlTypeName)
                 return data
             }
@@ -392,8 +395,8 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun findColumn(columnLabel: String): Int {
-        for (index in 1..metadata.columnCount) {
-            if (metadata.getColumnLabel(index).equals(columnLabel, ignoreCase = true)) {
+        for (index in 1.._metadata.columnCount) {
+            if (_metadata.getColumnLabel(index).equals(columnLabel, ignoreCase = true)) {
                 return index
             }
         }
@@ -427,36 +430,36 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun isBeforeFirst(): Boolean {
-        return cursor <= -1 && values.isNotEmpty()
+        return _cursor <= -1 && _values.isNotEmpty()
     }
 
     override fun isAfterLast(): Boolean {
-        return cursor >= values.size && values.isNotEmpty()
+        return _cursor >= _values.size && _values.isNotEmpty()
     }
 
     override fun isFirst(): Boolean {
-        return cursor == 0 && values.isNotEmpty()
+        return _cursor == 0 && _values.isNotEmpty()
     }
 
     override fun isLast(): Boolean {
-        return cursor == values.size - 1 && values.isNotEmpty()
+        return _cursor == _values.size - 1 && _values.isNotEmpty()
     }
 
     override fun beforeFirst() {
-        if (values.isNotEmpty()) {
-            cursor = -1
+        if (_values.isNotEmpty()) {
+            _cursor = -1
         }
     }
 
     override fun afterLast() {
-        if (values.isNotEmpty()) {
-            cursor = values.size
+        if (_values.isNotEmpty()) {
+            _cursor = _values.size
         }
     }
 
     override fun first(): Boolean {
-        if (values.isNotEmpty()) {
-            cursor = 0
+        if (_values.isNotEmpty()) {
+            _cursor = 0
             return true
         } else {
             return false
@@ -464,8 +467,8 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun last(): Boolean {
-        if (values.isNotEmpty()) {
-            cursor = values.size - 1
+        if (_values.isNotEmpty()) {
+            _cursor = _values.size - 1
             return true
         } else {
             return false
@@ -473,8 +476,8 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun getRow(): Int {
-        if (cursor > -1 && cursor < values.size && values.isNotEmpty()) {
-            return cursor + 1
+        if (_cursor > -1 && _cursor < _values.size && _values.isNotEmpty()) {
+            return _cursor + 1
         } else {
             return 0
         }
@@ -482,7 +485,7 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
     override fun absolute(row: Int): Boolean {
         when {
-            values.isEmpty() -> {
+            _values.isEmpty() -> {
                 return false
             }
             row == 0 -> {
@@ -495,16 +498,16 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
             row == -1 -> {
                 return last()
             }
-            row > values.size -> {
+            row > _values.size -> {
                 afterLast()
                 return false
             }
             row > 0 -> {
-                cursor = row - 1
+                _cursor = row - 1
                 return true
             }
             else -> {
-                val adjustedRow = values.size + row + 1
+                val adjustedRow = _values.size + row + 1
                 if (adjustedRow <= 0) {
                     beforeFirst()
                     return false
@@ -516,13 +519,13 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun relative(rows: Int): Boolean {
-        if (values.isEmpty()) {
+        if (_values.isEmpty()) {
             return false
         }
 
-        val newCursor = cursor + rows
+        val newCursor = _cursor + rows
 
-        if (newCursor >= values.size) {
+        if (newCursor >= _values.size) {
             afterLast()
             return false
         }
@@ -532,15 +535,47 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
             return false
         }
 
-        cursor = newCursor
+        _cursor = newCursor
         return true
     }
 
     override fun previous(): Boolean {
-        if (cursor > -1 && cursor <= values.size) {
-            return --cursor > -1
+        if (_cursor > -1 && _cursor <= _values.size) {
+            return --_cursor > -1
         } else {
             throw SQLException("Invalid cursor position.")
         }
+    }
+
+    override fun setFetchDirection(direction: Int) {
+        if (direction != FETCH_FORWARD && direction != FETCH_REVERSE && direction != FETCH_UNKNOWN) {
+            throw SQLException("Invalid fetch direction: $direction")
+        }
+
+        _fetchDirection = direction
+    }
+
+    override fun getFetchDirection(): Int {
+        return _fetchDirection
+    }
+
+    override fun setFetchSize(rows: Int) {
+        if (rows < 0) {
+            throw SQLException("Invalid fetch size: $rows")
+        }
+
+        _fetchSize = rows
+    }
+
+    override fun getFetchSize(): Int {
+        return _fetchSize
+    }
+
+    override fun getType(): Int {
+        return TYPE_SCROLL_INSENSITIVE
+    }
+
+    override fun getConcurrency(): Int {
+        return CONCUR_READ_ONLY
     }
 }
