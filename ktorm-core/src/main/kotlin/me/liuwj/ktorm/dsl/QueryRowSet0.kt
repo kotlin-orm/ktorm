@@ -3,6 +3,7 @@ package me.liuwj.ktorm.dsl
 import java.io.InputStream
 import java.io.Reader
 import java.math.BigDecimal
+import java.net.URL
 import java.sql.*
 import java.sql.Date
 import java.sql.ResultSet.*
@@ -936,5 +937,58 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
     override fun getTimestamp(columnLabel: String, cal: Calendar): Timestamp? {
         return getTimestamp(findColumn(columnLabel), cal)
+    }
+
+    override fun getURL(columnIndex: Int): URL? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is URL -> value
+            is String -> URL(value)
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to URL.")
+        }
+    }
+
+    override fun getURL(columnLabel: String): URL? {
+        return getURL(findColumn(columnLabel))
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateRef(columnIndex: Int, x: Ref?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateRef(columnLabel: String?, x: Ref?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBlob(columnIndex: Int, x: Blob?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBlob(columnLabel: String?, x: Blob?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateClob(columnIndex: Int, x: Clob?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateClob(columnLabel: String?, x: Clob?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateArray(columnIndex: Int, x: java.sql.Array?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateArray(columnLabel: String?, x: java.sql.Array?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
     }
 }
