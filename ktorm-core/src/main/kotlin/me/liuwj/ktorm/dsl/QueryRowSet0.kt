@@ -46,7 +46,11 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         }
     }
 
-    private class MemoryBlob(blob: Blob) : Blob by SerialBlob(blob) {
+    private class MemoryBlob(blob: SerialBlob) : Blob by blob {
+
+        constructor(blob: Blob) : this(SerialBlob(blob))
+
+        constructor(bytes: ByteArray) : this(SerialBlob(bytes))
 
         override fun free() {
             // no-op
@@ -57,7 +61,11 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         }
     }
 
-    private class MemoryClob(clob: Clob) : Clob by SerialClob(clob) {
+    private class MemoryClob(clob: SerialClob) : Clob by clob {
+
+        constructor(clob: Clob) : this(SerialClob(clob))
+
+        constructor(str: String) : this(SerialClob(str.toCharArray()))
 
         override fun free() {
             // no-op
@@ -375,19 +383,7 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     }
 
     override fun getObject(columnIndex: Int): Any? {
-        val value = getColumnValue(columnIndex)
-
-        if (value is Struct) {
-            val cls = _typeMap?.get(value.sqlTypeName)
-            if (cls != null) {
-                val data = cls.newInstance() as SQLData
-                val input = SQLInputImpl(value.getAttributes(_typeMap), _typeMap)
-                data.readSQL(input, value.sqlTypeName)
-                return data
-            }
-        }
-
-        return value
+        return getObject(columnIndex, _typeMap.orEmpty())
     }
 
     override fun getObject(columnLabel: String): Any? {
@@ -817,5 +813,79 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
     override fun moveToCurrentRow(): Nothing {
         throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    override fun getStatement(): Statement? {
+        return null
+    }
+
+    override fun getObject(columnIndex: Int, map: Map<String, Class<*>>): Any? {
+        val value = getColumnValue(columnIndex)
+
+        if (value is Struct) {
+            val cls = map[value.sqlTypeName]
+            if (cls != null) {
+                val data = cls.newInstance() as SQLData
+                val input = SQLInputImpl(value.getAttributes(map), map)
+                data.readSQL(input, value.sqlTypeName)
+                return data
+            }
+        }
+
+        return value
+    }
+
+    override fun getRef(columnIndex: Int): Ref? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Ref -> value
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Ref.")
+        }
+    }
+
+    override fun getBlob(columnIndex: Int): Blob? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is ByteArray -> MemoryBlob(value)
+            is Blob -> value
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Blob.")
+        }
+    }
+
+    override fun getClob(columnIndex: Int): Clob? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is String -> MemoryClob(value)
+            is Clob -> value
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Clob.")
+        }
+    }
+
+    override fun getArray(columnIndex: Int): java.sql.Array? {
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is java.sql.Array -> value
+            else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Array.")
+        }
+    }
+
+    override fun getObject(columnLabel: String, map: Map<String, Class<*>>): Any? {
+        return getObject(findColumn(columnLabel), map)
+    }
+
+    override fun getRef(columnLabel: String): Ref? {
+        return getRef(findColumn(columnLabel))
+    }
+
+    override fun getBlob(columnLabel: String): Blob? {
+        return getBlob(findColumn(columnLabel))
+    }
+
+    override fun getClob(columnLabel: String): Clob? {
+        return getClob(findColumn(columnLabel))
+    }
+
+    override fun getArray(columnLabel: String): java.sql.Array? {
+        return getArray(findColumn(columnLabel))
     }
 }
