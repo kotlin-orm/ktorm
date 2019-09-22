@@ -4,12 +4,14 @@ import java.io.InputStream
 import java.io.Reader
 import java.math.BigDecimal
 import java.sql.*
+import java.sql.Date
 import java.sql.ResultSet.*
 import java.text.DateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.util.*
 import javax.sql.rowset.serial.*
 
 /**
@@ -887,5 +889,52 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
     override fun getArray(columnLabel: String): java.sql.Array? {
         return getArray(findColumn(columnLabel))
+    }
+
+    override fun getDate(columnIndex: Int, cal: Calendar): Date? {
+        val defaultCalendar = Calendar.getInstance()
+        defaultCalendar.time = getDate(columnIndex) ?: return null
+
+        cal.set(Calendar.YEAR, defaultCalendar.get(Calendar.YEAR))
+        cal.set(Calendar.MONTH, defaultCalendar.get(Calendar.MONTH))
+        cal.set(Calendar.DAY_OF_MONTH, defaultCalendar.get(Calendar.DAY_OF_MONTH))
+        return Date(cal.timeInMillis)
+    }
+
+    override fun getDate(columnLabel: String, cal: Calendar): Date? {
+        return getDate(findColumn(columnLabel), cal)
+    }
+
+    override fun getTime(columnIndex: Int, cal: Calendar): Time? {
+        val defaultCalendar = Calendar.getInstance()
+        defaultCalendar.time = getTime(columnIndex) ?: return null
+
+        cal.set(Calendar.HOUR_OF_DAY, defaultCalendar.get(Calendar.HOUR_OF_DAY))
+        cal.set(Calendar.MINUTE, defaultCalendar.get(Calendar.MINUTE))
+        cal.set(Calendar.SECOND, defaultCalendar.get(Calendar.SECOND))
+        cal.set(Calendar.MILLISECOND, defaultCalendar.get(Calendar.MILLISECOND))
+        return Time(cal.timeInMillis)
+    }
+
+    override fun getTime(columnLabel: String, cal: Calendar): Time? {
+        return getTime(findColumn(columnLabel), cal)
+    }
+
+    override fun getTimestamp(columnIndex: Int, cal: Calendar): Timestamp? {
+        val defaultCalendar = Calendar.getInstance()
+        defaultCalendar.time = getTimestamp(columnIndex) ?: return null
+
+        cal.set(Calendar.YEAR, defaultCalendar.get(Calendar.YEAR))
+        cal.set(Calendar.MONTH, defaultCalendar.get(Calendar.MONTH))
+        cal.set(Calendar.DAY_OF_MONTH, defaultCalendar.get(Calendar.DAY_OF_MONTH))
+        cal.set(Calendar.HOUR_OF_DAY, defaultCalendar.get(Calendar.HOUR_OF_DAY))
+        cal.set(Calendar.MINUTE, defaultCalendar.get(Calendar.MINUTE))
+        cal.set(Calendar.SECOND, defaultCalendar.get(Calendar.SECOND))
+        cal.set(Calendar.MILLISECOND, defaultCalendar.get(Calendar.MILLISECOND))
+        return Timestamp(cal.timeInMillis)
+    }
+
+    override fun getTimestamp(columnLabel: String, cal: Calendar): Timestamp? {
+        return getTimestamp(findColumn(columnLabel), cal)
     }
 }
