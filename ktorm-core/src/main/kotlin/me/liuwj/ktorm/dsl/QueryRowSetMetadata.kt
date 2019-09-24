@@ -1,6 +1,5 @@
 package me.liuwj.ktorm.dsl
 
-import java.io.Serializable
 import java.sql.ResultSetMetaData
 import java.sql.ResultSetMetaData.columnNullableUnknown
 import java.sql.SQLException
@@ -9,7 +8,7 @@ import java.sql.Types
 /**
  * Created by vince on Sep 03, 2019.
  */
-internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaData, Serializable {
+internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaData {
     private val columns = Array(metadata.columnCount) { index ->
         val i = index + 1
 
@@ -44,6 +43,29 @@ internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaD
 
         return columns[col - 1]
     }
+
+    private data class ColumnInfo(
+        val autoIncrement: Boolean,
+        val caseSensitive: Boolean,
+        val searchable: Boolean,
+        val currency: Boolean,
+        val nullable: Int,
+        val signed: Boolean,
+        val columnDisplaySize: Int,
+        val columnLabel: String,
+        val columnName: String,
+        val schemaName: String,
+        val precision: Int,
+        val scale: Int,
+        val tableName: String,
+        val catalogName: String,
+        val columnType: Int,
+        val columnTypeName: String,
+        val columnClassName: String,
+        val readonly: Boolean,
+        val writable: Boolean,
+        val definitelyWritable: Boolean
+    )
 
     override fun getColumnCount(): Int {
         return columns.size
@@ -135,36 +157,5 @@ internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaD
 
     override fun isWrapperFor(iface: Class<*>): Boolean {
         return iface.isInstance(this)
-    }
-
-    companion object {
-        private const val serialVersionUID = 1L
-    }
-
-    private data class ColumnInfo(
-        val autoIncrement: Boolean,
-        val caseSensitive: Boolean,
-        val searchable: Boolean,
-        val currency: Boolean,
-        val nullable: Int,
-        val signed: Boolean,
-        val columnDisplaySize: Int,
-        val columnLabel: String,
-        val columnName: String,
-        val schemaName: String,
-        val precision: Int,
-        val scale: Int,
-        val tableName: String,
-        val catalogName: String,
-        val columnType: Int,
-        val columnTypeName: String,
-        val columnClassName: String,
-        val readonly: Boolean,
-        val writable: Boolean,
-        val definitelyWritable: Boolean
-    ) : Serializable {
-        companion object {
-            private const val serialVersionUID = 1L
-        }
     }
 }

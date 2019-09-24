@@ -58,10 +58,6 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         override fun free() {
             // no-op
         }
-
-        companion object {
-            private const val serialVersionUID = 1L
-        }
     }
 
     private class MemoryClob(clob: SerialClob) : Clob by clob {
@@ -73,10 +69,6 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         override fun free() {
             // no-op
         }
-
-        companion object {
-            private const val serialVersionUID = 1L
-        }
     }
 
     private class MemoryArray(
@@ -86,10 +78,6 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
         override fun free() {
             // no-op
-        }
-
-        companion object {
-            private const val serialVersionUID = 1L
         }
     }
 
@@ -989,6 +977,240 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
 
     @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
     override fun updateArray(columnLabel: String?, x: java.sql.Array?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The operation is not supported.", level = DeprecationLevel.ERROR)
+    override fun getRowId(columnIndex: Int): Nothing {
+        throw SQLFeatureNotSupportedException("The operation is not supported.")
+    }
+
+    @Deprecated("The operation is not supported.", level = DeprecationLevel.ERROR)
+    override fun getRowId(columnLabel: String?): Nothing {
+        throw SQLFeatureNotSupportedException("The operation is not supported.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateRowId(columnIndex: Int, x: RowId?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateRowId(columnLabel: String?, x: RowId?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    override fun getHoldability(): Int {
+        return HOLD_CURSORS_OVER_COMMIT
+    }
+
+    override fun isClosed(): Boolean {
+        return false
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNString(columnIndex: Int, nString: String?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNString(columnLabel: String?, nString: String?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNClob(columnIndex: Int, nClob: NClob?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNClob(columnLabel: String?, nClob: NClob?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The operation is not supported.", level = DeprecationLevel.ERROR)
+    override fun getNClob(columnIndex: Int): Nothing {
+        throw SQLFeatureNotSupportedException("The operation is not supported.")
+    }
+
+    @Deprecated("The operation is not supported.", level = DeprecationLevel.ERROR)
+    override fun getNClob(columnLabel: String?): Nothing {
+        throw SQLFeatureNotSupportedException("The operation is not supported.")
+    }
+
+    @Deprecated("The operation is not supported.", level = DeprecationLevel.ERROR)
+    override fun getSQLXML(columnIndex: Int): Nothing {
+        throw SQLFeatureNotSupportedException("The operation is not supported.")
+    }
+
+    @Deprecated("The operation is not supported.", level = DeprecationLevel.ERROR)
+    override fun getSQLXML(columnLabel: String?): Nothing {
+        throw SQLFeatureNotSupportedException("The operation is not supported.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateSQLXML(columnIndex: Int, xmlObject: SQLXML?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateSQLXML(columnLabel: String?, xmlObject: SQLXML?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    override fun getNString(columnIndex: Int): String? {
+        return getString(columnIndex)
+    }
+
+    override fun getNString(columnLabel: String): String? {
+        return getString(columnLabel)
+    }
+
+    override fun getNCharacterStream(columnIndex: Int): Reader? {
+        return getCharacterStream(columnIndex)
+    }
+
+    override fun getNCharacterStream(columnLabel: String): Reader? {
+        return getCharacterStream(columnLabel)
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNCharacterStream(columnIndex: Int, x: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNCharacterStream(columnLabel: String?, reader: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateAsciiStream(columnIndex: Int, x: InputStream?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBinaryStream(columnIndex: Int, x: InputStream?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateCharacterStream(columnIndex: Int, x: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateAsciiStream(columnLabel: String?, x: InputStream?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBinaryStream(columnLabel: String?, x: InputStream?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateCharacterStream(columnLabel: String?, reader: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBlob(columnIndex: Int, inputStream: InputStream?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBlob(columnLabel: String?, inputStream: InputStream?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateClob(columnIndex: Int, reader: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateClob(columnLabel: String?, reader: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNClob(columnIndex: Int, reader: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNClob(columnLabel: String?, reader: Reader?, length: Long): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNCharacterStream(columnIndex: Int, x: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNCharacterStream(columnLabel: String?, reader: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateAsciiStream(columnIndex: Int, x: InputStream?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBinaryStream(columnIndex: Int, x: InputStream?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateCharacterStream(columnIndex: Int, x: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateAsciiStream(columnLabel: String?, x: InputStream?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBinaryStream(columnLabel: String?, x: InputStream?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateCharacterStream(columnLabel: String?, reader: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBlob(columnIndex: Int, inputStream: InputStream?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateBlob(columnLabel: String?, inputStream: InputStream?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateClob(columnIndex: Int, reader: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateClob(columnLabel: String?, reader: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNClob(columnIndex: Int, reader: Reader?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateNClob(columnLabel: String?, reader: Reader?): Nothing {
         throw SQLFeatureNotSupportedException("The result set is not updatable.")
     }
 }
