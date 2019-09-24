@@ -151,7 +151,7 @@ internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaD
         return this[columnIndex].columnClassName
     }
 
-    override fun <T : Any?> unwrap(iface: Class<T>): T {
+    override fun <T : Any> unwrap(iface: Class<T>): T? {
         return iface.cast(this)
     }
 

@@ -3,6 +3,7 @@ package me.liuwj.ktorm.dsl
 import java.io.InputStream
 import java.io.Reader
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.net.URL
 import java.sql.*
 import java.sql.Date
@@ -1212,5 +1213,68 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
     @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
     override fun updateNClob(columnLabel: String?, reader: Reader?): Nothing {
         throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    override fun <T : Any> getObject(columnIndex: Int, type: Class<T>): T? {
+        val result = when (type.kotlin) {
+            String::class -> getString(columnIndex)
+            Boolean::class -> getBoolean(columnIndex)
+            Byte::class -> getByte(columnIndex)
+            Short::class -> getShort(columnIndex)
+            Int::class -> getInt(columnIndex)
+            Long::class -> getLong(columnIndex)
+            Float::class -> getFloat(columnIndex)
+            Double::class -> getDouble(columnIndex)
+            BigDecimal::class -> getBigDecimal(columnIndex)
+            BigInteger::class -> getBigDecimal(columnIndex)?.toBigInteger()
+            ByteArray::class -> getBytes(columnIndex)
+            Date::class -> getDate(columnIndex)
+            Time::class -> getTime(columnIndex)
+            Timestamp::class -> getTimestamp(columnIndex)
+            LocalDate::class -> getLocalDate(columnIndex)
+            LocalTime::class -> getLocalTime(columnIndex)
+            LocalDateTime::class -> getLocalDateTime(columnIndex)
+            Instant::class -> getInstant(columnIndex)
+            Blob::class -> getBlob(columnIndex)
+            Clob::class -> getClob(columnIndex)
+            java.sql.Array::class -> getArray(columnIndex)
+            Ref::class -> getRef(columnIndex)
+            URL::class -> getURL(columnIndex)
+            else -> getObject(columnIndex)
+        }
+
+        return type.cast(result)
+    }
+
+    override fun <T : Any> getObject(columnLabel: String, type: Class<T>): T? {
+        return getObject(findColumn(columnLabel), type)
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateObject(columnIndex: Int, x: Any?, targetSqlType: SQLType?, scaleOrLength: Int): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateObject(columnLabel: String?, x: Any?, targetSqlType: SQLType?, scaleOrLength: Int): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateObject(columnIndex: Int, x: Any?, targetSqlType: SQLType?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
+    override fun updateObject(columnLabel: String?, x: Any?, targetSqlType: SQLType?): Nothing {
+        throw SQLFeatureNotSupportedException("The result set is not updatable.")
+    }
+
+    override fun <T : Any> unwrap(iface: Class<T>): T? {
+        return iface.cast(this)
+    }
+
+    override fun isWrapperFor(iface: Class<*>): Boolean {
+        return iface.isInstance(this)
     }
 }
