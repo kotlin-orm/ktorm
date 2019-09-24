@@ -1270,7 +1270,7 @@ class QueryRowSet0 internal constructor(val query: Query, rs: ResultSet) : Resul
         throw SQLFeatureNotSupportedException("The result set is not updatable.")
     }
 
-    override fun <T : Any> unwrap(iface: Class<T>): T? {
+    override fun <T : Any> unwrap(iface: Class<T>): T {
         return iface.cast(this)
     }
 
