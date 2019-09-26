@@ -55,8 +55,9 @@ import javax.sql.rowset.serial.*
  * }
  * ```
  */
+@Suppress("LargeClass", "MethodOverloading")
 class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : ResultSet {
-    private val _typeMap = try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
+    private val _typeMap = readTypeMap(rs)
     private val _metadata = QueryRowSetMetadata(rs.metaData)
     private val _values = readValues(rs)
     private var _cursor = -1
@@ -138,10 +139,79 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
         return _values.size
     }
 
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.LocalDate] object in the Java programming language.
+     */
+    fun getLocalDate(columnIndex: Int): LocalDate? {
+        return getDate(columnIndex)?.toLocalDate()
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.LocalDate] object in the Java programming language.
+     */
+    fun getLocalDate(columnLabel: String): LocalDate? {
+        return getLocalDate(findColumn(columnLabel))
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.LocalTime] object in the Java programming language.
+     */
+    fun getLocalTime(columnIndex: Int): LocalTime? {
+        return getTime(columnIndex)?.toLocalTime()
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.LocalTime] object in the Java programming language.
+     */
+    fun getLocalTime(columnLabel: String): LocalTime? {
+        return getLocalTime(findColumn(columnLabel))
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.LocalDateTime] object in the Java programming language.
+     */
+    fun getLocalDateTime(columnIndex: Int): LocalDateTime? {
+        return getTimestamp(columnIndex)?.toLocalDateTime()
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.LocalDateTime] object in the Java programming language.
+     */
+    fun getLocalDateTime(columnLabel: String): LocalDateTime? {
+        return getLocalDateTime(findColumn(columnLabel))
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.Instant] object in the Java programming language.
+     */
+    fun getInstant(columnIndex: Int): Instant? {
+        return getTimestamp(columnIndex)?.toInstant()
+    }
+
+    /**
+     * Retrieve the value of the designated column in the current row of this row set object
+     * as a [java.time.Instant] object in the Java programming language.
+     */
+    fun getInstant(columnLabel: String): Instant? {
+        return getInstant(findColumn(columnLabel))
+    }
+
     private infix fun String?.eq(other: String?) = this.equals(other, ignoreCase = true)
 
     private fun warningConfusedColumnName(name: String): String {
         return "Confused column name, there are more than one column named '$name' in query: \n\n${query.sql}\n"
+    }
+
+    @Suppress("SwallowedException")
+    private fun readTypeMap(rs: ResultSet): Map<String, Class<*>>? {
+        return try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
     }
 
     private fun readValues(rs: ResultSet): List<Array<Any?>> {
@@ -344,22 +414,6 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
         }
     }
 
-    fun getLocalDate(columnIndex: Int): LocalDate? {
-        return getDate(columnIndex)?.toLocalDate()
-    }
-
-    fun getLocalTime(columnIndex: Int): LocalTime? {
-        return getTime(columnIndex)?.toLocalTime()
-    }
-
-    fun getLocalDateTime(columnIndex: Int): LocalDateTime? {
-        return getTimestamp(columnIndex)?.toLocalDateTime()
-    }
-
-    fun getInstant(columnIndex: Int): Instant? {
-        return getTimestamp(columnIndex)?.toInstant()
-    }
-
     override fun getAsciiStream(columnIndex: Int): InputStream? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
@@ -442,22 +496,6 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
 
     override fun getTimestamp(columnLabel: String): Timestamp? {
         return getTimestamp(findColumn(columnLabel))
-    }
-
-    fun getLocalDate(columnLabel: String): LocalDate? {
-        return getLocalDate(findColumn(columnLabel))
-    }
-
-    fun getLocalTime(columnLabel: String): LocalTime? {
-        return getLocalTime(findColumn(columnLabel))
-    }
-
-    fun getLocalDateTime(columnLabel: String): LocalDateTime? {
-        return getLocalDateTime(findColumn(columnLabel))
-    }
-
-    fun getInstant(columnLabel: String): Instant? {
-        return getInstant(findColumn(columnLabel))
     }
 
     override fun getAsciiStream(columnLabel: String): InputStream? {

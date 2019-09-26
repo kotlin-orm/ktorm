@@ -28,6 +28,7 @@ internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaD
     private val columns = Array(metadata.columnCount) { index ->
         val i = index + 1
 
+        @Suppress("SwallowedException")
         ColumnInfo(
             autoIncrement = try { metadata.isAutoIncrement(i) } catch (_: Throwable) { false },
             caseSensitive = try { metadata.isCaseSensitive(i) } catch (_: Throwable) { false },
