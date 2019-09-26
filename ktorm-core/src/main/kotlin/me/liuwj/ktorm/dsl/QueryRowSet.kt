@@ -971,7 +971,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
         if (value is Struct) {
             val cls = map[value.sqlTypeName]
             if (cls != null) {
-                val data = cls.newInstance() as SQLData
+                val data = cls.getConstructor().newInstance() as SQLData
                 val input = SQLInputImpl(value.getAttributes(map), map)
                 data.readSQL(input, value.sqlTypeName)
                 return data
