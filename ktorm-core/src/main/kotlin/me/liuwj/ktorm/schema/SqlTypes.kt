@@ -136,7 +136,6 @@ fun <E : Any> BaseTable<E>.decimal(name: String): BaseTable<E>.ColumnRegistratio
  * [SqlType] implementation represents `decimal` SQL type.
  */
 object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
-
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: BigDecimal) {
         ps.setBigDecimal(index, parameter)
     }
@@ -229,6 +228,66 @@ object BytesSqlType : SqlType<ByteArray>(Types.BINARY, "bytes") {
 
     override fun doGetResult(rs: ResultSet, index: Int): ByteArray? {
         return rs.getBytes(index)
+    }
+}
+
+/**
+ * Define a column typed of [TimestampSqlType].
+ */
+fun <E : Any> BaseTable<E>.jdbcTimestamp(name: String): BaseTable<E>.ColumnRegistration<Timestamp> {
+    return registerColumn(name, TimestampSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `timestamp` SQL type.
+ */
+object TimestampSqlType : SqlType<Timestamp>(Types.TIMESTAMP, "timestamp") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Timestamp) {
+        ps.setTimestamp(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Timestamp? {
+        return rs.getTimestamp(index)
+    }
+}
+
+/**
+ * Define a column typed of [DateSqlType].
+ */
+fun <E : Any> BaseTable<E>.jdbcDate(name: String): BaseTable<E>.ColumnRegistration<Date> {
+    return registerColumn(name, DateSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `date` SQL type.
+ */
+object DateSqlType : SqlType<Date>(Types.DATE, "date") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Date) {
+        ps.setDate(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Date? {
+        return rs.getDate(index)
+    }
+}
+
+/**
+ * Define a column typed of [TimeSqlType].
+ */
+fun <E : Any> BaseTable<E>.jdbcTime(name: String): BaseTable<E>.ColumnRegistration<Time> {
+    return registerColumn(name, TimeSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `time` SQL type.
+ */
+object TimeSqlType : SqlType<Time>(Types.TIME, "time") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Time) {
+        ps.setTime(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Time? {
+        return rs.getTime(index)
     }
 }
 

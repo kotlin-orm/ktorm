@@ -99,3 +99,19 @@ inline fun <T> SqlExpression.prepareStatement(
         }
     }
 }
+
+/**
+ * Execute the given [block] function on this resource and then close it down correctly whether an exception
+ * is thrown or not.
+ *
+ * @param block a function to process this [AutoCloseable] resource.
+ * @return the result of [block] function invoked on this resource.
+ */
+@Suppress("ConvertTryFinallyToUseCall")
+inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
+    try {
+        return block(this)
+    } finally {
+        this?.close()
+    }
+}

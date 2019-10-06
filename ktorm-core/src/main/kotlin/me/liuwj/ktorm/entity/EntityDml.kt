@@ -18,6 +18,7 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
+import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.AliasRemover
 import me.liuwj.ktorm.dsl.executeUpdate
 import me.liuwj.ktorm.expression.*
