@@ -57,7 +57,7 @@ import javax.sql.rowset.serial.*
  */
 @Suppress("LargeClass", "MethodOverloading")
 class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : ResultSet {
-    private val _typeMap = readTypeMap(rs)
+    private val _typeMap = rs.runCatching { statement.connection.typeMap }.getOrNull()
     private val _metadata = QueryRowSetMetadata(rs.metaData)
     private val _values = readValues(rs)
     private var _cursor = -1
@@ -207,11 +207,6 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
 
     private fun warningConfusedColumnName(name: String): String {
         return "Confused column name, there are more than one column named '$name' in query: \n\n${query.sql}\n"
-    }
-
-    @Suppress("SwallowedException")
-    private fun readTypeMap(rs: ResultSet): Map<String, Class<*>>? {
-        return try { rs.statement.connection.typeMap } catch (_: Throwable) { null }
     }
 
     private fun readValues(rs: ResultSet): List<Array<Any?>> {

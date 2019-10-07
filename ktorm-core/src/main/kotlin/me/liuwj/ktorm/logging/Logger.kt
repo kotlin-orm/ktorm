@@ -18,7 +18,6 @@ package me.liuwj.ktorm.logging
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.logging.LogLevel.*
-import kotlin.reflect.jvm.jvmName
 
 /**
  * A simple logging interface abstracting third-party logging frameworks.
@@ -132,7 +131,7 @@ enum class LogLevel {
  * Auto detect a logger implementation.
  */
 internal fun detectLoggerImplementation(): Logger {
-    val loggerName = Database::class.jvmName
+    val loggerName = "me.liuwj.ktorm.database"
     var result: Logger? = null
 
     @Suppress("SwallowedException")
@@ -146,6 +145,11 @@ internal fun detectLoggerImplementation(): Logger {
     }
 
     tryImplement {
+        Class.forName("android.util.Log")
+        AndroidLoggerAdapter(loggerName)
+    }
+
+    tryImplement {
         val logger = org.slf4j.LoggerFactory.getLogger(loggerName)
         Slf4jLoggerAdapter(logger)
     }
@@ -153,11 +157,6 @@ internal fun detectLoggerImplementation(): Logger {
     tryImplement {
         val logger = org.apache.commons.logging.LogFactory.getLog(loggerName)
         CommonsLoggerAdapter(logger)
-    }
-
-    tryImplement {
-        Class.forName("android.util.Log")
-        AndroidLoggerAdapter(loggerName)
     }
 
     tryImplement {
