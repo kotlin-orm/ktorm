@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("MatchingDeclarationName")
+
 package me.liuwj.ktorm.support.sqlserver
 
 import me.liuwj.ktorm.schema.BaseTable
