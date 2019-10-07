@@ -85,9 +85,11 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
         } else {
             // Try to find the column by name and its table name (happens when we are using `select *`).
             val indices = (1.._metadata.columnCount).filter { index ->
-                val columnName = _metadata.getColumnName(index)
+                val table = column.table
                 val tableName = _metadata.getTableName(index)
-                columnName eq column.name && (tableName eq column.table.alias || tableName eq column.table.tableName)
+                val tableNameMatched = tableName.isBlank() || tableName eq table.alias || tableName eq table.tableName
+                val columnName = _metadata.getColumnName(index)
+                columnName eq column.name && tableNameMatched
             }
 
             return when (indices.size) {
@@ -116,9 +118,11 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
         } else {
             // Try to find the column by name and its table name (happens when we are using `select *`).
             val indices = (1.._metadata.columnCount).filter { index ->
-                val columnName = _metadata.getColumnName(index)
+                val table = column.table
                 val tableName = _metadata.getTableName(index)
-                columnName eq column.name && (tableName eq column.table.alias || tableName eq column.table.tableName)
+                val tableNameMatched = tableName.isBlank() || tableName eq table.alias || tableName eq table.tableName
+                val columnName = _metadata.getColumnName(index)
+                columnName eq column.name && tableNameMatched
             }
 
             if (indices.size > 1) {

@@ -5,12 +5,12 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
+import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.timestamp
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Test
 import org.testcontainers.containers.MSSQLServerContainer
 
-@Ignore
 class SqlServerTest : BaseTest() {
 
     companion object {
@@ -31,6 +31,10 @@ class SqlServerTest : BaseTest() {
         )
 
         execSqlScript("init-sqlserver-data.sql")
+    }
+
+    override fun destroy() {
+        execSqlScript("drop-sqlserver-data.sql")
     }
 
     @Test
@@ -57,5 +61,16 @@ class SqlServerTest : BaseTest() {
 
         assert(query.totalRecords == 4)
         assert(query.count() == 1)
+    }
+
+    object Foo : Table<Nothing>("foo") {
+        val bar by timestamp("bar")
+    }
+
+    @Test
+    fun testGetColumn() {
+        for (row in Foo.select()) {
+            println(row[Foo.bar])
+        }
     }
 }
