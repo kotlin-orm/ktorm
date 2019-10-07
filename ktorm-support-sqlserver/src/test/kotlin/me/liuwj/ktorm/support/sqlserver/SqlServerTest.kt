@@ -6,10 +6,12 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.timestamp
+import me.liuwj.ktorm.schema.datetime
+import microsoft.sql.DateTimeOffset
 import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.MSSQLServerContainer
+import java.sql.Timestamp
 
 class SqlServerTest : BaseTest() {
 
@@ -64,13 +66,19 @@ class SqlServerTest : BaseTest() {
     }
 
     object Foo : Table<Nothing>("foo") {
-        val bar by timestamp("bar")
+        val bar by datetimeoffset("bar")
+        val bar1 by datetime("bar1")
     }
 
     @Test
     fun testGetColumn() {
+        Foo.update {
+            it.bar to DateTimeOffset.valueOf(Timestamp(0), 8 * 60)
+        }
+
         for (row in Foo.select()) {
             println(row[Foo.bar])
+            println(row[Foo.bar1])
         }
     }
 }

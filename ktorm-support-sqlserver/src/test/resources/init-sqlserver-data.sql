@@ -28,5 +28,5 @@ insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
 insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
     values ('penny', 'assistant', 3, '2019-01-01', 100, 2);
 
-create table foo (bar datetimeoffset(7) not null);
-insert into foo (bar) values ('2012-10-25 12:32:10 +01:00');
+create table foo (bar datetimeoffset(7) not null, bar1 datetime not null);
+insert into foo (bar, bar1) values ('2012-10-25 12:32:10 +01:00', '2012-10-25 19:32:10');
