@@ -16,7 +16,6 @@
 
 package me.liuwj.ktorm.schema
 
-import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.sql.*
 import java.time.*
@@ -24,6 +23,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
 import java.time.temporal.ChronoField
+import javax.sql.rowset.serial.SerialBlob
 
 /**
  * Define a column typed of [BooleanSqlType].
@@ -136,7 +136,6 @@ fun <E : Any> BaseTable<E>.decimal(name: String): BaseTable<E>.ColumnRegistratio
  * [SqlType] implementation represents `decimal` SQL type.
  */
 object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
-
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: BigDecimal) {
         ps.setBigDecimal(index, parameter)
     }
@@ -198,11 +197,97 @@ fun <E : Any> BaseTable<E>.blob(name: String): BaseTable<E>.ColumnRegistration<B
  */
 object BlobSqlType : SqlType<ByteArray>(Types.BLOB, "blob") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ByteArray) {
-        ByteArrayInputStream(parameter).use { ps.setBlob(index, it) }
+        ps.setBlob(index, SerialBlob(parameter))
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): ByteArray? {
-        return rs.getBlob(index)?.binaryStream?.use { it.readBytes() }
+        val blob = rs.getBlob(index) ?: return null
+
+        try {
+            return blob.binaryStream.use { it.readBytes() }
+        } finally {
+            blob.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed of [BytesSqlType].
+ */
+fun <E : Any> BaseTable<E>.bytes(name: String): BaseTable<E>.ColumnRegistration<ByteArray> {
+    return registerColumn(name, BytesSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `bytes` SQL type.
+ */
+object BytesSqlType : SqlType<ByteArray>(Types.BINARY, "bytes") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ByteArray) {
+        ps.setBytes(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): ByteArray? {
+        return rs.getBytes(index)
+    }
+}
+
+/**
+ * Define a column typed of [TimestampSqlType].
+ */
+fun <E : Any> BaseTable<E>.jdbcTimestamp(name: String): BaseTable<E>.ColumnRegistration<Timestamp> {
+    return registerColumn(name, TimestampSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `timestamp` SQL type.
+ */
+object TimestampSqlType : SqlType<Timestamp>(Types.TIMESTAMP, "timestamp") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Timestamp) {
+        ps.setTimestamp(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Timestamp? {
+        return rs.getTimestamp(index)
+    }
+}
+
+/**
+ * Define a column typed of [DateSqlType].
+ */
+fun <E : Any> BaseTable<E>.jdbcDate(name: String): BaseTable<E>.ColumnRegistration<Date> {
+    return registerColumn(name, DateSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `date` SQL type.
+ */
+object DateSqlType : SqlType<Date>(Types.DATE, "date") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Date) {
+        ps.setDate(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Date? {
+        return rs.getDate(index)
+    }
+}
+
+/**
+ * Define a column typed of [TimeSqlType].
+ */
+fun <E : Any> BaseTable<E>.jdbcTime(name: String): BaseTable<E>.ColumnRegistration<Time> {
+    return registerColumn(name, TimeSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `time` SQL type.
+ */
+object TimeSqlType : SqlType<Time>(Types.TIME, "time") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Time) {
+        ps.setTime(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Time? {
+        return rs.getTime(index)
     }
 }
 

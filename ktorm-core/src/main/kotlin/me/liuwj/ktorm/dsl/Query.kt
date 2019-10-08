@@ -18,10 +18,12 @@ package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
+import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.*
+import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.BooleanSqlType
+import me.liuwj.ktorm.schema.ColumnDeclaring
 import java.sql.ResultSet
-import javax.sql.rowset.RowSetProvider
 
 /**
  * [Query] is an abstraction of query operations and the core class of Ktorm's query DSL.
@@ -85,15 +87,12 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
     val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
         expression.prepareStatement { statement ->
             statement.executeQuery().use { rs ->
-                val rowSet = rowSetFactory.createCachedRowSet()
-                rowSet.populate(rs)
-
-                val logger = Database.global.logger
-                if (logger != null && logger.isDebugEnabled()) {
-                    logger.debug("Results: ${rowSet.size()}")
+                QueryRowSet(this, rs).also { rowSet ->
+                    val logger = Database.global.logger
+                    if (logger != null && logger.isDebugEnabled()) {
+                        logger.debug("Results: ${rowSet.size()}")
+                    }
                 }
-
-                QueryRowSet(this, rowSet)
             }
         }
     }
@@ -140,10 +139,6 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
      */
     override fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
-    }
-
-    companion object {
-        private val rowSetFactory = RowSetProvider.newFactory()
     }
 }
 

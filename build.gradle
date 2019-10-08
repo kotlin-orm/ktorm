@@ -17,7 +17,7 @@ buildscript {
 
 allprojects {
     group = "me.liuwj.ktorm"
-    version = "2.5"
+    version = "2.6"
 }
 
 subprojects { project ->
@@ -32,14 +32,14 @@ subprojects { project ->
     }
 
     dependencies {
-        compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
+        compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
         compile "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
         testCompile "junit:junit:4.12"
         detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
 
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "1.6"
         kotlinOptions.allWarningsAsErrors = true
     }
 

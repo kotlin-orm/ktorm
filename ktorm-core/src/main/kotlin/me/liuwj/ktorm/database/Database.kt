@@ -111,14 +111,16 @@ class Database(
     init {
         lastConnected.set(this)
 
+        fun Result<String?>.orEmpty() = getOrNull().orEmpty()
+
         useMetadata { metadata ->
-            url = metadata.url
+            url = metadata.runCatching { url }.orEmpty()
             name = url.substringAfterLast('/').substringBefore('?')
-            productName = metadata.databaseProductName
-            productVersion = metadata.databaseProductVersion
-            keywords = ANSI_SQL_2003_KEYWORDS + metadata.sqlKeywords.toUpperCase().split(',')
-            identifierQuoteString = metadata.identifierQuoteString.trim()
-            extraNameCharacters = metadata.extraNameCharacters
+            productName = metadata.runCatching { databaseProductName }.orEmpty()
+            productVersion = metadata.runCatching { databaseProductVersion }.orEmpty()
+            keywords = ANSI_SQL_2003_KEYWORDS + metadata.runCatching { sqlKeywords }.orEmpty().toUpperCase().split(',')
+            identifierQuoteString = metadata.runCatching { identifierQuoteString }.orEmpty().trim()
+            extraNameCharacters = metadata.runCatching { extraNameCharacters }.orEmpty()
         }
 
         if (logger != null && logger.isInfoEnabled()) {

@@ -29,7 +29,7 @@ class JoinTest : BaseTest() {
 
     @Test
     fun testMultiJoin() {
-        data class Names(val name: String, val managerName: String?, val departmentName: String)
+        data class Names(val name: String, val managerName: String, val departmentName: String)
 
         val emp = Employees.aliased("emp")
         val mgr = Employees.aliased("mgr")
@@ -42,16 +42,16 @@ class JoinTest : BaseTest() {
             .orderBy(emp.id.asc())
             .map {
                 Names(
-                    name = it.getString(1),
-                    managerName = it.getString(2),
-                    departmentName = it.getString(3)
+                    name = it.getString(1).orEmpty(),
+                    managerName = it.getString(2).orEmpty(),
+                    departmentName = it.getString(3).orEmpty()
                 )
             }
 
         assert(results.size == 4)
-        assert(results[0] == Names(name = "vince", managerName = null, departmentName = "tech"))
+        assert(results[0] == Names(name = "vince", managerName = "", departmentName = "tech"))
         assert(results[1] == Names(name = "marry", managerName = "vince", departmentName = "tech"))
-        assert(results[2] == Names(name = "tom", managerName = null, departmentName = "finance"))
+        assert(results[2] == Names(name = "tom", managerName = "", departmentName = "finance"))
         assert(results[3] == Names(name = "penny", managerName = "tom", departmentName = "finance"))
     }
 

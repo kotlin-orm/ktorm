@@ -1,6 +1,7 @@
 package me.liuwj.ktorm
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.logging.ConsoleLogger

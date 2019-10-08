@@ -18,6 +18,7 @@ package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.prepareStatement
+import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 import java.lang.reflect.InvocationHandler
