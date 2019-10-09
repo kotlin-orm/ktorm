@@ -201,7 +201,7 @@ inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachSumB
  */
 inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachMaxBy(
     columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> where K : Any, C : Number {
+): Map<K?, C?> where K : Any, C : Comparable<C> {
     return eachMaxByTo(LinkedHashMap(), columnSelector)
 }
 
@@ -219,7 +219,7 @@ inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachMaxBy(
 inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachMaxByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
-): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
+): M where K : Any, C : Comparable<C>, M : MutableMap<in K?, in C?> {
     return aggregateColumnsTo(destination) { max(columnSelector(it)) }
 }
 
@@ -235,7 +235,7 @@ inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachMaxB
  */
 inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachMinBy(
     columnSelector: (T) -> ColumnDeclaring<C>
-): Map<K?, C?> where K : Any, C : Number {
+): Map<K?, C?> where K : Any, C : Comparable<C> {
     return eachMinByTo(LinkedHashMap(), columnSelector)
 }
 
@@ -253,7 +253,7 @@ inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.eachMinBy(
 inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.eachMinByTo(
     destination: M,
     columnSelector: (T) -> ColumnDeclaring<C>
-): M where K : Any, C : Number, M : MutableMap<in K?, in C?> {
+): M where K : Any, C : Comparable<C>, M : MutableMap<in K?, in C?> {
     return aggregateColumnsTo(destination) { min(columnSelector(it)) }
 }
 

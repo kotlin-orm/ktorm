@@ -624,7 +624,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.sumBy(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.maxBy(
+inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.maxBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
     return aggregateColumns { max(selector(it)) }
@@ -635,7 +635,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.maxBy(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.minBy(
+inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.minBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
     return aggregateColumns { min(selector(it)) }

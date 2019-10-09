@@ -24,28 +24,28 @@ import me.liuwj.ktorm.schema.*
 /**
  * The min function, translated to `min(column)` in SQL.
  */
-fun <C : Number> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
+fun <C : Comparable<C>> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MIN, column.asExpression(), false, column.sqlType)
 }
 
 /**
  * The min function with distinct, translated to `min(distinct column)` in SQL.
  */
-fun <C : Number> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+fun <C : Comparable<C>> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MIN, column.asExpression(), true, column.sqlType)
 }
 
 /**
  * The max function, translated to `max(column)` in SQL.
  */
-fun <C : Number> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
+fun <C : Comparable<C>> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MAX, column.asExpression(), false, column.sqlType)
 }
 
 /**
  * The max function with distinct, translated to `max(distinct column)` in SQL.
  */
-fun <C : Number> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+fun <C : Comparable<C>> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MAX, column.asExpression(), true, column.sqlType)
 }
 
@@ -150,14 +150,14 @@ inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> Colu
 /**
  * Return the max value of the given column or expression of all the records, null if there are no records in the table.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Number> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().maxBy(selector)
 }
 
 /**
  * Return the min value of the given column or expression of all the records, null if there are no records in the table.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Number> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
+inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().minBy(selector)
 }
 
