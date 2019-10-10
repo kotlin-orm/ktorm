@@ -117,15 +117,16 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testHavingAlias() {
-        val t = Employees
+        val deptId = Employees.departmentId.aliased("dept_id")
+        val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
-        val salaryAvg = avg(t.salary).aliased("salary_avg")
-        val id = t.departmentId.asExpression().aliased("id")
-        val salaries = t
-            .select(id, salaryAvg)
-            .groupBy(id)
+        val salaries = Employees
+            .select(deptId, salaryAvg)
+            .groupBy(deptId)
             .having { salaryAvg greater 100.0 }
-            .associate { it.getInt(1) to it.getDouble(2) }
+            .associate { row ->
+                row[deptId] to row[salaryAvg]
+            }
 
         println(salaries)
         assert(salaries.size == 1)

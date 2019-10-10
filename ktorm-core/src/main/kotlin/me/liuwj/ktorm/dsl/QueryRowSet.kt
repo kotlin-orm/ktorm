@@ -17,6 +17,7 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.schema.Column
 import java.io.InputStream
 import java.io.Reader
@@ -101,6 +102,27 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     }
 
     /**
+     * Obtain the value of the specific [ColumnDeclaringExpression] instance.
+     *
+     * Note that if the column doesn't exist in the result set, this function will return null rather than
+     * throwing an exception.
+     */
+    operator fun <C : Any> get(column: ColumnDeclaringExpression<C>): C? {
+        if (column.declaredName.isNullOrBlank()) {
+            throw IllegalArgumentException("Label of the specified column cannot be null or blank.")
+        }
+
+        for (index in 1.._metadata.columnCount) {
+            if (_metadata.getColumnLabel(index) eq column.declaredName) {
+                return column.sqlType.getResult(this, index)
+            }
+        }
+
+        // Return null if the column doesn't exist in the result set.
+        return null
+    }
+
+    /**
      * Check if the specific [Column] exists in this result set.
      *
      * Note that if the column exists but its value is null, this function still returns `true`.
@@ -134,6 +156,25 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
 
             return indices.isNotEmpty()
         }
+    }
+
+    /**
+     * Check if the specific [Column] exists in this result set.
+     *
+     * Note that if the column exists but its value is null, this function still returns `true`.
+     */
+    fun hasColumn(column: ColumnDeclaringExpression<*>): Boolean {
+        if (column.declaredName.isNullOrBlank()) {
+            throw IllegalArgumentException("Label of the specified column cannot be null or blank.")
+        }
+
+        for (index in 1.._metadata.columnCount) {
+            if (_metadata.getColumnLabel(index) eq column.declaredName) {
+                return true
+            }
+        }
+
+        return false
     }
 
     /**
