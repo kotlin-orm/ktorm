@@ -119,8 +119,8 @@ class QueryTest : BaseTest() {
     fun testHavingAlias() {
         val t = Employees
 
-        val salaryAvg = avg(t.salary).alias("salary_avg")
-        val id = t.departmentId.asExpression().alias("id")
+        val salaryAvg = avg(t.salary).aliased("salary_avg")
+        val id = t.departmentId.asExpression().aliased("id")
         val salaries = t
             .select(id, salaryAvg)
             .groupBy(id)

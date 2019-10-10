@@ -136,6 +136,7 @@ abstract class BaseTable<E : Any>(
      *
      * @see AliasedColumn
      */
+    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
     fun <C : Any> Column<C>.aliased(alias: String): ColumnRegistration<C> {
         if (alias in _columns) {
             throw IllegalArgumentException("Duplicate column name: $alias")

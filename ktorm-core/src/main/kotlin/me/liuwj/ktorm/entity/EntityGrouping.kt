@@ -50,7 +50,7 @@ data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
         init {
             val keyColumn = keySelector(sequence.sourceTable)
             val expr = sequence.expression.copy(
-                columns = sequence.expression.columns + keyColumn.asDeclaringExpression()
+                columns = sequence.expression.columns + keyColumn.aliased("_group_key")
             )
 
             for (row in Query(expr)) {

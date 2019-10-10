@@ -63,14 +63,6 @@ abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
     override fun asExpression(): ScalarExpression<T> {
         return this
     }
-
-    override fun asDeclaringExpression(): ColumnDeclaringExpression<T> {
-        return ColumnDeclaringExpression(expression = this, declaredName = null)
-    }
-
-    override fun wrapArgument(argument: T?): ArgumentExpression<T> {
-        return ArgumentExpression(argument, sqlType)
-    }
 }
 
 /**
@@ -341,14 +333,13 @@ data class ColumnExpression<T : Any>(
 data class ColumnDeclaringExpression<T : Any>(
     val expression: ScalarExpression<T>,
     val declaredName: String? = null,
+    override val sqlType: SqlType<T> = expression.sqlType,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>() {
-    override val sqlType: SqlType<T>
-        get() = expression.sqlType
 
-    override fun asDeclaringExpression(): ColumnDeclaringExpression<T> {
-        return this
+    override fun aliased(label: String?): ColumnDeclaringExpression<T> {
+        return this.copy(declaredName = label)
     }
 }
 

@@ -22,6 +22,7 @@ import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.BooleanSqlType
+import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import java.sql.ResultSet
 
@@ -180,7 +181,14 @@ fun <T : ResultSet> T.iterable(): Iterable<T> {
  * Note that the specific columns can be empty, that means `select *` in SQL.
  */
 fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { it.asDeclaringExpression() }
+    val declarations = columns.map { column ->
+        when (column) {
+            is ColumnDeclaringExpression -> column
+            is Column -> column.aliased(column.label)
+            else -> column.aliased(null)
+        }
+    }
+
     return Query(SelectExpression(columns = declarations, from = this))
 }
 
@@ -217,7 +225,14 @@ fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
  */
 fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { it.asDeclaringExpression() }
+    val declarations = columns.map { column ->
+        when (column) {
+            is ColumnDeclaringExpression -> column
+            is Column -> column.aliased(column.label)
+            else -> column.aliased(null)
+        }
+    }
+
     return Query(SelectExpression(columns = declarations, from = this, isDistinct = true))
 }
 

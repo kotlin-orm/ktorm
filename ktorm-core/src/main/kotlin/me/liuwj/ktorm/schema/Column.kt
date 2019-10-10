@@ -66,17 +66,13 @@ interface ColumnDeclaring<T : Any> {
 
     /**
      * Wrap this instance as a [ColumnDeclaringExpression].
-     *
-     * This function is useful when we use columns or expressions as the selected columns in a query. If this instance
-     * is a [Column], a label identifying the selected columns will be set to [ColumnDeclaringExpression.declaredName],
-     * otherwise if it's a [ScalarExpression], the property will be set to null.
      */
-    fun asDeclaringExpression(): ColumnDeclaringExpression<T>
+    fun aliased(label: String?) = ColumnDeclaringExpression(asExpression(), label)
 
     /**
      * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
      */
-    fun wrapArgument(argument: T?): ArgumentExpression<T>
+    fun wrapArgument(argument: T?) = ArgumentExpression(argument, sqlType)
 }
 
 /**
@@ -122,20 +118,6 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
      */
     override fun asExpression(): ColumnExpression<T> {
         return ColumnExpression(table.alias ?: table.tableName, name, sqlType)
-    }
-
-    /**
-     * Wrap this column as a [ColumnDeclaringExpression].
-     */
-    override fun asDeclaringExpression(): ColumnDeclaringExpression<T> {
-        return ColumnDeclaringExpression(expression = asExpression(), declaredName = label)
-    }
-
-    /**
-     * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
-     */
-    override fun wrapArgument(argument: T?): ArgumentExpression<T> {
-        return ArgumentExpression(argument, sqlType)
     }
 
     /**

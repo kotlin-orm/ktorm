@@ -20,13 +20,13 @@ import me.liuwj.ktorm.expression.*
 
 internal fun QueryExpression.toCountExpression(): SelectExpression {
     val expression = OrderByRemover.visit(this) as QueryExpression
-    val countColumns = listOf(count().asDeclaringExpression())
+    val count = count().aliased(null)
 
     if (expression is SelectExpression && expression.isSimpleSelect()) {
-        return expression.copy(columns = countColumns, offset = null, limit = null)
+        return expression.copy(columns = listOf(count), offset = null, limit = null)
     } else {
         return SelectExpression(
-            columns = countColumns,
+            columns = listOf(count),
             from = when (expression) {
                 is SelectExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")
                 is UnionExpression -> expression.copy(offset = null, limit = null, tableAlias = "tmp_count")

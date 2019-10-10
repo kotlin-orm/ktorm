@@ -222,7 +222,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
     if (columns.isEmpty()) {
         return this
     } else {
-        return this.copy(expression = expression.copy(columns = columns.map { it.asDeclaringExpression() }))
+        return this.copy(expression = expression.copy(columns = columns.map { it.aliased(it.label) }))
     }
 }
 
