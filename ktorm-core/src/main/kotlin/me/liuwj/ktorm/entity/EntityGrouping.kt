@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.ColumnDeclaring
 
@@ -113,7 +112,7 @@ inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.aggregat
     val aggregation = aggregationSelector(sequence.sourceTable)
 
     val expr = sequence.expression.copy(
-        columns = listOf(keyColumn, aggregation).map { ColumnDeclaringExpression(it.asExpression()) },
+        columns = listOf(keyColumn, aggregation).map { it.aliased(null) },
         groupBy = listOf(keyColumn.asExpression())
     )
 

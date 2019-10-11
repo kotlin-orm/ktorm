@@ -73,7 +73,7 @@ def generateMapColumns(Writer writer, int tupleNumber) {
             val ($variableNames) = columnSelector(sourceTable)
         
             val expr = expression.copy(
-                columns = listOf($variableNames).map { ColumnDeclaringExpression(it.asExpression()) },
+                columns = listOf($variableNames).map { it.aliased(null) },
                 isDistinct = isDistinct
             )
         
@@ -107,7 +107,7 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
             val ($variableNames) = aggregationSelector(sourceTable)
         
             val expr = expression.copy(
-                columns = listOf($variableNames).map { ColumnDeclaringExpression(it.asExpression()) }
+                columns = listOf($variableNames).map { it.aliased(null) }
             )
         
             val rowSet = Query(expr).rowSet
@@ -164,7 +164,7 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
             val ($variableNames) = aggregationSelector(sequence.sourceTable)
         
             val expr = sequence.expression.copy(
-                columns = listOf(keyColumn, $variableNames).map { ColumnDeclaringExpression(it.asExpression()) },
+                columns = listOf(keyColumn, $variableNames).map { it.aliased(null) },
                 groupBy = listOf(keyColumn.asExpression())
             )
         
@@ -193,7 +193,6 @@ task generateTuples {
                 
                 import me.liuwj.ktorm.database.Database
                 import me.liuwj.ktorm.dsl.Query
-                import me.liuwj.ktorm.expression.ColumnDeclaringExpression
                 import me.liuwj.ktorm.schema.ColumnDeclaring
                 import me.liuwj.ktorm.schema.BaseTable
                 import java.io.Serializable

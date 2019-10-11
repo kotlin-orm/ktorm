@@ -63,6 +63,14 @@ abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
     override fun asExpression(): ScalarExpression<T> {
         return this
     }
+
+    override fun aliased(label: String?): ColumnDeclaringExpression<T> {
+        return ColumnDeclaringExpression(this, label)
+    }
+
+    override fun wrapArgument(argument: T?): ArgumentExpression<T> {
+        return ArgumentExpression(argument, sqlType)
+    }
 }
 
 /**

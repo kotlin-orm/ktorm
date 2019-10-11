@@ -19,12 +19,11 @@ package me.liuwj.ktorm.entity
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.expression.OrderByExpression
 import me.liuwj.ktorm.expression.SelectExpression
+import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.BaseTable
 import java.sql.ResultSet
 import java.util.*
 import kotlin.collections.ArrayList
@@ -384,7 +383,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C?>> En
     val column = columnSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(ColumnDeclaringExpression(column.asExpression())),
+        columns = listOf(column.aliased(null)),
         isDistinct = isDistinct
     )
 
@@ -431,7 +430,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C>> Ent
     val column = columnSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(ColumnDeclaringExpression(column.asExpression())),
+        columns = listOf(column.aliased(null)),
         isDistinct = isDistinct
     )
 
@@ -522,7 +521,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateCo
     val aggregation = aggregationSelector(sourceTable)
 
     val expr = expression.copy(
-        columns = listOf(ColumnDeclaringExpression(aggregation.asExpression()))
+        columns = listOf(aggregation.aliased(null))
     )
 
     val rowSet = Query(expr).rowSet

@@ -67,12 +67,12 @@ interface ColumnDeclaring<T : Any> {
     /**
      * Wrap this instance as a [ColumnDeclaringExpression].
      */
-    fun aliased(label: String?) = ColumnDeclaringExpression(asExpression(), label)
+    fun aliased(label: String?): ColumnDeclaringExpression<T>
 
     /**
      * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
      */
-    fun wrapArgument(argument: T?) = ArgumentExpression(argument, sqlType)
+    fun wrapArgument(argument: T?): ArgumentExpression<T>
 }
 
 /**
@@ -91,7 +91,7 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
     abstract val name: String
 
     /**
-     * The column's label, used to identify the selected columns and obtain query results.
+     * The column's label, used to identify the selected columns and to obtain query results.
      *
      * For example, `select a.name as label from dual`, in which `a.name as label` is a column declaring, and `label`
      * is the label.
@@ -118,6 +118,20 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
      */
     override fun asExpression(): ColumnExpression<T> {
         return ColumnExpression(table.alias ?: table.tableName, name, sqlType)
+    }
+
+    /**
+     * Wrap this column as a [ColumnDeclaringExpression].
+     */
+    override fun aliased(label: String?): ColumnDeclaringExpression<T> {
+        return ColumnDeclaringExpression(asExpression(), label)
+    }
+
+    /**
+     * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
+     */
+    override fun wrapArgument(argument: T?): ArgumentExpression<T> {
+        return ArgumentExpression(argument, sqlType)
     }
 
     /**
