@@ -101,13 +101,16 @@ open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : SqlExpression> visitExpressionList(original: List<T>): List<T> {
+    @Suppress("UNCHECKED_CAST")
+    protected open fun <T : SqlExpression> visitExpressionList(
+        original: List<T>,
+        subVisitor: (T) -> T = { visit(it) as T }
+    ): List<T> {
         val result = ArrayList<T>()
         var changed = false
 
         for (expr in original) {
-            @Suppress("UNCHECKED_CAST")
-            val visited = visit(expr) as T
+            val visited = subVisitor(expr)
             result += visited
 
             if (visited !== expr) {

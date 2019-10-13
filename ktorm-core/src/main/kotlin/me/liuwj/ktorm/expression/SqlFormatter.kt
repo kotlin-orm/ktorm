@@ -37,26 +37,11 @@ open class SqlFormatter(
 ) : SqlExpressionVisitor() {
 
     protected var _depth = 0
-    protected var _currentStage = FormatterStage.NOT_STARTED
-
     protected val _builder = StringBuilder()
     protected val _parameters = ArrayList<ArgumentExpression<*>>()
 
     val sql: String get() = _builder.toString()
     val parameters: List<ArgumentExpression<*>> get() = _parameters
-
-    protected enum class FormatterStage {
-        SELECT_CLAUSE, FROM_CLAUSE, WHERE_CLAUSE, GROUP_BY_CLAUSE, ORDER_BY_CLAUSE, HAVING_CLAUSE,
-        INSERT_STATEMENT, UPDATE_STATEMENT, DELETE_STATEMENT,
-        NOT_STARTED
-    }
-
-    protected inline fun withStage(stage: FormatterStage, subFormatter: () -> Unit) {
-        val parent = _currentStage
-        _currentStage = stage
-        subFormatter()
-        _currentStage = parent
-    }
 
     protected enum class Indentation {
         INNER, OUTER, SAME
@@ -121,7 +106,11 @@ open class SqlFormatter(
     }
 
     protected open val SqlExpression.removeBrackets: Boolean get() {
-        return isLeafNode || this is FunctionExpression<*> || this is AggregateExpression<*> || this is ExistsExpression
+        return isLeafNode
+            || this is FunctionExpression<*>
+            || this is AggregateExpression<*>
+            || this is ExistsExpression
+            || this is ColumnDeclaringExpression<*>
     }
 
     override fun visit(expr: SqlExpression): SqlExpression {
@@ -130,13 +119,13 @@ open class SqlFormatter(
         return result
     }
 
-    override fun <T : SqlExpression> visitExpressionList(original: List<T>): List<T> {
+    override fun <T : SqlExpression> visitExpressionList(original: List<T>, subVisitor: (T) -> T): List<T> {
         for ((i, expr) in original.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
                 write(", ")
             }
-            visit(expr)
+            subVisitor(expr)
         }
         return original
     }
@@ -223,28 +212,30 @@ open class SqlFormatter(
     }
 
     override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
-        /*if (expr.expression is SelectExpression) {
-            write("(")
-            newLine(Indentation.INNER)
+        if (expr.declaredName != null && expr.declaredName.isNotBlank()) {
+            write("${expr.declaredName.quoted} ")
+        } else if (expr.expression.removeBrackets) {
             visit(expr.expression)
-            newLine(Indentation.OUTER)
-            write(") ")
         } else {
+            write("(")
             visit(expr.expression)
-        }*/
-        val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
-
-        if (_currentStage == FormatterStage.SELECT_CLAUSE || !hasDeclaredName) {
-            visit(expr.expression)
+            removeLastBlank()
+            write(") ")
         }
 
-        if (_currentStage == FormatterStage.SELECT_CLAUSE) {
-            val column = expr.expression as? ColumnExpression<*>
-            if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
-                write("as ${expr.declaredName!!.quoted} ")
-            }
-        } else {
-            write("${expr.declaredName!!.quoted} ")
+        return expr
+    }
+
+    protected fun <T : Any> visitColumnDeclaringAtSelectClause(
+        expr: ColumnDeclaringExpression<T>
+    ): ColumnDeclaringExpression<T> {
+        visit(expr.expression)
+
+        val column = expr.expression as? ColumnExpression<*>
+        val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
+
+        if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
+            write("as ${expr.declaredName!!.quoted} ")
         }
 
         return expr
@@ -265,46 +256,34 @@ open class SqlFormatter(
         }
 
         if (expr.columns.isNotEmpty()) {
-            withStage(FormatterStage.SELECT_CLAUSE) {
-                visitColumnDeclaringList(expr.columns)
-            }
+            visitExpressionList(expr.columns) { visitColumnDeclaringAtSelectClause(it) }
         } else {
             write("* ")
         }
 
-        withStage(FormatterStage.FROM_CLAUSE) {
-            newLine(Indentation.SAME)
-            write("from ")
-            visitQuerySource(expr.from)
-        }
+        newLine(Indentation.SAME)
+        write("from ")
+        visitQuerySource(expr.from)
 
         if (expr.where != null) {
             newLine(Indentation.SAME)
             write("where ")
-            withStage(FormatterStage.WHERE_CLAUSE) {
-                visit(expr.where)
-            }
+            visit(expr.where)
         }
         if (expr.groupBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             write("group by ")
-            withStage(FormatterStage.GROUP_BY_CLAUSE) {
-                visitGroupByList(expr.groupBy)
-            }
+            visitGroupByList(expr.groupBy)
         }
         if (expr.having != null) {
             newLine(Indentation.SAME)
             write("having ")
-            withStage(FormatterStage.HAVING_CLAUSE) {
-                visit(expr.having)
-            }
+            visit(expr.having)
         }
         if (expr.orderBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             write("order by ")
-            withStage(FormatterStage.ORDER_BY_CLAUSE) {
-                visitOrderByList(expr.orderBy)
-            }
+            visitOrderByList(expr.orderBy)
         }
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)

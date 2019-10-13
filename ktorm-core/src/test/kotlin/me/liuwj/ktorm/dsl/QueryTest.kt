@@ -116,7 +116,7 @@ class QueryTest : BaseTest() {
     }
 
     @Test
-    fun testHavingAlias() {
+    fun testColumnAlias() {
         val deptId = Employees.departmentId.aliased("dept_id")
         val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
@@ -131,6 +131,21 @@ class QueryTest : BaseTest() {
         println(salaries)
         assert(salaries.size == 1)
         assert(salaries.keys.first() == 2)
+        assert(salaries.values.first() == 150.0)
+    }
+
+    @Test
+    fun testColumnAlias1() {
+        val salary = (Employees.salary + 100).aliased(null)
+
+        val salaries = Employees
+            .select(salary)
+            .where { salary greater 200L }
+            .map { it.getLong(1) }
+
+        println(salaries)
+        assert(salaries.size == 1)
+        assert(salaries.first() == 300L)
     }
 
     @Test
