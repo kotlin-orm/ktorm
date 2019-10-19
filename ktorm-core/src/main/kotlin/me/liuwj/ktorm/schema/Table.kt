@@ -120,11 +120,7 @@ open class Table<E : Entity<E>>(
         val entity = Entity.create(entityClass, fromTable = this) as E
 
         for (column in columns) {
-            try {
-                row.retrieveColumn(column, intoEntity = entity, withReferences = withReferences)
-            } catch (e: Throwable) {
-                throw IllegalStateException("Error retrieving column: $column, binding: ${column.binding}", e)
-            }
+            row.retrieveColumn(column, intoEntity = entity, withReferences = withReferences)
         }
 
         return entity.apply { clearChangesRecursively() }
@@ -132,26 +128,33 @@ open class Table<E : Entity<E>>(
 
     private fun QueryRowSet.retrieveColumn(column: Column<*>, intoEntity: E, withReferences: Boolean) {
         val columnValue = this[column] ?: return
-        val binding = column.binding ?: return
 
-        when (binding) {
-            is ReferenceBinding -> {
-                val refTable = binding.referenceTable as Table<*>
-                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
+        for (binding in column.allBindings) {
+            when (binding) {
+                is ReferenceBinding -> {
+                    val ref = binding.referenceTable as Table<*>
+                    val primaryKey = ref.primaryKey ?: error("Table ${ref.tableName} doesn't have a primary key.")
 
-                if (withReferences) {
-                    val child = refTable.doCreateEntity(this, withReferences = true)
-                    child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
-                    intoEntity[binding.onProperty.name] = child
-                } else {
-                    val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = refTable)
-                    child.implementation.setColumnValue(primaryKey, columnValue)
-                    intoEntity[binding.onProperty.name] = child
+                    if (withReferences) {
+                        val child = ref.doCreateEntity(this, withReferences = true)
+                        child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
+                        intoEntity[binding.onProperty.name] = child
+                    } else {
+                        val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = ref)
+                        child.implementation.setColumnValue(primaryKey, columnValue)
+                        intoEntity[binding.onProperty.name] = child
+                    }
+                }
+                is NestedBinding -> {
+                    intoEntity.implementation.setColumnValue(binding, columnValue)
                 }
             }
-            is NestedBinding -> {
-                intoEntity.implementation.setColumnValue(column, columnValue)
-            }
+        }
+    }
+
+    private fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?, forceSet: Boolean = false) {
+        for (binding in column.allBindings) {
+            this.setColumnValue(binding, value, forceSet)
         }
     }
 }

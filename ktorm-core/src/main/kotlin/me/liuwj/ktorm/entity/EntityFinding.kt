@@ -110,13 +110,14 @@ private fun BaseTable<*>.joinReferences(
     joinedTables += this
 
     for (column in columns) {
-        val binding = column.binding
-        if (binding is ReferenceBinding) {
-            val refTable = binding.referenceTable
-            val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
+        for (binding in column.allBindings) {
+            if (binding is ReferenceBinding) {
+                val refTable = binding.referenceTable
+                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
 
-            curr = curr.leftJoin(refTable, on = column eq primaryKey)
-            curr = refTable.joinReferences(curr, joinedTables)
+                curr = curr.leftJoin(refTable, on = column eq primaryKey)
+                curr = refTable.joinReferences(curr, joinedTables)
+            }
         }
     }
 

@@ -87,8 +87,8 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
     for (column in columns) {
-        if (column is SimpleColumn && column.binding != null) {
-            val value = implementation.getColumnValue(column)
+        if (column.binding != null) {
+            val value = implementation.getColumnValue(column.binding)
             if (value != null) {
                 assignments[column] = value
             }
@@ -131,7 +131,7 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
     for (column in fromTable.columns) {
-        val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
+        val binding = column.binding ?: continue
 
         when (binding) {
             is ReferenceBinding -> {
@@ -172,7 +172,7 @@ internal fun EntityImplementation.doDiscardChanges() {
     val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
 
     for (column in fromTable.columns) {
-        val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
+        val binding = column.binding ?: continue
 
         when (binding) {
             is ReferenceBinding -> {
@@ -201,7 +201,7 @@ internal fun EntityImplementation.doDiscardChanges() {
 // Add check to avoid bug #10
 private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) {
     for (column in fromTable.columns) {
-        val binding = column.binding?.takeIf { column is SimpleColumn } ?: continue
+        val binding = column.binding ?: continue
 
         if (binding is NestedBinding) {
             var curr: Any? = this

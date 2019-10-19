@@ -78,17 +78,37 @@ interface ColumnDeclaring<T : Any> {
 /**
  * Represents database columns.
  */
-sealed class Column<T : Any> : ColumnDeclaring<T> {
+data class Column<T : Any>(
 
     /**
      * The table that this column belongs to.
      */
-    abstract val table: BaseTable<*>
+    val table: BaseTable<*>,
 
     /**
      * The column's name.
      */
-    abstract val name: String
+    val name: String,
+
+    /**
+     * The column's primary binding. A column might be bound to a simple property, nested properties,
+     * or a reference to another table, null if the column doesn't bind to any property.
+     */
+    val binding: ColumnBinding? = null,
+
+    /**
+     * The column's extra bindings. Useful when we need to configure two or more bindings for a column.
+     *
+     * @since 2.6
+     */
+    val extraBindings: List<ColumnBinding> = emptyList(),
+
+    /**
+     * The [SqlType] of this column or expression.
+     */
+    override val sqlType: SqlType<T>
+
+) : ColumnDeclaring<T> {
 
     /**
      * The column's label, used to identify the selected columns and to obtain query results.
@@ -98,16 +118,15 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
      *
      * @see ColumnDeclaringExpression
      */
-    abstract val label: String
+    val label: String get() = "${table.alias ?: table.tableName}_$name"
 
     /**
-     * The column's binding. A column might be bound to a simple property, nested properties,
-     * or a reference to another table, null if the column doesn't bind to any property.
+     * Return all the bindings of this column, including the primary [binding] and [extraBindings].
      */
-    abstract val binding: ColumnBinding?
+    val allBindings get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
 
     /**
-     * If the column was bound to a reference table, return the table, otherwise return null.
+     * If the column is bound to a reference table, return the table, otherwise return null.
      *
      * Shortcut for `(binding as? ReferenceBinding)?.referenceTable`.
      */
@@ -145,65 +164,14 @@ sealed class Column<T : Any> : ColumnDeclaring<T> {
      * Indicates whether some other object is "equal to" this column.
      * Two columns are equal only if they are the same instance.
      */
-    final override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean {
         return this === other
     }
 
     /**
      * Return a hash code value for this column.
      */
-    final override fun hashCode(): Int {
+    override fun hashCode(): Int {
         return System.identityHashCode(this)
-    }
-}
-
-/**
- * Simple implementation of [Column].
- */
-data class SimpleColumn<T : Any>(
-    override val table: BaseTable<*>,
-    override val name: String,
-    override val sqlType: SqlType<T>,
-    override val binding: ColumnBinding? = null
-) : Column<T>() {
-
-    override val label: String = "${table.alias ?: table.tableName}_$name"
-
-    override fun toString(): String {
-        return "${table.alias ?: table.tableName}.$name"
-    }
-}
-
-/**
- * Aliased column, wrapping a [SimpleColumn] and an extra [alias] to modify the lable, designed to bind a column to
- * multiple bindings.
- *
- * Ktorm provides an `aliased` function to create a copy of an existing column with a specific alias, then we can bind
- * this new-created column to any property we want, and the origin column's binding is not influenced, that’s the way
- * Ktorm supports multiple bindings on a column.
- *
- * The generated SQL is like: `select name as label, name as label1 from dual`.
- *
- * Note that aliased bindings are only available for queries, they will be ignored when inserting or updating entities.
- *
- * @property originColumn the origin column.
- * @property alias the alias used to modify the origin column's label.
- */
-data class AliasedColumn<T : Any>(
-    val originColumn: SimpleColumn<T>,
-    val alias: String,
-    override val binding: ColumnBinding? = null
-) : Column<T>() {
-
-    override val table: BaseTable<*> = originColumn.table
-
-    override val name: String = originColumn.name
-
-    override val label: String = "${table.alias ?: table.tableName}_$alias"
-
-    override val sqlType: SqlType<T> = originColumn.sqlType
-
-    override fun toString(): String {
-        return "$originColumn as $alias"
     }
 }

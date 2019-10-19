@@ -118,47 +118,15 @@ abstract class BaseTable<E : Any>(
             throw IllegalArgumentException("Duplicate column name: $name")
         }
 
-        _columns[name] = SimpleColumn(this, name, sqlType)
+        _columns[name] = Column(this, name, sqlType = sqlType)
         return ColumnRegistration(name)
-    }
-
-    /**
-     * Create a copied [AliasedColumn] of the current column with a specific [alias] and register it to the table.
-     * This function is designed to bind a column to multiple bindings.
-     *
-     * This function returns a [ColumnRegistration], then we can bind the new-created column to any other property,
-     * and the origin column's binding is not influenced, that’s the way Ktorm supports multiple bindings on a column.
-     *
-     * The generated SQL is like: `select name as label, name as aliased_label from dual`.
-     *
-     * Note that aliased bindings are only available for query operations, they will be ignored when inserting or
-     * updating entities.
-     *
-     * @see AliasedColumn
-     */
-    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-    fun <C : Any> Column<C>.aliased(alias: String): ColumnRegistration<C> {
-        if (alias in _columns) {
-            throw IllegalArgumentException("Duplicate column name: $alias")
-        }
-        if (this !is SimpleColumn) {
-            throw IllegalArgumentException("The aliased function is only available on a SimpleColumn.")
-        }
-
-        _columns[alias] = AliasedColumn(this.copy(binding = null), alias)
-        return ColumnRegistration(alias)
     }
 
     /**
      * Mark the registered column as the primary key.
      */
     fun <C : Any> ColumnRegistration<C>.primaryKey(): ColumnRegistration<C> {
-        val column = getColumn()
-        if (column is AliasedColumn) {
-            throw UnsupportedOperationException("Cannot set aliased column ${column.alias} as a primary key.")
-        }
-
-        _primaryKeyName = column.name
+        _primaryKeyName = columnName
         return this
     }
 
@@ -176,7 +144,7 @@ abstract class BaseTable<E : Any>(
      * Here, the `registerColumn` function returns a `ColumnRegistration<Int>` and the `foo` property's
      * type is `Column<Int>`.
      */
-    inner class ColumnRegistration<C : Any>(private val key: String) : ReadOnlyProperty<BaseTable<E>, Column<C>> {
+    inner class ColumnRegistration<C : Any>(val columnName: String) : ReadOnlyProperty<BaseTable<E>, Column<C>> {
 
         /**
          * Return the registered column.
@@ -190,7 +158,7 @@ abstract class BaseTable<E : Any>(
          * Return the registered column.
          */
         fun getColumn(): Column<C> {
-            val column = _columns[key] ?: throw NoSuchElementException(key)
+            val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
             return column as Column<C>
         }
 
@@ -203,15 +171,16 @@ abstract class BaseTable<E : Any>(
                 is NestedBinding -> binding
                 is ReferenceBinding -> {
                     checkCircularReference(binding.referenceTable)
-                    ReferenceBinding(copyReference(binding.referenceTable), binding.onProperty)
+                    ReferenceBinding(copyReferenceTable(binding.referenceTable), binding.onProperty)
                 }
             }
 
-            val column = _columns[key] ?: throw NoSuchElementException(key)
+            val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
 
-            _columns[key] = when (column) {
-                is SimpleColumn -> column.copy(binding = checkedBinding)
-                is AliasedColumn -> column.copy(binding = checkedBinding)
+            if (column.binding == null) {
+                _columns[columnName] = column.copy(binding = checkedBinding)
+            } else {
+                _columns[columnName] = column.copy(extraBindings = column.extraBindings + checkedBinding)
             }
 
             return this
@@ -270,45 +239,31 @@ abstract class BaseTable<E : Any>(
         }
 
         for (column in columns) {
-            val binding = column.binding
-
-            val newBinding = if (copyReferences && binding is ReferenceBinding) {
-                binding.copy(referenceTable = copyReference(binding.referenceTable))
-            } else {
-                binding
-            }
-
-            when (column) {
-                is SimpleColumn -> {
-                    _columns[column.name] = column.copy(table = this, binding = newBinding)
-                }
-                is AliasedColumn -> {
-                    val col = column as AliasedColumn<Any>
-                    val originColumn = col.originColumn.copy(table = this)
-                    _columns[col.alias] = col.copy(originColumn = originColumn, binding = newBinding)
-                }
-            }
+            val binding = column.binding?.let { if (copyReferences) copyBinding(it) else it }
+            val extraBindings = column.extraBindings.map { if (copyReferences) copyBinding(it) else it }
+            _columns[column.name] = column.copy(table = this, binding = binding, extraBindings = extraBindings)
         }
     }
 
-    private fun copyReference(table: BaseTable<*>): BaseTable<*> {
+    private fun copyReferenceTable(table: BaseTable<*>): BaseTable<*> {
         val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
 
         val columns = copy.columns.map { column ->
-            val binding = column.binding
-            if (binding !is ReferenceBinding) {
-                column
-            } else {
-                val newBinding = binding.copy(referenceTable = copyReference(binding.referenceTable))
-                when (column) {
-                    is SimpleColumn -> column.copy(binding = newBinding)
-                    is AliasedColumn -> column.copy(binding = newBinding)
-                }
-            }
+            val binding = column.binding?.let { copyBinding(it) }
+            val extraBindings = column.extraBindings.map { copyBinding(it) }
+            column.copy(binding = binding, extraBindings = extraBindings)
         }
 
         copy.rewriteDefinitions(columns, copy._primaryKeyName, copyReferences = false)
         return copy
+    }
+
+    private fun copyBinding(binding: ColumnBinding): ColumnBinding {
+        if (binding is ReferenceBinding) {
+            return binding.copy(referenceTable = copyReferenceTable(binding.referenceTable))
+        } else {
+            return binding
+        }
     }
 
     /**

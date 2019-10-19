@@ -16,21 +16,17 @@
 
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.NestedBinding
-import me.liuwj.ktorm.schema.ReferenceBinding
-import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.*
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 
 internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? {
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    return getColumnValue(primaryKey)
+    val binding = primaryKey.binding ?: error("Primary column $primaryKey has no bindings to any entity field.")
+    return getColumnValue(binding)
 }
 
-internal fun EntityImplementation.getColumnValue(column: Column<*>): Any? {
-    val binding = column.binding ?: error("Column $column has no bindings to any entity field.")
-
+internal fun EntityImplementation.getColumnValue(binding: ColumnBinding): Any? {
     when (binding) {
         is ReferenceBinding -> {
             val child = this.getProperty(binding.onProperty.name) as Entity<*>?
@@ -49,14 +45,24 @@ internal fun EntityImplementation.getColumnValue(column: Column<*>): Any? {
     }
 }
 
-internal fun EntityImplementation.setPrimaryKeyValue(fromTable: Table<*>, value: Any?, forceSet: Boolean = false) {
+internal fun EntityImplementation.setPrimaryKeyValue(
+    fromTable: Table<*>,
+    value: Any?,
+    forceSet: Boolean = false,
+    useExtraBindings: Boolean = false
+) {
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    setColumnValue(primaryKey, value, forceSet)
+    val binding = primaryKey.binding ?: error("Primary column $primaryKey has no bindings to any entity field.")
+    setColumnValue(binding, value, forceSet)
+
+    if (useExtraBindings) {
+        for (extraBinding in primaryKey.extraBindings) {
+            setColumnValue(extraBinding, value, forceSet)
+        }
+    }
 }
 
-internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?, forceSet: Boolean = false) {
-    val binding = column.binding ?: error("Column $column has no bindings to any entity field.")
-
+internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: Any?, forceSet: Boolean = false) {
     when (binding) {
         is ReferenceBinding -> {
             var child = this.getProperty(binding.onProperty.name) as Entity<*>?
@@ -68,7 +74,8 @@ internal fun EntityImplementation.setColumnValue(column: Column<*>, value: Any?,
                 this.setProperty(binding.onProperty.name, child, forceSet)
             }
 
-            child.implementation.setPrimaryKeyValue(binding.referenceTable as Table<*>, value, forceSet)
+            val refTable = binding.referenceTable as Table<*>
+            child.implementation.setPrimaryKeyValue(refTable, value, forceSet, useExtraBindings = true)
         }
         is NestedBinding -> {
             var curr: EntityImplementation = this
