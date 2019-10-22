@@ -104,21 +104,27 @@ object Employees : Table<Employee>("t_employee") {
 Ktorm 提供以下几种不同的绑定类型：
 
 1. **简单绑定：**使用 `bindTo` 函数将列绑定到一个简单的属性上，如 `c.bindTo { it.name }`。
-2. **引用绑定：**使用 `references` 函数将列绑定到另一个表，如 `c.references(Departments) { it.department }`，相当于数据库中的外键引用。使用引用绑定的列，在通过实体查询函数（如 `findList`、`findOne` 等）从数据库中获取当前实体对象的时候，会自动递归地 left join 其关联表，并将关联的实体对象也一并获取。
-3. **嵌套绑定：**使用 `bindTo` 函数将列绑定到多层嵌套的某个属性上，如 `c.bindTo { it.manager.department.id }`；这样，从数据库中获取该列时，它的值会被填充到 `employee.manager.department.id` 中；将修改更新到数据库时，只要嵌套的属性中的任何一级发生变化，都会将新的值同步更新到所绑定的这个列。简单绑定其实也是嵌套绑定的一种特例，只不过嵌套的属性只有一层。
-4. **别名绑定：**有时候，我们可能需要将一个列绑定到多个属性，但是在 `ColumnRegistration` 上，我们只能调用一次 `bindTo` 或 `references` 函数。别名绑定使用 `aliased` 方法从一个列复制出一个别名列，这样，我们就能够在这个复制出来别名列上绑定属性，最终生成的 SQL 类似：`select name as label, name as label1 from dual`。例如下面的例子，在数据库中，`t_foo` 表中其实只有一个 `bar` 列，从数据库中获取 `Foo` 实体时，这个列的值会同时填充到 `bar` 和 `barCopy` 两个属性中。请注意：别名绑定仅在查询时有效，在执行插入或更新实体的操作时，以普通的列绑定为准，Ktorm 会忽略别名绑定。
+2. **嵌套绑定：**使用 `bindTo` 函数将列绑定到多层嵌套的某个属性上，如 `c.bindTo { it.manager.department.id }`；这样，从数据库中获取该列时，它的值会被填充到 `employee.manager.department.id` 中；将修改更新到数据库时，只要嵌套的属性中的任何一级发生变化，都会将新的值同步更新到所绑定的这个列。简单绑定其实也是嵌套绑定的一种特例，只不过嵌套的属性只有一层。
+3. **引用绑定：**使用 `references` 函数将列绑定到另一个表，如 `c.references(Departments) { it.department }`，相当于数据库中的外键引用。使用引用绑定的列，在通过实体查询函数（如 `findList`、`findOne` 等）从数据库中获取当前实体对象的时候，会自动递归地 left join 其关联表，并将关联的实体对象也一并获取。
+
+另外，Ktorm 2.6 及以上版本还支持了多重绑定的功能，我们可以通过连续调用 `bindTo` 或 `references` 函数把一个列绑定到多个属性上。这样，当通过查询从数据库中获取实体对象的时候，这个列的值就会同时填充到它绑定的每一个属性上去。
 
 ```kotlin
-interface Foo : Entity<Foo> {
-    val bar: String
-    val barCopy: String
+interface Config : Entity<Config> {
+    val key: String
+    var value1: String
+    var value2: String
 }
 
-object Foos : Table<Foo>("t_foo") {
-    val bar by varchar("bar").bindTo { it.bar }
-    val barCopy by bar.aliased("bar_copy").bindTo { it.barCopy }
+object Configs : Table<Config>("t_config") {
+    val key by varchar("key").primaryKey().bindTo { it.key }
+    val value by varchar("value").bindTo { it.value1 }.bindTo { it.value2 }
 }
 ```
+
+在这个例子中，我们把 `value` 列同时绑定到了 `value1` 和 `value2` 上，因此在查询返回的实体对象中，这两个属性会包含同样的值。
+
+> 请注意：多重绑定仅在查询时有效，在执行插入或更新实体的操作时，以第一个绑定的属性为准，其他的绑定都会被忽略。
 
 ## 关于 Entity 接口
 
