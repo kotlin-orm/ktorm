@@ -167,7 +167,25 @@ abstract class BaseTable<E : Any>(
          * library and its extension modules. Others should not use this function directly.
          */
         fun doBindInternal(binding: ColumnBinding): ColumnRegistration<C> {
-            val checkedBinding = when (binding) {
+            for (column in _columns.values) {
+                val hasConflict = when (binding) {
+                    is NestedBinding -> column.allBindings
+                        .filterIsInstance<NestedBinding>()
+                        .any { it.properties == binding.properties }
+                    is ReferenceBinding -> column.allBindings
+                        .filterIsInstance<ReferenceBinding>()
+                        .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
+                        .any { it.onProperty == binding.onProperty }
+                }
+
+                if (hasConflict) {
+                    throw IllegalStateException(
+                        "Column '$columnName' and '${column.name}' have the same bindings. Please check your code."
+                    )
+                }
+            }
+
+            val b = when (binding) {
                 is NestedBinding -> binding
                 is ReferenceBinding -> {
                     checkCircularReference(binding.referenceTable)
@@ -178,9 +196,9 @@ abstract class BaseTable<E : Any>(
             val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
 
             if (column.binding == null) {
-                _columns[columnName] = column.copy(binding = checkedBinding)
+                _columns[columnName] = column.copy(binding = b)
             } else {
-                _columns[columnName] = column.copy(extraBindings = column.extraBindings + checkedBinding)
+                _columns[columnName] = column.copy(extraBindings = column.extraBindings + b)
             }
 
             return this
