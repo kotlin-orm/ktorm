@@ -51,7 +51,7 @@ interface Department : Entity<Department> {
 }
 ```
 
-The `Entity.Factory` class overloads invoke operator, so we can use brackets to call the companion object as it's a function. The code creating a department object: 
+The `Entity.Factory` class overloads the `invoke` operator, so we can use brackets to call the companion object as it's a function. The code creating a department object: 
 
 ```kotlin
 val department = Department()
@@ -72,7 +72,7 @@ The core feature of an ORM framework is to bind database tables to entities, bin
 
 In former sections learning SQL DSL, we created two table objects, they are `Departments` and `Employees`. In the table objects, we defined columns by calling column definition functions such as `int`, `long`, `varchar`, etc. The return type of these functions is `Table<E>.ColumnRegistration<C>`, in which `E` is the entity's type, `C` is the declaring column's type.
 
-It's easy to bind a column to an entity's property, we just need to chaining call the `bindTo` or `references` function in `ColumnRegistration`. The code below modifies those two table objects and completes the O-R bindings: 
+It's easy to bind a column to an entity's property, we just need to chaining call the `bindTo` or `references` function on the `ColumnRegistration` instance. The code below modifies those two table objects and completes the O-R bindings: 
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
@@ -97,32 +97,38 @@ object Employees : Table<Employee>("t_employee") {
 Comparing the table objects with before, we can find two differences: 
 
 1. The type parameter of `Table` is specified to the entity's type now, that's the way we bind table objects to entity classes. We set this parameter to `Nothing` before, that meant the table object was not bound to any entity class. 
-2. After the calling of column definition functions, we chaining call `bindTo` or `references` functions to bind the current column to a property in the entity class. If we don't do that, the column won't be bound to any property. 
+2. After calling the column definition functions, we chaining call `bindTo` or `references` functions to bind the current column to a property in the entity class. If we don't do that, the column won't be bound to any property. 
 
 The significance of column bindings is that, while obtaining entities from databases (eg. `findList` function), Ktorm will use our binding configurations to fill columns' values to their corresponding properties, and while updating entities' changes into databases (eg. `flushChanges` function), Ktorm will also use the configurations to find corresponding columns of properties.  
 
 Ktorm provides the following different binding types: 
 
 1. **Simple Binding:** Use `bindTo` function to bind a column to a simple property, eg. `c.bindTo { it.name }`. 
-2. **Reference Binding:** Use `references` function to bind a column to another table, eg. `c.references(Departments) { it.department }`, equivalent to the foreign key in databases. Using reference binding, while obtaining entities from databases (eg. `findList`, `findOne`, etc), Ktorm will auto left join all its reference tables, obtaining the referenced entity objects at the same time. 
-3. **Nested Binding:** Use `bindTo` function to bind a column to nested properties, for example `c.bindTo { it.manager.department.id }`. While obtaining entities from databases, the value of this column will be filled to `employee.manager.department.id`. With only a single level of properties, simple binding is a special case of nested binding. 
-4. **Aliased Binding:** At times we need to bind a column to multiple properties, but it's a pity that we can only call `bindTo` or `references` once on a `ColumnRegistration`. Ktorm provides an `aliased` function to create a copy of the current column with a specific alias, then we can bind this new-created column to any property we want, and the final generated SQL is like: `select name as label, name as label1 from dual`. For example, assuming that we have a `t_foo` table, in which there is only one column `bar`, and its binding configurations (with an aliased binding in it) is given as follows. In this example, while obtaining entities from databases, the column's values will be filled to both `bar` and `barCopy` properties. Please note that aliased bindings are only available for query operations, they will be ignored when inserting or updating entities. 
+2. **Nested Binding:** Use `bindTo` function to bind a column to nested properties, for example `c.bindTo { it.manager.department.id }`. While obtaining entities from databases, the value of this column will be filled to `employee.manager.department.id`. With only a single level of properties, simple binding is a special case of nested binding. 
+3. **Reference Binding:** Use `references` function to bind a column to another table, eg. `c.references(Departments) { it.department }`, equivalent to the foreign key in databases. Using reference binding, while obtaining entities from databases (eg. `findList`, `findOne`, etc), Ktorm will auto left join all its reference tables, obtaining the referenced entity objects at the same time. 
+
+Additionally, multiple bindings are supported since Ktorm version 2.6, so we can bind a column to multiple properties by calling the `bindTo` or `references` functions continuously. In this way, when an entity object is retrieved from the database, the value of this column will be filled to each property it binds.
 
 ```kotlin
-interface Foo : Entity<Foo> {
-    val bar: String
-    val barCopy: String
+interface Config : Entity<Config> {
+    val key: String
+    var value1: String
+    var value2: String
 }
 
-object Foos : Table<Foo>("t_foo") {
-    val bar by varchar("bar").bindTo { it.bar }
-    val barCopy by bar.aliased("bar_copy").bindTo { it.barCopy }
+object Configs : Table<Config>("t_config") {
+    val key by varchar("key").primaryKey().bindTo { it.key }
+    val value by varchar("value").bindTo { it.value1 }.bindTo { it.value2 }
 }
 ```
 
+In the example above, we bound the `value` column to both `value1` and `value2`, so the values of these two properties would be the same in an entity object obtained from the database. 
+
+> Please note that multiple bindings are only available for query operations. When we are inserting or updating an entity, the first binding will prevail, and other bindings will be ignored.
+
 ## More About Entities
 
-We know that Ktorm's entity classes should be defined as interfaces extending from `Entity`, and we create entity objects via JDK dynamic proxy. If you have used dynamic proxy before, you may know proxy objects are created by `Proxy.newProxyInstance` method, providing an instance of `InvocationHandler`. When a method is invoked on a proxy instance, the method invocation is encoded and dispatched to the invocation handler. In Ktorm, `EntityImplementation` is the implementation of entities' invocation handler. It's marked as internal, so we can not use it outside Ktorm, but we can learn its basic principles. 
+We know that Ktorm's entity classes should be defined as interfaces extending from `Entity`, and we create entity objects via JDK dynamic proxy. If you have used dynamic proxy before, you may know proxy objects are created by `Proxy.newProxyInstance` method, providing an instance of `InvocationHandler`. When a method is invoked on a proxy instance, the method invocation is encoded and dispatched to the invocation handler. In Ktorm, `EntityImplementation` is the implementation of entities' invocation handler. It's marked as internal, so we can not use it outside Ktorm, but we can still learn its basic principles. 
 
 ### Getting and Setting Properties
 
@@ -166,7 +172,7 @@ interface Foo : Entity<Foo> {
 
 Then if we call `Foo().printName()`, the value of the property `name` will be printed. 
 
-> That looks natural, but the underlying implementation is not that simple. We know that Ktorm creates entity objects via JDK dynamic proxy, and the invocation on `printName` function will also be delegated into `EntityImplementation`. When `EntityImplementation` receives the invocation, it finds that the calling function is not abstract, then it will search the default implementation in the generated `DefaultImpls` class and call it. That's transparent to us, and it looks no different from calling the function directly for us. Moreover, if we add a `@JvmDefault` annotation to the function, Ktorm may not be able to find the `DefaultImpls` class anymore, but that has little influence for us to use Ktorm, so just let it go. If you are really interested, please refer to [Kotlin Reference](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html).
+> That looks natural, but the underlying implementation is not that simple. We know that Ktorm creates entity objects via JDK dynamic proxy, and the invocation on `printName` function will also be delegated into `EntityImplementation`. When `EntityImplementation` receives the invocation, it finds that the calling function is not abstract, then it will search the default implementation in the generated `DefaultImpls` class and call it. That's transparent to us, just like directly calling the function. Moreover, if we add a `@JvmDefault` annotation to the function, Ktorm may not be able to find the `DefaultImpls` class anymore, but that has little influence for us to use Ktorm, so just let it go. If you are really interested, please refer to [Kotlin Reference](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-default/index.html).
 
 Besides of non-abstract functions, Kotlin also allows us to define properties with custom getters or setters in interfaces. For example, in the following code, if we call the `upperName` property, then the value of the `name` property will be returned in upper case. The principle is the same as we discussed above. 
 
