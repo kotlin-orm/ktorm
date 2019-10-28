@@ -65,3 +65,8 @@
 #doc-search-pagination {
   display: none;
 }
+
+.algolia-autocomplete {
+  position: fixed !important;
+  padding-top: 10px;
+}

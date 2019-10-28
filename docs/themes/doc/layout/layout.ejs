@@ -1,5 +1,6 @@
+<% var lang = page.lang === 'zh-cn' ? 'zh-cn' : 'en' %>
 <!DOCTYPE html>
-<html lang="<%- page.lang === 'zh-cn' ? 'zh-cn' : 'en' %>">
+<html lang="<%- lang %>">
   <head>
     <meta charset="utf-8">
 
@@ -21,6 +22,8 @@
     <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <link href="//fonts.googleapis.com/css?family=Ubuntu:300,400,500,600,700" rel="stylesheet">
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!--<link rel="stylesheet" type="text/css" href="<%- url_for('vendors/algolia-instant-search/instantsearch.min.css') %>">-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css" />
     <link href="<%- url_for('style/doc.css') %>" rel="stylesheet">
 
     <!-- favicon -->
@@ -76,9 +79,21 @@
     <script src="<%- url_for('script/doc.js') %>"></script>
 
     <!-- algolia instant search -->
-    <link rel="stylesheet" type="text/css" href="<%- url_for('vendors/algolia-instant-search/instantsearch.min.css') %>">
-    <script type="text/javascript" src="<%- url_for('vendors/algolia-instant-search/instantsearch.min.js') %>"></script>
-    <script type="text/javascript" src="<%- url_for('script/algolia-search.js') %>"></script>
+    <!--<script type="text/javascript" src="<%- url_for('vendors/algolia-instant-search/instantsearch.min.js') %>"></script>-->
+    <!--<script type="text/javascript" src="<%- url_for('script/algolia-search.js') %>"></script>-->
+
+    <!-- algolia docsearch -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.js"></script>
+    <script type="text/javascript">
+      docsearch({
+        apiKey: "8cd6a3b7dc33b50b89c7e9b11110717a",
+        indexName: "ktorm",
+        inputSelector: "#doc-search-input",
+        algoliaOptions: { facetFilters: ["lang:<%- lang %>", "tags:doc"] },
+        autocompleteOptions: { hint: false, appendTo: "body" },
+        debug: false
+      });
+    </script>
 
     <script>
       // baidu push
