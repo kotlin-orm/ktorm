@@ -126,6 +126,12 @@ abstract class BaseTable<E : Any>(
      * Mark the registered column as the primary key.
      */
     fun <C : Any> ColumnRegistration<C>.primaryKey(): ColumnRegistration<C> {
+        if (_primaryKeyName != null) {
+            throw IllegalStateException(
+                "Column '$_primaryKeyName' has been configured as the primary key, so you cannot configure another one."
+            )
+        }
+
         _primaryKeyName = columnName
         return this
     }
