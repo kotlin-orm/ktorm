@@ -292,6 +292,26 @@ object TimeSqlType : SqlType<Time>(Types.TIME, "time") {
 }
 
 /**
+ * Define a column typed of [InstantSqlType].
+ */
+fun <E : Any> BaseTable<E>.timestamp(name: String): BaseTable<E>.ColumnRegistration<Instant> {
+    return registerColumn(name, InstantSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `timestamp` SQL type.
+ */
+object InstantSqlType : SqlType<Instant>(Types.TIMESTAMP, "timestamp") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Instant) {
+        ps.setTimestamp(index, Timestamp.from(parameter))
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Instant? {
+        return rs.getTimestamp(index)?.toInstant()
+    }
+}
+
+/**
  * Define a column typed of [LocalDateTimeSqlType].
  */
 fun <E : Any> BaseTable<E>.datetime(name: String): BaseTable<E>.ColumnRegistration<LocalDateTime> {
@@ -421,25 +441,5 @@ object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
 
     override fun doGetResult(rs: ResultSet, index: Int): Year? {
         return Year.of(rs.getInt(index))
-    }
-}
-
-/**
- * Define a column typed of [InstantSqlType].
- */
-fun <E : Any> BaseTable<E>.timestamp(name: String): BaseTable<E>.ColumnRegistration<Instant> {
-    return registerColumn(name, InstantSqlType)
-}
-
-/**
- * [SqlType] implementation represents `timestamp` SQL type.
- */
-object InstantSqlType : SqlType<Instant>(Types.TIMESTAMP, "timestamp") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Instant) {
-        ps.setTimestamp(index, Timestamp.from(parameter))
-    }
-
-    override fun doGetResult(rs: ResultSet, index: Int): Instant? {
-        return rs.getTimestamp(index)?.toInstant()
     }
 }

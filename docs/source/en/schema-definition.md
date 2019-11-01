@@ -116,23 +116,27 @@ object IntSqlType : SqlType<Int>(Types.INTEGER, typeName = "int") {
 Here is a list of SQL types supported in Ktorm by default: 
 
 | Function Name | Kotlin Type             | Underlying SQL Type | JDBC Type Code (java.sql.Types) |
-| ------------- | ----------------------- | ------------------- | ------------------------------- |
-| boolean       | kotlin.Boolean          | boolean             | Types.BOOLEAN                   |
-| int           | kotlin.Int              | int                 | Types.INTEGER                   |
-| long          | kotlin.Long             | bigint              | Types.BIGINT                    |
-| float         | kotlin.Float            | float               | Types.FLOAT                     |
-| double        | kotlin.Double           | double              | Types.DOUBLE                    |
-| decimal       | java.math.BigDecimal    | decimal             | Types.DECIMAL                   |
-| varchar       | kotlin.String           | varchar             | Types.VARCHAR                   |
-| text          | kotlin.String           | text                | Types.LONGVARCHAR               |
-| blob          | kotlin.ByteArray        | blob                | Types.BLOB                      |
-| datetime      | java.time.LocalDateTime | datetime            | Types.TIMESTAMP                 |
-| date          | java.time.LocalDate     | date                | Types.DATE                      |
-| time          | java.time.Time          | time                | Types.TIME                      |
-| monthDay      | java.time.MonthDay      | varchar             | Types.VARCHAR                   |
-| yearMonth     | java.time.YearMonth     | varchar             | Types.VARCHAR                   |
-| year          | java.time.Year          | int                 | Types.INTEGER                   |
-| timestamp     | java.time.Instant       | timestamp           | Types.TIMESTAMP                 |
+| ------------- | ----------------------- | ------------- | ---------------------------- |
+| boolean       | kotlin.Boolean          | boolean       | Types.BOOLEAN                |
+| int           | kotlin.Int              | int           | Types.INTEGER                |
+| long          | kotlin.Long             | bigint        | Types.BIGINT                 |
+| float         | kotlin.Float            | float         | Types.FLOAT                  |
+| double        | kotlin.Double           | double        | Types.DOUBLE                 |
+| decimal       | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
+| varchar       | kotlin.String           | varchar       | Types.VARCHAR                |
+| text          | kotlin.String           | text          | Types.LONGVARCHAR            |
+| blob          | kotlin.ByteArray        | blob          | Types.BLOB                   |
+| bytes         | kotlin.ByteArray        | bytes         | Types.BINARY                 |
+| jdbcTimestamp | java.sql.Timestamp      | timestamp     | Types.TIMESTAMP              |
+| jdbcDate      | java.sql.Date           | date          | Types.DATE                   |
+| jdbcTime      | java.sql.Time           | time          | Types.TIME                   |
+| timestamp     | java.time.Instant       | timestamp     | Types.TIMESTAMP              |
+| datetime      | java.time.LocalDateTime | datetime      | Types.TIMESTAMP              |
+| date          | java.time.LocalDate     | date          | Types.DATE                   |
+| time          | java.time.Time          | time          | Types.TIME                   |
+| monthDay      | java.time.MonthDay      | varchar       | Types.VARCHAR                |
+| yearMonth     | java.time.YearMonth     | varchar       | Types.VARCHAR                |
+| year          | java.time.Year          | int           | Types.INTEGER                |
 
 ## Extend More Data Types
 

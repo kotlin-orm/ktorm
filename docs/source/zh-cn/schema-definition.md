@@ -115,24 +115,28 @@ object IntSqlType : SqlType<Int>(Types.INTEGER, typeName = "int") {
 
 Ktorm 默认支持的数据类型如下表：
 
-| 函数名    | Kotlin 类型             | 底层 SQL 类型 | JDBC 类型码 (java.sql.Types) |
-| --------- | ----------------------- | ------------- | ---------------------------- |
-| boolean   | kotlin.Boolean          | boolean       | Types.BOOLEAN                |
-| int       | kotlin.Int              | int           | Types.INTEGER                |
-| long      | kotlin.Long             | bigint        | Types.BIGINT                 |
-| float     | kotlin.Float            | float         | Types.FLOAT                  |
-| double    | kotlin.Double           | double        | Types.DOUBLE                 |
-| decimal   | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
-| varchar   | kotlin.String           | varchar       | Types.VARCHAR                |
-| text      | kotlin.String           | text          | Types.LONGVARCHAR            |
-| blob      | kotlin.ByteArray        | blob          | Types.BLOB                   |
-| datetime  | java.time.LocalDateTime | datetime      | Types.TIMESTAMP              |
-| date      | java.time.LocalDate     | date          | Types.DATE                   |
-| time      | java.time.Time          | time          | Types.TIME                   |
-| monthDay  | java.time.MonthDay      | varchar       | Types.VARCHAR                |
-| yearMonth | java.time.YearMonth     | varchar       | Types.VARCHAR                |
-| year      | java.time.Year          | int           | Types.INTEGER                |
-| timestamp | java.time.Instant       | timestamp     | Types.TIMESTAMP              |
+| 函数名        | Kotlin 类型             | 底层 SQL 类型 | JDBC 类型码 (java.sql.Types) |
+| ------------- | ----------------------- | ------------- | ---------------------------- |
+| boolean       | kotlin.Boolean          | boolean       | Types.BOOLEAN                |
+| int           | kotlin.Int              | int           | Types.INTEGER                |
+| long          | kotlin.Long             | bigint        | Types.BIGINT                 |
+| float         | kotlin.Float            | float         | Types.FLOAT                  |
+| double        | kotlin.Double           | double        | Types.DOUBLE                 |
+| decimal       | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
+| varchar       | kotlin.String           | varchar       | Types.VARCHAR                |
+| text          | kotlin.String           | text          | Types.LONGVARCHAR            |
+| blob          | kotlin.ByteArray        | blob          | Types.BLOB                   |
+| bytes         | kotlin.ByteArray        | bytes         | Types.BINARY                 |
+| jdbcTimestamp | java.sql.Timestamp      | timestamp     | Types.TIMESTAMP              |
+| jdbcDate      | java.sql.Date           | date          | Types.DATE                   |
+| jdbcTime      | java.sql.Time           | time          | Types.TIME                   |
+| timestamp     | java.time.Instant       | timestamp     | Types.TIMESTAMP              |
+| datetime      | java.time.LocalDateTime | datetime      | Types.TIMESTAMP              |
+| date          | java.time.LocalDate     | date          | Types.DATE                   |
+| time          | java.time.Time          | time          | Types.TIME                   |
+| monthDay      | java.time.MonthDay      | varchar       | Types.VARCHAR                |
+| yearMonth     | java.time.YearMonth     | varchar       | Types.VARCHAR                |
+| year          | java.time.Year          | int           | Types.INTEGER                |
 
 ## 扩展更多的类型
 
