@@ -115,6 +115,7 @@ ktorm-support-oracle 提供的功能有：
 ktorm-support-sqlserver 提供的功能有：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 SqlServer 中使用 `top` 和 `row_number() over(...)` 筛选分页的写法
+- 支持 SqlServer 特有的 `datetimeoffset` 数据类型
 
 ktorm-support-sqlite 提供的功能有：
 

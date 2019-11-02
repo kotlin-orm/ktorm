@@ -114,6 +114,7 @@ ktorm-support-oracle provides:
 ktorm-support-sqlserver provides: 
 
 - Support paginations via `limit` function, translating paging expressions into SqlServer's paging SQL using `top` and `row_number() over(...)`. 
+- Support `datetimeoffset` data type. 
 
 ktorm-support-sqlite provides: 
 
