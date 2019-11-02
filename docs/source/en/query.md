@@ -330,7 +330,7 @@ val query = Employees.select().limit(0, 1)
 When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the currently enabled dialect. If we don't use any dialects, an exception might be thrown: 
 
 ```
-java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
+me.liuwj.ktorm.database.DialectFeatureNotSupportedException: Pagination is not supported in Standard SQL.
 ```
 
 This is OK, the SQL standard doesn't say how to implement paging queries, so Ktorm is not able to generate the SQL for us. To avoid this exception, do not use `limit`, or enable a dialect. Refer to later chapters for how to [enable dialects](./dialects-and-native-sql.html#Enable-Dialects).
@@ -367,3 +367,28 @@ Generated SQL：
 order by t_employee_id desc 
 ```
 
+## aliased
+
+In version 2.6, Ktorm provided a feature of column aliases, which allows us to assign aliases to the selected columns of a query and use them in subsequent clauses such as `group by` and `having`, just like the `as` keyword in SQL. Here is an example. This query selects departments whose average salary is greater than 100, then returns the average salaries along with their department’s IDs. 
+
+```kotlin
+val deptId = Employees.departmentId.aliased("dept_id")
+val salaryAvg = avg(Employees.salary).aliased("salary_avg")
+
+Employees
+    .select(deptId, salaryAvg)
+    .groupBy(deptId)
+    .having { salaryAvg greater 100.0 }
+    .forEach { row ->
+        println("${row[deptId]}:${row[salaryAvg]}")
+    }
+```
+
+Generated SQL: 
+
+```sql
+select t_employee.department_id as dept_id, avg(t_employee.salary) as salary_avg 
+from t_employee 
+group by dept_id 
+having salary_avg > ? 
+```

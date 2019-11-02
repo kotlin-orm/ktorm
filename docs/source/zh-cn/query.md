@@ -66,7 +66,7 @@ Employees.select()
 你可能已经发现，`Query.rowSet` 返回的结果集并不是普通的 `ResultSet`，而是 `QueryRowSet`。这是 Ktorm 提供的特殊的 `ResultSet` 的实现，与普通的 `ResultSet` 不同，它增加了如下特性：
 
 - **离线可用：**它不依赖于数据库连接，当连接关闭后，仍然可以正常使用，使用完毕也不需要调用 `close` 方法。`QueryRowSet` 在创建时，已经完整取出了结果集中的所有数据保存在内存中，因此只需要等待 GC 自动回收即可。
-- **索引访问运算符：**`QueryRowSet` 重载了[索引访问运算符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
+- **索引访问运算符：**`QueryRowSet` 重载了[索引访问运算符](https://kotlinlang.org/docs/reference/operator-overloading.html#indexed)，因此你可以使用方括号语法 `[]` ，通过传入指定的 `Column` 对象来获取这个列的数据，这种方法得益于编译器的静态检查，不易出错。不过，你仍然可以使用 `ResultSet` 中的 `getXxx` 方法，通过传入列的序号或名称字符串来获取。
 
 使用索引访问运算符获取列的方法如下：
 
@@ -244,7 +244,7 @@ group by t_employee.department_id
 having avg(t_employee.salary) > ?
 ````
 
-值得一提的是，如果我们再这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望再返回一下员工的名字：
+值得一提的是，如果我们在这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望再返回一下员工的名字：
 
 ```kotlin
 val query = t
@@ -332,7 +332,7 @@ val query = Employees.select().limit(0, 1)
 使用 `limit` 函数时，Ktorm 会根据当前使用的不同数据库（Dialect）生成合适的分页 SQL。但是如果你没有启用任何方言，你可能会得到这样一个异常：
 
 ````
-java.lang.UnsupportedOperationException: Pagination is not supported in Standard SQL.
+me.liuwj.ktorm.database.DialectFeatureNotSupportedException: Pagination is not supported in Standard SQL.
 ````
 
 这个是正常的，因为标准 SQL 中的确没有规定分页的语法，因此 Ktorm 无法为你生成这种 SQL，要避免这个异常，要么放弃使用 `limit` 函数，要么启用一个数据库方言。关于如何[启用方言](./dialects-and-native-sql.html#启用方言)，可参考后面的章节。
@@ -368,4 +368,30 @@ val query = Employees
 ) 
 order by t_employee_id desc 
 ````
+
+## aliased
+
+在 Ktorm 2.6 版本中，我们支持了列别名的功能，这个功能允许我们为查询的列指定别名，并在后续的 `group by` 和 `having` 等子句中使用它们，就像 SQL 中的 `as` 关键字一样。下面是一个例子，这个查询获取平均工资大于 100 的部门，返回他们的部门 id 以及平均工资：
+
+```kotlin
+val deptId = Employees.departmentId.aliased("dept_id")
+val salaryAvg = avg(Employees.salary).aliased("salary_avg")
+
+Employees
+    .select(deptId, salaryAvg)
+    .groupBy(deptId)
+    .having { salaryAvg greater 100.0 }
+    .forEach { row ->
+        println("${row[deptId]}:${row[salaryAvg]}")
+    }
+```
+
+生成 SQL：
+
+```sql
+select t_employee.department_id as dept_id, avg(t_employee.salary) as salary_avg 
+from t_employee 
+group by dept_id 
+having salary_avg > ? 
+```
 

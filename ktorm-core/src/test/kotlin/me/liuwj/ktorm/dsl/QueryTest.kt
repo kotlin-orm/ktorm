@@ -120,6 +120,14 @@ class QueryTest : BaseTest() {
         val deptId = Employees.departmentId.aliased("dept_id")
         val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
+        Employees
+            .select(deptId, salaryAvg)
+            .groupBy(deptId)
+            .having { salaryAvg greater 100.0 }
+            .forEach { row ->
+                println("${row[deptId]}:${row[salaryAvg]}")
+            }
+
         val salaries = Employees
             .select(deptId, salaryAvg)
             .groupBy(deptId)
