@@ -24,7 +24,7 @@ import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.ColumnDeclaring
 
 /**
- * Class that wraps a [QuerySourceExpression] along with a [Database] instance on which a query will run.
+ * Class that wraps a [QuerySourceExpression] along with a [Database] instance on which the query will run.
  */
 data class QuerySource(val database: Database, val expression: QuerySourceExpression)
 
