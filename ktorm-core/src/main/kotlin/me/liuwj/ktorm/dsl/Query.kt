@@ -64,9 +64,10 @@ import java.sql.ResultSet
  *
  * More usages can be found in the documentations of those DSL functions.
  *
+ * @property database the [Database] instance that this query is running on.
  * @property expression the underlying SQL expression of this query object.
  */
-data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
+data class Query(val database: Database, val expression: QueryExpression) : Iterable<QueryRowSet> {
 
     /**
      * The executable SQL string of this query.
