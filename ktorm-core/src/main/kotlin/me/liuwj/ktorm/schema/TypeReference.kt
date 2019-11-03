@@ -89,7 +89,7 @@ inline fun <reified T> typeOf(): Type {
  *
  * Note: Do not use this function until the bug [KT-28616](https://youtrack.jetbrains.com/issue/KT-28616) fixed.
  */
-@Deprecated("Do not use this function until the bug KT-28616 fixed", level = DeprecationLevel.HIDDEN)
+@Deprecated("Do not use this function until the bug KT-28616 fixed.", level = DeprecationLevel.HIDDEN)
 inline fun <reified T> kotlinTypeOf(): KType {
     return typeRef<T>().referencedKotlinType
 }

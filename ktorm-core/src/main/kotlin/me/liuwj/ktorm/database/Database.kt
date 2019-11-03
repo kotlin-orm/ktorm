@@ -109,6 +109,7 @@ class Database(
     lateinit var extraNameCharacters: String private set
 
     init {
+        @Suppress("DEPRECATION")
         lastConnected.set(this)
 
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
@@ -205,6 +206,8 @@ class Database(
      *
      * @see Database.global
      */
+    @Suppress("DEPRECATION")
+    @Deprecated("This function will be removed in the future.")
     operator fun <T> invoke(func: Database.() -> T): T {
         val origin = threadLocal.get()
 
@@ -244,7 +247,10 @@ class Database(
      * Companion object provides functions to connect to databases and holds the [global] database instances.
      */
     companion object {
+        @Deprecated("This property will be removed in the future.")
         private val lastConnected = AtomicReference<Database>()
+
+        @Deprecated("This property will be removed in the future.")
         private val threadLocal = ThreadLocal<Database>()
 
         /**
@@ -254,6 +260,8 @@ class Database(
          *
          * @see invoke
          */
+        @Suppress("DEPRECATION")
+        @Deprecated("This property will be removed in the future.")
         val global get() = threadLocal.get() ?: lastConnected.get() ?: error("Not connected to any database yet.")
 
         /**
