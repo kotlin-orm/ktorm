@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/source/images/logo-full.png" alt="Ktorm" width="300" />
+    <img src="https://ktorm.liuwj.me/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
     <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">
@@ -37,7 +37,7 @@ For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.l
  - Extensible design, write your own extensions to support more operators, data types, SQL functions, database dialects, etc.
 
 <p align="center">
-    <img src="docs/source/images/ktorm-example.jpg">
+    <img src="https://ktorm.liuwj.me/images/ktorm-example.jpg">
 </p>
 
 # Quick Start
