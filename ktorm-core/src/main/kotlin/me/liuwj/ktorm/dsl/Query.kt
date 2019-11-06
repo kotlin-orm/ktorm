@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BaseTable
@@ -87,7 +86,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
      * overrides the indexed access operator. More details can be found in the documentation of [QueryRowSet].
      */
     val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
-        expression.prepareStatement { statement ->
+        database.executeExpression(expression) { statement ->
             statement.executeQuery().use { rs ->
                 QueryRowSet(this, rs).also { rowSet ->
                     if (database.logger != null && database.logger.isDebugEnabled()) {
@@ -111,7 +110,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
         } else {
             val countExpr = expression.toCountExpression()
 
-            countExpr.prepareStatement { statement ->
+            database.executeExpression(countExpr) { statement ->
                 statement.executeQuery().use { rs ->
                     if (rs.next()) {
                         rs.getInt(1).also { total ->
