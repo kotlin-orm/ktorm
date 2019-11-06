@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
@@ -47,22 +46,53 @@ import kotlin.collections.ArrayList
  * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
  * @return the effected row count.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.update(table) {...} instead.",
+    replaceWith = ReplaceWith("db.update(this, block)")
+)
 fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    val builder = UpdateStatementBuilder(assignments).apply { block(this@update) }
-
-    val expression = AliasRemover.visit(UpdateExpression(asExpression(), assignments, builder.where?.asExpression()))
-    return expression.executeUpdate()
+    return Database.global.update(this, block)
 }
 
 /**
- * Execute the current SQL expression, and return the effected row count. Used by Ktorm internal.
+ * Construct an update expression in the given closure, then execute it and return the effected row count.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.update(Employees) {
+ *     it.job to "engineer"
+ *     it.managerId to null
+ *     it.salary to 100
+ *     where {
+ *         it.id eq 2
+ *     }
+ * }
+ * ```
+ *
+ * @param table the table to be updated.
+ * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
+ * @return the effected row count.
  */
-internal fun SqlExpression.executeUpdate(): Int {
-    this.prepareStatement { statement ->
+fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(T) -> Unit): Int {
+    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
+    val builder = UpdateStatementBuilder(assignments).apply { block(table) }
+
+    val expression = AliasRemover.visit(
+        UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
+    )
+
+    return executeUpdate(expression)
+}
+
+/**
+ * Execute the specific SQL expression, and return the effected row count. Used by Ktorm internal.
+ */
+internal fun Database.executeUpdate(expression: SqlExpression): Int {
+    executeExpression(expression) { statement ->
         val effects = statement.executeUpdate()
 
-        val logger = Database.global.logger
         if (logger != null && logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }
@@ -96,30 +126,63 @@ internal fun SqlExpression.executeUpdate(): Int {
  * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.batchUpdate(table) {...} instead.",
+    replaceWith = ReplaceWith("db.batchUpdate(this, block)")
+)
 fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
-    val builder = BatchUpdateStatementBuilder(this).apply(block)
+    return Database.global.batchUpdate(this, block)
+}
+
+/**
+ * Construct update expressions in the given closure, then batch execute them and return the effected
+ * row counts for each expression.
+ *
+ * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
+ * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.batchUpdate(Departments) {
+ *     for (i in 1..2) {
+ *         item {
+ *             it.location to "Hong Kong"
+ *             where {
+ *                 it.id eq i
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * @param table the table to be updated.
+ * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
+ * @return the effected row counts for each sub-operation.
+ */
+fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
+    val builder = BatchUpdateStatementBuilder(this, table).apply(block)
     val expressions = builder.expressions.map { AliasRemover.visit(it) }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
     } else {
-        return expressions.executeBatch()
+        return executeBatch(expressions)
     }
 }
 
-private fun List<SqlExpression>.executeBatch(): IntArray {
-    val database = Database.global
-    val logger = database.logger
-    val (sql, _) = database.formatExpression(this[0])
+private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
+    val (sql, _) = formatExpression(expressions[0])
 
     if (logger != null && logger.isDebugEnabled()) {
         logger.debug("SQL: $sql")
     }
 
-    database.useConnection { conn ->
+    useConnection { conn ->
         conn.prepareStatement(sql).use { statement ->
-            for (expr in this) {
-                val (_, args) = database.formatExpression(expr)
+            for (expr in expressions) {
+                val (_, args) = formatExpression(expr)
 
                 if (logger != null && logger.isDebugEnabled()) {
                     logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
@@ -164,12 +227,41 @@ private fun List<SqlExpression>.executeBatch(): IntArray {
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the effected row count.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.insert(table) {...} instead.",
+    replaceWith = ReplaceWith("db.insert(this, block)")
+)
 fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    AssignmentsBuilder(assignments).block(this)
+    return Database.global.insert(this, block)
+}
 
-    val expression = AliasRemover.visit(InsertExpression(asExpression(), assignments))
-    return expression.executeUpdate()
+/**
+ * Construct an insert expression in the given closure, then execute it and return the effected row count.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.insert(Employees) {
+ *     it.name to "jerry"
+ *     it.job to "trainee"
+ *     it.managerId to 1
+ *     it.hireDate to LocalDate.now()
+ *     it.salary to 50
+ *     it.departmentId to 1
+ * }
+ * ```
+ *
+ * @param table the table to be inserted.
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
+ * @return the effected row count.
+ */
+fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -> Unit): Int {
+    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
+    AssignmentsBuilder(assignments).block(table)
+
+    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
+    return executeUpdate(expression)
 }
 
 /**
@@ -205,14 +297,57 @@ fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.batchInsert(table) {...} instead.",
+    replaceWith = ReplaceWith("db.batchInsert(this, block)")
+)
 fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
-    val builder = BatchInsertStatementBuilder(this).apply(block)
+    return Database.global.batchInsert(this, block)
+}
+
+/**
+ * Construct insert expressions in the given closure, then batch execute them and return the effected
+ * row counts for each expression.
+ *
+ * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
+ * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.batchInsert(Employees) {
+ *     item {
+ *         it.name to "jerry"
+ *         it.job to "trainee"
+ *         it.managerId to 1
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 50
+ *         it.departmentId to 1
+ *     }
+ *     item {
+ *         it.name to "linda"
+ *         it.job to "assistant"
+ *         it.managerId to 3
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 100
+ *         it.departmentId to 2
+ *     }
+ * }
+ * ```
+ *
+ * @param table the table to be inserted.
+ * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
+ * @return the effected row counts for each sub-operation.
+ */
+fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
+    val builder = BatchInsertStatementBuilder(this, table).apply(block)
     val expressions = builder.expressions.map { AliasRemover.visit(it) }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
     } else {
-        return expressions.executeBatch()
+        return executeBatch(expressions)
     }
 }
 
@@ -235,23 +370,51 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the auto-generated key.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.insertAndGenerateKey(table) {...} instead.",
+    replaceWith = ReplaceWith("db.insertAndGenerateKey(this, block)")
+)
 fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
+    return Database.global.insertAndGenerateKey(this, block)
+}
+
+/**
+ * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val id = db.insertAndGenerateKey(Employees) {
+ *     it.name to "jerry"
+ *     it.job to "trainee"
+ *     it.managerId to 1
+ *     it.hireDate to LocalDate.now()
+ *     it.salary to 50
+ *     it.departmentId to 1
+ * }
+ * ```
+ *
+ * @param table the table to be inserted.
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
+ * @return the auto-generated key.
+ */
+fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    AssignmentsBuilder(assignments).block(this)
+    AssignmentsBuilder(assignments).block(table)
 
-    val expression = AliasRemover.visit(InsertExpression(asExpression(), assignments))
+    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
 
-    expression.prepareStatement(autoGeneratedKeys = true) { statement ->
+    executeExpression(expression, autoGeneratedKeys = true) { statement ->
         val effects = statement.executeUpdate()
 
-        val logger = Database.global.logger
         if (logger != null && logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }
 
         statement.generatedKeys.use { rs ->
             if (rs.next()) {
-                val sqlType = primaryKey?.sqlType ?: error("Table $tableName must have a primary key.")
+                val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
                 val generatedKey = sqlType.getResult(rs, 1) ?: error("Generated key is null.")
 
                 if (logger != null && logger.isDebugEnabled()) {
@@ -276,23 +439,47 @@ fun Query.insertTo(table: BaseTable<*>, vararg columns: Column<*>): Int {
         query = this.expression
     )
 
-    return expression.executeUpdate()
+    return database.executeUpdate(expression)
 }
 
 /**
  * Delete the records in the table that matches the given [predicate].
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.delete(table) {...} instead.",
+    replaceWith = ReplaceWith("db.delete(this, block)")
+)
 fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
-    val expression = AliasRemover.visit(DeleteExpression(asExpression(), predicate(this).asExpression()))
-    return expression.executeUpdate()
+    return Database.global.delete(this, predicate)
+}
+
+/**
+ * Delete the records in the [table] that matches the given [predicate].
+ */
+fun <T : BaseTable<*>> Database.delete(table: T, predicate: (T) -> ColumnDeclaring<Boolean>): Int {
+    val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), predicate(table).asExpression()))
+    return executeUpdate(expression)
 }
 
 /**
  * Delete all the records in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.deleteAll(table) instead.",
+    replaceWith = ReplaceWith("db.deleteAll(this)")
+)
 fun BaseTable<*>.deleteAll(): Int {
-    val expression = AliasRemover.visit(DeleteExpression(asExpression(), where = null))
-    return expression.executeUpdate()
+    return Database.global.deleteAll(this)
+}
+
+/**
+ * Delete all the records in the table.
+ */
+fun Database.deleteAll(table: BaseTable<*>): Int {
+    val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), where = null))
+    return executeUpdate(expression)
 }
 
 /**
@@ -381,7 +568,7 @@ class UpdateStatementBuilder(
  * DSL builder for batch update statements.
  */
 @KtormDsl
-class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val database: Database, internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
     internal val sqls = HashSet<String>()
 
@@ -395,7 +582,7 @@ class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
 
         val expr = UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
 
-        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+        val (sql, _) = database.formatExpression(expr, beautifySql = true)
 
         if (sqls.isEmpty() || sql in sqls) {
             sqls += sql
@@ -410,7 +597,7 @@ class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
  * DSL builder for batch insert statements.
  */
 @KtormDsl
-class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val database: Database, internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
     internal val sqls = HashSet<String>()
 
@@ -424,7 +611,7 @@ class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
 
         val expr = InsertExpression(table.asExpression(), assignments)
 
-        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+        val (sql, _) = database.formatExpression(expr, beautifySql = true)
 
         if (sqls.isEmpty() || sql in sqls) {
             sqls += sql
