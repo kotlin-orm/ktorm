@@ -174,20 +174,24 @@ fun <T : ResultSet> T.iterable(): Iterable<T> {
 }
 
 /**
+ * Convert this column to a [ColumnDeclaringExpression].
+ */
+private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
+    return when (this) {
+        is ColumnDeclaringExpression -> this
+        is Column -> this.aliased(label)
+        else -> this.aliased(null)
+    }
+}
+
+/**
  * Create a query object, selecting the specific columns or expressions from this [QuerySource].
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
  */
 fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { column ->
-        when (column) {
-            is ColumnDeclaringExpression -> column
-            is Column -> column.aliased(column.label)
-            else -> column.aliased(null)
-        }
-    }
-
-    return Query(database, SelectExpression(columns = declarations, from = expression))
+    val declarations = columns.map { it.asDeclaringExpression() }
+    return Query(database, SelectExpression(columns = declarations, from = this.asExpression()))
 }
 
 /**
@@ -210,7 +214,8 @@ fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
     replaceWith = ReplaceWith("db.from(this).select(columns)")
 )
 fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    return QuerySource(Database.global, this).select(columns)
+    val declarations = columns.map { it.asDeclaringExpression() }
+    return Query(Database.global, SelectExpression(columns = declarations, from = this))
 }
 
 /**
@@ -261,15 +266,8 @@ fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
  */
 fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { column ->
-        when (column) {
-            is ColumnDeclaringExpression -> column
-            is Column -> column.aliased(column.label)
-            else -> column.aliased(null)
-        }
-    }
-
-    return Query(database, SelectExpression(columns = declarations, from = expression, isDistinct = true))
+    val declarations = columns.map { it.asDeclaringExpression() }
+    return Query(database, SelectExpression(columns = declarations, from = this.asExpression(), isDistinct = true))
 }
 
 /**
@@ -292,7 +290,8 @@ fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     replaceWith = ReplaceWith("db.from(this).selectDistinct(columns)")
 )
 fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    return QuerySource(Database.global, this).selectDistinct(columns)
+    val declarations = columns.map { it.asDeclaringExpression() }
+    return Query(Database.global, SelectExpression(columns = declarations, from = this, isDistinct = true))
 }
 
 /**

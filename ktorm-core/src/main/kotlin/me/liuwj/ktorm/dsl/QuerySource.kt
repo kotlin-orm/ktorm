@@ -24,71 +24,74 @@ import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.ColumnDeclaring
 
 /**
- * Class that wraps a [QuerySourceExpression] along with a [Database] instance on which the query will run.
+ * Represents a query source, used in the `from` clause of a query.
+ *
+ * @property database the [Database] instance that the query is running on.
+ * @property sourceTable the origin source table.
+ * @property joinings the joining list of this query source.
  */
-data class QuerySource(val database: Database, val expression: QuerySourceExpression)
+data class QuerySource(val database: Database, val sourceTable: BaseTable<*>, val joinings: List<Joining> = emptyList())
+
+/**
+ * Represents a table joining.
+ *
+ * @property type the join type.
+ * @property rightTable the right table to be joined.
+ * @property condition the joining condition.
+ */
+data class Joining(val type: JoinType, val rightTable: BaseTable<*>, val condition: ColumnDeclaring<Boolean>? = null)
 
 /**
  * Wrap the specific table as a [QuerySource].
  */
 fun Database.from(table: BaseTable<*>): QuerySource {
-    return QuerySource(this, table.asExpression())
+    return QuerySource(this, table)
+}
+
+/**
+ * Convert this query source to a [QuerySourceExpression].
+ */
+fun QuerySource.asExpression(): QuerySourceExpression {
+    var expr: QuerySourceExpression = sourceTable.asExpression()
+
+    for ((type, rightTable, condition) in joinings) {
+        expr = JoinExpression(
+            type = type,
+            left = expr,
+            right = rightTable.asExpression(),
+            condition = condition?.asExpression()
+        )
+    }
+
+    return expr
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `cross join` in SQL.
  */
 fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
-    return this.copy(
-        expression = JoinExpression(
-            type = JoinType.CROSS_JOIN,
-            left = expression,
-            right = right.asExpression(),
-            condition = on?.asExpression()
-        )
-    )
+    return this.copy(joinings = joinings + Joining(JoinType.CROSS_JOIN, right, on))
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `inner join` in SQL.
  */
 fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
-    return this.copy(
-        expression = JoinExpression(
-            type = JoinType.INNER_JOIN,
-            left = expression,
-            right = right.asExpression(),
-            condition = on?.asExpression()
-        )
-    )
+    return this.copy(joinings = joinings + Joining(JoinType.INNER_JOIN, right, on))
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `left join` in SQL.
  */
 fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
-    return this.copy(
-        expression = JoinExpression(
-            type = JoinType.LEFT_JOIN,
-            left = expression,
-            right = right.asExpression(),
-            condition = on?.asExpression()
-        )
-    )
+    return this.copy(joinings = joinings + Joining(JoinType.LEFT_JOIN, right, on))
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `right join` in SQL.
  */
 fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
-    return this.copy(
-        expression = JoinExpression(
-            type = JoinType.RIGHT_JOIN,
-            left = expression,
-            right = right.asExpression(),
-            condition = on?.asExpression()
-        )
-    )
+    return this.copy(joinings = joinings + Joining(JoinType.RIGHT_JOIN, right, on))
 }
 
 /**

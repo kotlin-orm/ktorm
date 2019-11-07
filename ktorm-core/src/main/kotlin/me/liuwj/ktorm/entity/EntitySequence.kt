@@ -131,6 +131,10 @@ fun <E : Any, T : BaseTable<E>> T.asSequenceWithoutReferences(): EntitySequence<
     return EntitySequence(this, query.expression as SelectExpression) { row -> this.createEntityWithoutReferences(row) }
 }
 
+fun <E : Any, T : BaseTable<E>> Database.sequenceOf(table: T, withReferences: Boolean = true): EntitySequence<E, T> {
+    val query = if (withReferences)
+}
+
 /**
  * Append all elements to the given [destination] collection.
  *
