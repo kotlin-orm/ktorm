@@ -54,11 +54,13 @@ import kotlin.math.min
  * they execute the queries right now, obtain their results and perform some calculations on them. Eg. [toList],
  * [reduce], etc.
  *
+ * @property database the [Database] instance that the internal query is running on.
  * @property sourceTable the source table from which the elements are obtained.
  * @property expression the SQL expression to be executed by this sequence when obtaining elements.
  * @property entityExtractor a function used to extract entity objects for each result row.
  */
 data class EntitySequence<E : Any, T : BaseTable<E>>(
+    val database: Database,
     val sourceTable: T,
     val expression: SelectExpression,
     val entityExtractor: (row: QueryRowSet) -> E
@@ -66,7 +68,7 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
     /**
      * The internal query of this sequence to be executed, created by [expression].
      */
-    val query = Query(expression)
+    val query = Query(database, expression)
 
     /**
      * The executable SQL string of the internal query.

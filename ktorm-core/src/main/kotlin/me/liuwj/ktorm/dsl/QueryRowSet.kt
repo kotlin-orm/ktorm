@@ -16,7 +16,6 @@
 
 package me.liuwj.ktorm.dsl
 
-import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.schema.Column
 import java.io.InputStream
@@ -148,7 +147,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
             }
 
             if (indices.size > 1) {
-                val logger = Database.global.logger
+                val logger = query.database.logger
                 if (logger != null && logger.isWarnEnabled()) {
                     logger.warn(warningConfusedColumnName(column.name))
                 }

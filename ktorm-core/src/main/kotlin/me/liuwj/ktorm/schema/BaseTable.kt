@@ -16,7 +16,6 @@
 
 package me.liuwj.ktorm.schema
 
-import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
@@ -291,16 +290,21 @@ abstract class BaseTable<E : Any>(
     }
 
     /**
-     * Create an entity object from the specific row of query results.
+     * Create an entity object from the specific row of query results. This function uses the binding configurations
+     * of the table object, filling column values into corresponding properties of the returned entity.
      *
-     * This function uses the binding configurations of this table object, filling columns' values into corresponding
-     * entities' properties. And if there are any reference bindings to other tables, it will also create the referenced
-     * entity objects recursively.
+     * If the [withReferences] flag is set to true and there are any reference bindings to other tables, this function
+     * will also create the referenced entity objects recursively calling [createEntity] itself.
+     *
+     * Otherwise if the [withReferences] flag is set to false, it will threat all reference bindings as nested bindings
+     * to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`,
+     * it is equivalent to `c.bindTo { it.department.id }` in this case, that avoids unnecessary object creations
+     * and some exceptions raised by conflict column names.
      */
-    fun createEntity(row: QueryRowSet): E {
-        val entity = doCreateEntity(row, withReferences = true)
+    fun createEntity(row: QueryRowSet, withReferences: Boolean = true): E {
+        val entity = doCreateEntity(row, withReferences)
 
-        val logger = Database.global.logger
+        val logger = row.query.database.logger
         if (logger != null && logger.isTraceEnabled()) {
             logger.trace("Entity: $entity")
         }
@@ -316,18 +320,15 @@ abstract class BaseTable<E : Any>(
      * as nested bindings to the referenced entities’ primary keys.
      *
      * For example the binding `c.references(Departments) { it.department }`, it is equivalent to
-     * `c.bindTo { it.department.id }` for this function, that avoids unnecessary object creations and
+     * `c.bindTo { it.department.id }` in this case, that avoids unnecessary object creations and
      * some exceptions raised by conflict column names.
      */
+    @Deprecated(
+        message = "This function will be removed in the future. Use createEntity(row, withReferences = false) instead.",
+        replaceWith = ReplaceWith("createEntity(row, withReferences = false)")
+    )
     fun createEntityWithoutReferences(row: QueryRowSet): E {
-        val entity = doCreateEntity(row, withReferences = false)
-
-        val logger = Database.global.logger
-        if (logger != null && logger.isTraceEnabled()) {
-            logger.trace("Entity: $entity")
-        }
-
-        return entity
+        return createEntity(row, withReferences = false)
     }
 
     /**
