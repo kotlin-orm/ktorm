@@ -92,6 +92,38 @@ inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclar
 /**
  * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
+fun QuerySource.joinReferencesAndSelect(): Query {
+    val querySource = sourceTable.joinReferences(this)
+    val columns = sourceTable.columns + querySource.joinings.flatMap { it.rightTable.columns }
+    return querySource.select(columns)
+}
+
+private fun BaseTable<*>.joinReferences(querySource: QuerySource): QuerySource {
+    var curr = querySource
+
+    for (column in columns) {
+        for (binding in column.allBindings) {
+            if (binding is ReferenceBinding) {
+                val refTable = binding.referenceTable
+                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
+
+                curr = curr.leftJoin(refTable, on = column eq primaryKey)
+                curr = refTable.joinReferences(curr)
+            }
+        }
+    }
+
+    return curr
+}
+
+/**
+ * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
+ */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.from(...).joinReferencesAndSelect() instead.",
+    replaceWith = ReplaceWith("db.from(this).joinReferencesAndSelect()")
+)
 fun BaseTable<*>.joinReferencesAndSelect(): Query {
     val joinedTables = ArrayList<BaseTable<*>>()
 
@@ -100,6 +132,7 @@ fun BaseTable<*>.joinReferencesAndSelect(): Query {
         .select(joinedTables.flatMap { it.columns })
 }
 
+@Suppress("DEPRECATION")
 private fun BaseTable<*>.joinReferences(
     expr: QuerySourceExpression,
     joinedTables: MutableList<BaseTable<*>>
