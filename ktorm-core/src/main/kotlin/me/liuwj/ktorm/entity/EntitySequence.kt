@@ -118,21 +118,34 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
 /**
  * Create an [EntitySequence], auto left joining all the reference tables.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..) instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this)")
+)
 fun <E : Any, T : BaseTable<E>> T.asSequence(): EntitySequence<E, T> {
-    val query = this.joinReferencesAndSelect()
-    return EntitySequence(this, query.expression as SelectExpression) { row -> this.createEntity(row) }
+    return Database.global.sequenceOf(this)
 }
 
 /**
- * Crete an [EntitySequence] without left joining reference tables.
+ * Create an [EntitySequence] without left joining reference tables.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Use db.sequenceOf(.., withReferences = false) instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this, withReferences = false)")
+)
 fun <E : Any, T : BaseTable<E>> T.asSequenceWithoutReferences(): EntitySequence<E, T> {
-    val query = this.select(columns)
-    return EntitySequence(this, query.expression as SelectExpression) { row -> this.createEntityWithoutReferences(row) }
+    return Database.global.sequenceOf(this, withReferences = false)
 }
 
+/**
+ * Create an [EntitySequence] from the specific table.
+ */
 fun <E : Any, T : BaseTable<E>> Database.sequenceOf(table: T, withReferences: Boolean = true): EntitySequence<E, T> {
-    val query = if (withReferences)
+    val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
+    val entityExtractor = { row: QueryRowSet -> table.createEntity(row, withReferences) }
+    return EntitySequence(this, table, query.expression as SelectExpression, entityExtractor)
 }
 
 /**
@@ -393,7 +406,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C?>> En
         isDistinct = isDistinct
     )
 
-    return Query(expr).mapTo(destination) { row -> column.sqlType.getResult(row, 1) }
+    return Query(database, expr).mapTo(destination) { row -> column.sqlType.getResult(row, 1) }
 }
 
 /**
@@ -440,7 +453,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C>> Ent
         isDistinct = isDistinct
     )
 
-    return Query(expr).mapNotNullTo(destination) { row -> column.sqlType.getResult(row, 1) }
+    return Query(database, expr).mapNotNullTo(destination) { row -> column.sqlType.getResult(row, 1) }
 }
 
 /**
@@ -530,13 +543,13 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateCo
         columns = listOf(aggregation.aliased(null))
     )
 
-    val rowSet = Query(expr).rowSet
+    val rowSet = Query(database, expr).rowSet
 
     if (rowSet.size() == 1) {
         check(rowSet.next())
         return aggregation.sqlType.getResult(rowSet, 1)
     } else {
-        val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+        val (sql, _) = database.formatExpression(expr, beautifySql = true)
         throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
     }
 }
@@ -796,9 +809,8 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(index: Int)
     try {
         return drop(index).take(1).asKotlinSequence().firstOrNull()
     } catch (e: DialectFeatureNotSupportedException) {
-        val logger = Database.global.logger
-        if (logger != null && logger.isTraceEnabled()) {
-            logger.trace("Pagination is not supported, retrieving all records instead: ", e)
+        if (database.logger != null && database.logger.isTraceEnabled()) {
+            database.logger.trace("Pagination is not supported, retrieving all records instead: ", e)
         }
 
         return asKotlinSequence().elementAtOrNull(index)

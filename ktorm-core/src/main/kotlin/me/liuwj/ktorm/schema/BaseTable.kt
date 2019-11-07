@@ -291,10 +291,10 @@ abstract class BaseTable<E : Any>(
 
     /**
      * Create an entity object from the specific row of query results. This function uses the binding configurations
-     * of the table object, filling column values into corresponding properties of the returned entity.
+     * of the table, filling column values into corresponding properties of the returned entity.
      *
      * If the [withReferences] flag is set to true and there are any reference bindings to other tables, this function
-     * will also create the referenced entity objects recursively calling [createEntity] itself.
+     * will create the referenced entity objects by recursively calling [createEntity] itself.
      *
      * Otherwise if the [withReferences] flag is set to false, it will threat all reference bindings as nested bindings
      * to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`,
