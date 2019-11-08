@@ -52,7 +52,7 @@ data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
                 columns = sequence.expression.columns + keyColumn.aliased("_group_key")
             )
 
-            for (row in Query(expr)) {
+            for (row in Query(sequence.database, expr)) {
                 val entity = sequence.sourceTable.createEntity(row)
                 val groupKey = keyColumn.sqlType.getResult(row, expr.columns.size)
                 allEntities[entity] = groupKey
@@ -116,7 +116,7 @@ inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.aggregat
         groupBy = listOf(keyColumn.asExpression())
     )
 
-    for (row in Query(expr)) {
+    for (row in Query(sequence.database, expr)) {
         val key = keyColumn.sqlType.getResult(row, 1)
         val value = aggregation.sqlType.getResult(row, 2)
         destination[key] = value
