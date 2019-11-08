@@ -25,7 +25,11 @@ import me.liuwj.ktorm.schema.*
 /**
  * Obtain a map of entity objects by IDs, auto left joining all the reference tables.
  */
-@Suppress("UNCHECKED_CAST")
+@Suppress("DEPRECATION", "UNCHECKED_CAST")
+@Deprecated(
+    message = "This function will be removed in the future. Use db.sequenceOf(..).filter{..}.associateBy{..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).filter(predicate).associateBy(keySelector)")
+)
 fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E> {
     return findListByIds(ids).associateBy { it.implementation.getPrimaryKeyValue(this) as K }
 }
@@ -33,7 +37,11 @@ fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E
 /**
  * Obtain a list of entity objects by IDs, auto left joining all the reference tables.
  */
-@Suppress("UNCHECKED_CAST")
+@Suppress("DEPRECATION", "UNCHECKED_CAST")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).filter {..}.toList() instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).filter(predicate).toList()")
+)
 fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
         return emptyList()
@@ -48,7 +56,11 @@ fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
  *
  * This function will return `null` if no records found, and throw an exception if there are more than one record.
  */
-@Suppress("UNCHECKED_CAST")
+@Suppress("DEPRECATION", "UNCHECKED_CAST")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).find {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).find(predicate)")
+)
 fun <E : Any> BaseTable<E>.findById(id: Any): E? {
     val primaryKey = this.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
     return findOne { primaryKey eq id }
@@ -59,6 +71,11 @@ fun <E : Any> BaseTable<E>.findById(id: Any): E? {
  *
  * This function will return `null` if no records found, and throw an exception if there are more than one record.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).find {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).find(predicate)")
+)
 inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     val list = findList(predicate)
     when (list.size) {
@@ -71,6 +88,11 @@ inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclari
 /**
  * Obtain all the entity objects from this table, auto left joining all the reference tables.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).toList() instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).toList()")
+)
 fun <E : Any> BaseTable<E>.findAll(): List<E> {
     // return this.asSequence().toList()
     return this
@@ -81,6 +103,11 @@ fun <E : Any> BaseTable<E>.findAll(): List<E> {
 /**
  * Obtain a list of entity objects matching the given [predicate], auto left joining all the reference tables.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).filter {..}.toList() instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).filter(predicate).toList()")
+)
 inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
     // return this.asSequence().filter(predicate).toList()
     return this
