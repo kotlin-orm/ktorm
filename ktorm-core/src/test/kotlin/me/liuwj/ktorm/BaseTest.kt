@@ -2,7 +2,6 @@ package me.liuwj.ktorm
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.database.useConnection
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
@@ -15,10 +14,11 @@ import java.time.LocalDate
  * Created by vince on Dec 07, 2018.
  */
 open class BaseTest {
+    lateinit var db: Database
 
     @Before
     open fun init() {
-        Database.connect(
+        db = Database.connect(
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
@@ -33,7 +33,7 @@ open class BaseTest {
     }
 
     protected fun execSqlScript(filename: String) {
-        useConnection { conn ->
+        db.useConnection { conn ->
             conn.createStatement().use { statement ->
                 javaClass.classLoader
                     .getResourceAsStream(filename)

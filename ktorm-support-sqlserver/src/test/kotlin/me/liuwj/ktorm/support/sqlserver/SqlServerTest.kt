@@ -24,7 +24,7 @@ class SqlServerTest : BaseTest() {
     }
 
     override fun init() {
-        Database.connect(
+        db = Database.connect(
             url = sqlServer.jdbcUrl,
             driver = sqlServer.driverClassName,
             user = sqlServer.username,
@@ -41,7 +41,7 @@ class SqlServerTest : BaseTest() {
 
     @Test
     fun testPagingSql() {
-        var query = Employees
+        var query = db.from(Employees)
             .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
             .select(Employees.id, Employees.name)
             .orderBy(Employees.id.desc())
@@ -50,14 +50,14 @@ class SqlServerTest : BaseTest() {
         assert(query.totalRecords == 4)
         assert(query.count() == 1)
 
-        query = Employees
+        query = db.from(Employees)
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
         assert(query.count() == 1)
 
-        query = Employees
+        query = db.from(Employees)
             .select(Employees.name)
             .limit(0, 1)
 
@@ -72,11 +72,11 @@ class SqlServerTest : BaseTest() {
 
     @Test
     fun testGetColumn() {
-        Foo.update {
+        db.update(Foo) {
             it.bar to DateTimeOffset.valueOf(Timestamp(0), 8 * 60)
         }
 
-        for (row in Foo.select()) {
+        for (row in db.from(Foo).select()) {
             println(row[Foo.bar])
             println(row[Foo.bar1])
         }

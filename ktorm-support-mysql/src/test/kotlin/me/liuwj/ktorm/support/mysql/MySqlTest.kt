@@ -25,7 +25,7 @@ class MySqlTest : BaseTest() {
     }
 
     override fun init() {
-        Database.connect(
+        db = Database.connect(
             url = mysql.jdbcUrl,
             driver = mysql.driverClassName,
             user = mysql.username,
@@ -38,7 +38,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testLimit() {
-        val query = Employees.select().orderBy(Employees.id.desc()).limit(0, 2)
+        val query = db.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
         assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
@@ -48,7 +48,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testBulkInsert() {
-        Employees.bulkInsert {
+        db.bulkInsert(Employees) {
             item {
                 it.name to "jerry"
                 it.job to "trainee"
@@ -67,12 +67,12 @@ class MySqlTest : BaseTest() {
             }
         }
 
-        assert(Employees.count() == 6)
+        assert(db.sequenceOf(Employees).count() == 6)
     }
 
     @Test
     fun testInsertOrUpdate() {
-        Employees.insertOrUpdate {
+        db.insertOrUpdate(Employees) {
             it.id to 1
             it.name to "vince"
             it.job to "engineer"
@@ -84,7 +84,7 @@ class MySqlTest : BaseTest() {
                 it.salary to it.salary + 900
             }
         }
-        Employees.insertOrUpdate {
+        db.insertOrUpdate(Employees) {
             it.id to 5
             it.name to "vince"
             it.job to "engineer"
@@ -97,8 +97,8 @@ class MySqlTest : BaseTest() {
             }
         }
 
-        assert(Employees.findById(1)!!.salary == 1000L)
-        assert(Employees.findById(5)!!.salary == 1000L)
+        assert(db.sequenceOf(Employees).find { it.id eq 1 }!!.salary == 1000L)
+        assert(db.sequenceOf(Employees).find { it.id eq 5 }!!.salary == 1000L)
     }
 
     @Test
@@ -109,7 +109,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testPagingSql() {
-        var query = Employees
+        var query = db.from(Employees)
             .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
             .select()
             .orderBy(Departments.id.desc())
@@ -117,33 +117,33 @@ class MySqlTest : BaseTest() {
 
         assert(query.totalRecords == 4)
 
-        query = Employees
+        query = db.from(Employees)
             .select(Employees.name)
             .orderBy((Employees.id + 1).desc())
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
 
-        query = Employees
+        query = db.from(Employees)
             .select(Employees.departmentId, avg(Employees.salary))
             .groupBy(Employees.departmentId)
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
 
-        query = Employees
+        query = db.from(Employees)
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
 
-        query = Employees
+        query = db.from(Employees)
             .select(max(Employees.salary))
             .limit(0, 1)
 
         assert(query.totalRecords == 1)
 
-        query = Employees
+        query = db.from(Employees)
             .select(Employees.name)
             .limit(0, 1)
 
@@ -152,33 +152,29 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testDrop() {
-        val employees = Employees.asSequence().drop(1).drop(1).drop(1).toList()
+        val employees = db.sequenceOf(Employees).drop(1).drop(1).drop(1).toList()
         assert(employees.size == 1)
         assert(employees[0].name == "penny")
     }
 
     @Test
     fun testTake() {
-        val employees = Employees.asSequence().take(2).take(1).toList()
+        val employees = db.sequenceOf(Employees).take(2).take(1).toList()
         assert(employees.size == 1)
         assert(employees[0].name == "vince")
     }
 
     @Test
     fun testElementAt() {
-        val employee = Employees
-            .asSequence()
-            .drop(2)
-            .elementAt(1)
+        val employee = db.sequenceOf(Employees).drop(2).elementAt(1)
 
         assert(employee.name == "penny")
-        assert(Employees.asSequence().elementAtOrNull(4) == null)
+        assert(db.sequenceOf(Employees).elementAtOrNull(4) == null)
     }
 
     @Test
     fun testMapColumns3() {
-        Employees
-            .asSequence()
+        db.sequenceOf(Employees)
             .filter { it.departmentId eq 1 }
             .mapColumns3 { Triple(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
             .forEach { (id, name, days) ->
@@ -188,7 +184,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testMatchAgainst() {
-        val employees = Employees.findList {
+        val employees = db.sequenceOf(Employees).filterTo(ArrayList()) {
             match(it.name, it.job).against("vince", SearchModifier.IN_NATURAL_LANGUAGE_MODE)
         }
 
@@ -197,7 +193,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testReplace() {
-        val names = Employees.asSequence().mapColumns { it.name.replace("vince", "VINCE") }
+        val names = db.sequenceOf(Employees).mapColumns { it.name.replace("vince", "VINCE") }
         println(names)
     }
 }

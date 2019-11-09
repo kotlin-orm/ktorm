@@ -1,8 +1,7 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.entity.findAll
-import me.liuwj.ktorm.entity.findById
+import me.liuwj.ktorm.entity.*
 import org.junit.Test
 import java.time.LocalDate
 
@@ -13,7 +12,7 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testUpdate() {
-        Employees.update {
+        db.update(Employees) {
             it.job to "engineer"
             it.managerId to null
             it.salary to 100
@@ -23,7 +22,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        val employee = Employees.findById(2) ?: throw AssertionError()
+        val employee = db.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.name == "marry")
         assert(employee.job == "engineer")
         assert(employee.manager == null)
@@ -32,7 +31,7 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testBatchUpdate() {
-        Departments.batchUpdate {
+        db.batchUpdate(Departments) {
             for (i in 1..2) {
                 item {
                     it.location to "Hong Kong"
@@ -43,7 +42,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        val departments = Departments.findAll()
+        val departments = db.sequenceOf(Departments).toList()
         assert(departments.size == 2)
 
         for (dept in departments) {
@@ -53,12 +52,12 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testSelfIncrement() {
-        Employees.update {
+        db.update(Employees) {
             it.salary to it.salary + 1
             where { it.id eq 1 }
         }
 
-        val salary = Employees
+        val salary = db.from(Employees)
             .select(Employees.salary)
             .where { Employees.id eq 1 }
             .map { it.getLong(1) }
@@ -69,7 +68,7 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testInsert() {
-        Employees.insert {
+        db.insert(Employees) {
             it.name to "jerry"
             it.job to "trainee"
             it.managerId to 1
@@ -78,12 +77,12 @@ class DmlTest : BaseTest() {
             it.departmentId to 1
         }
 
-        assert(Employees.count() == 5)
+        assert(db.sequenceOf(Employees).count() == 5)
     }
 
     @Test
     fun testBatchInsert() {
-        Employees.batchInsert {
+        db.batchInsert(Employees) {
             item {
                 it.name to "jerry"
                 it.job to "trainee"
@@ -102,14 +101,14 @@ class DmlTest : BaseTest() {
             }
         }
 
-        assert(Employees.count() == 6)
+        assert(db.sequenceOf(Employees).count() == 6)
     }
 
     @Test
     fun testInsertAndGenerateKey() {
         val today = LocalDate.now()
 
-        val id = Employees.insertAndGenerateKey {
+        val id = db.insertAndGenerateKey(Employees) {
             it.name to "jerry"
             it.job to "trainee"
             it.managerId to 1
@@ -118,24 +117,24 @@ class DmlTest : BaseTest() {
             it.departmentId to 1
         }
 
-        val employee = Employees.findById(id) ?: throw AssertionError()
+        val employee = db.sequenceOf(Employees).find { it.id eq (id as Int) } ?: throw AssertionError()
         assert(employee.name == "jerry")
         assert(employee.hireDate == today)
     }
 
     @Test
     fun testInsertFromSelect() {
-        Departments
+        db.from(Departments)
             .select(Departments.name, Departments.location)
             .where { Departments.id eq 1 }
             .insertTo(Departments, Departments.name, Departments.location)
 
-        assert(Departments.count() == 3)
+        assert(db.sequenceOf(Departments).count() == 3)
     }
 
     @Test
     fun testDelete() {
-        Employees.delete { it.id eq 4 }
-        assert(Employees.count() == 3)
+        db.delete(Employees) { it.id eq 4 }
+        assert(db.sequenceOf(Employees).count() == 3)
     }
 }

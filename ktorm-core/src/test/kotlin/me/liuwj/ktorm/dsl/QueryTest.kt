@@ -11,7 +11,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testSelect() {
-        val query = Departments.select()
+        val query = db.from(Departments).select()
         assert(query.rowSet.size() == 2)
 
         for (row in query) {
@@ -21,7 +21,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testSelectDistinct() {
-        val ids = Employees
+        val ids = db.from(Employees)
             .selectDistinct(Employees.departmentId)
             .map { it.getInt(1) }
             .sortedDescending()
@@ -33,7 +33,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testWhere() {
-        val name = Employees
+        val name = db.from(Employees)
             .select(Employees.name)
             .where { Employees.managerId.isNull() and (Employees.departmentId eq 1) }
             .map { it.getString(1) }
@@ -46,7 +46,7 @@ class QueryTest : BaseTest() {
     fun testWhereWithConditions() {
         val t = Employees.aliased("t")
 
-        val name = t
+        val name = db.from(t)
             .select(t.name)
             .whereWithConditions {
                 it += t.managerId.isNull()
@@ -62,7 +62,7 @@ class QueryTest : BaseTest() {
     fun testCombineConditions() {
         val t = Employees.aliased("t")
 
-        val names = t
+        val names = db.from(t)
             .select(t.name)
             .where { emptyList<ScalarExpression<Boolean>>().combineConditions() }
             .orderBy(t.id.asc())
@@ -75,7 +75,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testOrderBy() {
-        val names = Employees
+        val names = db.from(Employees)
             .select(Employees.name)
             .where { Employees.departmentId eq 1 }
             .orderBy(Employees.salary.desc())
@@ -90,7 +90,7 @@ class QueryTest : BaseTest() {
     fun testAggregation() {
         val t = Employees
 
-        val salaries = t
+        val salaries = db.from(t)
             .select(t.departmentId, sum(t.salary))
             .groupBy(t.departmentId)
             .associate { it.getInt(1) to it.getLong(2) }
@@ -104,7 +104,7 @@ class QueryTest : BaseTest() {
     fun testHaving() {
         val t = Employees
 
-        val salaries = t
+        val salaries = db.from(t)
             .select(t.departmentId, avg(t.salary))
             .groupBy(t.departmentId)
             .having { avg(t.salary) greater 100.0 }
@@ -120,7 +120,7 @@ class QueryTest : BaseTest() {
         val deptId = Employees.departmentId.aliased("dept_id")
         val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
-        val salaries = Employees
+        val salaries = db.from(Employees)
             .select(deptId, salaryAvg)
             .groupBy(deptId)
             .having { salaryAvg greater 100.0 }
@@ -138,7 +138,7 @@ class QueryTest : BaseTest() {
     fun testColumnAlias1() {
         val salary = (Employees.salary + 100).aliased(null)
 
-        val salaries = Employees
+        val salaries = db.from(Employees)
             .select(salary)
             .where { salary greater 200L }
             .map { it.getLong(1) }
@@ -151,7 +151,7 @@ class QueryTest : BaseTest() {
     @Test
     fun testLimit() {
         try {
-            val query = Employees.select().orderBy(Employees.id.desc()).limit(0, 2)
+            val query = db.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
             assert(query.totalRecords == 4)
 
             val ids = query.map { it[Employees.id] }
@@ -165,7 +165,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testBetween() {
-        val names = Employees
+        val names = db.from(Employees)
             .select(Employees.name)
             .where { Employees.salary between 100L..200L }
             .map { it.getString(1) }
@@ -176,7 +176,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testInList() {
-        val query = Employees
+        val query = db.from(Employees)
             .select()
             .where { Employees.id inList listOf(1, 2, 3) }
 
@@ -185,9 +185,9 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testInNestedQuery() {
-        val departmentIds = Departments.selectDistinct(Departments.id)
+        val departmentIds = db.from(Departments).selectDistinct(Departments.id)
 
-        val query = Employees
+        val query = db.from(Employees)
             .select()
             .where { Employees.departmentId inList departmentIds }
 
@@ -198,11 +198,11 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testExists() {
-        val query = Employees
+        val query = db.from(Employees)
             .select()
             .where {
                 Employees.id.isNotNull() and exists(
-                    Departments
+                    db.from(Departments)
                         .select()
                         .where { Departments.id eq Employees.departmentId }
                 )
@@ -214,13 +214,13 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testUnion() {
-        val query = Employees
+        val query = db.from(Employees)
             .select(Employees.id)
             .unionAll(
-                Departments.select(Departments.id)
+                db.from(Departments).select(Departments.id)
             )
             .unionAll(
-                Departments.select(Departments.id)
+                db.from(Departments).select(Departments.id)
             )
             .orderBy(Employees.id.desc())
 
@@ -231,7 +231,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testMod() {
-        val query = Employees.select().where { Employees.id % 2 eq 1 }
+        val query = db.from(Employees).select().where { Employees.id % 2 eq 1 }
         assert(query.count() == 2)
         println(query.sql)
     }

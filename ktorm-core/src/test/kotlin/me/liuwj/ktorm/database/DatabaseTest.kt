@@ -2,6 +2,8 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.*
+import me.liuwj.ktorm.entity.count
+import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.varchar
 import org.junit.Test
@@ -14,7 +16,7 @@ class DatabaseTest : BaseTest() {
 
     @Test
     fun testMetadata() {
-        Database.global {
+        with(db) {
             println(url)
             println(name)
             println(productName)
@@ -32,21 +34,21 @@ class DatabaseTest : BaseTest() {
             val value by varchar("value")
         }
 
-        useConnection { conn ->
+        db.useConnection { conn ->
             conn.createStatement().use { statement ->
                 val sql = """create table t_config(`key` varchar(128) primary key, "value" varchar(128))"""
                 statement.executeUpdate(sql)
             }
         }
 
-        configs.insert {
+        db.insert(configs) {
             it.key to "test"
             it.value to "test value"
         }
 
-        assert(configs.count { it.key eq "test" } == 1)
+        assert(db.sequenceOf(configs).count { it.key eq "test" } == 1)
 
-        configs.delete { it.key eq "test" }
+        db.delete(configs) { it.key eq "test" }
     }
 
     @Test
@@ -54,25 +56,25 @@ class DatabaseTest : BaseTest() {
         class DummyException : Exception()
 
         try {
-            useTransaction {
-                Departments.insert {
+            db.useTransaction {
+                db.insert(Departments) {
                     it.name to "administration"
                     it.location to "Hong Kong"
                 }
 
-                assert(Departments.count() == 3)
+                assert(db.sequenceOf(Departments).count() == 3)
 
                 throw DummyException()
             }
 
         } catch (e: DummyException) {
-            assert(Departments.count() == 2)
+            assert(db.sequenceOf(Departments).count() == 2)
         }
     }
 
     @Test
     fun testRawSql() {
-        val names = useConnection { conn ->
+        val names = db.useConnection { conn ->
             val sql = """
                 select name from t_employee
                 where department_id = ?

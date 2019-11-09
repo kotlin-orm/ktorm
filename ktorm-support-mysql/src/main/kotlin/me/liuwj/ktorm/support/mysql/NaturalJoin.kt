@@ -37,6 +37,10 @@ data class NaturalJoinExpression(
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+)
 fun QuerySourceExpression.naturalJoin(right: QuerySourceExpression): NaturalJoinExpression {
     return NaturalJoinExpression(left = this, right = right)
 }
@@ -44,6 +48,11 @@ fun QuerySourceExpression.naturalJoin(right: QuerySourceExpression): NaturalJoin
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+)
 fun QuerySourceExpression.naturalJoin(right: BaseTable<*>): NaturalJoinExpression {
     return naturalJoin(right.asExpression())
 }
@@ -51,6 +60,11 @@ fun QuerySourceExpression.naturalJoin(right: BaseTable<*>): NaturalJoinExpressio
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+)
 fun BaseTable<*>.naturalJoin(right: QuerySourceExpression): NaturalJoinExpression {
     return asExpression().naturalJoin(right)
 }
@@ -58,6 +72,11 @@ fun BaseTable<*>.naturalJoin(right: QuerySourceExpression): NaturalJoinExpressio
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+)
 fun BaseTable<*>.naturalJoin(right: BaseTable<*>): NaturalJoinExpression {
     return naturalJoin(right.asExpression())
 }

@@ -1,5 +1,7 @@
 package me.liuwj.ktorm.database
 
+import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.dsl.from
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.entity.joinReferencesAndSelect
 import me.liuwj.ktorm.schema.Table
@@ -9,7 +11,7 @@ import org.junit.Test
 /**
  * Created by vince on Dec 19, 2018.
  */
-class CircularReferenceTest {
+class CircularReferenceTest : BaseTest() {
 
     interface Foo1 : Entity<Foo1> {
         val id: Int
@@ -44,7 +46,7 @@ class CircularReferenceTest {
     @Test
     fun testCircularReference() {
         try {
-            Foos1.joinReferencesAndSelect()
+            db.from(Foos1).joinReferencesAndSelect()
             throw AssertionError("unexpected")
 
         } catch (e: ExceptionInInitializerError) {
@@ -66,7 +68,7 @@ class CircularReferenceTest {
     @Test
     fun test() {
         try {
-            Bars.joinReferencesAndSelect()
+            db.from(Bars).joinReferencesAndSelect()
             throw AssertionError("unexpected")
 
         } catch (e: ExceptionInInitializerError) {

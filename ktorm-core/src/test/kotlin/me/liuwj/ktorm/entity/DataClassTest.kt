@@ -61,21 +61,21 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testFindById() {
-        val staff = Staffs.findById(1) ?: throw AssertionError()
+        val staff = db.sequenceOf(Staffs).find { it.id eq 1 } ?: throw AssertionError()
         assert(staff.name == "vince")
         assert(staff.job == "engineer")
     }
 
     @Test
     fun testFindList() {
-        val staffs = Staffs.findList { it.sectionId eq 1 }
+        val staffs = db.sequenceOf(Staffs).filter { it.sectionId eq 1 }.toList()
         assert(staffs.size == 2)
         assert(staffs.mapTo(HashSet()) { it.name } == setOf("vince", "marry"))
     }
 
     @Test
     fun testSelectName() {
-        val staffs = Staffs
+        val staffs = db.from(Staffs)
             .select(Staffs.name)
             .where { Staffs.id eq 1 }
             .map { Staffs.createEntity(it) }
@@ -84,7 +84,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testJoin() {
-        val staffs = Staffs
+        val staffs = db.from(Staffs)
             .leftJoin(Sections, on = Staffs.sectionId eq Sections.id)
             .select(Staffs.columns)
             .where { Sections.location like "%Guangzhou%" }
@@ -98,7 +98,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testSequence() {
-        val staffs = Staffs.asSequence()
+        val staffs = db.sequenceOf(Staffs)
             .filter { it.sectionId eq 1 }
             .sortedBy { it.id }
             .toList()
@@ -110,18 +110,18 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testCount() {
-        assert(Staffs.count { it.sectionId eq 1 } == 2)
+        assert(db.sequenceOf(Staffs).count { it.sectionId eq 1 } == 2)
     }
 
     @Test
     fun testFold() {
-        val totalSalary = Staffs.asSequence().fold(0L) { acc, staff -> acc + staff.salary }
+        val totalSalary = db.sequenceOf(Staffs).fold(0L) { acc, staff -> acc + staff.salary }
         assert(totalSalary == 450L)
     }
 
     @Test
     fun testGroupingBy() {
-        val salaries = Staffs.asSequence()
+        val salaries = db.sequenceOf(Staffs)
             .groupingBy { it.sectionId * 2 }
             .fold(0L) { acc, staff ->
                 acc + staff.salary
@@ -135,7 +135,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testEachCount() {
-        val counts = Staffs.asSequence()
+        val counts = db.sequenceOf(Staffs)
             .filter { it.salary less 100000L }
             .groupingBy { it.sectionId }
             .eachCount()
@@ -148,7 +148,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testMapColumns() {
-        val (name, job) = Staffs.asSequence()
+        val (name, job) = db.sequenceOf(Staffs)
             .filter { it.sectionId eq 1 }
             .filterNot { it.managerId.isNotNull() }
             .mapColumns2 { Pair(it.name, it.job) }
@@ -160,7 +160,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testGroupingAggregate() {
-        Staffs.asSequence()
+        db.sequenceOf(Staffs)
             .groupingBy { it.sectionId }
             .aggregateColumns2 { Pair(max(it.salary), min(it.salary)) }
             .forEach { sectionId, (max, min) ->

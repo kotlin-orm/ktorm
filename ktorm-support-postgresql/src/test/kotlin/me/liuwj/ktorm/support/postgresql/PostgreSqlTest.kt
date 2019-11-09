@@ -27,7 +27,7 @@ class PostgreSqlTest : BaseTest() {
     }
 
     override fun init() {
-        Database.connect(
+        db = Database.connect(
             url = postgres.jdbcUrl,
             driver = postgres.driverClassName,
             user = postgres.username,
@@ -40,7 +40,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testILike() {
-        val names = Employees.asSequence().filter { it.name ilike "VINCE" }.mapColumns { it.name }
+        val names = db.sequenceOf(Employees).filter { it.name ilike "VINCE" }.mapColumns { it.name }
         println(names)
         assert(names.size == 1)
         assert(names[0] == "vince")
@@ -48,14 +48,14 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testDropTake() {
-        val employees = Employees.asSequence().drop(1).take(1).toList()
+        val employees = db.sequenceOf(Employees).drop(1).take(1).toList()
         println(employees)
         assert(employees.size == 1)
     }
 
     @Test
     fun testUpdate() {
-        Employees.update {
+        db.update(Employees) {
             it.job to "engineer"
             it.managerId to null
             it.salary to 100
@@ -65,7 +65,7 @@ class PostgreSqlTest : BaseTest() {
             }
         }
 
-        val employee = Employees.findById(2) ?: throw AssertionError()
+        val employee = db.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.name == "marry")
         assert(employee.job == "engineer")
         assert(employee.manager == null)
@@ -74,7 +74,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testInsertOrUpdate() {
-        Employees.insertOrUpdate {
+        db.insertOrUpdate(Employees) {
             it.id to 1
             it.name to "vince"
             it.job to "engineer"
@@ -86,7 +86,7 @@ class PostgreSqlTest : BaseTest() {
                 it.salary to it.salary + 900
             }
         }
-        Employees.insertOrUpdate {
+        db.insertOrUpdate(Employees) {
             it.id to 5
             it.name to "vince"
             it.job to "engineer"
@@ -99,7 +99,7 @@ class PostgreSqlTest : BaseTest() {
             }
         }
 
-        assert(Employees.findById(1)!!.salary == 1000L)
-        assert(Employees.findById(5)!!.salary == 1000L)
+        assert(db.sequenceOf(Employees).find { it.id eq 1 }!!.salary == 1000L)
+        assert(db.sequenceOf(Employees).find { it.id eq 5 }!!.salary == 1000L)
     }
 }
