@@ -46,7 +46,7 @@ class CircularReferenceTest : BaseTest() {
     @Test
     fun testCircularReference() {
         try {
-            db.from(Foos1).joinReferencesAndSelect()
+            database.from(Foos1).joinReferencesAndSelect()
             throw AssertionError("unexpected")
 
         } catch (e: ExceptionInInitializerError) {
@@ -68,7 +68,7 @@ class CircularReferenceTest : BaseTest() {
     @Test
     fun test() {
         try {
-            db.from(Bars).joinReferencesAndSelect()
+            database.from(Bars).joinReferencesAndSelect()
             throw AssertionError("unexpected")
 
         } catch (e: ExceptionInInitializerError) {

@@ -19,7 +19,7 @@ class SQLiteTest : BaseTest() {
     override fun init() {
         connection = DriverManager.getConnection("jdbc:sqlite::memory:")
 
-        db = Database.connect(logger = ConsoleLogger(LogLevel.TRACE)) {
+        database = Database.connect(logger = ConsoleLogger(LogLevel.TRACE)) {
             object : Connection by connection {
                 override fun close() {
                     // do nothing...
@@ -37,7 +37,7 @@ class SQLiteTest : BaseTest() {
 
     @Test
     fun testLimit() {
-        val query = db.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
         assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
@@ -47,7 +47,8 @@ class SQLiteTest : BaseTest() {
 
     @Test
     fun testPagingSql() {
-        var query = db.from(Employees)
+        var query = database
+            .from(Employees)
             .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
             .select()
             .orderBy(Departments.id.desc())
@@ -55,33 +56,38 @@ class SQLiteTest : BaseTest() {
 
         assert(query.totalRecords == 4)
 
-        query = db.from(Employees)
+        query = database
+            .from(Employees)
             .select(Employees.name)
             .orderBy((Employees.id + 1).desc())
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
 
-        query = db.from(Employees)
+        query = database
+            .from(Employees)
             .select(Employees.departmentId, avg(Employees.salary))
             .groupBy(Employees.departmentId)
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
 
-        query = db.from(Employees)
+        query = database
+            .from(Employees)
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
 
-        query = db.from(Employees)
+        query = database
+            .from(Employees)
             .select(max(Employees.salary))
             .limit(0, 1)
 
         assert(query.totalRecords == 1)
 
-        query = db.from(Employees)
+        query = database
+            .from(Employees)
             .select(Employees.name)
             .limit(0, 1)
 

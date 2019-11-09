@@ -78,8 +78,8 @@ data class BulkInsertExpression(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.bulkInsert(table) {...} instead.",
-    replaceWith = ReplaceWith("db.bulkInsert(this, block)")
+    message = "This function will be removed in the future. Please use database.bulkInsert(table) {...} instead.",
+    replaceWith = ReplaceWith("database.bulkInsert(this, block)")
 )
 fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     return Database.global.bulkInsert(this, block)
@@ -97,7 +97,7 @@ fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> U
  * Usage:
  *
  * ```kotlin
- * db.bulkInsert(Employees) {
+ * database.bulkInsert(Employees) {
  *     item {
  *         it.name to "jerry"
  *         it.job to "trainee"

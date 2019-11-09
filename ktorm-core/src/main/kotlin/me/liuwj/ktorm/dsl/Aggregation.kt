@@ -96,8 +96,8 @@ fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> 
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).all {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).all(predicate)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).all {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).all(predicate)")
 )
 inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().all(predicate)
@@ -108,8 +108,8 @@ inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDeclaring<B
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).any() instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).any()")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).any() instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).any()")
 )
 fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
     return asSequence().any()
@@ -120,8 +120,8 @@ fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).any {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).any(predicate)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).any {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).any(predicate)")
 )
 inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().any(predicate)
@@ -132,8 +132,8 @@ inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDeclaring<B
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).none() instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).none()")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).none() instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).none()")
 )
 fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
     return asSequence().none()
@@ -144,8 +144,8 @@ fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).none {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).none(predicate)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).none {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).none(predicate)")
 )
 inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().none(predicate)
@@ -156,8 +156,8 @@ inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDeclaring<
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).count() instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).count()")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).count() instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).count()")
 )
 fun <E : Any, T : BaseTable<E>> T.count(): Int {
     return asSequence().count()
@@ -168,8 +168,8 @@ fun <E : Any, T : BaseTable<E>> T.count(): Int {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).count {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).count(predicate)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).count {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).count(predicate)")
 )
 inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return asSequence().count(predicate)
@@ -180,8 +180,8 @@ inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDeclaring
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).sumBy {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).sumBy(selector)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).sumBy {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).sumBy(selector)")
 )
 inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().sumBy(selector)
@@ -192,8 +192,8 @@ inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> Colu
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).maxBy {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).maxBy(selector)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).maxBy {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).maxBy(selector)")
 )
 inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().maxBy(selector)
@@ -204,8 +204,8 @@ inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selector: (T) 
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).minBy {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).minBy(selector)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).minBy {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).minBy(selector)")
 )
 inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().minBy(selector)
@@ -216,8 +216,8 @@ inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selector: (T) 
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).averageBy {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).averageBy(selector)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).averageBy {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).averageBy(selector)")
 )
 inline fun <E : Any, T : BaseTable<E>> T.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
     return asSequence().averageBy(selector)

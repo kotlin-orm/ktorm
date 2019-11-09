@@ -11,7 +11,7 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testAsSequence() {
-        val employee = db
+        val employee = database
             .sequenceOf(Employees, withReferences = false)
             .filter { it.name eq "vince" }
             .single()
@@ -23,7 +23,7 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testToList() {
-        val employees = db.sequenceOf(Employees).toList()
+        val employees = database.sequenceOf(Employees).toList()
         assert(employees.size == 4)
         assert(employees[0].name == "vince")
         assert(employees[0].department.name == "tech")
@@ -31,7 +31,8 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testFilter() {
-        val names = db.sequenceOf(Employees)
+        val names = database
+            .sequenceOf(Employees)
             .filter { it.departmentId eq 1 }
             .filterNot { it.managerId.isNull() }
             .toList()
@@ -43,7 +44,8 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testFilterTo() {
-        val names = db.sequenceOf(Employees)
+        val names = database
+            .sequenceOf(Employees)
             .filter { it.departmentId eq 1 }
             .filterTo(ArrayList()) { it.managerId.isNull() }
             .map { it.name }
@@ -54,18 +56,18 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testCount() {
-        assert(db.sequenceOf(Employees).filter { it.departmentId eq 1 }.count() == 2)
-        assert(db.sequenceOf(Employees).count { it.departmentId eq 1 } == 2)
+        assert(database.sequenceOf(Employees).filter { it.departmentId eq 1 }.count() == 2)
+        assert(database.sequenceOf(Employees).count { it.departmentId eq 1 } == 2)
     }
 
     @Test
     fun testAll() {
-        assert(db.sequenceOf(Employees).filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+        assert(database.sequenceOf(Employees).filter { it.departmentId eq 1 }.all { it.salary greater 49L })
     }
 
     @Test
     fun testAssociate() {
-        val employees = db.sequenceOf(Employees).filter { it.departmentId eq 1 }.associateBy { it.id }
+        val employees = database.sequenceOf(Employees).filter { it.departmentId eq 1 }.associateBy { it.id }
         assert(employees.size == 2)
         assert(employees[1]!!.name == "vince")
     }
@@ -73,7 +75,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testDrop() {
         try {
-            val employees = db.sequenceOf(Employees).drop(3).toList()
+            val employees = database.sequenceOf(Employees).drop(3).toList()
             assert(employees.size == 1)
             assert(employees[0].name == "penny")
         } catch (e: UnsupportedOperationException) {
@@ -84,7 +86,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testTake() {
         try {
-            val employees = db.sequenceOf(Employees).take(1).toList()
+            val employees = database.sequenceOf(Employees).take(1).toList()
             assert(employees.size == 1)
             assert(employees[0].name == "vince")
         } catch (e: UnsupportedOperationException) {
@@ -94,26 +96,27 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testFindLast() {
-        val employee = db.sequenceOf(Employees).elementAt(3)
+        val employee = database.sequenceOf(Employees).elementAt(3)
         assert(employee.name == "penny")
-        assert(db.sequenceOf(Employees).elementAtOrNull(4) == null)
+        assert(database.sequenceOf(Employees).elementAtOrNull(4) == null)
     }
 
     @Test
     fun testFold() {
-        val totalSalary = db.sequenceOf(Employees).fold(0L) { acc, employee -> acc + employee.salary }
+        val totalSalary = database.sequenceOf(Employees).fold(0L) { acc, employee -> acc + employee.salary }
         assert(totalSalary == 450L)
     }
 
     @Test
     fun testSorted() {
-        val employee = db.sequenceOf(Employees).sortedByDescending { it.salary }.first()
+        val employee = database.sequenceOf(Employees).sortedByDescending { it.salary }.first()
         assert(employee.name == "tom")
     }
 
     @Test
     fun testFilterColumns() {
-        val employee = db.sequenceOf(Employees)
+        val employee = database
+            .sequenceOf(Employees)
             .filterColumns { it.columns + it.department.columns - it.department.location }
             .filter { it.department.id eq 1 }
             .first()
@@ -123,7 +126,7 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testGroupBy() {
-        val employees = db.sequenceOf(Employees).groupBy { it.department.id }
+        val employees = database.sequenceOf(Employees).groupBy { it.department.id }
         println(employees)
         assert(employees.size == 2)
         assert(employees[1]!!.sumBy { it.salary.toInt() } == 150)
@@ -132,7 +135,8 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testGroupingBy() {
-        val salaries = db.sequenceOf(Employees)
+        val salaries = database
+            .sequenceOf(Employees)
             .groupingBy { it.departmentId * 2 }
             .fold(0L) { acc, employee ->
                 acc + employee.salary
@@ -146,7 +150,8 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testEachCount() {
-        val counts = db.sequenceOf(Employees)
+        val counts = database
+            .sequenceOf(Employees)
             .filter { it.salary less 100000L }
             .groupingBy { it.departmentId }
             .eachCount()
@@ -159,7 +164,8 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testEachSum() {
-        val sums = db.sequenceOf(Employees)
+        val sums = database
+            .sequenceOf(Employees)
             .filter { it.salary lessEq 100000L }
             .groupingBy { it.departmentId }
             .eachSumBy { it.salary }
@@ -172,25 +178,25 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testJoinToString() {
-        val salaries = db.sequenceOf(Employees).joinToString { it.id.toString() }
+        val salaries = database.sequenceOf(Employees).joinToString { it.id.toString() }
         assert(salaries == "1, 2, 3, 4")
     }
 
     @Test
     fun testReduce() {
-        val emp = db.sequenceOf(Employees).reduce { acc, employee -> acc.apply { salary += employee.salary } }
+        val emp = database.sequenceOf(Employees).reduce { acc, employee -> acc.apply { salary += employee.salary } }
         assert(emp.salary == 450L)
     }
 
     @Test
     fun testSingle() {
-        val employee = db.sequenceOf(Employees).singleOrNull { it.departmentId eq 1 }
+        val employee = database.sequenceOf(Employees).singleOrNull { it.departmentId eq 1 }
         assert(employee == null)
     }
 
     @Test
     fun testMapColumns() {
-        val names = db.sequenceOf(Employees).sortedBy { it.id }.mapColumns { it.name }
+        val names = database.sequenceOf(Employees).sortedBy { it.id }.mapColumns { it.name }
 
         println(names)
         assert(names.size == 4)

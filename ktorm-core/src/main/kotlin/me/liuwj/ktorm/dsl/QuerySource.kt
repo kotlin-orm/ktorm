@@ -99,8 +99,8 @@ fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = n
  * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).crossJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).crossJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).crossJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).crossJoin(right, on)")
 )
 fun QuerySourceExpression.crossJoin(
     right: QuerySourceExpression,
@@ -114,8 +114,8 @@ fun QuerySourceExpression.crossJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).crossJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).crossJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).crossJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).crossJoin(right, on)")
 )
 fun QuerySourceExpression.crossJoin(
     right: BaseTable<*>,
@@ -129,8 +129,8 @@ fun QuerySourceExpression.crossJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).crossJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).crossJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).crossJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).crossJoin(right, on)")
 )
 fun BaseTable<*>.crossJoin(
     right: QuerySourceExpression,
@@ -144,8 +144,8 @@ fun BaseTable<*>.crossJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).crossJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).crossJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).crossJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).crossJoin(right, on)")
 )
 fun BaseTable<*>.crossJoin(
     right: BaseTable<*>,
@@ -158,8 +158,8 @@ fun BaseTable<*>.crossJoin(
  * Join the right table and return a [JoinExpression], translated to `inner join` in SQL.
  */
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).innerJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).innerJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).innerJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).innerJoin(right, on)")
 )
 fun QuerySourceExpression.innerJoin(
     right: QuerySourceExpression,
@@ -173,8 +173,8 @@ fun QuerySourceExpression.innerJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).innerJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).innerJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).innerJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).innerJoin(right, on)")
 )
 fun QuerySourceExpression.innerJoin(
     right: BaseTable<*>,
@@ -188,8 +188,8 @@ fun QuerySourceExpression.innerJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).innerJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).innerJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).innerJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).innerJoin(right, on)")
 )
 fun BaseTable<*>.innerJoin(
     right: QuerySourceExpression,
@@ -203,8 +203,8 @@ fun BaseTable<*>.innerJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).innerJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).innerJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).innerJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).innerJoin(right, on)")
 )
 fun BaseTable<*>.innerJoin(
     right: BaseTable<*>,
@@ -217,8 +217,8 @@ fun BaseTable<*>.innerJoin(
  * Join the right table and return a [JoinExpression], translated to `left join` in SQL.
  */
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).leftJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).leftJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).leftJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).leftJoin(right, on)")
 )
 fun QuerySourceExpression.leftJoin(
     right: QuerySourceExpression,
@@ -232,8 +232,8 @@ fun QuerySourceExpression.leftJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).leftJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).leftJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).leftJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).leftJoin(right, on)")
 )
 fun QuerySourceExpression.leftJoin(
     right: BaseTable<*>,
@@ -247,8 +247,8 @@ fun QuerySourceExpression.leftJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).leftJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).leftJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).leftJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).leftJoin(right, on)")
 )
 fun BaseTable<*>.leftJoin(
     right: QuerySourceExpression,
@@ -262,8 +262,8 @@ fun BaseTable<*>.leftJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).leftJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).leftJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).leftJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).leftJoin(right, on)")
 )
 fun BaseTable<*>.leftJoin(
     right: BaseTable<*>,
@@ -276,8 +276,8 @@ fun BaseTable<*>.leftJoin(
  * Join the right table and return a [JoinExpression], translated to `right join` in SQL.
  */
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).rightJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).rightJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).rightJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).rightJoin(right, on)")
 )
 fun QuerySourceExpression.rightJoin(
     right: QuerySourceExpression,
@@ -291,8 +291,8 @@ fun QuerySourceExpression.rightJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).rightJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).rightJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).rightJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).rightJoin(right, on)")
 )
 fun QuerySourceExpression.rightJoin(
     right: BaseTable<*>,
@@ -306,8 +306,8 @@ fun QuerySourceExpression.rightJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).rightJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).rightJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).rightJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).rightJoin(right, on)")
 )
 fun BaseTable<*>.rightJoin(
     right: QuerySourceExpression,
@@ -321,8 +321,8 @@ fun BaseTable<*>.rightJoin(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).rightJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).rightJoin(right, on)")
+    message = "This function will be removed in the future. Please use database.from(...).rightJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).rightJoin(right, on)")
 )
 fun BaseTable<*>.rightJoin(
     right: BaseTable<*>,

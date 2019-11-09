@@ -10,13 +10,14 @@ class JoinTest : BaseTest() {
 
     @Test
     fun testCrossJoin() {
-        val query = db.from(Employees).crossJoin(Departments).select()
+        val query = database.from(Employees).crossJoin(Departments).select()
         assert(query.count() == 8)
     }
 
     @Test
     fun testJoinWithConditions() {
-        val names = db.from(Employees)
+        val names = database
+            .from(Employees)
             .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
             .select(Employees.name, Departments.name)
             .where { Employees.managerId.isNull() }
@@ -35,7 +36,8 @@ class JoinTest : BaseTest() {
         val mgr = Employees.aliased("mgr")
         val dept = Departments.aliased("dept")
 
-        val results = db.from(emp)
+        val results = database
+            .from(emp)
             .leftJoin(dept, on = emp.departmentId eq dept.id)
             .leftJoin(mgr, on = emp.managerId eq mgr.id)
             .select(emp.name, mgr.name, dept.name)
@@ -63,7 +65,8 @@ class JoinTest : BaseTest() {
         val mgr = Employees.aliased("mgr")
         val dept = Departments.aliased("dept")
 
-        val results = db.from(emp)
+        val results = database
+            .from(emp)
             .select(emp.name)
             .map {
                 Names(

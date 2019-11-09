@@ -27,8 +27,8 @@ import me.liuwj.ktorm.schema.*
  */
 @Suppress("DEPRECATION", "UNCHECKED_CAST")
 @Deprecated(
-    message = "This function will be removed in the future. Use db.sequenceOf(..).filter{..}.associateBy{..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).filter(predicate).associateBy(keySelector)")
+    message = "This function will be removed in the future. Use database.sequenceOf().filter{}.associateBy{} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).filter(predicate).associateBy(keySelector)")
 )
 fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E> {
     return findListByIds(ids).associateBy { it.implementation.getPrimaryKeyValue(this) as K }
@@ -39,8 +39,8 @@ fun <E : Entity<E>, K : Any> Table<E>.findMapByIds(ids: Collection<K>): Map<K, E
  */
 @Suppress("DEPRECATION", "UNCHECKED_CAST")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).filter {..}.toList() instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).filter(predicate).toList()")
+    message = "This function will be removed in the future. Use database.sequenceOf().filter{}.toList() instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).filter(predicate).toList()")
 )
 fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
@@ -58,8 +58,8 @@ fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
  */
 @Suppress("DEPRECATION", "UNCHECKED_CAST")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).find {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).find(predicate)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).find {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).find(predicate)")
 )
 fun <E : Any> BaseTable<E>.findById(id: Any): E? {
     val primaryKey = this.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
@@ -73,8 +73,8 @@ fun <E : Any> BaseTable<E>.findById(id: Any): E? {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).find {..} instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).find(predicate)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).find {..} instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).find(predicate)")
 )
 inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     val list = findList(predicate)
@@ -90,8 +90,8 @@ inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclari
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).toList() instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).toList()")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).toList() instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).toList()")
 )
 fun <E : Any> BaseTable<E>.findAll(): List<E> {
     // return this.asSequence().toList()
@@ -105,8 +105,8 @@ fun <E : Any> BaseTable<E>.findAll(): List<E> {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).filter {..}.toList() instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).filter(predicate).toList()")
+    message = "This function will be removed in the future. Use database.sequenceOf().filter{}.toList() instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).filter(predicate).toList()")
 )
 inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
     // return this.asSequence().filter(predicate).toList()
@@ -156,8 +156,8 @@ private fun BaseTable<*>.joinReferences(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).joinReferencesAndSelect() instead.",
-    replaceWith = ReplaceWith("db.from(this).joinReferencesAndSelect()")
+    message = "This function will be removed in the future. Use database.from(..).joinReferencesAndSelect() instead.",
+    replaceWith = ReplaceWith("database.from(this).joinReferencesAndSelect()")
 )
 fun BaseTable<*>.joinReferencesAndSelect(): Query {
     val joinedTables = ArrayList<BaseTable<*>>()

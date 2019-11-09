@@ -14,11 +14,11 @@ import java.time.LocalDate
  * Created by vince on Dec 07, 2018.
  */
 open class BaseTest {
-    lateinit var db: Database
+    lateinit var database: Database
 
     @Before
     open fun init() {
-        db = Database.connect(
+        database = Database.connect(
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
             logger = ConsoleLogger(threshold = LogLevel.TRACE)
@@ -33,7 +33,7 @@ open class BaseTest {
     }
 
     protected fun execSqlScript(filename: String) {
-        db.useConnection { conn ->
+        database.useConnection { conn ->
             conn.createStatement().use { statement ->
                 javaClass.classLoader
                     .getResourceAsStream(filename)

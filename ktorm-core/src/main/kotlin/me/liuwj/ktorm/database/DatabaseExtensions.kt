@@ -29,8 +29,8 @@ import java.sql.Connection
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.useConnection {...} instead.",
-    replaceWith = ReplaceWith("db.useConnection(func)")
+    message = "This function will be removed in the future. Please use database.useConnection {...} instead.",
+    replaceWith = ReplaceWith("database.useConnection(func)")
 )
 inline fun <T> useConnection(func: (Connection) -> T): T {
     return Database.global.useConnection(func)
@@ -53,8 +53,8 @@ inline fun <T> useConnection(func: (Connection) -> T): T {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.useTransaction {...} instead.",
-    replaceWith = ReplaceWith("db.useTransaction(isolation, func)")
+    message = "This function will be removed in the future. Please use database.useTransaction {...} instead.",
+    replaceWith = ReplaceWith("database.useTransaction(isolation, func)")
 )
 inline fun <T> useTransaction(
     isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,

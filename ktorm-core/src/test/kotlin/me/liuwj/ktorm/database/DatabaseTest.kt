@@ -16,7 +16,7 @@ class DatabaseTest : BaseTest() {
 
     @Test
     fun testMetadata() {
-        with(db) {
+        with(database) {
             println(url)
             println(name)
             println(productName)
@@ -34,21 +34,21 @@ class DatabaseTest : BaseTest() {
             val value by varchar("value")
         }
 
-        db.useConnection { conn ->
+        database.useConnection { conn ->
             conn.createStatement().use { statement ->
                 val sql = """create table t_config(`key` varchar(128) primary key, "value" varchar(128))"""
                 statement.executeUpdate(sql)
             }
         }
 
-        db.insert(configs) {
+        database.insert(configs) {
             it.key to "test"
             it.value to "test value"
         }
 
-        assert(db.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
 
-        db.delete(configs) { it.key eq "test" }
+        database.delete(configs) { it.key eq "test" }
     }
 
     @Test
@@ -56,25 +56,25 @@ class DatabaseTest : BaseTest() {
         class DummyException : Exception()
 
         try {
-            db.useTransaction {
-                db.insert(Departments) {
+            database.useTransaction {
+                database.insert(Departments) {
                     it.name to "administration"
                     it.location to "Hong Kong"
                 }
 
-                assert(db.sequenceOf(Departments).count() == 3)
+                assert(database.sequenceOf(Departments).count() == 3)
 
                 throw DummyException()
             }
 
         } catch (e: DummyException) {
-            assert(db.sequenceOf(Departments).count() == 2)
+            assert(database.sequenceOf(Departments).count() == 2)
         }
     }
 
     @Test
     fun testRawSql() {
-        val names = db.useConnection { conn ->
+        val names = database.useConnection { conn ->
             val sql = """
                 select name from t_employee
                 where department_id = ?

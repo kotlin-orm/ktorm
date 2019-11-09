@@ -34,8 +34,8 @@ import me.liuwj.ktorm.schema.*
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..).add(entity) instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this).add(entity)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..).add(entity) instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this).add(entity)")
 )
 fun <E : Entity<E>> Table<E>.add(entity: E): Int {
     return Database.global.sequenceOf(this).add(entity)

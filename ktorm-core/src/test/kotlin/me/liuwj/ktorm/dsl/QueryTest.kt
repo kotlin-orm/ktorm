@@ -11,7 +11,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testSelect() {
-        val query = db.from(Departments).select()
+        val query = database.from(Departments).select()
         assert(query.rowSet.size() == 2)
 
         for (row in query) {
@@ -21,7 +21,8 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testSelectDistinct() {
-        val ids = db.from(Employees)
+        val ids = database
+            .from(Employees)
             .selectDistinct(Employees.departmentId)
             .map { it.getInt(1) }
             .sortedDescending()
@@ -33,7 +34,8 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testWhere() {
-        val name = db.from(Employees)
+        val name = database
+            .from(Employees)
             .select(Employees.name)
             .where { Employees.managerId.isNull() and (Employees.departmentId eq 1) }
             .map { it.getString(1) }
@@ -46,7 +48,8 @@ class QueryTest : BaseTest() {
     fun testWhereWithConditions() {
         val t = Employees.aliased("t")
 
-        val name = db.from(t)
+        val name = database
+            .from(t)
             .select(t.name)
             .whereWithConditions {
                 it += t.managerId.isNull()
@@ -62,7 +65,8 @@ class QueryTest : BaseTest() {
     fun testCombineConditions() {
         val t = Employees.aliased("t")
 
-        val names = db.from(t)
+        val names = database
+            .from(t)
             .select(t.name)
             .where { emptyList<ScalarExpression<Boolean>>().combineConditions() }
             .orderBy(t.id.asc())
@@ -75,7 +79,8 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testOrderBy() {
-        val names = db.from(Employees)
+        val names = database
+            .from(Employees)
             .select(Employees.name)
             .where { Employees.departmentId eq 1 }
             .orderBy(Employees.salary.desc())
@@ -90,7 +95,8 @@ class QueryTest : BaseTest() {
     fun testAggregation() {
         val t = Employees
 
-        val salaries = db.from(t)
+        val salaries = database
+            .from(t)
             .select(t.departmentId, sum(t.salary))
             .groupBy(t.departmentId)
             .associate { it.getInt(1) to it.getLong(2) }
@@ -104,7 +110,8 @@ class QueryTest : BaseTest() {
     fun testHaving() {
         val t = Employees
 
-        val salaries = db.from(t)
+        val salaries = database
+            .from(t)
             .select(t.departmentId, avg(t.salary))
             .groupBy(t.departmentId)
             .having { avg(t.salary) greater 100.0 }
@@ -120,7 +127,8 @@ class QueryTest : BaseTest() {
         val deptId = Employees.departmentId.aliased("dept_id")
         val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
-        val salaries = db.from(Employees)
+        val salaries = database
+            .from(Employees)
             .select(deptId, salaryAvg)
             .groupBy(deptId)
             .having { salaryAvg greater 100.0 }
@@ -138,7 +146,8 @@ class QueryTest : BaseTest() {
     fun testColumnAlias1() {
         val salary = (Employees.salary + 100).aliased(null)
 
-        val salaries = db.from(Employees)
+        val salaries = database
+            .from(Employees)
             .select(salary)
             .where { salary greater 200L }
             .map { it.getLong(1) }
@@ -151,7 +160,7 @@ class QueryTest : BaseTest() {
     @Test
     fun testLimit() {
         try {
-            val query = db.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
+            val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
             assert(query.totalRecords == 4)
 
             val ids = query.map { it[Employees.id] }
@@ -165,7 +174,8 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testBetween() {
-        val names = db.from(Employees)
+        val names = database
+            .from(Employees)
             .select(Employees.name)
             .where { Employees.salary between 100L..200L }
             .map { it.getString(1) }
@@ -176,7 +186,8 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testInList() {
-        val query = db.from(Employees)
+        val query = database
+            .from(Employees)
             .select()
             .where { Employees.id inList listOf(1, 2, 3) }
 
@@ -185,9 +196,10 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testInNestedQuery() {
-        val departmentIds = db.from(Departments).selectDistinct(Departments.id)
+        val departmentIds = database.from(Departments).selectDistinct(Departments.id)
 
-        val query = db.from(Employees)
+        val query = database
+            .from(Employees)
             .select()
             .where { Employees.departmentId inList departmentIds }
 
@@ -198,11 +210,13 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testExists() {
-        val query = db.from(Employees)
+        val query = database
+            .from(Employees)
             .select()
             .where {
                 Employees.id.isNotNull() and exists(
-                    db.from(Departments)
+                    database
+                        .from(Departments)
                         .select()
                         .where { Departments.id eq Employees.departmentId }
                 )
@@ -214,13 +228,14 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testUnion() {
-        val query = db.from(Employees)
+        val query = database
+            .from(Employees)
             .select(Employees.id)
             .unionAll(
-                db.from(Departments).select(Departments.id)
+                database.from(Departments).select(Departments.id)
             )
             .unionAll(
-                db.from(Departments).select(Departments.id)
+                database.from(Departments).select(Departments.id)
             )
             .orderBy(Employees.id.desc())
 
@@ -231,7 +246,7 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testMod() {
-        val query = db.from(Employees).select().where { Employees.id % 2 eq 1 }
+        val query = database.from(Employees).select().where { Employees.id % 2 eq 1 }
         assert(query.count() == 2)
         println(query.sql)
     }

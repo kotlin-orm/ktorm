@@ -46,8 +46,8 @@ fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.
  */
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+    message = "This function will be removed in the future. Please use database.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).naturalJoin(right)")
 )
 fun QuerySourceExpression.naturalJoin(right: QuerySourceExpression): NaturalJoinExpression {
     return NaturalJoinExpression(left = this, right = right)
@@ -58,8 +58,8 @@ fun QuerySourceExpression.naturalJoin(right: QuerySourceExpression): NaturalJoin
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+    message = "This function will be removed in the future. Please use database.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).naturalJoin(right)")
 )
 fun QuerySourceExpression.naturalJoin(right: BaseTable<*>): NaturalJoinExpression {
     return naturalJoin(right.asExpression())
@@ -70,8 +70,8 @@ fun QuerySourceExpression.naturalJoin(right: BaseTable<*>): NaturalJoinExpressio
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+    message = "This function will be removed in the future. Please use database.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).naturalJoin(right)")
 )
 fun BaseTable<*>.naturalJoin(right: QuerySourceExpression): NaturalJoinExpression {
     return asExpression().naturalJoin(right)
@@ -82,8 +82,8 @@ fun BaseTable<*>.naturalJoin(right: QuerySourceExpression): NaturalJoinExpressio
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).naturalJoin(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).naturalJoin(right)")
+    message = "This function will be removed in the future. Please use database.from(...).naturalJoin(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).naturalJoin(right)")
 )
 fun BaseTable<*>.naturalJoin(right: BaseTable<*>): NaturalJoinExpression {
     return naturalJoin(right.asExpression())

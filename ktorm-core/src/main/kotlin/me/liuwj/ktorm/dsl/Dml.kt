@@ -48,8 +48,8 @@ import kotlin.collections.ArrayList
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.update(table) {...} instead.",
-    replaceWith = ReplaceWith("db.update(this, block)")
+    message = "This function will be removed in the future. Please use database.update(table) {...} instead.",
+    replaceWith = ReplaceWith("database.update(this, block)")
 )
 fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.update(this, block)
@@ -61,7 +61,7 @@ fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int 
  * Usage:
  *
  * ```kotlin
- * db.update(Employees) {
+ * database.update(Employees) {
  *     it.job to "engineer"
  *     it.managerId to null
  *     it.salary to 100
@@ -128,8 +128,8 @@ internal fun Database.executeUpdate(expression: SqlExpression): Int {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.batchUpdate(table) {...} instead.",
-    replaceWith = ReplaceWith("db.batchUpdate(this, block)")
+    message = "This function will be removed in the future. Please use database.batchUpdate(table) {...} instead.",
+    replaceWith = ReplaceWith("database.batchUpdate(this, block)")
 )
 fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
     return Database.global.batchUpdate(this, block)
@@ -145,7 +145,7 @@ fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() ->
  * Usage:
  *
  * ```kotlin
- * db.batchUpdate(Departments) {
+ * database.batchUpdate(Departments) {
  *     for (i in 1..2) {
  *         item {
  *             it.location to "Hong Kong"
@@ -229,8 +229,8 @@ private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.insert(table) {...} instead.",
-    replaceWith = ReplaceWith("db.insert(this, block)")
+    message = "This function will be removed in the future. Please use database.insert(table) {...} instead.",
+    replaceWith = ReplaceWith("database.insert(this, block)")
 )
 fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
     return Database.global.insert(this, block)
@@ -242,7 +242,7 @@ fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * Usage:
  *
  * ```kotlin
- * db.insert(Employees) {
+ * database.insert(Employees) {
  *     it.name to "jerry"
  *     it.job to "trainee"
  *     it.managerId to 1
@@ -299,8 +299,8 @@ fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.batchInsert(table) {...} instead.",
-    replaceWith = ReplaceWith("db.batchInsert(this, block)")
+    message = "This function will be removed in the future. Please use database.batchInsert(table) {...} instead.",
+    replaceWith = ReplaceWith("database.batchInsert(this, block)")
 )
 fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
     return Database.global.batchInsert(this, block)
@@ -316,7 +316,7 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
  * Usage:
  *
  * ```kotlin
- * db.batchInsert(Employees) {
+ * database.batchInsert(Employees) {
  *     item {
  *         it.name to "jerry"
  *         it.job to "trainee"
@@ -372,8 +372,8 @@ fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatemen
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.insertAndGenerateKey(table) {...} instead.",
-    replaceWith = ReplaceWith("db.insertAndGenerateKey(this, block)")
+    message = "This function will be removed in the future. Use database.insertAndGenerateKey(table) {...} instead.",
+    replaceWith = ReplaceWith("database.insertAndGenerateKey(this, block)")
 )
 fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     return Database.global.insertAndGenerateKey(this, block)
@@ -385,7 +385,7 @@ fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> U
  * Usage:
  *
  * ```kotlin
- * val id = db.insertAndGenerateKey(Employees) {
+ * val id = database.insertAndGenerateKey(Employees) {
  *     it.name to "jerry"
  *     it.job to "trainee"
  *     it.managerId to 1
@@ -447,8 +447,8 @@ fun Query.insertTo(table: BaseTable<*>, vararg columns: Column<*>): Int {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.delete(table) {...} instead.",
-    replaceWith = ReplaceWith("db.delete(this, block)")
+    message = "This function will be removed in the future. Please use database.delete(table) {...} instead.",
+    replaceWith = ReplaceWith("database.delete(this, block)")
 )
 fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return Database.global.delete(this, predicate)
@@ -467,8 +467,8 @@ fun <T : BaseTable<*>> Database.delete(table: T, predicate: (T) -> ColumnDeclari
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.deleteAll(table) instead.",
-    replaceWith = ReplaceWith("db.deleteAll(this)")
+    message = "This function will be removed in the future. Please use database.deleteAll(table) instead.",
+    replaceWith = ReplaceWith("database.deleteAll(this)")
 )
 fun BaseTable<*>.deleteAll(): Int {
     return Database.global.deleteAll(this)

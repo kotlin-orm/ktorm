@@ -120,8 +120,8 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.sequenceOf(..) instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this)")
+    message = "This function will be removed in the future. Please use database.sequenceOf(..) instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this)")
 )
 fun <E : Any, T : BaseTable<E>> T.asSequence(): EntitySequence<E, T> {
     return Database.global.sequenceOf(this)
@@ -132,8 +132,8 @@ fun <E : Any, T : BaseTable<E>> T.asSequence(): EntitySequence<E, T> {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Use db.sequenceOf(.., withReferences = false) instead.",
-    replaceWith = ReplaceWith("db.sequenceOf(this, withReferences = false)")
+    message = "This function will be removed in the future. Use database.sequenceOf(.., withReferences=false) instead.",
+    replaceWith = ReplaceWith("database.sequenceOf(this, withReferences = false)")
 )
 fun <E : Any, T : BaseTable<E>> T.asSequenceWithoutReferences(): EntitySequence<E, T> {
     return Database.global.sequenceOf(this, withReferences = false)

@@ -199,8 +199,8 @@ fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).select(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).select(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
@@ -214,8 +214,8 @@ fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).select(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).select(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
     return select(columns.asList())
@@ -228,8 +228,8 @@ fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).select(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).select(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
     return asExpression().select(columns)
@@ -242,8 +242,8 @@ fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).select(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).select(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().select(columns.asList())
@@ -275,8 +275,8 @@ fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).selectDistinct(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).selectDistinct(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
@@ -290,8 +290,8 @@ fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).selectDistinct(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).selectDistinct(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
@@ -304,8 +304,8 @@ fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Qu
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).selectDistinct(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).selectDistinct(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     return asExpression().selectDistinct(columns)
@@ -318,8 +318,8 @@ fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query 
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).selectDistinct(...) instead.",
-    replaceWith = ReplaceWith("db.from(this).selectDistinct(columns)")
+    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().selectDistinct(columns.asList())

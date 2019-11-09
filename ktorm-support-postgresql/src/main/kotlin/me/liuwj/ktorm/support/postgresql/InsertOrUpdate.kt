@@ -75,8 +75,8 @@ data class InsertOrUpdateExpression(
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.insertOrUpdate(table) {...} instead.",
-    replaceWith = ReplaceWith("db.insertOrUpdate(this, block)")
+    message = "This function will be removed in the future. Please use database.insertOrUpdate(table) {...} instead.",
+    replaceWith = ReplaceWith("database.insertOrUpdate(this, block)")
 )
 fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
@@ -89,7 +89,7 @@ fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T
  * Usage:
  *
  * ```kotlin
- * db.insertOrUpdate(Employees) {
+ * database.insertOrUpdate(Employees) {
  *     it.id to 1
  *     it.name to "vince"
  *     it.job to "engineer"

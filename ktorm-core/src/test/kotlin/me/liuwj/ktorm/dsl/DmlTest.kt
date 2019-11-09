@@ -12,7 +12,7 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testUpdate() {
-        db.update(Employees) {
+        database.update(Employees) {
             it.job to "engineer"
             it.managerId to null
             it.salary to 100
@@ -22,7 +22,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        val employee = db.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
+        val employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.name == "marry")
         assert(employee.job == "engineer")
         assert(employee.manager == null)
@@ -31,7 +31,7 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testBatchUpdate() {
-        db.batchUpdate(Departments) {
+        database.batchUpdate(Departments) {
             for (i in 1..2) {
                 item {
                     it.location to "Hong Kong"
@@ -42,7 +42,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        val departments = db.sequenceOf(Departments).toList()
+        val departments = database.sequenceOf(Departments).toList()
         assert(departments.size == 2)
 
         for (dept in departments) {
@@ -52,12 +52,13 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testSelfIncrement() {
-        db.update(Employees) {
+        database.update(Employees) {
             it.salary to it.salary + 1
             where { it.id eq 1 }
         }
 
-        val salary = db.from(Employees)
+        val salary = database
+            .from(Employees)
             .select(Employees.salary)
             .where { Employees.id eq 1 }
             .map { it.getLong(1) }
@@ -68,7 +69,7 @@ class DmlTest : BaseTest() {
 
     @Test
     fun testInsert() {
-        db.insert(Employees) {
+        database.insert(Employees) {
             it.name to "jerry"
             it.job to "trainee"
             it.managerId to 1
@@ -77,12 +78,12 @@ class DmlTest : BaseTest() {
             it.departmentId to 1
         }
 
-        assert(db.sequenceOf(Employees).count() == 5)
+        assert(database.sequenceOf(Employees).count() == 5)
     }
 
     @Test
     fun testBatchInsert() {
-        db.batchInsert(Employees) {
+        database.batchInsert(Employees) {
             item {
                 it.name to "jerry"
                 it.job to "trainee"
@@ -101,14 +102,14 @@ class DmlTest : BaseTest() {
             }
         }
 
-        assert(db.sequenceOf(Employees).count() == 6)
+        assert(database.sequenceOf(Employees).count() == 6)
     }
 
     @Test
     fun testInsertAndGenerateKey() {
         val today = LocalDate.now()
 
-        val id = db.insertAndGenerateKey(Employees) {
+        val id = database.insertAndGenerateKey(Employees) {
             it.name to "jerry"
             it.job to "trainee"
             it.managerId to 1
@@ -117,24 +118,25 @@ class DmlTest : BaseTest() {
             it.departmentId to 1
         }
 
-        val employee = db.sequenceOf(Employees).find { it.id eq (id as Int) } ?: throw AssertionError()
+        val employee = database.sequenceOf(Employees).find { it.id eq (id as Int) } ?: throw AssertionError()
         assert(employee.name == "jerry")
         assert(employee.hireDate == today)
     }
 
     @Test
     fun testInsertFromSelect() {
-        db.from(Departments)
+        database
+            .from(Departments)
             .select(Departments.name, Departments.location)
             .where { Departments.id eq 1 }
             .insertTo(Departments, Departments.name, Departments.location)
 
-        assert(db.sequenceOf(Departments).count() == 3)
+        assert(database.sequenceOf(Departments).count() == 3)
     }
 
     @Test
     fun testDelete() {
-        db.delete(Employees) { it.id eq 4 }
-        assert(db.sequenceOf(Employees).count() == 3)
+        database.delete(Employees) { it.id eq 4 }
+        assert(database.sequenceOf(Employees).count() == 3)
     }
 }
