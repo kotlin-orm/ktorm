@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.dsl.batchInsert
@@ -77,14 +76,60 @@ data class BulkInsertExpression(
  * @return the effected row count.
  * @see batchInsert
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.bulkInsert(table) {...} instead.",
+    replaceWith = ReplaceWith("db.bulkInsert(this, block)")
+)
 fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
-    val builder = BulkInsertStatementBuilder(this).apply(block)
-    val expression = BulkInsertExpression(asExpression(), builder.assignments)
+    return Database.global.bulkInsert(this, block)
+}
 
-    expression.prepareStatement { statement ->
+/**
+ * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
+ *
+ * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
+ * using MySQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
+ * is much better than [batchInsert].
+ *
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.bulkInsert(Employees) {
+ *     item {
+ *         it.name to "jerry"
+ *         it.job to "trainee"
+ *         it.managerId to 1
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 50
+ *         it.departmentId to 1
+ *     }
+ *     item {
+ *         it.name to "linda"
+ *         it.job to "assistant"
+ *         it.managerId to 3
+ *         it.hireDate to LocalDate.now()
+ *         it.salary to 100
+ *         it.departmentId to 2
+ *     }
+ * }
+ * ```
+ *
+ * @param table the table to be inserted.
+ * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
+ * @return the effected row count.
+ * @see batchInsert
+ */
+fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+    val builder = BulkInsertStatementBuilder(table).apply(block)
+    val expression = BulkInsertExpression(table.asExpression(), builder.assignments)
+
+    executeExpression(expression) { statement ->
         val effects = statement.executeUpdate()
 
-        val logger = Database.global.logger
+        val logger = this.logger
         if (logger != null && logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }

@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
@@ -74,23 +73,63 @@ data class InsertOrUpdateExpression(
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.insertOrUpdate(table) {...} instead.",
+    replaceWith = ReplaceWith("db.insertOrUpdate(this, block)")
+)
 fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(this@insertOrUpdate) }
+    return Database.global.insertOrUpdate(this, block)
+}
 
-    val primaryKey = this.primaryKey ?: error("Table $tableName doesn't have a primary key.")
+/**
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
+ * performs an update if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.insertOrUpdate(Employees) {
+ *     it.id to 1
+ *     it.name to "vince"
+ *     it.job to "engineer"
+ *     it.salary to 1000
+ *     it.hireDate to LocalDate.now()
+ *     it.departmentId to 1
+ *     onDuplicateKey {
+ *         it.salary to it.salary + 900
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * ```
+ *
+ * @param table the table to be inserted.
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
+ */
+fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
+    val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(table) }
+
+    val primaryKey = table.primaryKey ?: error("Table ${table.tableName} doesn't have a primary key.")
 
     val expression = InsertOrUpdateExpression(
-        table = asExpression(),
+        table = table.asExpression(),
         assignments = assignments,
         conflictTarget = listOf(primaryKey.asExpression()),
         updateAssignments = builder.updateAssignments
     )
 
-    expression.prepareStatement { statement ->
+    executeExpression(expression) { statement ->
         val effects = statement.executeUpdate()
 
-        val logger = Database.global.logger
+        val logger = this.logger
         if (logger != null && logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }

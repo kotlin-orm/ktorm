@@ -17,7 +17,6 @@
 package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.prepareStatement
 import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
@@ -71,16 +70,58 @@ data class InsertOrUpdateExpression(
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.insertOrUpdate(table) {...} instead.",
+    replaceWith = ReplaceWith("db.insertOrUpdate(this, block)")
+)
 fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+    return Database.global.insertOrUpdate(this, block)
+}
+
+/**
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
+ * performs an update if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * db.insertOrUpdate(Employees) {
+ *     it.id to 1
+ *     it.name to "vince"
+ *     it.job to "engineer"
+ *     it.salary to 1000
+ *     it.hireDate to LocalDate.now()
+ *     it.departmentId to 1
+ *     onDuplicateKey {
+ *         it.salary to it.salary + 900
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * on duplicate key update salary = salary + ?
+ * ```
+ *
+ * @param table the table to be inserted.
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
+ */
+fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(this@insertOrUpdate) }
+    val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(table) }
 
-    val expr = AliasRemover.visit(InsertOrUpdateExpression(asExpression(), assignments, builder.updateAssignments))
+    val expr = AliasRemover.visit(
+        InsertOrUpdateExpression(table.asExpression(), assignments, builder.updateAssignments)
+    )
 
-    expr.prepareStatement { statement ->
+    executeExpression(expr) { statement ->
         val effects = statement.executeUpdate()
 
-        val logger = Database.global.logger
+        val logger = this.logger
         if (logger != null && logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }
