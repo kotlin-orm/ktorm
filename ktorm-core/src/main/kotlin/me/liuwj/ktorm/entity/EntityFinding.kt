@@ -120,13 +120,21 @@ inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclar
  * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
 fun QuerySource.joinReferencesAndSelect(): Query {
-    val querySource = sourceTable.joinReferences(this)
-    val columns = sourceTable.columns + querySource.joinings.flatMap { it.rightTable.columns }
-    return querySource.select(columns)
+    val joinedTables = ArrayList<BaseTable<*>>()
+
+    return sourceTable
+        .joinReferences(this, joinedTables)
+        .select(joinedTables.flatMap { it.columns })
 }
 
-private fun BaseTable<*>.joinReferences(querySource: QuerySource): QuerySource {
+private fun BaseTable<*>.joinReferences(
+    querySource: QuerySource,
+    joinedTables: MutableList<BaseTable<*>>
+): QuerySource {
+
     var curr = querySource
+
+    joinedTables += this
 
     for (column in columns) {
         for (binding in column.allBindings) {
@@ -135,7 +143,7 @@ private fun BaseTable<*>.joinReferences(querySource: QuerySource): QuerySource {
                 val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
 
                 curr = curr.leftJoin(refTable, on = column eq primaryKey)
-                curr = refTable.joinReferences(curr)
+                curr = refTable.joinReferences(curr, joinedTables)
             }
         }
     }

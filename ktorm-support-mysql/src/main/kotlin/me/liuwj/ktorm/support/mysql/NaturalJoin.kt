@@ -18,6 +18,7 @@
 
 package me.liuwj.ktorm.support.mysql
 
+import me.liuwj.ktorm.dsl.QuerySource
 import me.liuwj.ktorm.expression.QuerySourceExpression
 import me.liuwj.ktorm.schema.BaseTable
 
@@ -33,6 +34,13 @@ data class NaturalJoinExpression(
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : QuerySourceExpression()
+
+/**
+ * Join the right table and return a new [QuerySource], translated to `natural join` in SQL.
+ */
+fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
+    return this.copy(expression = NaturalJoinExpression(left = expression, right = right.asExpression()))
+}
 
 /**
  * Join the right table and return a [NaturalJoinExpression], translated to `natural join` in MySQL.

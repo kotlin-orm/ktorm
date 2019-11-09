@@ -180,7 +180,7 @@ fun <T : ResultSet> T.iterable(): Iterable<T> {
  */
 fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
-    return Query(database, SelectExpression(columns = declarations, from = this.asExpression()))
+    return Query(database, SelectExpression(columns = declarations, from = expression))
 }
 
 /**
@@ -256,7 +256,7 @@ fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
  */
 fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
-    return Query(database, SelectExpression(columns = declarations, from = this.asExpression(), isDistinct = true))
+    return Query(database, SelectExpression(columns = declarations, from = expression, isDistinct = true))
 }
 
 /**

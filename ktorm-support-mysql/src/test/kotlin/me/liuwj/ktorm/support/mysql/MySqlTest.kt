@@ -103,7 +103,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testNaturalJoin() {
-        val query = Employees.naturalJoin(Departments).select()
+        val query = db.from(Employees).naturalJoin(Departments).select()
         assert(query.count() == 0)
     }
 
