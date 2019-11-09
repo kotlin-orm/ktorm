@@ -77,7 +77,7 @@ def generateMapColumns(Writer writer, int tupleNumber) {
                 isDistinct = isDistinct
             )
         
-            return Query(expr).mapTo(destination) { row -> Tuple$tupleNumber($resultExtractors) }
+            return Query(database, expr).mapTo(destination) { row -> Tuple$tupleNumber($resultExtractors) }
         }
     """.stripIndent())
 }
@@ -110,13 +110,13 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
                 columns = listOf($variableNames).map { it.aliased(null) }
             )
         
-            val rowSet = Query(expr).rowSet
+            val rowSet = Query(database, expr).rowSet
         
             if (rowSet.size() == 1) {
                 check(rowSet.next())
                 return Tuple$tupleNumber($resultExtractors)
             } else {
-                val (sql, _) = Database.global.formatExpression(expr, beautifySql = true)
+                val (sql, _) = database.formatExpression(expr, beautifySql = true)
                 throw IllegalStateException("Expected 1 row but \${rowSet.size()} returned from sql: \\n\\n\$sql")
             }
         }
@@ -168,7 +168,7 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
                 groupBy = listOf(keyColumn.asExpression())
             )
         
-            for (row in Query(expr)) {
+            for (row in Query(sequence.database, expr)) {
                 val key = keyColumn.sqlType.getResult(row, 1)
                 destination[key] = Tuple$tupleNumber($resultExtractors)
             }

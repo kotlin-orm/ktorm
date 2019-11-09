@@ -94,6 +94,11 @@ fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> 
 /**
  * Check if all the records in the table matches the given [predicate].
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).all {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).all(predicate)")
+)
 inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().all(predicate)
 }
@@ -101,6 +106,11 @@ inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDeclaring<B
 /**
  * Check if there is any record in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).any() instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).any()")
+)
 fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
     return asSequence().any()
 }
@@ -108,6 +118,11 @@ fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
 /**
  * Check if there is any record in the table matches the given [predicate].
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).any {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).any(predicate)")
+)
 inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().any(predicate)
 }
@@ -115,6 +130,11 @@ inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDeclaring<B
 /**
  * Return `true` if there is no records in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).none() instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).none()")
+)
 fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
     return asSequence().none()
 }
@@ -122,6 +142,11 @@ fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
 /**
  * Return `true` if there is no records in the table that matches the given [predicate].
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).none {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).none(predicate)")
+)
 inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return asSequence().none(predicate)
 }
@@ -129,6 +154,11 @@ inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDeclaring<
 /**
  * Return the records count in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).count() instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).count()")
+)
 fun <E : Any, T : BaseTable<E>> T.count(): Int {
     return asSequence().count()
 }
@@ -136,6 +166,11 @@ fun <E : Any, T : BaseTable<E>> T.count(): Int {
 /**
  * Return the records count in the table that matches the given [predicate].
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).count {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).count(predicate)")
+)
 inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return asSequence().count(predicate)
 }
@@ -143,6 +178,11 @@ inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDeclaring
 /**
  * Return the sum of the given column or expression of all the records, null if there are no records in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).sumBy {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).sumBy(selector)")
+)
 inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().sumBy(selector)
 }
@@ -150,6 +190,11 @@ inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> Colu
 /**
  * Return the max value of the given column or expression of all the records, null if there are no records in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).maxBy {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).maxBy(selector)")
+)
 inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().maxBy(selector)
 }
@@ -157,6 +202,11 @@ inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selector: (T) 
 /**
  * Return the min value of the given column or expression of all the records, null if there are no records in the table.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).minBy {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).minBy(selector)")
+)
 inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return asSequence().minBy(selector)
 }
@@ -164,6 +214,11 @@ inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selector: (T) 
 /**
  * Return the average value of the given column or expression of all the records, null if there are no records.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Please use db.sequenceOf(..).averageBy {..} instead.",
+    replaceWith = ReplaceWith("db.sequenceOf(this).averageBy(selector)")
+)
 inline fun <E : Any, T : BaseTable<E>> T.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
     return asSequence().averageBy(selector)
 }

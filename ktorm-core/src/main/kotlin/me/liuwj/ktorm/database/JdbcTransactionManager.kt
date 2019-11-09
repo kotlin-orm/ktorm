@@ -106,13 +106,11 @@ class JdbcTransactionManager(val connector: () -> Connection) : TransactionManag
                 if (originAutoCommit) {
                     autoCommit = true
                 }
-            } catch (e: Throwable) {
-                Database.global.logger?.error("Error closing connection $this", e)
+            } catch (_: Throwable) {
             } finally {
                 try {
                     close()
-                } catch (e: Throwable) {
-                    Database.global.logger?.error("Error closing connection $this", e)
+                } catch (_: Throwable) {
                 }
             }
         }
