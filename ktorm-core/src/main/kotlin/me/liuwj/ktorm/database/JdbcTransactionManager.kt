@@ -98,6 +98,7 @@ class JdbcTransactionManager(val connector: () -> Connection) : TransactionManag
             }
         }
 
+        @Suppress("SwallowedException")
         private fun Connection.closeSilently() {
             try {
                 if (originIsolation != desiredIsolation.level) {

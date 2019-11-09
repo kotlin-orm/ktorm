@@ -174,17 +174,6 @@ fun <T : ResultSet> T.iterable(): Iterable<T> {
 }
 
 /**
- * Convert this column to a [ColumnDeclaringExpression].
- */
-private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
-    return when (this) {
-        is ColumnDeclaringExpression -> this
-        is Column -> this.aliased(label)
-        else -> this.aliased(null)
-    }
-}
-
-/**
  * Create a query object, selecting the specific columns or expressions from this [QuerySource].
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
@@ -334,6 +323,14 @@ fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query 
 )
 fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return asExpression().selectDistinct(columns.asList())
+}
+
+private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
+    return when (this) {
+        is ColumnDeclaringExpression -> this
+        is Column -> this.aliased(label)
+        else -> this.aliased(null)
+    }
 }
 
 /**

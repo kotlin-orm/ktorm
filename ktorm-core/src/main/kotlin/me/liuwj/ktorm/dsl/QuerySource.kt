@@ -98,7 +98,7 @@ fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = n
  * Join the right table and return a [JoinExpression], translated to `cross join` in SQL.
  */
 @Deprecated(
-    message = "This function will be removed in the future. Please use db.from(...).crossJoin(...) instead.", 
+    message = "This function will be removed in the future. Please use db.from(...).crossJoin(...) instead.",
     replaceWith = ReplaceWith("db.from(this).crossJoin(right, on)")
 )
 fun QuerySourceExpression.crossJoin(
