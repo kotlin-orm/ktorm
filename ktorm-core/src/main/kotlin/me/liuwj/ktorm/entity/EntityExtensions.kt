@@ -69,6 +69,7 @@ internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: 
             if (child == null) {
                 child = Entity.create(
                     entityClass = binding.onProperty.returnType.jvmErasure,
+                    fromDatabase = this.fromDatabase,
                     fromTable = binding.referenceTable as Table<*>
                 )
                 this.setProperty(binding.onProperty.name, child, forceSet)

@@ -16,6 +16,7 @@
 
 package me.liuwj.ktorm.entity
 
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.schema.TypeReference
 import me.liuwj.ktorm.schema.Table
 import java.io.ObjectInputStream
@@ -212,6 +213,7 @@ interface Entity<E : Entity<E>> : Serializable {
         internal fun create(
             entityClass: KClass<*>,
             parent: EntityImplementation? = null,
+            fromDatabase: Database? = parent?.fromDatabase,
             fromTable: Table<*>? = parent?.fromTable
         ): Entity<*> {
             if (!entityClass.isSubclassOf(Entity::class)) {
@@ -221,7 +223,7 @@ interface Entity<E : Entity<E>> : Serializable {
                 throw IllegalArgumentException("An entity class must be defined as an interface.")
             }
 
-            val handler = EntityImplementation(entityClass, fromTable, parent)
+            val handler = EntityImplementation(entityClass, fromDatabase, fromTable, parent)
             return Proxy.newProxyInstance(entityClass.java.classLoader, arrayOf(entityClass.java), handler) as Entity<*>
         }
 
@@ -229,7 +231,7 @@ interface Entity<E : Entity<E>> : Serializable {
          * Create an entity object by JDK dynamic proxy.
          */
         fun create(entityClass: KClass<*>): Entity<*> {
-            return create(entityClass, null, null)
+            return create(entityClass, null, null, null)
         }
 
         /**

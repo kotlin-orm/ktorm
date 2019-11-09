@@ -16,6 +16,7 @@
 
 package me.liuwj.ktorm.entity
 
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.defaultValue
 import me.liuwj.ktorm.schema.kotlinProperty
@@ -36,6 +37,7 @@ import kotlin.reflect.jvm.kotlinFunction
 
 internal class EntityImplementation(
     var entityClass: KClass<*>,
+    @Transient var fromDatabase: Database?,
     @Transient var fromTable: Table<*>?,
     @Transient var parent: EntityImplementation?
 ) : InvocationHandler, Serializable {
@@ -151,7 +153,7 @@ internal class EntityImplementation(
     }
 
     private fun copy(): Entity<*> {
-        val entity = Entity.create(entityClass, parent, fromTable)
+        val entity = Entity.create(entityClass, parent, fromDatabase, fromTable)
         entity.implementation.values.putAll(values)
         entity.implementation.changedProperties.addAll(changedProperties)
         return entity

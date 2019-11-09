@@ -117,7 +117,7 @@ open class Table<E : Entity<E>>(
 
     final override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): E {
         val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
-        val entity = Entity.create(entityClass, fromTable = this) as E
+        val entity = Entity.create(entityClass, fromDatabase = row.query.database, fromTable = this) as E
 
         for (column in columns) {
             row.retrieveColumn(column, intoEntity = entity, withReferences = withReferences)
@@ -140,7 +140,8 @@ open class Table<E : Entity<E>>(
                         child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
                         intoEntity[binding.onProperty.name] = child
                     } else {
-                        val child = Entity.create(binding.onProperty.returnType.jvmErasure, fromTable = ref)
+                        val entityClass = binding.onProperty.returnType.jvmErasure
+                        val child = Entity.create(entityClass, fromDatabase = query.database, fromTable = ref)
                         child.implementation.setColumnValue(primaryKey, columnValue)
                         intoEntity[binding.onProperty.name] = child
                     }

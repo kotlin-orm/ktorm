@@ -19,6 +19,7 @@ package me.liuwj.ktorm.entity
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.AliasRemover
+import me.liuwj.ktorm.dsl.executeUpdate
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 
@@ -116,7 +117,10 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doFlushChanges(): Int {
-    val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
+    check(parent == null) { "The entity is not associated with any database yet." }
+
+    val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
+    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
     checkUnexpectedDiscarding(fromTable)
 
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
@@ -140,7 +144,7 @@ internal fun EntityImplementation.doFlushChanges(): Int {
         )
     )
 
-    return expression.executeUpdate().also { doDiscardChanges() }
+    return fromDatabase.executeUpdate(expression).also { doDiscardChanges() }
 }
 
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
@@ -185,7 +189,8 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
 }
 
 internal fun EntityImplementation.doDiscardChanges() {
-    val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
+    check(parent == null) { "The entity is not associated with any database yet." }
+    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
 
     for (column in fromTable.columns) {
         val binding = column.binding ?: continue
@@ -266,7 +271,10 @@ internal fun Entity<*>.clearChangesRecursively() {
 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doDelete(): Int {
-    val fromTable = fromTable?.takeIf { parent == null } ?: error("The entity is not associated with any table yet.")
+    check(parent == null) { "The entity is not associated with any database yet." }
+
+    val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
+    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
     val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
 
     val expression = AliasRemover.visit(
@@ -281,5 +289,5 @@ internal fun EntityImplementation.doDelete(): Int {
         )
     )
 
-    return expression.executeUpdate()
+    return fromDatabase.executeUpdate(expression)
 }
