@@ -349,13 +349,16 @@ class Database(
          */
         fun connect(
             url: String,
-            driver: String,
+            driver: String = "",
             user: String = "",
             password: String = "",
             dialect: SqlDialect? = detectDialectImplementation(),
             logger: Logger? = detectLoggerImplementation()
         ): Database {
-            Class.forName(driver)
+            if (driver.isNotBlank()) {
+                Class.forName(driver)
+            }
+
             return connect(dialect, logger) { DriverManager.getConnection(url, user, password) }
         }
 

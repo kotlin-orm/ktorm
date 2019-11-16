@@ -37,7 +37,7 @@ For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.l
  - Extensible design, write your own extensions to support more operators, data types, SQL functions, database dialects, etc.
 
 <p align="center">
-    <img src="docs/source/images/ktorm-example.jpg">
+    <img src="docs/source/images/ktorm-example.png">
 </p>
 
 # Quick Start
