@@ -2,6 +2,7 @@
 const path = require('path');
 
 module.exports = {
+  mode: 'production',
   externals: {
     jquery: '$'
   },
@@ -13,7 +14,7 @@ module.exports = {
     filename: '[name].js'
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /.jsx?$/,
         loader: 'babel-loader',
