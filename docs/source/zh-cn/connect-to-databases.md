@@ -6,14 +6,14 @@ related_path: en/connect-to-databases.html
 
 # 连接数据库
 
-要使用 Ktorm，首先你需要连接到你的数据库。Ktorm 提供了一个 `Database` 类用于管理你的数据库连接，一个 `Database` 实例代表了你的一个数据库。要创建 `Database` 对象，你可以调用其伴随对象上的 `connect` 方法，提供数据库连接参数或者一个现成的 `DataSource` 数据源对象。
+要使用 Ktorm，首先你需要连接到你的数据库。Ktorm 提供了 `Database` 类用于管理你的数据库连接，一个 `Database` 实例代表了你的一个数据库。要创建 `Database` 对象，你可以调用其伴随对象上的 `connect` 方法，提供数据库连接参数或者一个现成的 `DataSource` 数据源对象。
 
 ## 使用 URL 连接到数据库
 
 使用 URL、用户名和密码连接到 MySQL 数据库的代码如下：
 
 ````kotlin
-val db = Database.connect(
+val database = Database.connect(
     url = "jdbc:mysql://localhost:3306/ktorm", 
     driver = "com.mysql.jdbc.Driver", 
     user = "root", 
@@ -31,7 +31,7 @@ Ktorm 并不限制你使用哪款连接池，你可以使用你喜欢的任何�
 
 ````kotlin
 val dataSource = SingleConnectionDataSource() // 任何 DataSource 的实现都可以
-val db = Database.connect(dataSource)
+val database = Database.connect(dataSource)
 ````
 
 这样，Ktorm 在需要数据库连接的时候，就会从连接池中获取一个连接，使用完后再归还到池中，避免了频繁创建连接的性能损耗。
@@ -53,7 +53,7 @@ Runtime.getRuntime().addShutdownHook(
     }
 )
 
-val db = Database.connect {
+val database = Database.connect {
     object : Connection by conn {
         override fun close() {
             // 重写 close 方法，保持连接不关闭
@@ -64,34 +64,22 @@ val db = Database.connect {
 
 在这里，我们给 `connect` 方法传递了一个闭包函数，一般来说，我们应该在这个闭包中创建一个连接。但是 `Connection` 是一个接口，我们可以传递一个代理对象而不是真正的 `Connection` 实例，这个代理对象将 `close` 方法重写为空操作。这样，当 Ktorm 需要连接的时候，调用这个闭包函数获取到的始终都是同一个连接对象，当使用完毕后，连接也仍然不会关闭。
 
-## 全局对象与多数据库支持
+## 使用多个数据库
 
-`Database.connect` 方法会创建一个 `Database` 对象并返回，如果你需要的话，可以定义一个变量来保存这个返回值。但是通常来说，你没必要这么做，因为 Ktorm 会自己记录最后一次创建的 `Database` 对象，在需要的时候，使用 `Database.global` 获取这个对象进行操作。
+`Database.connect` 方法会创建一个 `Database` 对象并返回，一般来说，我们需要定义一个变量来保存这个返回值，以便在进行具体的数据库操作时使用。有时，我们还需要在一个 App 中操作多个数据库，这时就需要创建多个 `Database` 对象，在执行具体的操作时，指定你要使用哪个数据库。
 
-````kotlin
-Database.global.useConnection { conn -> 
-    // 使用连接进行操作...
-}
-````
-
-有时候，我们需要在一个 App 中操作多个数据库，这时就需要创建多个 `Database` 对象，在执行具体的操作时，指定你要使用哪个数据库。
+下面的代码先后使用 `connect` 方法连接上了两个数据库，并示范了如何在不同的数据库之间进行切换：
 
 ```kotlin
-val mysql = Database.connect("jdbc:mysql://localhost:3306/ktorm", driver = "com.mysql.jdbc.Driver")
-val h2 = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+val mysql = Database.connect("jdbc:mysql://localhost:3306/ktorm")
+val h2 = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1")
 
-mysql {
-    assert(Database.global === mysql)
-    // 操作 MySQL 数据库
-}
+// 获取 MySQL 数据库中的员工列表
+mysql.sequenceOf(Employees).toList()
 
-h2 {
-    assert(Database.global === h2)
-    // 操作 H2 数据库
-}
+// 获取 H2 数据库中的员工列表
+h2.sequenceOf(Employees).toList()
 ```
-
-上面的代码先后使用 `connect` 方法连接上了两个数据库，并示范了如何在不同的数据库之间进行切换。因为 `Database` 重载了 `invoke` 运算符，接收一个闭包函数作为参数，在这个闭包函数中的作用域中，使用 `Database.global` 获取到的数据库对象会变成当前对象，因此达到了切换数据库的目的。
 
 ## 日志输出
 
@@ -115,7 +103,7 @@ Ktorm 在运行过程中，会在日志中输出其内部的一些有用的信�
 默认情况下，在创建 `Database` 对象时，Ktorm 会从 classpath 中自动检测出我们正在使用的日志框架，并将 Ktorm 产生的日志委托给它。如果你想手动指定一个日志框架，则需要从上面的实现类中选择一个，用于指定 `logger` 参数。下面的代码使用最简单的 `ConsoleLogger`，输出级别大于等于 `INFO` 的日志到控制台。
 
 ```kotlin
-val db = Database.connect(
+val database = Database.connect(
     url = "jdbc:mysql://localhost:3306/ktorm", 
     driver = "com.mysql.jdbc.Driver", 
     user = "root", 
