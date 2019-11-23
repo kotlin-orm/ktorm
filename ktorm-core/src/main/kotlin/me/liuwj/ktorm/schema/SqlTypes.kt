@@ -443,3 +443,35 @@ object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
         return Year.of(rs.getInt(index))
     }
 }
+
+/**
+ * Define a column typed of [EnumSqlType].
+ *
+ * @param name the column's name.
+ * @param typeRef the generic type information of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
+ * @return the column registration that wraps the registered column.
+ */
+fun <E : Any, C : Enum<C>> BaseTable<E>.enum(
+    name: String,
+    typeRef: TypeReference<C>
+): BaseTable<E>.ColumnRegistration<C> {
+    @Suppress("UNCHECKED_CAST")
+    return registerColumn(name, EnumSqlType(typeRef.referencedType as Class<C>))
+}
+
+/**
+ * [SqlType] implementation that saves enums as strings.
+ *
+ * @property enumClass the enum class.
+ */
+class EnumSqlType<C : Enum<C>>(val enumClass: Class<C>) : SqlType<C>(Types.VARCHAR, "varchar") {
+    private val valueOf = enumClass.getDeclaredMethod("valueOf", String::class.java)
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
+        ps.setString(index, parameter.name)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): C? {
+        return rs.getString(index)?.takeIf { it.isNotBlank() }?.let { enumClass.cast(valueOf(null, it)) }
+    }
+}

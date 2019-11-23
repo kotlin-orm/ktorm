@@ -36,7 +36,7 @@ val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModules(KtormModul
  * Define a column typed of [JsonSqlType].
  *
  * @param name the column's name.
- * @param typeRef the generic type infomation of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
+ * @param typeRef the generic type information of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
  * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
  * @return the column registration that wraps the registered column.
  */
