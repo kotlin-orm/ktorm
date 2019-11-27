@@ -6,7 +6,7 @@ related_path: zh-cn/spring-support.html
 
 # Spring Support
 
-Spring is a famous framework that deeply influences the development of JavaEE. In addition to the core functions of Ioc and AOP, the Spring JDBC module also provides convenient support for JDBC, such as JdbcTemplate, transaction management, etc. Ktorm's Spring support is exactly based on this module, so you need to ensure your project contains it's dependency first: 
+Spring is a famous framework that deeply influences the development of JavaEE. In addition to the core functions of IoC and AOP, the Spring JDBC module also provides convenient support for JDBC, such as JdbcTemplate, transaction management, etc. Ktorm's Spring support is exactly based on this module, so you need to ensure your project contains it's dependency first: 
 
 ```xml
 <dependency>
