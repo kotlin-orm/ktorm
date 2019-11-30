@@ -88,13 +88,13 @@ class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionM
 
 ```kotlin
 try {
-    Departments.insert { 
+    database.insert(Departments) { 
         it.id to 1
         it.name to "tech"
         it.location to "Guangzhou"
     }
 } catch (e: DuplicateKeyException) {
-    Departments.update { 
+    database.update(Departments) { 
         it.location to "Guangzhou"
         where { 
             it.id eq 1

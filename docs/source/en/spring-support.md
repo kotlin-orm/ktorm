@@ -24,7 +24,7 @@ compile "org.springframework:spring-jdbc:${spring.version}"
 
 ## Create Database Objects
 
-Just like any other Ktorm programs, we need to create `Database` objects first. But this time, we use the `Database.connectWithSpringSupport` function instead of `Database.connect`, both of them accept a `DataSourcce` parameter: 
+Just like any other Ktorm programs, we need to create `Database` objects first. But this time, we use the `Database.connectWithSpringSupport` function instead of `Database.connect`, both of them accept a `DataSource` parameter: 
 
 ```kotlin
 Database.connectWithSpringSupport(dataSource)
@@ -90,13 +90,13 @@ Besides of transaction management, Spring JDBC also provides a feature of except
 
 ```kotlin
 try {
-    Departments.insert { 
+    database.insert(Departments) { 
         it.id to 1
         it.name to "tech"
         it.location to "Guangzhou"
     }
 } catch (e: DuplicateKeyException) {
-    Departments.update { 
+    database.update(Departments) { 
         it.location to "Guangzhou"
         where { 
             it.id eq 1
