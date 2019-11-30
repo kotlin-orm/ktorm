@@ -86,7 +86,7 @@ val t = object : Table<Nothing>("t_config") {
 }
 
 // Get all configs as a Map<String, String>
-val configs = t.select().associate { row -> row[t.key] to row[t.value] }
+val configs = database.from(t).select().associate { row -> row[t.key] to row[t.value] }
 ```
 
 灵活使用 Kotlin 的语法特性可以帮助我们减少重复代码、提高项目的可维护性。
@@ -137,6 +137,7 @@ Ktorm 默认支持的数据类型如下表：
 | monthDay      | java.time.MonthDay      | varchar       | Types.VARCHAR                |
 | yearMonth     | java.time.YearMonth     | varchar       | Types.VARCHAR                |
 | year          | java.time.Year          | int           | Types.INTEGER                |
+| enum          | kotlin.Enum             | enum          | Types.VARCHAR                |
 
 ## 扩展更多的类型
 

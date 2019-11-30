@@ -6,7 +6,7 @@ related_path: zh-cn/schema-definition.html
 
 # Schema Definition
 
-To use SQL DSL, we need to let Ktorm know our schemas. Assuming we have two tables, `t_department` and `t_employee`, their schemas are given in SQL below, how do we descript these two tables with Ktorm?
+To use SQL DSL, we need to let Ktorm know our schemas. Assuming we have two tables, `t_department` and `t_employee`, their schemas are given in the SQL below, how should we descript these two tables with Ktorm?
 
 ```sql
 create table t_department(
@@ -28,7 +28,7 @@ create table t_employee(
 
 ## Table Objects
 
-Generally, we can define a Kotlin object extending `Table` to descript our table schemas in Ktorm. The following code defines the two tables with Ktorm: 
+Generally, we can define Kotlin objects extending `Table` to descript our table schemas in Ktorm. The following code defines the two tables with Ktorm: 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -48,7 +48,7 @@ object Employees : Table<Nothing>("t_employee") {
 }
 ```
 
-We can see that both `Departments` and `Employees` are extending from `Table` whose constructor accepts a table name as the parameter. There is also a generic type parameter in `Table` class, that is the entity class's type that current table is binding to. Here we don't bind to any entity classes, so `Nothing` is OK. 
+We can see that both `Departments` and `Employees` are extending from `Table` whose constructor accepts a table name as the parameter. There is also a generic type parameter for `Table` class, that is the entity class's type that current table is binding to. Here we don't bind to any entity classes, so `Nothing` is OK. 
 
 Columns are defined as properties in table objects by Kotlin's *val* and *by* keyword, their types are defined by type definition functions, such as int, long, varchar, date, etc. Commonly, these type definition functions follow the rules below:  
 
@@ -86,14 +86,14 @@ val t = object : Table<Nothing>("t_config") {
 }
 
 // Get all configs as a Map<String, String>
-val configs = t.select().associate { row -> row[t.key] to row[t.value] }
+val configs = database.from(t).select().associate { row -> row[t.key] to row[t.value] }
 ```
 
 Flexible usage of Kotlin's language features is helpful for us to reduce duplicated code and improve the maintainability of our projects. 
 
 ## SqlType
 
-`SqlType` is an abstract class which provides a unified abstraction for data types in SQL. Based on JDBC, it encapsulates the common operations of obtaining data from a `ResultSet` and setting parameters to a `PreparedStatement`. In the section above, we defined columns by column definition functions, eg. int, varchar, etc. All these functions have an implementation of `SqlType` behind them. For example, here is the implementation of `int` function: 
+`SqlType` is an abstract class which provides a unified abstraction for data types in SQL. Based on JDBC, it encapsulates the common operations of obtaining data from a `ResultSet` and setting parameters to a `PreparedStatement`. In the section above, we defined columns by column definition functions, eg. int, varchar, etc. All these functions have a `SqlType` implementation behind them. For example, here is the implementation of `int` function: 
 
 ```kotlin
 fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
@@ -137,10 +137,11 @@ Here is a list of SQL types supported in Ktorm by default:
 | monthDay      | java.time.MonthDay      | varchar       | Types.VARCHAR                |
 | yearMonth     | java.time.YearMonth     | varchar       | Types.VARCHAR                |
 | year          | java.time.Year          | int           | Types.INTEGER                |
+| enum | kotlin.Enum | enum | Types.VARCHAR |
 
 ## Extend More Data Types
 
-Sometimes, Ktorm built-in data types may not satisfy your requirements. For example, you may want to save a JSON column to a table, many relational databases have supported JSON data type, but raw JDBC haven't yet, nor Ktorm doesn't support it by default. Now you can do it by yourself: 
+Sometimes, Ktorm's built-in data types may not satisfy your requirements. For example, you may want to save a JSON column to a table, many relational databases have supported JSON data type, but raw JDBC haven't yet, nor Ktorm doesn't support it by default. However, you can do it by yourself: 
 
 ```kotlin
 class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: ObjectMapper) 
@@ -163,7 +164,7 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 }
 ```
 
-The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that the `registerColumn` function was called. This function is exactly the entry provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
+The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that the `registerColumn` function was called. This function is exactly the entry point provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
 
 ```kotlin
 fun <E : Any, C : Any> BaseTable<E>.json(
@@ -183,7 +184,7 @@ object Foo : Table<Nothing>("foo") {
 }
 ```
 
-In this way, Ktorm is able to read and write JSON columns now. Actually, this is one of the features of the ktorm-jackson module, if you really need to use JSON columns, you don't have to repeat the code above, please add the dependency to your project: 
+In this way, Ktorm is able to read and write JSON columns now. Actually, this is one of the features of the ktorm-jackson module, if you really need to use JSON columns, you don't have to repeat the code above, please add its dependency to your project: 
 
 Maven： 
 
