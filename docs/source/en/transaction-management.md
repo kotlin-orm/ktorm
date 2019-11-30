@@ -13,22 +13,8 @@ Database transactions allow units of work to recover correctly from failures and
 The `Database` class provides a `useTransaction` function which accepts a parameter of type `(Transaction) -> T`, a function that accepts a `Transaction` and returns a result `T`. `useTransaction` runs the provided code in a transaction and returns its result if the execution succeeds, otherwise, if the execution fails, the transaction will be rollback. You can use the function like this: 
 
 ```kotlin
-Database.global.useTransaction { 
+database.useTransaction { 
     // Do something in the transaction. 
-}
-```
-
-Considering most of Apps just use one database, Ktorm also provides a global function with the same name, so you can omit `Database.global`: 
-
-```kotlin
-/**
- * Shortcut for Database.global.useTransaction
- */
-inline fun <T> useTransaction(
-    isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
-    func: (Transaction) -> T
-): T {
-    return Database.global.useTransaction(isolation, func)
 }
 ```
 
@@ -38,19 +24,19 @@ Here is an example:
 class DummyException : Exception()
 
 try {
-    useTransaction {
-        Departments.insert {
+    database.useTransaction {
+        database.insert(Departments) {
             it.name to "administration"
             it.location to "Hong Kong"
         }
 
-        assert(Departments.count() == 3)
+        assert(database.sequenceOf(Departments).count() == 3)
 
         throw DummyException()
     }
 
 } catch (e: DummyException) {
-    assert(Departments.count() == 2)
+    assert(database.sequenceOf(Departments).count() == 2)
 }
 ```
 
@@ -63,10 +49,10 @@ Note:
 
 ## Transaction Manager
 
-Sometimes, the simple `useTransaction` function may not satisfy you requirements. You may want to control your transactions more precisely, like setting the isolation level of them, or not rollinkg back them if some special exceptions thrown in some conditions. At this time, you can obtain a `TransactionManager` via `Database.global.transactionManager`, here is an example: 
+Sometimes, the simple `useTransaction` function may not satisfy you requirements. You may want to control your transactions more precisely, like setting the isolation level of them, or not rollinkg back them if some special exceptions thrown in some conditions. At this time, you can obtain a `TransactionManager` via `database.transactionManager`, here is an example: 
 
 ```kotlin
-val transactionManager = Database.global.transactionManager
+val transactionManager = database.transactionManager
 val transaction = transactionManager.newTransaction(isolation = TransactionIsolation.READ_COMMITTED)
 
 try {
