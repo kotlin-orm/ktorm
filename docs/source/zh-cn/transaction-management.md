@@ -13,22 +13,8 @@ related_path: en/transaction-management.html
 `Database` 类提供了一个名为 `useTransaction` 的函数，这个函数以一个闭包 `(Transaction) -> T` 作为参数。它在事务中执行闭包中的代码，如果执行成功，返回闭包函数的返回值，如果执行失败，则回滚事务。你可以这样调用它：
 
 ```kotlin
-Database.global.useTransaction { 
+database.useTransaction { 
     // 在事务中执行一组操作
-}
-```
-
-考虑到大多数 App 都只需要一个数据库，Ktorm 还提供了一个同名的全局函数，因此你可以省略 `Database.global`： 
-
-```kotlin
-/**
- * Shortcut for Database.global.useTransaction
- */
-inline fun <T> useTransaction(
-    isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
-    func: (Transaction) -> T
-): T {
-    return Database.global.useTransaction(isolation, func)
 }
 ```
 
@@ -38,19 +24,19 @@ inline fun <T> useTransaction(
 class DummyException : Exception()
 
 try {
-    useTransaction {
-        Departments.insert {
+    database.useTransaction {
+        database.insert(Departments) {
             it.name to "administration"
             it.location to "Hong Kong"
         }
 
-        assert(Departments.count() == 3)
+        assert(database.sequenceOf(Departments).count() == 3)
 
         throw DummyException()
     }
 
 } catch (e: DummyException) {
-    assert(Departments.count() == 2)
+    assert(database.sequenceOf(Departments).count() == 2)
 }
 ```
 
@@ -63,10 +49,10 @@ try {
 
 ## 事务管理器
 
-有时，简单的 `useTransaction` 方法并不能满足你的需求。你可能希望对事务进行更精细的控制，比如指定事务的隔离级别，或者当符合特定条件的异常抛出时不需要回滚事务。这时，你可以使用 `Database.global.transactionManager` 获取事务管理器完成你的操作，下面是一个例子：
+有时，简单的 `useTransaction` 方法并不能满足你的需求。你可能希望对事务进行更精细的控制，比如指定事务的隔离级别，或者当符合特定条件的异常抛出时不需要回滚事务。这时，你可以使用 `database.transactionManager` 获取事务管理器完成你的操作，下面是一个例子：
 
 ```kotlin
-val transactionManager = Database.global.transactionManager
+val transactionManager = database.transactionManager
 val transaction = transactionManager.newTransaction(isolation = TransactionIsolation.READ_COMMITTED)
 
 try {
