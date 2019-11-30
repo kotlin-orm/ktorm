@@ -9,7 +9,7 @@ related_path: en/query.html
 在前面的章节中，我们曾经创建过一个简单的查询，它查询表中所有的员工记录，然后打印出他们的名字，我们的介绍就从这里开始：
 
 ````kotlin
-for (row in Employees.select()) {
+for (row in database.from(Employees).select()) {
     println(row[Employees.name])
 }
 ````
@@ -19,7 +19,7 @@ for (row in Employees.select()) {
 在上面的例子中，`select` 方法返回了一个类型为 `Query` 的对象，然后使用 for-each 循环对其进行迭代，那么除了迭代外，`Query` 类还支持什么操作呢？让我们先来看一下它的定义：
 
 ```kotlin
-data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
+data class Query(val database: Database, val expression: QueryExpression) : Iterable<QueryRowSet> {
     
     val sql: String by lazy { ... }
 
@@ -35,21 +35,23 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 
 `Query` 表示一个查询操作，Ktorm 正是以这个类为核心支持所有的查询 DSL。
 
-可以看到，`Query` 的主构造函数接受一个 `QueryExpression` 作为参数，这正是此次查询需要执行的 SQL 语句的抽象表示，一般来说，我们不需要自己使用这个构造函数创建 `Query` 对象，而是使用 `Table.select` 扩展函数，由 Ktorm 为我们构造一个查询。
+可以看到，`Query` 类的构造函数接收两个参数：`database` 是执行此查询的数据库对象；`expression` 是被执行的 SQL 语句的抽象表示。一般来说，我们不需要自己使用这个构造函数创建 `Query` 对象，而是使用 `database.from(..).select(..)` 的语法，由 Ktorm 为我们构造一个查询。
 
 `Query` 类还实现了 `Iterable<QueryRowSet>` 接口，通过实现这个接口，我们才能够使用 for-each 循环的语法遍历查询返回的结果集。而且，Kotlin 标准库中也有许多针对 `Iterable` 接口的扩展函数，所以我们还可以使用 `map`、 `filter` 等函数对结果集进行各种各样的处理，就像这样：
 
 ```kotlin
 data class Emp(val id: Int?, val name: String?, val salary: Long?)
 
-Employees.select()
+val query = database.from(Employees).select()
+
+query
     .map { row -> Emp(row[Employees.id], row[Employees.name], row[Employees.salary]) }
     .filter { it.salary > 1000 }
-    .sortedByDescending { it.salary }
+    .sortedBy { it.salary }
     .forEach { println(it.name) }
 ```
 
-实际上，在这里 Ktorm 所完成的工作，也只是生成了一句简单的 SQL `select * from t_employee` 而已，后面的 `.map { }.filter { }.sortedByDescending { }.forEach { }` 全部都是 Kotlin 标准库中的函数，这就是实现 `Iterable` 接口给我们带来的好处。
+实际上，在这里 Ktorm 所完成的工作，也只是生成了一句简单的 SQL `select * from t_employee` 而已，后面的 `.map { }.filter { }.sortedBy { }.forEach { }` 全部都是 Kotlin 标准库中的函数，这就是实现 `Iterable` 接口给我们带来的好处。
 
 `Query` 类中还有一些有用的属性：
 
@@ -71,7 +73,7 @@ Employees.select()
 使用索引访问运算符获取列的方法如下：
 
 ```kotlin
-for (row in Employees.select()) {
+for (row in database.from(Employees).select()) {
     val id: Int? = row[Employees.id]
     val name: String? = row[Employees.name]
     val salary: Long? = row[Employees.salary]

@@ -9,17 +9,17 @@ related_path: zh-cn/query.html
 In former chapters, we have created a simple query, it selected all employees in the table and printed their names. Let's start from this query: 
 
 ```kotlin
-for (row in Employees.select()) {
+for (row in database.from(Employees).select()) {
     println(row[Employees.name])
 }
 ```
 
 ## Query Objects
 
-In the example above, we get a `Query` from `select` function and iterates it with a for-each loop. Are there any other operations supported by `Query` besides iteration? Let's learn the `Query` class's definition first: 
+In the example above, we get a `Query` from `select` function and iterates it with a for-each loop. There are also some other operations supported by `Query` besides iteration. Let's start our learning with its definition below: 
 
 ```kotlin
-data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
+data class Query(val database: Database, val expression: QueryExpression) : Iterable<QueryRowSet> {
     
     val sql: String by lazy { ... }
 
@@ -33,21 +33,23 @@ data class Query(val expression: QueryExpression) : Iterable<QueryRowSet> {
 }
 ```
 
-`Query` is an abstraction of query operations and the core of Ktorm's query DSL. Its constructor accepts a parameter of type `QueryExpression`, which is the abstract representation of the executing SQL statement. Usually, we don't use the constructor to create `Query` objects but use the `Table.select` extension function instead. 
+`Query` is an abstraction of query operations and the core of Ktorm's query DSL. Its constructor accepts two parameters: `database` is the database instance that this query is running on; `expression` is the abstract representation of the executing SQL statement. Usually, we don't use the constructor to create `Query` objects but use the `database.from(..).select(..)` syntax instead. 
 
 `Query` implements the `Iterable<QueryRowSet>` interface, that's why we can iterate the results by a for-each loop. Moreover, there are many extension functions for `Iterable` in Kotlin standard lib, so we can also process the results via functions such as map, filter, reduce, etc. Here is an example: 
 
 ```kotlin
 data class Emp(val id: Int?, val name: String?, val salary: Long?)
 
-Employees.select()
+val query = database.from(Employees).select()
+
+query
     .map { row -> Emp(row[Employees.id], row[Employees.name], row[Employees.salary]) }
     .filter { it.salary > 1000 }
-    .sortedByDescending { it.salary }
+    .sortedBy { it.salary }
     .forEach { println(it.name) }
 ```
 
-Actually, in the example above, all the work Ktorm does is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedByDescending { }.forEach { }` are all extension functions in Kotlin standard lib. That's the advantages of implementing `Iterable` interface. 
+Actually, in the example above, all the work Ktorm does is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedBy { }.forEach { }` are all extension functions in Kotlin standard lib. That's the advantages of implementing `Iterable` interface. 
 
 There are some other useful properties in the `Query` class: 
 
@@ -69,7 +71,7 @@ You might have noticed that the return type of `Query.rowSet` was not a normal `
 Obtain results via indexed access operator: 
 
 ```kotlin
-for (row in Employees.select()) {
+for (row in database.from(Employees).select()) {
     val id: Int? = row[Employees.id]
     val name: String? = row[Employees.name]
     val salary: Long? = row[Employees.salary]
