@@ -84,18 +84,30 @@ for (row in database.from(Employees).select()) {
 
 可以看到，如果列的类型是 `Column<Int>`，返回的结果的类型就是 `Int?`，如果列的类型是 `Column<String>`，返回的结果的类型就是 `String?`。而且，列的类型并不局限于 `ResultSet` 中的 `getXxx` 方法返回的那些类型，它可以是任意类型，结果也始终是对应的类型，其中还可以包含一些对结果的必要的转换行为，具体取决于定义该列时所使用的 [SqlType](./schema-definition.html#SqlType)。
 
+## from
+
+`from` 是 `Database` 的扩展函数，它的功能是把一个表对象包装成 `QuerySource` 对象：
+
+```kotlin
+fun Database.from(table: BaseTable<*>): QuerySource
+```
+
+正如函数名 `from` 所示，`QuerySource` 表示 SQL 查询中的 from 子句。当得到一个 `QuerySource` 对象后，我们可以调用 `select` 函数创建一个查询，也可以继续调用 `innerJoin`、`leftJoin` 等函数进行联表操作。
+
+在本文中我们将使用 `from` 函数引出所有的查询 DSL，至于[联表](./joining.html)，请参考后面章节的内容。
+
 ## select
 
-SQL 中的查询语句都开始于一个 select 关键字，类似地，Ktorm 中的查询也始于 `select` 函数的调用。`select` 是 `Table` 类的扩展函数，因此 Ktorm 中的所有查询操作，都由一个表对象引出。`select` 函数的签名如下：
+SQL 中的查询语句都开始于一个 select 关键字，类似地，Ktorm 中的查询也始于 `select` 函数的调用。`select` 是 `QuerySource` 的扩展函数，它的签名如下：
 
 ````kotlin
-fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query
+fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query
 ````
 
-可以看到，它接受任意数量的列，返回一个 `Query` 对象，这个查询对象从当前表中查询指定的列。下面使用 `select` 函数查询员工的 id 和姓名：
+可以看到，它接受任意数量的列，返回一个 `Query` 对象，这个查询对象从当前 `QuerySource` 中查询指定的列。下面使用 `select` 函数查询员工的 id 和姓名：
 
 ````kotlin
-val query = Employees.select(Employees.id, Employees.name)
+val query = database.from(Employees).select(Employees.id, Employees.name)
 ````
 
 得到 `Query` 对象之后，SQL 实际上还没有运行，你可以继续链式调用 `where` 或其他扩展函数修改这个 `Query` 对象，也可以使用 `for-each` 循环或其他方式迭代它，这时，Ktorm 会执行一条 SQL，然后我们就能按照上文所述的方法获取查询结果。Ktorm 生成的 SQL 如下：
@@ -108,7 +120,7 @@ from t_employee
 可以尝试删除传递给 `select` 方法的参数，即：
 
 ````kotlin
-val query = Employees.select()
+val query = database.from(Employees).select()
 ````
 
 然后，生成的 SQL 就会变成：
@@ -121,7 +133,8 @@ from t_employee
 可能你已经注意到，`select` 函数的参数类型是 `ColumnDeclaring`，而不是 `Column`，这使它不仅可以从表中查询普通的列，还支持使用复杂的表达式和聚合函数。如果我们想知道公司里最高薪员工和最低薪员工的薪水之差，查询可以这样写：
 
 ````kotlin
-Employees
+database
+    .from(Employees)
     .select(max(Employees.salary) - min(Employees.salary))
     .forEach { row -> println(row.getLong(1)) }
 ````
@@ -139,7 +152,7 @@ from t_employee
 
 ## selectDistinct
 
-`selectDistinct` 也是 `Table` 类的扩展函数，顾名思义，它对应于 SQL 中的 `select distinct` 操作，会将查询的结果进行去重。除此之外，它的使用方法与 `select` 完全一致，在此不再赘述。
+`selectDistinct` 也是 `QuerySource` 的扩展函数，顾名思义，它对应于 SQL 中的 `select distinct` 操作，会将查询的结果进行去重。除此之外，它的使用方法与 `select` 完全一致，在此不再赘述。
 
 ## where
 

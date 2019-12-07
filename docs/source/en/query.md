@@ -82,18 +82,30 @@ for (row in database.from(Employees).select()) {
 
 We can see that if the column's type is `Column<Int>`, then the result's type is `Int?`, and if the column's type is `Column<String>`, the result type will be `String?`. The types are not limited to the return types of `getXxx` functions in `ResultSet`, they can be any types corresponding to the column instances instead. And additionally, there can be some necessary conversions on data, that depends on the column's implementation of [SqlType](./schema-definition.html#SqlType). 
 
-## select
+## from
 
-All queries in SQL start with a select keyword. Similarly, All queries in Ktorm start with a `select` function call. `select` is an extension function of `Table` class, so every query in Ktorm comes from a `Table` object. Here is the signature of this function: 
+`from` is an extension function of `Database`. It wraps the specific table as a `QuerySource`: 
 
 ```kotlin
-fun Table<*>.select(vararg columns: ColumnDeclaring<*>): Query
+fun Database.from(table: BaseTable<*>): QuerySource
 ```
 
-We can see it accepts any number of columns and returns a new-created `Query` object which selects specific columns from the current table. The example below obtains employees' ids and names via the `select` function: 
+As the function name `from` shows, `QuerySource` represents the from clause of a SQL query. After we get a `QuerySource` object, we can call the `select` function to create a query, or we can continue to call `innerJoin`, `leftJoin` or other functions to join some tables. 
+
+In this article we will use the `from` function to elicit our query DSL. As for joining, please refer to the [next section](./joining.html). 
+
+## select
+
+All queries in SQL start with a select keyword. Similarly, All queries in Ktorm start with a `select` function call. `select` is an extension function of `QuerySource`. Its signature is given as follows: 
 
 ```kotlin
-val query = Employees.select(Employees.id, Employees.name)
+fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query
+```
+
+We can see it accepts any number of columns and returns a new-created `Query` object which selects specific columns from the current query source. The example below obtains employees' ids and names via the `select` function: 
+
+```kotlin
+val query = database.from(Employees).select(Employees.id, Employees.name)
 ```
 
 Now we have a `Query` object, but no SQL has been executed yet. We can chaining call `where` or other extension functions to modify it, or iterate it by a for-each loop or any other way. While the query object is iterated, Ktorm will execute a generated SQL, then we can obtain results in the way we discussed above. The generated SQL is given as follows: 
@@ -106,7 +118,7 @@ from t_employee
 Try to remove arguments passed to the `select` function: 
 
 ```kotlin
-val query = Employees.select()
+val query = database.from(Employees).select()
 ```
 
 Then the generated SQL will be changed to `select *`: 
@@ -119,7 +131,8 @@ from t_employee
 You might have noticed that the parameter type of `select` function was `ColumnDeclaring` instead of `Column`. So we can not only select normal columns from a table, but complex expressions and aggregation functions are also supported. For instance, if we want to know the salary difference between the max and the min in a company, we can write a query like this: 
 
 ```kotlin
-Employees
+database
+    .from(Employees)
     .select(max(Employees.salary) - min(Employees.salary))
     .forEach { row -> println(row.getLong(1)) }
 ```
@@ -137,7 +150,7 @@ We can see that the generated SQL is highly corresponding to our Kotlin code. Th
 
 ## selectDistinct
 
-`selectDistinct` is also an extension function of `Table` class. Just as its name implies, it will be translated to a `select distinct` statement in SQL, and its usage is totally the same with `select` function, so we won't repeat it. 
+`selectDistinct` is also an extension function of `QuerySource`. Just as its name implies, it will be translated to a `select distinct` statement in SQL, and its usage is totally the same with `select` function, so we won't repeat it. 
 
 ## where
 
