@@ -165,7 +165,8 @@ inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query
 它是一个内联函数，接受一个闭包作为参数，我们在这个闭包中指定查询的 where 子句，闭包的返回值是 `ColumnDeclaring<Boolean>`。`where` 函数会创建一个新的 `Query` 对象，它的所有属性都复制自当前 `Query`，并使用闭包的返回值作为其筛选条件。典型的用法如下：
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.salary)
     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
 ```
@@ -185,7 +186,8 @@ where (t_employee.department_id = ?) and (t_employee.name like ?)
 有时候，我们的查询需要许多个筛选条件，这些条件使用 and 或 or 运算符连接，他们的数量不定，而且还会根据不同的情况启用不同的条件。为满足这种需求，许多 ORM 框架都提供了名为“动态查询”的特性，比如 MyBatis 的 `<if>` 标签。然而，在 Ktorm 中，这种需求根本就不是问题，因为 Ktorm 的查询都是纯 Kotlin 代码，因此天然具有这种“动态性”。我们看看下面这个查询：
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.salary)
     .where {
         val conditions = ArrayList<ColumnDeclaring<Boolean>>()
@@ -221,7 +223,8 @@ fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Bool
 其实，每次都创建一个 `ArrayList`，然后往里面添加条件，最后使用 reduce 连接的操作也挺烦的。Ktorm 提供了一个方便的函数 `whereWithConditions`，可以减少我们的这两行重复代码，使用这个函数，上面的查询可以改写成：
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.salary)
     .whereWithConditions {
         if (departmentId != null) {
@@ -244,7 +247,8 @@ val query = Employees
 
 ```kotlin
 val t = Employees
-val query = t
+val query = database
+    .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
@@ -262,7 +266,8 @@ having avg(t_employee.salary) > ?
 值得一提的是，如果我们在这个查询的 `select` 方法中再加一列会怎么样呢，比如我们希望再返回一下员工的名字：
 
 ```kotlin
-val query = t
+val query = database
+    .from(t)
     .select(t.departmentId, avg(t.salary), t.name)
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
@@ -299,7 +304,8 @@ fun ColumnDeclaring<*>.desc(): OrderByExpression
 `orderBy` 的典型用法如下，这个查询获取所有员工的名字，按工资从高到低排序：
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.name)
     .orderBy(Employees.salary.desc())
 ```
@@ -308,7 +314,8 @@ val query = Employees
 
 ```kotlin
 val t = Employees
-val query = t
+val query = database
+    .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .orderBy(avg(t.salary).desc())
@@ -341,7 +348,7 @@ fun Query.limit(offset: Int, limit: Int): Query
 使用示例如下，这个查询获取员工表的第一条记录：
 
 ````kotlin
-val query = Employees.select().limit(0, 1)
+val query = database.from(Employees).select().limit(0, 1)
 ````
 
 使用 `limit` 函数时，Ktorm 会根据当前使用的不同数据库（Dialect）生成合适的分页 SQL。但是如果你没有启用任何方言，你可能会得到这样一个异常：
@@ -357,7 +364,8 @@ me.liuwj.ktorm.database.DialectFeatureNotSupportedException: Pagination is not s
 Ktorm 也支持将两个或多个查询的结果进行合并，这时我们使用 `union` 或 `unionAll` 函数。其中，`union` 对应 SQL 中的 union 关键字，会对合并的结果进行去重；`unionAll` 对应 SQL 中的 union all 关键字，保留重复的结果。下面是一个例子：
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.id)
     .union(
         Departments.select(Departments.id)
@@ -392,7 +400,8 @@ order by t_employee_id desc
 val deptId = Employees.departmentId.aliased("dept_id")
 val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
-Employees
+database
+    .from(Employees)
     .select(deptId, salaryAvg)
     .groupBy(deptId)
     .having { salaryAvg greater 100.0 }

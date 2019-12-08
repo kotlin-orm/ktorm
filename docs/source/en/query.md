@@ -115,7 +115,7 @@ select t_employee.id as t_employee_id, t_employee.name as t_employee_name
 from t_employee 
 ```
 
-Try to remove arguments passed to the `select` function: 
+Try to remove the arguments passed to the `select` function: 
 
 ```kotlin
 val query = database.from(Employees).select()
@@ -146,7 +146,7 @@ from t_employee
 
 We can see that the generated SQL is highly corresponding to our Kotlin code. This benefits from Kotlin's excellent features. Ktorm provides many overloaded operators, that's why we can use the minus operator in the query above. Because of operator overloading, the minus operator here doesn't perform an actual subtraction but being translated to a minus operator in SQL and executed in our database. In the section of [Operators](./operators.html), we will learn more about Ktorm's operators. 
 
-> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` doesn't. So while obtaining results from a `QueryRowSet`, we can not use index access operators `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by labels or column indices. 
+> Small regret: Although the `select` function supports complex expressions, the `QueryRowSet` doesn't. So while obtaining results from a `QueryRowSet`, we can not use index access operator `[]` here. The only thing we can use is `getXxx` functions extended from `ResultSet`, obtaining results by labels or column indices. 
 
 ## selectDistinct
 
@@ -163,7 +163,8 @@ inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query
 It's an inline function that accepts a parameter of type `() -> ColumnDeclaring<Boolean>`, which is a closure function that returns a `ColumnDeclaring<Boolean>` as our filter condition. The `where` function creates a new `Query` object with all properties being copied from the current query, but applying a new filter condition, the return value of the closure. Typical usage: 
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.salary)
     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
 ```
@@ -183,7 +184,8 @@ We can return any filter conditions in `where` closure, here we constructed one 
 Sometimes, we need a variable number of filter conditions in our queries, those conditions are combined with `and` or `or` operator and each of them can be enabled or disabled depending on different conditions. To meet this requirement, many ORM frameworks provide features like *dynamic query*, such as the `<if>` tag of MyBatis. However, this is not a problem at all in Ktorm, because queries in Ktorm are pure Kotlin codes, which is natively *dynamic*. Let's learn the query below: 
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.salary)
     .where {
         val conditions = ArrayList<ColumnDeclaring<Boolean>>()
@@ -219,7 +221,8 @@ fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Bool
 To be honest, it's easy to get bored with creating a new `ArrayList` and adding conditions to it every time. Ktorm provides a convenient function `whereWithConditions` which can reduce our duplicated codes. With this function, we can modify the query to: 
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.salary)
     .whereWithConditions {
         if (departmentId != null) {
@@ -242,7 +245,8 @@ Both `groupBy` and `having` are extension functions for `Query` class, they prov
 
 ```kotlin
 val t = Employees
-val query = t
+val query = database
+    .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
@@ -257,10 +261,11 @@ group by t_employee.department_id
 having avg(t_employee.salary) > ?
 ```
 
-What if we just add one column to the query above? Assuming if we want to select the employees' names additionally, what will happen?  
+Question: what will happen if we just add one column to the query above? Assuming if we want to select the employees' names additionally:  
 
 ```kotlin
-val query = t
+val query = database
+    .from(t)
     .select(t.departmentId, avg(t.salary), t.name)
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
@@ -297,7 +302,8 @@ fun ColumnDeclaring<*>.desc(): OrderByExpression
 Typical usage is shown below. The query obtains all employees' names, sorting them by their salaries descending: 
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.name)
     .orderBy(Employees.salary.desc())
 ```
@@ -306,7 +312,8 @@ Similar to `select`, the `orderBy` function not only supports sorting by normal 
 
 ```kotlin
 val t = Employees
-val query = t
+val query = database
+    .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .orderBy(avg(t.salary).desc())
@@ -339,7 +346,7 @@ fun Query.limit(offset: Int, limit: Int): Query
 Here is an example, this query obtains the first employee in the table: 
 
 ```kotlin
-val query = Employees.select().limit(0, 1)
+val query = database.from(Employees).select().limit(0, 1)
 ```
 
 When we are using the `limit` function, Ktorm will generate appropriate SQLs depending on the currently enabled dialect. If we don't use any dialects, an exception might be thrown: 
@@ -355,7 +362,8 @@ This is OK, the SQL standard doesn't say how to implement paging queries, so Kto
 Ktorm also supports to merge two or more query results, that's the `union` and `unionAll` functions. The `union` function is corresponding to the union keyword in SQL, removing duplicated rows; The `unionAll` function is corresponding to the union all keyword, not removing duplicated rows. Here is an example: 
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .select(Employees.id)
     .union(
         Departments.select(Departments.id)
@@ -390,7 +398,8 @@ In version 2.6, Ktorm provided a feature of column aliases, which allows us to a
 val deptId = Employees.departmentId.aliased("dept_id")
 val salaryAvg = avg(Employees.salary).aliased("salary_avg")
 
-Employees
+database
+    .from(Employees)
     .select(deptId, salaryAvg)
     .groupBy(deptId)
     .having { salaryAvg greater 100.0 }
