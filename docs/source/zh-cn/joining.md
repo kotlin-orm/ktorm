@@ -19,18 +19,18 @@ Ktorm 使用扩展函数对连接查询提供支持，内置的标准连接类�
 | 右连接   | rightJoin  | right join        |
 | 交叉连接 | crossJoin  | cross join        |
 
-以上函数都是 `Table` 和 `JoinExpression` 的扩展函数，最简单的使用方式如下：
+以上函数都是 `QuerySource` 的扩展函数，最简单的使用方式如下：
 
 ````kotlin
-val joining = Employees.crossJoin(Departments)
+val querySource = database.from(Employees).crossJoin(Departments)
 ````
 
-上面这行代码把员工表和部门表进行交叉连接，`crossJoin` 函数的返回值是一个 `JoinExpression`。然而，大部分时候，我们持有一个 `JoinExpression` 并没有任何用处，我们需要将它变成一个 `Query` 对象，以便进行多表查询，并取得查询的结果。
+我们知道，`from` 函数的功能是把一个表对象包装成 `QuerySource` 对象，而 `crossJoin` 则把它的结果与另一个表进行交叉连接，返回一个新的 `QuerySource`。然而，大部分时候，我们持有一个 `QuerySource` 并没有任何用处，我们需要将它变成一个 `Query` 对象，以便进行多表查询，并取得查询的结果。
 
-在上一节中，我们使用 `select` 函数从一个表对象中创建一个查询，这里的 `select` 是 `Table` 类的扩展函数。其实，`select` 函数也对 `JoinExpression` 提供了一个重载，所以我们可以使用类似的用法创建一个 `Query` 对象。
+还记得怎样使用 `QuerySource` 创建一个查询吗？是的，只需要调用 `select` 函数：
 
 ````kotlin
-val query = Employees.crossJoin(Departments).select()
+val query = database.from(Employees).crossJoin(Departments).select()
 ````
 
 上面的查询把员工表和部门表进行交叉连接，并返回所有记录（笛卡尔积），生成的 SQL 如下：
@@ -44,7 +44,8 @@ cross join t_department
 上面的查询比较简单，在实际使用中，如此简单的联表查询通常都用处有限。接下来是一个比较实际的例子，这个查询获取所有薪水大于 100 的员工的名字和他所属的部门的名字。在这里，我们指定了 `leftJoin` 函数的第二个参数，它就是连接条件，至于 `select` 和 `where` 函数的用法，都已经在上一节中有详细介绍。
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
     .select(Employees.name, Departments.name)
     .where { Employees.salary greater 100L }
@@ -76,22 +77,23 @@ order by emp.id
 如果你有心的话，可能已经发现，`Table` 类中正好提供了一个 `aliased` 函数，它返回一个新的表对象，该对象复制自当前对象，具有完全相同的数据和结构，但是赋予了新的 `alias` 属性，这个函数正是在现在这个场景中使用的。使用 `aliased` 函数，尝试完成上面的自连接查询，你可能会写出这样的代码：
 
 ```kotlin
-data class Names(val name: String, val managerName: String?, val departmentName: String)
+data class Names(val name: String?, val managerName: String?, val departmentName: String?)
 
 val emp = Employees.aliased("emp") // 第三行，对 Employees 表对象赋予别名
 val mgr = Employees.aliased("mgr") // 第四行，对 Employees 表对象赋予另一个不同的别名
 val dept = Departments.aliased("dept")
 
-val results = emp
+val results = database
+    .from(emp)
     .leftJoin(mgr, on = emp.managerId eq mgr.id) // 第八行，连接两个不同的 Employees 表
     .leftJoin(dept, on = emp.departmentId eq dept.id)
     .select(emp.name, mgr.name, dept.name)
     .orderBy(emp.id.asc())
-    .map {
+    .map { row -> 
         Names(
-            name = it.getString(1),
-            managerName = it.getString(2),
-            departmentName = it.getString(3)
+            name = row.getString(1),
+            managerName = row.getString(2),
+            departmentName = row.getString(3)
         )
     }
 ```
@@ -162,15 +164,13 @@ data class NaturalJoinExpression(
 ) : QuerySourceExpression()
 ```
 
-有了定制的表达式类型以后，我们需要添加一个扩展函数，就像上面的 `crossJoin`、`leftJoin` 等扩展函数一样，用于方便地使用表对象创建 `NaturalJoinExpression`。
+有了定制的表达式类型以后，我们需要添加一个扩展函数，就像上面的 `crossJoin`、`leftJoin` 等扩展函数一样，用于将 `QuerySource` 对象中的 `expression` 替换为 `NaturalJoinExpression`。
 
 ```kotlin
-fun Table<*>.naturalJoin(right: Table<*>): NaturalJoinExpression {
-    return NaturalJoinExpression(left = this.asExpression(), right = right.asExpression())
+fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
+    return this.copy(expression = NaturalJoinExpression(left = expression, right = right.asExpression()))
 }
 ```
-
-事实上，这个 `naturalJoin` 还需要针对 `QuerySourceExpression` 添加几个重载的版本，以支持连续的 join 方法的调用，这里仅用于示范，可先忽略。
 
 Ktorm 默认情况下无法识别我们自己创建的表达式类型 `NaturalJoinExpression`，因此无法生成支持 `natural join` 的 SQL 语句。这时，我们可以扩展 `SqlFormatter` 类，重写它的 `visitUnknown` 方法，在里面检测我们的自定义表达式，为其生成正确的 SQL：
 
@@ -197,7 +197,7 @@ class CustomSqlFormatter(database: Database, beautifySql: Boolean, indentSize: I
 `naturalJoin` 的使用方式如下：
 
 ```kotlin
-val query = Employees.naturalJoin(Departments).select()
+val query = database.from(Employees).naturalJoin(Departments).select()
 ```
 
 这样，Ktorm 就能够无缝支持自然连接，事实上，这正是 ktorm-support-mysql 模块的功能之一，如果你真的需要使用 MySQL 的自然连接，请直接在项目中添加依赖，不必再写一遍上面的代码，这里仅作示范。
