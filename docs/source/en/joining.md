@@ -19,18 +19,18 @@ Ktorm supports joining queries by some extension functions, there are four built
 | right join | rightJoin               | right join                 |
 | cross join | crossJoin               | cross join                 |
 
-The functions above are all extension functions of `Table` or `JoinExpression`, a simple usage is given as follows: 
+The functions above are all extensions of `QuerySource`, a simple usage is given as follows: 
 
 ```kotlin
-val joining = Employees.crossJoin(Departments)
+val joining = database.from(Employees).crossJoin(Departments)
 ```
 
-This line of code cross joins the `Employees` table to the `Departments` table, and the return value of the `crossJoin` function is a `JoinExpression`. But it's useless for us to hold a `JoinExpression` for most of the time, we need a `Query` object instead to perform a query and obtain our results. 
+Here, the function `from` wraps a table object as a `QuerySource` instance, then `crossJoin` cross joins the instance to another table and returns a new `QuerySource` as the result. But it's useless for us to hold a `QuerySource` for most of the time, we need a `Query` object instead to perform a query and obtain our results.  
 
-In the former section, we created queries from table objects by calling the `Table` class's extension function `select`. Actually, the `select` function provides an overloaded edition for `JoinExpression`, so we can create queries from join expressions in a similar way. 
+Remember how to create a `Query` from a `QuerySource`? Yes, we just need to call `select`: 
 
 ```kotlin
-val query = Employees.crossJoin(Departments).select()
+val query = database.from(Employees).crossJoin(Departments).select()
 ```
 
 This query cross joins the `Employees` table to the `Departments` table and returns all records of the joining (cartesian product). Generated SQL: 
@@ -44,7 +44,8 @@ cross join t_department
 That's so simple, but honestly, such a simple joining query doesn't make any sense to us in practical use. Here is a more practical example, we want to list those employees whose salary is greater than 100, and return their names and the departments they are from. Here, we specify the second parameter `on` of the function `leftJoin`, that's the joining condition. As for the usage of `select` and `where` function, we have discussed that in the former section. 
 
 ```kotlin
-val query = Employees
+val query = database
+    .from(Employees)
     .leftJoin(Departments, on = Employees.departmentId eq Departments.id)
     .select(Employees.name, Departments.name)
     .where { Employees.salary greater 100L }
@@ -71,27 +72,28 @@ left join t_department dept on emp.department_id = dept.id
 order by emp.id 
 ```
 
-It can be seen that the `t_employee` table appears twice with different aliases, `emp` and `mgr`, in the SQL above. It is the aliases that distinguish the two same tables in the self joining query. Then how can we achieve this with Ktorm?  
+It can be seen that the `t_employee` table appears twice with different aliases, `emp` and `mgr`, in the SQL above. It is exactly the aliases that distinguish the two same tables in the self joining query. Then how can we achieve this with Ktorm?  
 
 If you are careful enough, you might have found that there is an `aliased` function in the `Table` class, this function returns a new created table object with all properties (including the table name and columns and so on) being copied from current table, but applying a new alias given by the parameter. Using the `aliased` function, try to implement the self joining above, we may write codes like this: 
 
 ```kotlin
-data class Names(val name: String, val managerName: String?, val departmentName: String)
+data class Names(val name: String?, val managerName: String?, val departmentName: String?)
 
 val emp = Employees.aliased("emp") // Line 3, give an alias to the Employees table. 
 val mgr = Employees.aliased("mgr") // Line 4, give another alias to the Employees table. 
 val dept = Departments.aliased("dept")
 
-val results = emp
+val results = database
+    .from(emp)
     .leftJoin(mgr, on = emp.managerId eq mgr.id) // Line 8, join one Employees table to the other. 
     .leftJoin(dept, on = emp.departmentId eq dept.id)
     .select(emp.name, mgr.name, dept.name)
     .orderBy(emp.id.asc())
-    .map {
+    .map { row -> 
         Names(
-            name = it.getString(1),
-            managerName = it.getString(2),
-            departmentName = it.getString(3)
+            name = row.getString(1),
+            managerName = row.getString(2),
+            departmentName = row.getString(3)
         )
     }
 ```
@@ -162,15 +164,13 @@ data class NaturalJoinExpression(
 ) : QuerySourceExpression()
 ```
 
-Having the custom expression type, we also need an extension function to create instances of the expression from table objects conveniently, just like the functions `crossJoin`, `leftJoin` in the core module. 
+Having the custom expression type, we also need an extension function to replace the value of `expression` property in `QuerySource` instances, just like the functions of `crossJoin`, `leftJoin` in the core module. 
 
 ```kotlin
-fun Table<*>.naturalJoin(right: Table<*>): NaturalJoinExpression {
-    return NaturalJoinExpression(left = this.asExpression(), right = right.asExpression())
+fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
+    return this.copy(expression = NaturalJoinExpression(left = expression, right = right.asExpression()))
 }
 ```
-
-Actually, this `naturalJoin` function also need to provide some overloaded editions for `QuerySourceExpression` to support continuously joining. For demonstration purpose, let's ignore it now. 
 
 By default, Ktorm cannot recognize our custom expression type `NaturalJoinExpression`, and are not able to generate SQLs using `natural join`. To solve the problem, we can extend the `SqlFormatter` class, override the `visitUnknown` function, detect our custom expression types and generate proper SQLs: 
 
@@ -197,7 +197,7 @@ Now, the last thing we should do is to register this custom SQL formatter into K
 The usage of `naturalJoin`: 
 
 ```kotlin
-val query = Employees.naturalJoin(Departments).select()
+val query = database.from(Employees).naturalJoin(Departments).select()
 ```
 
 In this way, Ktorm supports natural join now. Actually, this is one of the features of ktorm-support-mysql module, if you really need to use natural join, you don't have to repeat the code above, please add the dependency to your project.
