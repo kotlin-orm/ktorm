@@ -438,8 +438,15 @@ infix fun <T : Comparable<T>> ColumnDeclaring<T>.notBetween(range: ClosedRange<T
 /**
  * In-list operator, translated to the `in` keyword in SQL.
  */
-infix fun <T : Any> ColumnDeclaring<T>.inList(collection: Collection<T>): InListExpression<T> {
-    return InListExpression(left = asExpression(), values = collection.map { wrapArgument(it) })
+fun <T : Any> ColumnDeclaring<T>.inList(vararg list: T): InListExpression<T> {
+    return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) })
+}
+
+/**
+ * In-list operator, translated to the `in` keyword in SQL.
+ */
+infix fun <T : Any> ColumnDeclaring<T>.inList(list: Collection<T>): InListExpression<T> {
+    return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) })
 }
 
 /**
@@ -452,8 +459,15 @@ infix fun <T : Any> ColumnDeclaring<T>.inList(query: Query): InListExpression<T>
 /**
  * Not-in-list operator, translated to the `not in` keyword in SQL.
  */
-infix fun <T : Any> ColumnDeclaring<T>.notInList(collection: Collection<T>): InListExpression<T> {
-    return InListExpression(left = asExpression(), values = collection.map { wrapArgument(it) }, notInList = true)
+fun <T : Any> ColumnDeclaring<T>.notInList(vararg list: T): InListExpression<T> {
+    return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) }, notInList = true)
+}
+
+/**
+ * Not-in-list operator, translated to the `not in` keyword in SQL.
+ */
+infix fun <T : Any> ColumnDeclaring<T>.notInList(list: Collection<T>): InListExpression<T> {
+    return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) }, notInList = true)
 }
 
 /**

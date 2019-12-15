@@ -203,7 +203,7 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testFindMapById() {
-        val employees = database.sequenceOf(Employees).filter { it.id inList listOf(1, 2) }.associateBy { it.id }
+        val employees = database.sequenceOf(Employees).filter { it.id.inList(1, 2) }.associateBy { it.id }
         assert(employees.size == 2)
         assert(employees[1]!!.name == "vince")
         assert(employees[2]!!.name == "marry")

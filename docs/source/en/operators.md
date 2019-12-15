@@ -37,10 +37,10 @@ Any operator in Ktorm is a Kotlin function that returns a `SqlExpression`. Here 
 | notEq                | <>                   | Ktorm: Employees.id notEq 1<br />SQL: t_employee.id <> 1     |
 | between              | between              | Ktorm: Employees.id between 1..3<br />SQL: t_employee.id between 1 and 3 |
 | notBetween           | not between          | Ktorm: Employees.id notBetween 1..3<br />SQL: t_employee.id not between 1 and 3 |
-| inList               | in                   | Ktorm: Employees.departmentId inList listOf(1, 2, 3)<br />SQL: t_employee.department_id in (1, 2, 3) |
-| notInList            | not in               | Ktorm: Employees.departmentId notInList Departments.selectDistinct(Departments.id)<br />SQL: t_employee.department_id not in (select distinct t_department.id from t_department) |
-| exists               | exists               | Ktorm: exists(Employees.select())<br />SQL: exists (select * from t_employee) |
-| notExists            | not exists           | Ktorm: notExists(Employees.select())<br />SQL: not exists (select * from t_employee) |
+| inList               | in                   | Ktorm: Employees.departmentId.inList(1, 2, 3)<br />SQL: t_employee.department_id in (1, 2, 3) |
+| notInList            | not in               | Ktorm: Employees.departmentId notInList db.from(Departments).selectDistinct(Departments.id)<br />SQL: t_employee.department_id not in (select distinct t_department.id from t_department) |
+| exists               | exists               | Ktorm: exists(db.from(Employees).select())<br />SQL: exists (select * from t_employee) |
+| notExists            | not exists           | Ktorm: notExists(db.from(Employees).select())<br />SQL: not exists (select * from t_employee) |
 
 These operators can be divided into two groups by the implementation way: 
 
@@ -69,11 +69,11 @@ infix fun ColumnDeclaring<*>.like(argument: String): BinaryExpression<Boolean> {
 
 Operators can be used continuously, but if we use different operators together, we will meet the problem of their precedence. There can be many operators in an expression, different combination order of operators can lead to different results and even errors. Only if the operators are combined in a certain order, the expression's result can be correct and unique. 
 
-For instance, in the expression 1 + 2 \* 3, the multiplication's precedence is higher than plus, so 2 \* 3 is combined first, the result is 7; If we ignore the precedence of operators, then 1 + 2 is combined first, the result will be 9, which is absolutely wrong. Normally, the precedence of multiplicative operators is higher than additive operators', the precedence of conjunctions are higher than disjunctions'. But there are a little different in Ktorm. 
+For instance, in the expression 1 + 2 \* 3, the multiplication's precedence is higher than plus, so 2 \* 3 is combined first, the result is 7; If we ignore the precedence of operators, then 1 + 2 is combined first, the result will be 9, which is absolutely wrong. Normally, the precedence of multiplicative operators is higher than additive operators', the precedence of conjunctions are higher than disjunctions'. But there are a little difference in Ktorm. 
 
 For overloaded Kotlin built-in operators, their precedence follows the specification of Kotlin language. Such as the expression `Employees.salary + 1000 * 2`, the multiplication's precedence is higher, so the final translated SQL is `t_employee.salary + 2000`. 
 
-**However, for normal operator functions, there is no such thing as precedence.** In the level of Kotlin language, they are all normal function callings, so they just need to be combined from head to end, although it's quite counterintuitive. For example, in the expression `a or b and c`, the `or` and `and` are both operator functions. Intuitively, the precedence of `and` is higher, so it should be combined first, but actually, they are both normal functions, so our intuition is wrong. If we don't have a clear understanding on this, some unexpected bugs may occur, to solve the problem, we can use brackets if needed, such as `a or (b and c)`. 
+**However, for normal operator functions, there is no such thing as precedence.** In the level of Kotlin language, they are all normal function callings, so they just need to be combined sequentially, and that is quite counterintuitive for us. For example, in the expression `a or b and c`, the `or` and `and` are both operator functions. Intuitively, the precedence of `and` is higher, so it should be combined first, but actually, they are both normal functions, so our intuition is wrong. If we don't have a clear understanding on this, some unexpected bugs may occur, to solve the problem, we can use brackets if needed, eg. `a or (b and c)`. 
 
 For detailed precedence in Kotlin language, please refer to [Kotlin Reference](https://kotlinlang.org/docs/reference/grammar.html#expressions). 
 

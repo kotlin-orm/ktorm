@@ -37,10 +37,10 @@ Ktorm 的每个运算符实际上都是一个返回 `SqlExpression` 的 Kotlin �
 | notEq         | <>              | Ktorm: Employees.id notEq 1<br />SQL: t_employee.id <> 1     |
 | between       | between         | Ktorm: Employees.id between 1..3<br />SQL: t_employee.id between 1 and 3 |
 | notBetween    | not between     | Ktorm: Employees.id notBetween 1..3<br />SQL: t_employee.id not between 1 and 3 |
-| inList        | in              | Ktorm: Employees.departmentId inList listOf(1, 2, 3)<br />SQL: t_employee.department_id in (1, 2, 3) |
-| notInList     | not in          | Ktorm: Employees.departmentId notInList Departments.selectDistinct(Departments.id)<br />SQL: t_employee.department_id not in (select distinct t_department.id from t_department) |
-| exists        | exists          | Ktorm: exists(Employees.select())<br />SQL: exists (select * from t_employee) |
-| notExists     | not exists      | Ktorm: notExists(Employees.select())<br />SQL: not exists (select * from t_employee) |
+| inList        | in              | Ktorm: Employees.departmentId.inList(1, 2, 3)<br />SQL: t_employee.department_id in (1, 2, 3) |
+| notInList     | not in          | Ktorm: Employees.departmentId notInList db.from(Departments).selectDistinct(Departments.id)<br />SQL: t_employee.department_id not in (select distinct t_department.id from t_department) |
+| exists        | exists          | Ktorm: exists(db.from(Employees).select())<br />SQL: exists (select * from t_employee) |
+| notExists     | not exists      | Ktorm: notExists(db.from(Employees).select())<br />SQL: not exists (select * from t_employee) |
 
 这些运算符按照实现方式大概可以分为两类：
 

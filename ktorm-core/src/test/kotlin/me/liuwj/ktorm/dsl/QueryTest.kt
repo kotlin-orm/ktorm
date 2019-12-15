@@ -189,7 +189,7 @@ class QueryTest : BaseTest() {
         val query = database
             .from(Employees)
             .select()
-            .where { Employees.id inList listOf(1, 2, 3) }
+            .where { Employees.id.inList(1, 2, 3) }
 
         assert(query.count() == 3)
     }
