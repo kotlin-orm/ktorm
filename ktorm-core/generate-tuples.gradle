@@ -42,6 +42,20 @@ def generateTupleOf(Writer writer, int tupleNumber) {
     """.stripIndent())
 }
 
+def generateToList(Writer writer, int tupleNumber) {
+    def typeParams = (1..tupleNumber).collect { "E" }.join(", ")
+    def elements = (1..tupleNumber).collect { "element$it" }.join(", ")
+
+    writer.write("""
+        /**
+         * Convert this tuple into a list. 
+         */
+        fun <E> Tuple$tupleNumber<$typeParams>.toList(): List<E> {
+            return listOf($elements)
+        }
+    """.stripIndent())
+}
+
 def generateMapColumns(Writer writer, int tupleNumber) {
     def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
     def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
@@ -230,6 +244,10 @@ task generateTuples {
 
             (2..maxTupleNumber).each { num ->
                 generateTupleOf(writer, num)
+            }
+
+            (4..maxTupleNumber).each { num ->
+                generateToList(writer, num)
             }
 
             (2..maxTupleNumber).each { num ->
