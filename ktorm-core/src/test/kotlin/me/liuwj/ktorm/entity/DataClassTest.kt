@@ -157,7 +157,7 @@ class DataClassTest : BaseTest() {
             .sequenceOf(Staffs)
             .filter { it.sectionId eq 1 }
             .filterNot { it.managerId.isNotNull() }
-            .mapColumns2 { Pair(it.name, it.job) }
+            .mapColumns2 { tupleOf(it.name, it.job) }
             .single()
 
         assert(name == "vince")
@@ -169,7 +169,7 @@ class DataClassTest : BaseTest() {
         database
             .sequenceOf(Staffs)
             .groupingBy { it.sectionId }
-            .aggregateColumns2 { Pair(max(it.salary), min(it.salary)) }
+            .aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
             .forEach { sectionId, (max, min) ->
                 println("$sectionId:$max:$min")
             }

@@ -69,7 +69,7 @@ class AggregationTest : BaseTest() {
 
     @Test
     fun testAggregate2() {
-        val (max, min) = database.sequenceOf(Employees).aggregateColumns2 { Pair(max(it.salary), min(it.salary)) }
+        val (max, min) = database.sequenceOf(Employees).aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
         assert(max == 200L)
         assert(min == 50L)
     }
@@ -79,7 +79,7 @@ class AggregationTest : BaseTest() {
         database
             .sequenceOf(Employees)
             .groupingBy { it.departmentId }
-            .aggregateColumns2 { Pair(max(it.salary), min(it.salary)) }
+            .aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
             .forEach { departmentId, (max, min) ->
                 println("$departmentId:$max:$min")
             }

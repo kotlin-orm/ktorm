@@ -183,7 +183,7 @@ class MySqlTest : BaseTest() {
         database
             .sequenceOf(Employees)
             .filter { it.departmentId eq 1 }
-            .mapColumns3 { Triple(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
+            .mapColumns3 { tupleOf(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
             .forEach { (id, name, days) ->
                 println("$id:$name:$days")
             }
