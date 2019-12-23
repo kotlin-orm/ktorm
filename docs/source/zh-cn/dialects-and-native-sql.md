@@ -50,7 +50,7 @@ compile "me.liuwj.ktorm:ktorm-support-mysql:${ktorm.version}"
 添加完依赖后，我们需要修改 `Database.connect` 函数的调用处，这个函数用于创建一个 `Database` 对象，Ktorm 正是用这个对象来连接到数据库。我们需要指定 `dialect` 参数，告诉 Ktorm 需要使用哪个 `SqlDialect` 的实现类：
 
 ````kotlin
-val db = Database.connect(
+val database = Database.connect(
     url = "jdbc:mysql://localhost:3306/ktorm", 
     driver = "com.mysql.jdbc.Driver", 
     user = "root", 
@@ -64,7 +64,7 @@ val db = Database.connect(
 现在，我们就已经启用了 MySQL 的方言，可以使用它的功能了。尝试调用一下 `insertOrUpdate` 函数：
 
 ```kotlin
-Employees.insertOrUpdate {
+database.insertOrUpdate(Employees) {
     it.id to 1
     it.name to "vince"
     it.job to "engineer"
@@ -91,7 +91,7 @@ on duplicate key update salary = salary + ?
 
 那么，除了前面出现过的那些，Ktorm 内置的方言还提供了什么功能呢？
 
-下面是 ktorm-support-mysql 模块的功能列表：
+下面是 **ktorm-support-mysql** 模块的功能列表：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 MySQL 的 `limit ?, ?` 语句
 - 增加了 `bulkInsert` 函数，支持批量插入，与核心库的 `batchInsert` 函数不同，`bulkInsert` 使用 MySQL 的批量插入语法，具有更优的性能
@@ -102,22 +102,22 @@ on duplicate key update salary = salary + ?
 - 增加了 `match` 和 `against` 函数，支持全文搜索，基于 MySQL 的 `match ... against` 语法
 - 增加了 `rand`、`ifnull`、`greatest`、`least`、`dateDiff`、`replace` 等函数，支持 MySQL 中的同名函数
 
-ktorm-support-postgresql 提供的功能有：
+**ktorm-support-postgresql** 提供的功能有：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 PostgreSQL 中的 `limit ? offset ?` 语句
 - 增加了 `insertOrUpdate` 函数，支持插入或更新的功能，基于 PostgreSQL 中的 `on conflict (key) do update set` 语法
 - 增加了 `ilike` 运算符，用于忽略大小写的字符串匹配，基于 PostgreSQL 的 `ilike` 关键字
 
-ktorm-support-oracle 提供的功能有：
+**ktorm-support-oracle** 提供的功能有：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 Oracle 中使用 `rownum` 筛选分页的写法
 
-ktorm-support-sqlserver 提供的功能有：
+**ktorm-support-sqlserver** 提供的功能有：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 SqlServer 中使用 `top` 和 `row_number() over(...)` 筛选分页的写法
 - 支持 SqlServer 特有的 `datetimeoffset` 数据类型
 
-ktorm-support-sqlite 提供的功能有：
+**ktorm-support-sqlite** 提供的功能有：
 
 - 支持使用 `limit` 函数进行分页，会自动翻译为 SQLite 的 `limit ?, ?` 语句
 
@@ -134,7 +134,7 @@ Ktorm 的设计是开放的，为其增加功能十分容易，我们在前面�
 为了应对这种场景，Ktorm 提供了直接执行原生 SQL 的方式，这只需要我们写一点 JDBC 的代码。我们需要使用 `Database` 类中的 `useConnection` 函数获取数据库连接，获取到 `Connection` 实例之后，剩下的事情就和其他 JDBC 程序没有任何区别了。下面是一个例子：
 
 ```kotlin
-val names = db.useConnection { conn ->
+val names = database.useConnection { conn ->
     val sql = """
         select name from t_employee
         where department_id = ?

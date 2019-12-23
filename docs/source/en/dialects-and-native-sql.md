@@ -50,7 +50,7 @@ compile "me.liuwj.ktorm:ktorm-support-mysql:${ktorm.version}"
 Having the dependency, we also need to modify the calling of the `Database.connect` function, this function is used to create `Database` objects. We need to specify its `dialect` parameter, telling Ktorm which `SqlDialect` implementation should be used. 
 
 ```kotlin
-val db = Database.connect(
+val database = Database.connect(
     url = "jdbc:mysql://localhost:3306/ktorm", 
     driver = "com.mysql.jdbc.Driver", 
     user = "root", 
@@ -63,7 +63,7 @@ val db = Database.connect(
 Now we have enabled MySQL's dialect implementation and all of its features are available. Try to call the `insertOrUpdate` function: 
 
 ```kotlin
-Employees.insertOrUpdate {
+database.insertOrUpdate(Employees) {
     it.id to 1
     it.name to "vince"
     it.job to "engineer"
@@ -90,7 +90,7 @@ Perfect！
 
 Now, let's talk about Ktorm's built-in dialects' features. 
 
-Here is a list of features provided by module ktorm-support-mysql: 
+Here is a list of features provided by module **ktorm-support-mysql**: 
 
 - Support paginations via `limit` function, translating paging expressions into MySQL's `limit ?, ?` statement. 
 - Add `bulkInsert` function for bulk insertion, different from `batchInsert` in the core module, it uses MySQL's bulk insertion syntax and the performance is much better. 
@@ -101,22 +101,22 @@ Here is a list of features provided by module ktorm-support-mysql:
 - Add `match` and `against` functions for fulltext search, based on MySQL's `match ... against ...` syntax. 
 - Add other functions such as `rand`, `ifnull`, `greatest`, `least`, `dateDiff`, `replace`, etc, supporting the corresponding functions in MySQL. 
 
-The features of ktorm-support-postgresql are listed below: 
+**ktorm-support-postgresql** provides: 
 
 - Support paginations via `limit` function, translating paging expressions into PostgreSQL's `limit ? offset ?` statement. 
 - Add `insertOrUpdate` function for data "upsert", based on PostgreSQL's `on conflict (key) do update set` syntax.
 - Add `ilike` operator for string matchings ignoring cases, based on PostgreSQL's `ilike` keyword. 
 
-ktorm-support-oracle provides: 
+**ktorm-support-oracle** provides: 
 
 - Support paginations via `limit` function, translating paging expressions into Oracle's paging SQL using `rownum`. 
 
-ktorm-support-sqlserver provides: 
+**ktorm-support-sqlserver** provides: 
 
 - Support paginations via `limit` function, translating paging expressions into SqlServer's paging SQL using `top` and `row_number() over(...)`. 
 - Support `datetimeoffset` data type. 
 
-ktorm-support-sqlite provides: 
+**ktorm-support-sqlite** provides: 
 
 - Support paginations via `limit` function, translating paging expressions into SQLite's `limit ?, ?` statement. 
 
@@ -124,16 +124,16 @@ Ktorm always claims that we are supporting many dialects, but actually, the supp
 
 Fortunately, the standard SQL supported by the core module is enough for most scenarios, so there is little influence on our business before the dialects are completed. 
 
-Ktorm's design is open, it's easy to add features to it, and we have learned how to write our own extensions in the former sections. So we can also implement dialects by ourselves if it's really needed. Welcome to fork the repository and send your pull requests to me, I'm glad to check and merge your codes. Looking forward to your contributions!
+Ktorm's design is open, it's easy to add features to it, and we have learned how to write our own extensions in the former sections. So we can also implement dialects by ourselves if it's really needed. Welcome to fork the repository and send your pull requests to me, I'm glad to check and merge your code. Looking forward to your contributions!
 
 ## Native SQL
 
 In some rare situations, we have to face some special businesses that Ktorm may not be able to support now, such as some complex queries (eg. correlated subqueries), special features of a dialect (eg. SQL Server's cross apply), or DDL that operates the table schemas. 
 
-To solve the problem, Ktorm provides a way for us to execute native SQLs directly. We need to obtain a database connection via `useConnection` function of the `Database` class first, then perform our operations by writing some JDBC codes. Here is an example: 
+To solve the problem, Ktorm provides a way for us to execute native SQLs directly. We need to obtain a database connection via `database.useConnection` first, then perform our operations by writing some code with JDBC. Here is an example: 
 
 ```kotlin
-val names = db.useConnection { conn ->
+val names = database.useConnection { conn ->
     val sql = """
         select name from t_employee
         where department_id = ?
@@ -149,7 +149,7 @@ val names = db.useConnection { conn ->
 names.forEach { println(it) }
 ```
 
-At first glance, there are only boilerplate JDBC codes in the example, but actually, it's also benefited from some convenient functions of Ktorm: 
+At first glance, there are only boilerplate JDBC code in the example, but actually, it's also benefited from some convenient functions of Ktorm: 
 
 - `useConnection` function is used to obtain or create connections. If the current thread has opened a transaction, then this transaction's connection will be passed to the closure. Otherwise, Ktorm will pass a new-created connection to the closure and auto close it after it's not useful anymore. Ktorm also uses this function to obtain connections to execute generated SQLs. So, by calling `useConnection`, we can share the transactions or connection pools with Ktorm's internal SQLs. 
 - `iterable` function is used to wrap `ResultSet` instances as `Iterable`, then we can iterate the result sets by for-each loops, or process them via extension functions of Kotlin standard lib, such as `map`, `filter`, etc. 
