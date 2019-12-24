@@ -30,7 +30,7 @@ interface Employee : Entity<Employee> {
 }
 ```
 
-We can see classes above both extends from `Entity<E>` interface, which injects some useful functions into entities. Their properties are defined by keyword var or val, you can mark the types as nullable or not depending on your business requirements. It may be counterintuitive that entities in Ktorm are not data classes, even not normal classes, but interfaces instead, that's a design requirement of Ktorm. By defining entities as interfaces, Ktorm can implement some special features, you will see the significance later.
+We can see classes above both extends from `Entity<E>` interface, which injects some useful functions into entities. Their properties are defined by keyword *var* or *val*, you can mark the types as nullable or not depending on your business requirements. It may be counterintuitive that entities in Ktorm are not data classes, even not normal classes, but interfaces instead, that's a design requirement of Ktorm. By defining entities as interfaces, Ktorm can implement some special features, you will see the significance later.
 
 > Since Ktorm 2.5, it's also supported to define entities as data classes or any other classes, see [Define Entities as Any Kind of Classes](/en/define-entities-as-any-kind-of-classes.html).
 
@@ -70,7 +70,7 @@ val department = Department {
 
 The core feature of an ORM framework is to bind database tables to entities, bind tables' columns to entities' properties. Now let's learn how to do that with Ktorm. 
 
-In former sections learning SQL DSL, we created two table objects, they are `Departments` and `Employees`. In the table objects, we defined columns by calling column definition functions such as `int`, `long`, `varchar`, etc. The return type of these functions is `Table<E>.ColumnRegistration<C>`, in which `E` is the entity's type, `C` is the declaring column's type.
+In former sections learning SQL DSL, we created two table objects, they are `Departments` and `Employees`. In these table objects, we defined columns by calling column definition functions such as `int`, `long`, `varchar`, etc. The return type of them is `Table<E>.ColumnRegistration<C>`, in which `E` is the entity's type, `C` is the declaring column's type.
 
 It's easy to bind a column to an entity's property, we just need to chaining call the `bindTo` or `references` function on the `ColumnRegistration` instance. The code below modifies those two table objects and completes the O-R bindings: 
 
@@ -99,13 +99,13 @@ Comparing the table objects with before, we can find two differences:
 1. The type parameter of `Table` is specified to the entity's type now, that's the way we bind table objects to entity classes. We set this parameter to `Nothing` before, that meant the table object was not bound to any entity class. 
 2. After calling the column definition functions, we chaining call `bindTo` or `references` functions to bind the current column to a property in the entity class. If we don't do that, the column won't be bound to any property. 
 
-The significance of column bindings is that, while obtaining entities from databases (eg. `findList` function), Ktorm will use our binding configurations to fill columns' values to their corresponding properties, and while updating entities' changes into databases (eg. `flushChanges` function), Ktorm will also use the configurations to find corresponding columns of properties.  
+The significance of column bindings is that, while obtaining entities from databases, Ktorm will use our binding configurations to fill columns' values to their corresponding properties, and while updating entities' changes back to the databases (using `flushChanges` function), Ktorm will also use the configurations to find corresponding columns of entity properties.  
 
 Ktorm provides the following different binding types: 
 
 1. **Simple Binding:** Use `bindTo` function to bind a column to a simple property, eg. `c.bindTo { it.name }`. 
 2. **Nested Binding:** Use `bindTo` function to bind a column to nested properties, for example `c.bindTo { it.manager.department.id }`. While obtaining entities from databases, the value of this column will be filled to `employee.manager.department.id`. With only a single level of properties, simple binding is a special case of nested binding. 
-3. **Reference Binding:** Use `references` function to bind a column to another table, eg. `c.references(Departments) { it.department }`, equivalent to the foreign key in databases. Using reference binding, while obtaining entities from databases (eg. `findList`, `findOne`, etc), Ktorm will auto left join all its reference tables, obtaining the referenced entity objects at the same time. 
+3. **Reference Binding:** Use `references` function to bind a column to another table, eg. `c.references(Departments) { it.department }`, equivalent to the foreign key in databases. Using reference binding, while obtaining entities from databases, Ktorm will auto left join all its reference tables, obtaining the referenced entity objects at the same time. 
 
 Additionally, multiple bindings are supported since Ktorm version 2.6, so we can bind a column to multiple properties by calling the `bindTo` or `references` functions continuously. In this way, when an entity object is retrieved from the database, the value of this column will be filled to each property it binds.
 
