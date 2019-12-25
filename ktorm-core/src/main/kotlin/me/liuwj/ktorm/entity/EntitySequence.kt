@@ -869,7 +869,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(): E? {
  *
  * Especially, if a dialect is enabled, this function will use the pagination feature to obtain the very record only.
  * Assuming we are using MySQL, a SQL containing `limit 0, 1` will be generated. But if there are no dialects enabled,
- * then all records in the sequence will be obtained to ensure the function just works.
+ * then all records in the sequence matching the given [predicate] will be obtained to ensure the function just works.
  *
  * The operation is terminal.
  */
@@ -897,7 +897,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(): E {
  *
  * Especially, if a dialect is enabled, this function will use the pagination feature to obtain the very record only.
  * Assuming we are using MySQL, a SQL containing `limit 0, 1` will be generated. But if there are no dialects enabled,
- * then all records in the sequence will be obtained to ensure the function just works.
+ * then all records in the sequence matching the given [predicate] will be obtained to ensure the function just works.
  *
  * The operation is terminal.
  */
@@ -948,7 +948,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.last(predicate: (T) 
  *
  * Especially, if a dialect is enabled, this function will use the pagination feature to obtain the very record only.
  * Assuming we are using MySQL, a SQL containing `limit 0, 1` will be generated. But if there are no dialects enabled,
- * then all records in the sequence will be obtained to ensure the function just works.
+ * then all records in the sequence matching the given [predicate] will be obtained to ensure the function just works.
  *
  * The operation is terminal.
  */
