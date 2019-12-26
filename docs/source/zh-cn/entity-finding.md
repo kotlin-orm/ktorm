@@ -76,7 +76,7 @@ where _ref0.location = ?
 
 ## 使用查询 DSL 获取实体
 
-序列 API 会自动 left join 引用表，有时这可能会造成一点浪费，另外，我们还无法控制查询需要返回的具体字段、无法控制返回记录的排序、分页等。如果你希望对查询进行细粒度的控制，你可以使用前面章节中介绍的查询 DSL，Ktorm 提供了从查询 DSL 中获取实体对象的方法。
+序列 API 会自动 left join 引用表，有时这可能会造成一点浪费。如果你希望对查询进行更细粒度的控制，你可以使用前面章节中介绍的查询 DSL，Ktorm 提供了从查询 DSL 中获取实体对象的方法。
 
 下面的例子使用 `createEntity` 函数从查询 DSL 中获取了实体对象的列表：
 
@@ -92,7 +92,7 @@ employees.forEach { println(it) }
 
 `Query` 对象实现了 `Iterable<QueryRowSet>` 接口，在这里，我们使用 `map` 函数对查询进行迭代，在迭代中使用 `createEntity` 为每一行返回的记录创建一个实体对象。`createEntity` 是 `Table` 类的函数，它会根据表对象中的列绑定配置，自动创建实体对象，从结果集中读取数据填充到实体对象的各个属性中。如果该表使用 `references` 引用绑定了其它表，也会递归地对所引用的表调用 `createEntity` 创建关联的实体对象。
 
-然而，查询 DSL 返回的列是可自定义的，里面不一定包含引用表中的列。针对这种情况，`createEntity` 函数提供了一个名为 `withReferences` 的参数，它的值默认是 `true。`但当我们把它设为 `false` 时，`createEntity` 将不再获取引用表关联的实体对象的数据，它会把引用绑定视为到其所引用的实体对象的主键的嵌套绑定，例如 `c.references(Departments) { it.department }`，在它眼里相当于 `c.bindTo { it.department.id }`，因此避免了不必要的对象创建和一些因列名冲突导致的异常。
+然而，查询 DSL 返回的列是可自定义的，里面不一定包含引用表中的列。针对这种情况，`createEntity` 函数提供了一个名为 `withReferences` 的参数，它的值默认是 `true。`但当我们把它设为 `false` 时，`createEntity` 将不再获取引用表关联的实体对象的数据，它会把引用绑定视为到其所引用的实体对象的主键的嵌套绑定，例如 `c.references(Departments) { it.department }`，在它眼里相当于 `c.bindTo { it.department.id }`，使用这个参数可避免一些不必要的对象创建。
 
 ```kotlin
 Employees.createEntity(row, withReferences = false)
