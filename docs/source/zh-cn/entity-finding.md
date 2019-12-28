@@ -72,7 +72,7 @@ where _ref0.location = ?
 
 > 注意：我们在通过 `it.departmentId.referenceTable` 获取到引用的表对象后，把它转型成了 `Departments`，因此这要求我们必须使用 class 而不是 object 定义表对象，并且重写 `aliased` 函数，具体参见[表别名](./joining.html#自连接查询与表别名)的相关介绍。
 
-除了 `find` 函数外，实体序列 API 还给我们提供了许多方便的函数，如使用 `filter` 对元素进行筛选、使用 `groupingBy` 进行分组聚合等。与 SQL DSL 相比，实体序列 API 更具有函数式风格，其使用方式就像在操作内存中的集合一样，因此我们建议大家优先使用。更多用法请参见[实体序列](./entity-sequence.html)一节。
+除了 `find` 函数外，实体序列 API 还给我们提供了许多方便的函数，如使用 `filter` 对元素进行筛选、使用 `groupingBy` 进行分组聚合等。与 SQL DSL 相比，实体序列 API 更具有函数式风格，其使用方式就像在操作内存中的集合一样，因此我们建议大家优先使用。更多用法请参见[实体序列](./entity-sequence.html)和[序列聚合](./sequence-aggregation.html)的文档。
 
 ## 使用查询 DSL 获取实体
 

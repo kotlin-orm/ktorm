@@ -6,23 +6,25 @@ related_path: zh-cn/entity-finding.html
 
 # Entity Finding
 
-Ktorm provides many extension functions to obtain entity objects from databases, their names commonly start with `find`. 
+Ktorm provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc.
 
-## find\* Functions
+## Get Entities by Sequences
 
-Let's discuss `findList` function fist, it's an extension function of `Table` class, and its signature is given as follows: 
-
-```kotlin
-inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E>
-```
-
-This function accepts a closure as its parameter, executes a query with the filter condition returned by the closure, then returns a list of entity objects obtained from the result set. The closure function also accepts a parameter of type `T`, which is the current table object, so we can use `it` to access the table in the closure. The code obtaining all employees in department 1: 
+To use entity sequence, we need to create a sequence object via `sequenceOf` firstly: 
 
 ```kotlin
-val employees = Employees.findList { it.departmentId eq 1 }
+val sequence = database.sequenceOf(Employees)
 ```
 
-That's natural, just like filtering a collection via Kotlin's built-in extension functions, the only difference is the  `==` in the lambda is replace by the `eq` function. 
+The returned object can be thought of as a sequence holding all records in the `Employees` table. To get an entity object from this sequence, you can use the `find` function: 
+
+```kotlin
+val employee = sequence.find { it.id eq 1 }
+```
+
+This is natural, just like finding from a collection via Kotlin’s built-in extension functions, the only difference is the `==` in the lambda is replace by the `eq` function.
+
+The `find` function accepts a closure typed of `(T) -> ColumnDeclaring<Boolean>`, executes a query with the filter condition returned by the closure, then returns the first entity object obtained from the result set. The closure function itself as the parameter also accepts a parameter typed of `T`, which is the current table object, so we can use `it` to access the table in the closure.
 
 Generated SQL: 
 
@@ -30,25 +32,25 @@ Generated SQL:
 select t_employee.id as t_employee_id, t_employee.name as t_employee_name, t_employee.job as t_employee_job, t_employee.manager_id as t_employee_manager_id, t_employee.hire_date as t_employee_hire_date, t_employee.salary as t_employee_salary, t_employee.department_id as t_employee_department_id, _ref0.id as _ref0_id, _ref0.name as _ref0_name, _ref0.location as _ref0_location 
 from t_employee 
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
-where t_employee.department_id = ? 
+where t_employee.id = ? 
 ```
 
-> The generated SQL contains a very long field list, that's necessary, Ktorm tries its best to avoid using `select *`. But for the sake of presentation, in later SQLs, we will still replace them with `select *`. 
+> The generated SQL contains a very long field list, that’s necessary, Ktorm tries its best to avoid using `select *`. But for the sake of presentation, in later documents, we will still replace those field lists with `select *`.
 
-Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s reference table `t_department` using a foreign key. That's because we bind the `departmentId` column to `Departments` table by a reference binding in the table object. By using the reference binding, when we obtain employees via `find*` functions, Ktorm will auto left join the referenced table, obtaining the departments at the same time, and filling them into property `Employee.department`. 
+Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s reference table `t_department` using a foreign key. That’s because we bind the `departmentId` column to `Departments` table by a reference binding in the table object. By using the reference binding, when we obtain employees via sequence APIs, Ktorm will auto left join the referenced table, obtaining the departments at the same time, and filling them into property `Employee.department`.
 
 > Note: please avoid circular references while using reference bindings. For instance, now that `Employees` references `Departments`, then `Departments` cannot reference `Employees` directly or indirectly, otherwise a stack overflow will occur when Ktorm tries to left join `Departments`. 
 
-Now that referenced tables are auto left joined, we can also use their columns in our filter conditions. The code below uses the `referenceTable` property of `Column` to access `departmentId`'s referenced table and obtains all employees who work at Guangzhou: 
+Now that referenced tables are auto left joined, we can also use their columns in our filter conditions. The code below uses `Column.referenceTable` to access `departmentId`'s referenced table and obtains an employee who works at Guangzhou:
 
 ```kotlin
-val employees = Employees.findList {
+val employee = sequence.find {
     val dept = it.departmentId.referenceTable as Departments
     dept.location eq "Guangzhou"
 }
 ```
 
-To make it more elegant, we can add a get property to `Employees` table. The following code is completely equivalent to the above's, but it reads more natural: 
+To make it more elegant, we can add a get property to `Employees` table. The following code is completely equivalent to the above’s, but it reads more natural: 
 
 ```kotlin
 open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
@@ -56,30 +58,23 @@ open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
     val department get() = departmentId.referenceTable as Departments
 }
 
-val employees = Employees.findList { it.department.location eq "Guangzhou" }
+val employee = sequence.find { it.department.location eq "Guangzhou" }
 ```
 
 Generated SQL: 
 
-```sql
+````sql
 select * 
 from t_employee 
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 where _ref0.location = ? 
-```
+````
 
-> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Employees`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be found at the documentation of [table aliases](./joining.html#Self-Joining-and-Table-Aliases). 
+> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Departments`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be found at the documentation of [table aliases](./joining.html#Self-Joining-amp-Table-Aliases).
 
-Including `findList`, Ktorm provides a list of `find*` functions, they are all extension functions of `Table` class and their behaviors are similar: 
+Besides the `find` function, *Entity Sequence* also provides many convenient functions for us. For example, using `filter` to find elements that matches the given condition, using `groupingBy` to group elements and do some aggregation. Comparing with SQL DSL, sequence APIs are more functional, we can use them just like operating a collection in memory, so we recommend it as your first choice. For more documents, see [Entity Sequence](./entity-sequence.html) and [Sequence Aggregation](./sequence-aggregation.html).
 
-- **findList:** obtain a list of entity objects using the specific condition. 
-- **findAll:** obtain all the entity objects in the table. 
-- **findOne:** obtain one entity object using the specific condition. If it doesn't exist, return null, otherwise, if there are more than one entities matching the condition, an exception will be thrown. 
-- **findById:** obtain an entity object by primary key. If it doesn't exist, return null, otherwise if there many, throw an exception. 
-- **findListByIds:** obtain a list of entity objects by primary key.
-- **findMapByIds:** obtain a map of entity objects by primary key, in which the keys are the primary keys, and the values are the entities. 
-
-## Get Entities from Queries
+## Get Entities by Query DSL
 
 `find*` functions will auto left join reference tables, that may be unnecessary in some casts. Besides, `find*` functions also can not control the selected columns, ordering, pagination, etc. If you want more fine-grained control over the queries, you can use the query DSL introduced in the former sections. Ktorm provides a way to create entity objects from a query DSL. 
 
