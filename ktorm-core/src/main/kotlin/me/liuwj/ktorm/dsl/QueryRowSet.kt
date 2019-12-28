@@ -356,6 +356,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getByte(columnIndex: Int): Byte {
         return when (val value = getColumnValue(columnIndex)) {
             is Number -> value.toByte()
+            is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toByte() ?: 0
         }
     }
@@ -363,6 +364,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getShort(columnIndex: Int): Short {
         return when (val value = getColumnValue(columnIndex)) {
             is Number -> value.toShort()
+            is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toShort() ?: 0
         }
     }
@@ -370,6 +372,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getInt(columnIndex: Int): Int {
         return when (val value = getColumnValue(columnIndex)) {
             is Number -> value.toInt()
+            is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toInt() ?: 0
         }
     }
@@ -377,6 +380,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getLong(columnIndex: Int): Long {
         return when (val value = getColumnValue(columnIndex)) {
             is Number -> value.toLong()
+            is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toLong() ?: 0
         }
     }
@@ -384,6 +388,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getFloat(columnIndex: Int): Float {
         return when (val value = getColumnValue(columnIndex)) {
             is Number -> value.toFloat()
+            is Boolean -> if (value) 1.0F else 0.0F
             else -> value?.toString()?.toFloat() ?: 0.0F
         }
     }
@@ -391,6 +396,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getDouble(columnIndex: Int): Double {
         return when (val value = getColumnValue(columnIndex)) {
             is Number -> value.toDouble()
+            is Boolean -> if (value) 1.0 else 0.0
             else -> value?.toString()?.toDouble() ?: 0.0
         }
     }
@@ -602,6 +608,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
     override fun getBigDecimal(columnIndex: Int): BigDecimal? {
         return when (val value = getColumnValue(columnIndex)) {
             is BigDecimal -> value
+            is Boolean -> if (value) BigDecimal.ONE else BigDecimal.ZERO
             else -> value?.toString()?.toBigDecimal()
         }
     }
