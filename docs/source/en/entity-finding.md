@@ -70,30 +70,35 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where _ref0.location = ? 
 ````
 
-> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Departments`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be found at the documentation of [table aliases](./joining.html#Self-Joining-amp-Table-Aliases).
+> Note: here we get the referenced table object via `it.departmentId.referenceTable` and cast it as `Departments`, which requires us to define tables as classes instead of singleton objects and to override the `aliased` function. More details can be found in the documentation of [table aliases](./joining.html#Self-Joining-amp-Table-Aliases).
 
-Besides the `find` function, *Entity Sequence* also provides many convenient functions for us. For example, using `filter` to find elements that matches the given condition, using `groupingBy` to group elements and do some aggregation. Comparing with SQL DSL, sequence APIs are more functional, we can use them just like operating a collection in memory, so we recommend it as your first choice. For more documents, see [Entity Sequence](./entity-sequence.html) and [Sequence Aggregation](./sequence-aggregation.html).
+Besides the `find` function, *Entity Sequence* also provides many convenient functions for us. For example, using `filter` to find elements that matches the given condition, using `groupingBy` to group elements and do some aggregation, etc.. Comparing with SQL DSL, sequence APIs are more functional, and can be used just like operating a collection in memory, so we recommend it as your first choice. For more documents, see [Entity Sequence](./entity-sequence.html) and [Sequence Aggregation](./sequence-aggregation.html).
 
 ## Get Entities by Query DSL
 
-`find*` functions will auto left join reference tables, that may be unnecessary in some casts. Besides, `find*` functions also can not control the selected columns, ordering, pagination, etc. If you want more fine-grained control over the queries, you can use the query DSL introduced in the former sections. Ktorm provides a way to create entity objects from a query DSL. 
+Sequence APIs will auto left join reference tables, that may be unnecessary in some cases. If you want more fine-grained control over the queries, you can use the query DSL introduced in the former sections. Ktorm provides a way to create entity objects from query DSL. 
 
-The example below uses `createEntity` function to obtain a list of entities from a query DSL: 
+The example below uses `createEntity` function to obtain a list of entities from a query: 
 
 ```kotlin
-val employees = Employees
+val employees = database
+    .from(Employees)
     .select()
     .orderBy(Employees.id.asc())
-    .map { Employees.createEntity(it) }
+    .map { row -> Employees.createEntity(row) }
 
 employees.forEach { println(it) }
 ```
 
-`Query` implements the `Iterable<QueryRowSet>` interface, so we can use the Kotlin built-in `map` function to iterate it and create an entity object from the result set via `createEntity` for each row. `createEntity` is a function of `Table` class, it will create an entity object from the result set, using the binding configurations in the table object, filling columns' values into corresponding entities' properties. And if there are any reference bindings to other tables, it will also create the referenced entity objects recursively. 
+`Query` implements the `Iterable<QueryRowSet>` interface, so we can use the Kotlin built-in `map` function to iterate it and create an entity object from the result set via `createEntity` for each row. `createEntity` is a function of `Table` class, it will create an entity object from the result set, using the binding configurations of the table, filling columns' values into corresponding entities' properties. And if there are any reference bindings to other tables, it will also create the referenced entity objects recursively. 
 
-The selected columns in query DSL are customizable, and there may be no columns from referenced tables. In this case, Ktorm provides a `createEntityWithoutReferences` function since version 2.0, which do the same thing as `createEntity`. But it doesn't obtain referenced entities' data automatically. It treats all reference bindings as nested bindings to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`, it is equivalent to `c.bindTo { it.department.id }` for it, that avoids unnecessary object creations and some exceptions raised by conflict column names. 
+However, the selected columns in query DSL are customizable, and there may be no columns from referenced tables. In this case, the function provides a parameter named `withReferences`, which is defaultly `true`. But if we set it to `false`, it will not obtain referenced entities' data anymore, it will treat all reference bindings as nested bindings to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`, it is equivalent to `c.bindTo { it.department.id }` for it, that avoids some unnecessary object creations. 
 
-Get back the example above, no matter we use `createEntity` or `createEntityWithoutReferences`, it will generate a simple SQL `select * from t_employee order by t_employee.id` and print the same results:  
+```kotlin
+Employees.createEntity(row, withReferences = false)
+```
+
+Get back the example above, because we didn't join any tables, so no matter we set the parameter to `true` or `false`, Ktorm will generate a simple SQL `select * from t_employee order by t_employee.id` and print the same results:  
 
 ```plain
 Employee{id=1, name=vince, job=engineer, hireDate=2018-01-01, salary=100, department=Department{id=1}}
@@ -104,15 +109,16 @@ Employee{id=4, name=penny, job=assistant, manager=Employee{id=3}, hireDate=2019-
 
 ## joinReferencesAndSelect
 
-`joinReferencesAndSelect` is also an extension function of `Table` class, it returns a new-created `Query` object, left joining all the reference tables recursively, and selecting all columns of them. We can not only use the returned `Query` object to obtain all entity objects but also call any other extension functions of `Query` to modify it. Actually, `find*` functions are implemented based on `joinReferencesAndSelect`. 
+`joinReferencesAndSelect` is an extension function of `QuerySource`, it returns a new-created `Query` object, left joining all the reference tables recursively, and selecting all columns of them. Not only we can use the returned query to obtain all entity objects, but also we can call any other extension functions of `Query` to modify it. Actually, sequence APIs are based on this function to implement the auto joining of reference tables. 
 
 The example below queries all the employees along with their departments, sorting them by their IDs ascending: 
 
 ```kotlin
-val employees = Employees
+val employees = database
+    .from(Employees)
     .joinReferencesAndSelect()
     .orderBy(Employees.id.asc())
-    .map { Employees.createEntity(it) }
+    .map { row -> Employees.createEntity(row) }
 ```
 
 Generated SQL: 
@@ -124,15 +130,16 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 order by t_employee.id 
 ```
 
-We can see in the SQL that the query above is equivalent to calling the `leftJoin` function manually, the following query is completely equal to the example above. Using `joinReferencesAndSelect` can help us to reduce some boilerplate codes. 
+We can see in the SQL that the query above is equivalent to calling the `leftJoin` function manually, the following query is completely equal to the example above. Using `joinReferencesAndSelect` can help us to reduce some boilerplate code. 
 
 ```kotlin
 val emp = Employees
 val dept = emp.departmentId.referenceTable as Departments
 
-val employees = emp
+val employees = database
+    .from(emp)
     .leftJoin(dept, on = emp.departmentId eq dept.id)
     .select(emp.columns + dept.columns)
     .orderBy(emp.id.asc())
-    .map { emp.createEntity(it) }
+    .map { row -> emp.createEntity(row) }
 ```

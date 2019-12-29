@@ -109,7 +109,7 @@ Employee{id=4, name=penny, job=assistant, manager=Employee{id=3}, hireDate=2019-
 
 ## joinReferencesAndSelect
 
-`joinReferencesAndSelect` 也是 `Table` 类的扩展函数，它创建一个 `Query` 对象，这个查询递归地 left join 当前表对象的所有关联表，并且 select 出它们的所有列。你可以直接从这个返回的 `Query` 对象中获取所有的记录，也可以紧接着调用 `Query` 类的其他扩展方法修改这个查询。实际上，实体序列 API 就是基于这个函数实现自动联表的。
+`joinReferencesAndSelect` 是 `QuerySource` 的扩展函数，它创建一个 `Query` 对象，这个查询递归地 left join 当前表对象的所有关联表，并且 select 出它们的所有列。你可以直接从这个返回的 `Query` 对象中获取所有的记录，也可以紧接着调用 `Query` 类的其他扩展方法修改这个查询。实际上，实体序列 API 就是基于这个函数实现自动联表的。
 
 下面是一个使用示例，这个查询获取所有的员工及其所在的部门的信息，并按员工的 ID 进行排序：
 
