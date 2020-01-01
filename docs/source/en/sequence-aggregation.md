@@ -6,7 +6,7 @@ related_path: zh-cn/sequence-aggregation.html
 
 # Sequence Aggregation
 
-The entity sequence APIs not only allow us to obtain entities from databases just like using `kotlin.sequences.Sequence`, but they also provide rich support for aggregations, so we can conveniently count the columns, sum them, or calculate their averages, etc. 
+The entity sequence APIs not only allow us to obtain entities from databases just like using `kotlin.sequences`, but they also provide rich support for aggregations, so we can conveniently count the columns, sum them, or calculate their averages, etc. 
 
 > Note: entity sequence APIs are only available since Ktorm version 2.0. 
 

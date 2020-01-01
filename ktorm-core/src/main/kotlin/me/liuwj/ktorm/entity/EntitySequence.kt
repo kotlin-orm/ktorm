@@ -53,16 +53,27 @@ import kotlin.math.min
  * - **Terminal operations:** the return types of these functions are usually a collection or a computed result, as
  * they execute the queries right now, obtain their results and perform some calculations on them. Eg. [toList],
  * [reduce], etc.
- *
- * @property database the [Database] instance that the internal query is running on.
- * @property sourceTable the source table from which the elements are obtained.
- * @property expression the SQL expression to be executed by this sequence when obtaining elements.
- * @property entityExtractor a function used to extract entity objects for each result row.
  */
 data class EntitySequence<E : Any, T : BaseTable<E>>(
+
+    /**
+     * The [Database] instance that the internal query is running on.
+     */
     val database: Database,
+
+    /**
+     * The source table from which elements are obtained.
+     */
     val sourceTable: T,
+
+    /**
+     * The SQL expression to be executed by this sequence when obtaining elements.
+     */
     val expression: SelectExpression,
+
+    /**
+     * The function used to extract entity objects for each result row.
+     */
     val entityExtractor: (row: QueryRowSet) -> E
 ) {
     /**
@@ -585,6 +596,15 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
 }
 
 /**
+ * Return `true` if the sequence has at lease one element.
+ *
+ * The operation is terminal.
+ */
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
+    return count() > 0
+}
+
+/**
  * Return `true` if the sequence has no elements.
  *
  * The operation is terminal.
@@ -602,15 +622,6 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
     return count(predicate) == 0
-}
-
-/**
- * Return `true` if the sequence has at lease one element.
- *
- * The operation is terminal.
- */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
-    return count() > 0
 }
 
 /**

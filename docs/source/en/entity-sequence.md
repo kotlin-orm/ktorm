@@ -100,7 +100,7 @@ Most of the entity sequence APIs are provided as extension functions, which can 
 
 ## Intermediate Operations
 
-Just like `kotlin.sequences.Sequence`, the intermediate operations of `EntitySequence` doesn't iterate the sequences and execute the internal queries, they all return new-created sequence objects instead. These intermediate operations are listed below: 
+Just like `kotlin.sequences`, the intermediate operations of `EntitySequence` doesn't iterate the sequences and execute the internal queries, they all return new-created sequence objects instead. These intermediate operations are listed below: 
 
 ### filter
 
@@ -110,13 +110,13 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
 ): EntitySequence<E, T>
 ```
 
-Similar to the `filter` function of `kotlin.sequences.Sequence`, the `filter` function here also accepts a closure as its parameter, and the returned value from the closure will be used as a filter condition. Differently, our closure has a parameter of type `T`, the current table object, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<Boolean>` instead of `Boolean`. The following code obtains all the employees in department 1 by using `filter`: 
+Similar to the `filter` function of `kotlin.sequences`, the `filter` function here also accepts a closure as its parameter, and the returned value from the closure will be used as a filter condition. Differently, our closure has a parameter of type `T`, the current table object, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<Boolean>` instead of `Boolean`. The following code obtains all the employees in department 1 by using `filter`: 
 
 ```kotlin
 val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
 ```
 
-We can see that the usage is almost the same as `kotlin.sequences.Sequence`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
+We can see that the usage is almost the same as `kotlin.sequences`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
 val employees = Employees
@@ -230,7 +230,7 @@ Note that these two functions are implemented based on the pagination feature of
 
 ## Terminal Operations
 
-Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them. Now let's talk about some terminal operations of them, which are almost the same as `kotlin.sequences.Sequence`. 
+Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them. Now let's talk about some terminal operations of them, which are almost the same as `kotlin.sequences`. 
 
 ### toCollection
 
@@ -269,7 +269,7 @@ from t_employee
 
 Note that although we only need the names here, the generated SQL still selects all columns, that's because Ktorm doesn't know which columns are required. If we are sensitive to that performance issue, we can use the `filterColumns` function cooperatively, or we can also use the `mapColumns` function instead. 
 
-In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `mapIndexed` and `mapIndexedTo`, they have the same names as the extension functions of `kotlin.sequences.Sequence` in Kotlin standard lib and their usages are totally the same. 
+In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `mapIndexed` and `mapIndexedTo`, they have the same names as the extension functions of `kotlin.sequences` in Kotlin standard lib and their usages are totally the same. 
 
 ### mapColumns
 
@@ -333,13 +333,13 @@ In addition to the basic form of `mapColumns` function, Ktorm also provides `map
 
 ### associate
 
-The `associate` function executes the internal query, then iterate the query results and collect them into a `Map`. Its usage is totally the same as the corresponding extension function of `kotlin.sequences.Sequence`, more details can be found in Kotlin's documents. 
+The `associate` function executes the internal query, then iterate the query results and collect them into a `Map`. Its usage is totally the same as the corresponding extension function of `kotlin.sequences`, more details can be found in Kotlin's documents. 
 
 In addition to the basic form of `associate` function, Ktorm also provides `associateBy`, `associateWith`, `associateTo`, `associateByTo`, `associateWithTo`.
 
 ### elementAt/first/last/find/findLast/single
 
-These functions are used to get the element at a specific position from the sequence. Their usages are also the same as the corresponding ones of `kotlin.sequences.Sequence`. 
+These functions are used to get the element at a specific position from the sequence. Their usages are also the same as the corresponding ones of `kotlin.sequences`. 
 
 Especially, if a dialect is enabled, these functions will use the pagination feature to obtain the very record only. Assuming we are using MySQL and calling the `elementAt` with an index 10, a SQL containing `limit 10, 1` will be generated. But if there are no dialects enabled, then all records will be obtained to ensure the functions just works. 
 
@@ -347,7 +347,7 @@ In addition to the basic forms, there are also many variants for these functions
 
 ### fold/reduce/forEach
 
-This serial of functions provide features of iteration and folding, and their usages are also the same as the corresponding ones of `kotlin.sequences.Sequence`. The following code calculates the total salary of all employees: 
+This serial of functions provide features of iteration and folding, and their usages are also the same as the corresponding ones of `kotlin.sequences`. The following code calculates the total salary of all employees: 
 
 ```kotlin
 val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
@@ -361,7 +361,7 @@ val totalSalary = Employees.sumBy { it.salary }
 
 ### joinTo/joinToString
 
-These two functions provide the feature of joining the sequence elements to strings, and their usages are also the same as the corresponding ones of `kotlin.sequences.Sequence`. The following code joins all the employees' names to a string: 
+These two functions provide the feature of joining the sequence elements to strings, and their usages are also the same as the corresponding ones of `kotlin.sequences`. The following code joins all the employees' names to a string: 
 
 ```kotlin
 val names = Employees.asSequence().joinToString(separator = ":") { it.name }

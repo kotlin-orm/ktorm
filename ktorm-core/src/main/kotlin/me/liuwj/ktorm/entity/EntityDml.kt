@@ -130,7 +130,7 @@ private fun EntitySequence<*, *>.checkIfSequenceModified() {
     if (isModified) {
         throw UnsupportedOperationException(
             "Entity manipulation functions are not supported by this sequence object. " +
-            "Please use the origin one returned from database.sequenceOf(table)"
+            "Please call on the origin sequence returned from database.sequenceOf(table)"
         )
     }
 }
@@ -146,7 +146,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
 }
 
 /**
- * Remove all of the elements of this sequence.
+ * Remove all of the elements of this sequence. The sequence will be empty after this function returns.
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
     checkIfSequenceModified()
