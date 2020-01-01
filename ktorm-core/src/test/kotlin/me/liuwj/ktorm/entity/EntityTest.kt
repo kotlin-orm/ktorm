@@ -401,4 +401,18 @@ class EntityTest : BaseTest() {
         employee = database.sequenceOf(Employees).find { it.id eq 1 } ?: return
         assert(employee.name == "jerry")
     }
+
+    @Test
+    fun testRemoveIf() {
+        val sequence = database.sequenceOf(Employees)
+        sequence.removeIf { it.departmentId eq 1 }
+        assert(sequence.count() == 2)
+    }
+
+    @Test
+    fun testClear() {
+        val sequence = database.sequenceOf(Employees)
+        sequence.clear()
+        assert(sequence.isEmpty())
+    }
 }

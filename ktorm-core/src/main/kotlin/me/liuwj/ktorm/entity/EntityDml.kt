@@ -19,6 +19,8 @@ package me.liuwj.ktorm.entity
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.AliasRemover
+import me.liuwj.ktorm.dsl.delete
+import me.liuwj.ktorm.dsl.deleteAll
 import me.liuwj.ktorm.dsl.executeUpdate
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
@@ -52,6 +54,7 @@ fun <E : Entity<E>> Table<E>.add(entity: E): Int {
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
+    checkIfSequenceModified()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
     val assignments = sourceTable.findInsertColumns(entity).takeIf { it.isNotEmpty() } ?: return 0
@@ -113,6 +116,41 @@ private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> 
     }
 
     return assignments
+}
+
+private fun EntitySequence<*, *>.checkIfSequenceModified() {
+    val isModified = expression.where != null
+        || expression.groupBy.isNotEmpty()
+        || expression.having != null
+        || expression.isDistinct
+        || expression.orderBy.isNotEmpty()
+        || expression.offset != null
+        || expression.limit != null
+
+    if (isModified) {
+        throw UnsupportedOperationException(
+            "Entity manipulation functions are not supported by this sequence object. " +
+            "Please use the origin one returned from database.sequenceOf(table)"
+        )
+    }
+}
+
+/**
+ * Remove all of the elements of this sequence that satisfy the given [predicate].
+ */
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): Int {
+    checkIfSequenceModified()
+    return database.delete(sourceTable, predicate)
+}
+
+/**
+ * Remove all of the elements of this sequence.
+ */
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
+    checkIfSequenceModified()
+    return database.deleteAll(sourceTable)
 }
 
 @Suppress("UNCHECKED_CAST")

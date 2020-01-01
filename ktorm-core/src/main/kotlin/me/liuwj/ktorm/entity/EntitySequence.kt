@@ -580,6 +580,15 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(
  *
  * The operation is terminal.
  */
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
+    return count() == 0
+}
+
+/**
+ * Return `true` if the sequence has no elements.
+ *
+ * The operation is terminal.
+ */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(): Boolean {
     return count() == 0
 }
@@ -593,6 +602,15 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
     return count(predicate) == 0
+}
+
+/**
+ * Return `true` if the sequence has at lease one element.
+ *
+ * The operation is terminal.
+ */
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
+    return count() > 0
 }
 
 /**
