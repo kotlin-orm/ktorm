@@ -8,8 +8,6 @@ related_path: en/sequence-aggregation.html
 
 实体序列 API 不仅可以让我们使用类似 `kotlin.sequences` 的方式获取数据库中的实体对象，它还支持丰富的聚合功能，让我们可以方便地对指定字段进行计数、求和、求平均值等操作。
 
-> 注意：实体序列 API 仅在 Ktorm 2.0 及以上版本中提供。
-
 ## 简单聚合
 
 我们首先来看看 `aggregateColumns` 函数的定义：
@@ -23,8 +21,8 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateCo
 这是一个终止操作，它接收一个闭包作为参数，在闭包中，我们需要返回一个聚合表达式。Ktorm 会使用我们返回的聚合表达式，根据当前序列的查询条件创建一个聚合查询， 然后执行这个查询，获取聚合的结果。下面的代码获取部门 1 中工资的最大值：
 
 ```kotlin
-val max = Employees
-    .asSequenceWithoutReferences()
+val max = database
+    .sequenceOf(Employees, withReferences = false)
     .filter { it.departmentId eq 1 }
     .aggregateColumns { max(it.salary) }
 ```
@@ -32,8 +30,8 @@ val max = Employees
 如果你希望同时获取多个聚合结果，可以改用 `aggregateColumns2` 或 `aggregateColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些聚合表达式，函数的返回值也相应变成了 `Pair<C1?, C2?>` 或 `Triple<C1?, C2?, C3?>`。下面的例子获取部门 1 中工资的平均值和极差：
 
 ```kotlin
-val (avg, diff) = Employees
-    .asSequenceWithoutReferences()
+val (avg, diff) = database
+    .sequenceOf(Employees, withReferences = false)
     .filter { it.departmentId eq 1 }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
@@ -76,14 +74,14 @@ inline fun <E : Any, K> EntitySequence<E, *>.groupBy(
 很明显，这是一个终止操作，它会马上执行查询，迭代所有返回的实体对象，通过闭包传入的 `keySelector` 获取实体对象的分组 key，按照这个 key 对它们进行分组，将每个元素添加到所属组的集合中。下面的代码获取所有员工对象，并按部门进行分组：
 
 ```kotlin
-val employees = Employees.asSequence().groupBy { it.department.id }
+val employees = database.sequenceOf(Employees).groupBy { it.department.id }
 ```
 
 在这里，`employees` 的类型是 `Map<Int, List<Employee>>`，其中，key 是部门 ID，value 是在这个部门下的所有员工的列表。现在我们已经有了所有部门下的员工列表，然后就可以使用这些数据进行一些聚合计算。比如下面的代码可以计算出所有部门的平均工资：
 
 ```kotlin
-val averageSalaries = Employees
-    .asSequence()
+val averageSalaries = database
+    .sequenceOf(Employees)
     .groupBy { it.department.id }
     .mapValues { (_, employees) -> employees.map { it.salary }.average() }
 ```
@@ -132,8 +130,8 @@ inline fun <E : Any, T : BaseTable<E>, K : Any, C : Any> EntityGrouping<E, T, K>
 与 `EntitySequence` 的 `aggregateColumns` 函数类似，这是一个终止操作，它接收一个闭包作为参数，在闭包中，我们需要返回一个聚合表达式。Ktorm 会使用我们返回的聚合表达式，根据当前序列的查询条件和分组条件创建一个聚合查询，然后执行这个查询，获取聚合的结果。它的返回值是 `Map<K?, C?>`，其中，key 是我们的分组列的值，value 是该组中的聚合结果。下面的代码可以获取所有部门的平均工资：
 
 ```kotlin
-val averageSalaries = Employees
-    .asSequenceWithoutReferences()
+val averageSalaries = database
+    .sequenceOf(Employees, withReferences = false)
     .groupingBy { it.departmentId }
     .aggregateColumns { avg(it.salary) }
 ```
@@ -149,8 +147,8 @@ group by t_employee.department_id
 如果你希望同时获取多个聚合结果，可以改用 `aggregateColumns2` 或 `aggregateColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些聚合表达式，函数的返回值也相应变成了 `Map<K?, Pair<C1?, C2?>>` 或 `Map<K?, Triple<C1?, C2?, C3?>>`。下面的例子会打印出所有部门工资的平均值和极差：
 
 ```kotlin
-Employees
-    .asSequenceWithoutReferences()
+database
+    .sequenceOf(Employees, withReferences = false)
     .groupingBy { it.departmentId }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
     .forEach { departmentId, (avg, diff) ->
@@ -179,8 +177,8 @@ group by t_employee.department_id
 有了这些辅助函数，上面获取所有部门平均工资的代码就可以改写成：
 
 ```kotlin
-val averageSalaries = Employees
-    .asSequenceWithoutReferences()
+val averageSalaries = database
+    .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .eachAverageBy { it.salary }
 ```
@@ -188,8 +186,8 @@ val averageSalaries = Employees
 除此之外，Ktorm 还提供了 `aggregate`、`fold`、`reduce` 等函数，它们与 `kotlin.collections.Grouping` 的相应函数同名，功能也完全一样。下面的代码使用 `fold` 函数计算每个部门工资的总和：
 
 ```kotlin
-val totalSalaries = Employees
-    .asSequenceWithoutReferences()
+val totalSalaries = database
+    .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .fold(0L) { acc, employee -> 
         acc + employee.salary 
@@ -199,8 +197,8 @@ val totalSalaries = Employees
 当然，如果仅仅为了获得工资总和，我们没必要这样做。这是性能低下的写法，它会查询出所有员工的数据，然后对它们进行迭代，这里仅用作示范，更好的写法是使用 `eachSumBy` 函数：
 
 ```kotlin
-val totalSalaries = Employees
-    .asSequenceWithoutReferences()
+val totalSalaries = database
+    .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .eachSumBy { it.salary }
 ```
