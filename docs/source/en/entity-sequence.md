@@ -6,22 +6,20 @@ related_path: zh-cn/entity-sequence.html
 
 # Entity Sequence
 
-In addition to the `find*` functions, Ktorm also provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc. 
-
-> Note: entity sequence APIs are only available since Ktorm version 2.0. 
+In the previous section, we briefly learned how to obtain entity objects via sequence APIs. Now we will introduce them in more detail. 
 
 ## Introduction
 
-To create an entity sequence, we can call the extension function `asSequence` on a table object: 
+To create an entity sequence, we can use the extension function `sequenceOf`: 
 
 ```kotlin
-val sequence = Employees.asSequence()
+val sequence = database.sequenceOf(Employees)
 ```
 
-Now we got a default sequence, which can obtain all employees from the table. Please take it easy, Ktorm doesn't execute the query right now. The sequence provides an iterator of type `Iterator<Employee>`, only when we iterate the sequence using the iterator, the query is executed. The following code prints all employees using a for-each loop: 
+Now we got a default sequence, which can obtain all employees from the table. Please know that Ktorm doesn't execute the query right now. The sequence provides an iterator of type `Iterator<Employee>`, only when we iterate the sequence using the iterator, the query is executed. The following code prints all employees using a for-each loop: 
 
 ```kotlin
-for (employee in Employees.asSequence()) {
+for (employee in sequence) {
     println(employee)
 }
 ```
@@ -34,18 +32,18 @@ from t_employee
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ```
 
-> We can also create a sequence object by calling `asSequenceWithoutReferences` function to disable the auto-joining of reference tables. 
+> While calling `sequenceOf`, we can set the parameter `withReferences` to `false` to disable the auto-joining of reference tables, eg: `database.sequenceOf(Employees, withReferences = false)`
 
 In addition to the for-each loop, we can also use the extension function  `toList` to save all the items from the sequence into a list: 
 
 ```kotlin
-val employees = Employees.asSequence().toList()
+val employees = sequence.toList()
 ```
 
 We can even add a filter condition by the `filter` function before calling `toList`: 
 
 ```kotlin
-val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
+val employees = sequence.filter { it.departmentId eq 1 }.toList()
 ```
 
 Now the generated SQL is: 
@@ -57,17 +55,16 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where t_employee.department_id = ? 
 ```
 
-That's the basic use pattern of entity sequence APIs. You might have found that the two examples above are equivalent to the `findAll` and `findList` functions introduced in the former section. Actually, those `find*` functions are implemented based on entity sequence APIs and provide short calling chains. But what the sequence APIs provide, is a query ability that's more powerful and more flexible. 
-
 Now let's learn the definition of the core class `EntitySequence`: 
 
 ```kotlin
 data class EntitySequence<E : Any, T : BaseTable<E>>(
+    val database: Database, 
     val sourceTable: T,
     val expression: SelectExpression,
     val entityExtractor: (row: QueryRowSet) -> E
 ) {
-    val query = Query(expression)
+    val query = Query(database, expression)
 
     val sql get() = query.sql
 
@@ -91,7 +88,7 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
 }
 ```
 
-We can see that any entity sequence contains a query object in it, and it's iterator exactly wraps the query's iterator. While an entity sequence is iterated, its internal query is executed, and the `entityExtractor` is applied to create an entity object for each row. Here, the `entityExtractor` might be `createEntity` or `createEntityWithoutReferences`, that depends on the arguments used to create sequence objects. As for other properties in sequences (such as `sql`, `rowSet`, `totalRecords`, etc), all of them delegates the callings to their internal query objects, and their usages are totally the same as the corresponding properties in `Query` class. 
+We can see that any sequence object contains a query in it, and it's iterator exactly wraps the query's iterator. While an entity sequence is iterated, its internal query is executed, and the `entityExtractor` is applied to create an entity object for each row. As for other properties in sequences (such as `sql`, `rowSet`, `totalRecords`, etc), all of them delegates the callings to their internal query objects, and their usages are totally the same as the corresponding properties in `Query` class. 
 
 Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups: 
 
@@ -113,14 +110,14 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
 Similar to the `filter` function of `kotlin.sequences`, the `filter` function here also accepts a closure as its parameter, and the returned value from the closure will be used as a filter condition. Differently, our closure has a parameter of type `T`, the current table object, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<Boolean>` instead of `Boolean`. The following code obtains all the employees in department 1 by using `filter`: 
 
 ```kotlin
-val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
+val employees = database.sequenceOf(Employees).filter { it.departmentId eq 1 }.toList()
 ```
 
 We can see that the usage is almost the same as `kotlin.sequences`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
-val employees = Employees
-    .asSequence()
+val employees = database
+    .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .filter { it.managerId.isNotNull() }
     .toList()
@@ -135,7 +132,7 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where (t_employee.department_id = ?) and (t_employee.manager_id is not null) 
 ```
 
-Actually, Ktorm provides a `filterNot` function, its usage is totally the same as `filter`, but negates the returned filter condition in the closure. For example, the second `filter` call in the code above can be replaced as `filterNot { it.managerId.isNull }`. Additionally, Ktorm also provides `filterTo` and `filterNotTo`. But they are terminal operations, as they will iterate the sequence and collect the elements into a collection after applying the filter condition, that's equivalent to call `toCollection` immediately after calling `filter`. 
+Actually, Ktorm provides a `filterNot` function, its usage is totally the same as `filter`, but negates the returned filter condition in the closure. For example, the second `filter` call in the code above can be replaced as `filterNot { it.managerId.isNull() }`. Additionally, Ktorm also provides `filterTo` and `filterNotTo`. But they are terminal operations, as they will iterate the sequence and collect the elements into a collection after applying the filter condition, that's equivalent to call `toCollection` immediately after calling `filter`. 
 
 ### filterColumns
 
@@ -148,8 +145,8 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
 By default, an entity sequence selects all the columns from the current table and referenced tables (if enabled), that may lead to unnecessary performance costs. If we are sensitive to the performance issue, we can use the `filterColumns` function, which supports us to custom the selected columns in the query. Assuming we want to get a list of departments, but their location data is not required, we can write codes like: 
 
 ```kotlin
-val departments = Departments
-    .asSequence()
+val departments = database
+    .sequenceOf(Departments)
     .filterColumns { it.columns - it.location }
     .toList()
 ```
@@ -172,7 +169,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
 Ktorm provides a `sortedBy` function, which allows us to specify the *order by* clause for the sequence's internal query. The function accepts a closure as its parameter in which we need to return a column or expression. The following code obtains all the employees and sorts them by their salaries: 
 
 ```kotlin
-val employees = Employees.asSequence().sortedBy { it.salary }.toList()
+val employees = database.sequenceOf(Employees).sortedBy { it.salary }.toList()
 ```
 
 Generated SQL: 
@@ -189,8 +186,8 @@ The `sortedBy` function sorts entities in ascending order, if we need descending
 Sometimes, we need to sort entities by two or more columns, then we can use the `sorted` function, which accepts a closure of type `(T) -> List<OrderByExpression>` as its parameter. The example below sorts the employees firstly by salaries descending, then by hire dates ascending: 
 
 ```kotlin
-val employees = Employees
-    .asSequence()
+val employees = database
+    .sequenceOf(Employees)
     .sorted { listOf(it.salary.desc(), it.hireDate.asc()) }
     .toList()
 ```
@@ -214,7 +211,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): EntitySequenc
 The `drop` and `take` functions are designed for pagination. The `drop` function returns a new sequence containing all elements except first n elements, while the `take` function returns a new sequence only containing first n elements. Usage example: 
 
 ```kotlin
-val employees = Employees.asSequence().drop(1).take(1).toList()
+val employees = database.sequenceOf(Employees).drop(1).take(1).toList()
 ```
 
 If we are using MySQL, the generated SQL is: 
@@ -230,7 +227,7 @@ Note that these two functions are implemented based on the pagination feature of
 
 ## Terminal Operations
 
-Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them. Now let's talk about some terminal operations of them, which are almost the same as `kotlin.sequences`. 
+Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them, the usage of which is almost the same as `kotlin.sequences`. 
 
 ### toCollection
 
@@ -241,7 +238,7 @@ fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(des
 The `toCollection` function is used to collect all the elements in a sequence. It'll execute the internal query right now and iterate the results, adding them to the `destination`: 
 
 ```kotlin
-val employees = Employees.asSequence().toCollection(ArrayList())
+val employees = database.sequenceOf(Employees).toCollection(ArrayList())
 ```
 
 In addition, Ktorm also provides some convenient `toXxx` functions based on `toCollection` to convert sequences to particular type of collections, they are `toList`, `toMutableList`, `toSet`, `toMutableSet`, `toHashSet`, `toSortedSet`. 
@@ -257,7 +254,7 @@ According to our experience of functional programming, we might consider the `ma
 The `map` function will execute the internal query and iterate the query results right now, then perform the transformation specified by the `transform` closure for each element, finally collect the transforming results into a list. The following code obtains all the employees' names: 
 
 ```kotlin
-val names = Employees.asSequenceWithoutReferences().map { it.name }
+val names = database.sequenceOf(Employees, withReferences = false).map { it.name }
 ```
 
 Generated SQL: 
@@ -280,10 +277,10 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
 ): List<C?>
 ```
 
-The `mapColumns` function is similar to `map`. Differently, its closure accepts the current table object `T` as the parameter, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<C>`, and we should return a column or expression needed to be selected from the database. Let's implement the same example as before, the following code obtains all employees' names: 
+The `mapColumns` function is similar to `map`. Differently, its closure accepts the current table object `T` as the parameter, so what we get in the closure by `it` is the table object instead of an entity element. Besides, the closure's return type is `ColumnDeclaring<C>`, and we should return a column or expression needed to be selected from the database. Let's implement the same example as the previous one, the following code obtains all employees' names: 
 
 ```kotlin
-val names = Employees.asSequenceWithoutReferences().mapColumns { it.name }
+val names = database.sequenceOf(Employees, withReferences = false).mapColumns { it.name }
 ```
 
 Now we can see there is only the required column in the generated SQL: 
@@ -303,8 +300,8 @@ fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>) = FunctionExpre
     sqlType = IntSqlType
 )
 
-Employees
-    .asSequenceWithoutReferences()
+database
+    .sequenceOf(Employees, withReferences = false)
     .filter { it.departmentId eq 1 }
     .mapColumns3 { Triple(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
     .forEach { (id, name, days) ->
@@ -343,20 +340,20 @@ These functions are used to get the element at a specific position from the sequ
 
 Especially, if a dialect is enabled, these functions will use the pagination feature to obtain the very record only. Assuming we are using MySQL and calling the `elementAt` with an index 10, a SQL containing `limit 10, 1` will be generated. But if there are no dialects enabled, then all records will be obtained to ensure the functions just works. 
 
-In addition to the basic forms, there are also many variants for these functions, and it's not necessary to list them here.  
+In addition to the basic forms, there are also many variants for these functions, but it's not so necessary to list them here.  
 
 ### fold/reduce/forEach
 
 This serial of functions provide features of iteration and folding, and their usages are also the same as the corresponding ones of `kotlin.sequences`. The following code calculates the total salary of all employees: 
 
 ```kotlin
-val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
+val totalSalary = database.sequenceOf(Employees).fold(0L) { acc, employee -> acc + employee.salary }
 ```
 
 Of course, if only the total salary is needed, we don't have to write codes in that way. Because the performance is really poor, as all employees are obtained from the database. Here we just show you the usage of the `fold` function. It's better to use `sumBy`: 
 
 ```kotlin
-val totalSalary = Employees.sumBy { it.salary }
+val totalSalary = database.sequenceOf(Employees).sumBy { it.salary }
 ```
 
 ### joinTo/joinToString
@@ -364,6 +361,6 @@ val totalSalary = Employees.sumBy { it.salary }
 These two functions provide the feature of joining the sequence elements to strings, and their usages are also the same as the corresponding ones of `kotlin.sequences`. The following code joins all the employees' names to a string: 
 
 ```kotlin
-val names = Employees.asSequence().joinToString(separator = ":") { it.name }
+val names = database.sequenceOf(Employees).joinToString(separator = ":") { it.name }
 ```
 
