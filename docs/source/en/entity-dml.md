@@ -6,47 +6,50 @@ related_path: zh-cn/entity-dml.html
 
 # Entity Manipulation
 
-Ktorm provides some convenient way for us to manipulate entity objects. 
+In addition to querying, sequence APIs also support the manipulation of entity objects. We need to get a sequence object firstly via `sequenceOf`: 
+
+```kotlin
+val sequence = database.sequenceOf(Employees)
+```
 
 ## Insert
 
-The `add` is an extension function of `Table` class, it inserts an entity object into the database, and returns the effected record number after the insertion completes. Here is its signature: 
+Function `add` is an extension of `EntitySequence` class, it inserts an entity object into the database, and returns the effected record number after the insertion completes. Here is its signature: 
 
 ```kotlin
-fun <E : Entity<E>> Table<E>.add(entity: E): Int
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int
 ```
 
-To use this function, we need to create an entity object first. As we talked about in the former sections, we can create entity objects by calling the `Entity.create` function, or using a companion object extending from `Entity.Factory`. Here we choose the later way. The following code creates an employee object, and insert it into the database: 
+To use this function, we need to create an entity object first. As we mentioned in the former sections, we can create entity objects by calling the `Entity.create` function, or using a companion object extending from `Entity.Factory`. Here we choose the later way. The following code creates an employee object, and insert it into the database: 
 
 ```kotlin
 val employee = Employee {
     name = "jerry"
     job = "trainee"
-    manager = Employees.findOne { it.name eq "vince" }
     hireDate = LocalDate.now()
     salary = 50
-    department = Departments.findOne { it.name eq "tech" }
+    department = database.sequenceOf(Departments).find { it.name eq "tech" }
 }
 
-Employees.add(employee)
+sequence.add(employee)
 ```
 
-In this example, we create an employee object and fill its properties with some initial values. Please note the `manager` and `department` properties, their values are both entity objects obtained from the database via `findOne` function. When we call the `add` function, these referenced entities' IDs are both saved into `Employees` table. The generated SQL is given as follows: 
+In this example, we create an employee object and fill its properties with some initial values. Please note the property  `department`, whose value is an entity object just obtained from the database via sequence APIs. When we call the `add` function, the ID of the referenced entity will be saved into `Employees` table. The generated SQL is as follows: 
 
 ```sql
-insert into t_employee (name, job, manager_id, hire_date, salary, department_id) 
-values (?, ?, ?, ?, ?, ?) 
+insert into t_employee (name, job, hire_date, salary, department_id) 
+values (?, ?, ?, ?, ?) 
 ```
 
 It can be seen that the generated SQL contains all the non-null properties in the entity object, and if we remove the assignment of a property or set its value to null, then it's also removed from the SQL. For instance, if we create the employee object with only a name given `Employee { name = "jerry" }`, then the generated SQL will change to `insert into t_employee (name) values (?)`. 
 
 If we use an auto-increment key in our table, we just need to tell Ktorm which column is the primary key by calling the `primaryKey` function on the column registration, then the `add` function will obtain the generated key from the database and fill it into the corresponding property after the insertion completes. But this requires us not to set the primary key's value beforehand, otherwise, if you do that, the given value will be inserted into the database, and no keys will be generated. 
 
-Let's review the example above, we didn't set the value of property `id`, then we could access the generated key via `employee.id` after the `add` function returned. But if we set the `id` to some value, then the value would be inserted into the database, and the `employee.id` would remain unchanged after the insertion completed.
+Let's review the example above, we didn't set the value of property `id`, then we could retrieve the generated key via `employee.id` after the `add` function returned. But if we set the `id` to some value, then the value would be inserted into the database, and the `employee.id` would not change after the insertion completed.
 
 ## Update
 
-We've known that Ktorm's entity classes are defined as interfaces extending from `Entity` which injects many useful functions to our entity objects, so let's learn its definition first: 
+We've known that Ktorm's entity classes are defined as interfaces extending from `Entity` which injects many useful functions to our entity objects, so let's learn its definition now: 
 
 ```kotlin
 interface Entity<E : Entity<E>> : Serializable {
@@ -63,16 +66,16 @@ interface Entity<E : Entity<E>> : Serializable {
 }
 ```
 
-It can be seen that there is a `flushChanges` function in the `Entity` interface. This function updates all the changes of the current entity into the database and returns the affected record number after the update completes. Typical usage is to obtain entity objects via `find*` functions first, then modify their property values according to our requirements, finally call the `flushChanges` function to save the modifications. 
+It can be seen that there is a `flushChanges` function in the `Entity` interface. This function updates all the changes of the current entity into the database and returns the affected record number after the update completes. Typical usage is to obtain entity objects via sequence APIs first, then modify their property values according to our requirements, finally call the `flushChanges` function to save the modifications. 
 
 ```kotlin
-val employee = Employees.findById(5) ?: return
+val employee = sequence.find { it.id eq 5 } ?: return
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()
 ```
 
-The code above generates two SQLs. The first one is generated by `findById`, we won't repeat it. The second one is generated by `flushChanges`, it's given as follows: 
+The code above generates two SQLs. While the first one is generated by `find`, and the second one is generated by `flushChanges`, that is: 
 
 ```sql
 update t_employee set job = ?, salary = ? where id = ? 
@@ -80,21 +83,21 @@ update t_employee set job = ?, salary = ? where id = ?
 
 Let's try to remove the assignment `employee.salary = 100` and only modify the `job` property, then the generated SQL will change to `update t_employee set job = ? where id = ?`; And if we call `flushChanges` without any properties changed, then nothing happens. This indicates that Ktorm can track the status changes of entity objects, that's implemented by JDK dynamic proxy, and that's why Ktorm requires us to define entity classes as interfaces. 
 
-The `discardChanges` function clears the tracked property changes in an entity object, after calling this function, the `flushChanges` doesn't do anything anymore because the property changes are discarded. Additional, if the `flushChanges` is called twice or more continuously, only the first calling will do the update, all the following callings are ignored and nothing happens, that's because the property changes are already updated into the database after the first calling, and Ktorm clears the tracked status after the update completes. 
+The `discardChanges` function clears the tracked property changes in an entity object, after calling this function, the `flushChanges` doesn't do anything anymore because the property changes are discarded. Additional, if the `flushChanges` is called twice or more continuously, only the first calling will do the update, all the following callings will be ignored, that's because the property changes are already updated into the database after the first calling, and Ktorm clears the tracked status after the update completes. 
 
 Using `flushChanges`, we also need to note that: 
 
 1. The function requires a primary key specified in the table object via `primaryKey`, otherwise Ktorm doesn't know how to identify entity objects, then throws an exception. 
-2. The entity object calling `flushChanges` must **be associated with a table** first. In Ktorm's implementation, every entity object holds a reference `fromTable`, that means this object is associated with the table or obtained from it. For entity objects obtained by `find*` functions, their `fromTable` references point to the current table object they are obtained from. But for entity objects created by `Entity.create` or `Entity.Factory`, their `fromTable` references are null initially, so we can not call `flushChanges` on them. But after we insert them into the database via `add` function, Ktorm will modify their `fromTable` to the current table object, so we can call `flushChanges` on them now. 
+2. The entity object calling `flushChanges` must **be associated with a table** first. In Ktorm's implementation, every entity object holds a reference `fromTable`, that means this object is associated with the table or obtained from it. For entity objects obtained by sequence APIs, their `fromTable` are the source tables of the sequences they are obtained from. But for entity objects created by `Entity.create` or `Entity.Factory`, their `fromTable` are null initially, so we can not call `flushChanges` on them. But after we insert them into the database via `add` function, Ktorm will modify their `fromTable` to the current table object, so we can call `flushChanges` on them later. 
 
-> For the second point above, a simple explanation is that the entity object calling `flushChanges` must be obtained from `find*` functions or already saved into the database via `add` function. But there is still one thing we need to pay attention to, Ktorm only saves entities' property values when serialization, any other data (including `fromTable`) that used to track entity status are lost (marked as transient). So we can not obtain an entity object from one system, then flush its changes into the database in another system.
+> For the second point above, a simple explanation is that the entity object calling `flushChanges` must be obtained from sequence APIs or already saved into the database via `add` function. Please also note that when we are serializing entities, Ktorm will save their property values only, any other data (including `fromTable`) that used to track entity status are lost (marked as transient). So we can not obtain an entity object from one system, then flush its changes into the database in another system.
 
 ## Delete
 
-`Entity` interface also provides a `delete` function, which deletes the entity object in the database, and returns the affected record number after the deletion completes. Typical usage is to obtain entity objects via `find*` functions first, then call the `delete` function to delete them according to our requirements.
+`Entity` interface also provides a `delete` function, which deletes the entity object in the database, and returns the affected record number after the deletion completes. Typical usage is to obtain entity objects via sequence APIs first, then call the `delete` function to delete them according to our requirements.
 
 ```kotlin
-val employee = Employees.findById(5) ?: return
+val employee = sequence.find { it.id eq 5 } ?: return
 employee.delete()
 ```
 
@@ -108,3 +111,16 @@ Similar to `flushChanges`, we also need to note that:
 
 1. The function requires a primary key specified in the table object via `primaryKey`, otherwise, Ktorm doesn't know how to identify entity objects.
 2. The entity object calling this function must **be associated with a table** first.
+
+There are also some other functions that can delete entities, they are `removeIf` and `clear`. While `removeIf` deletes records in the table that matches a given condition, and `clear` deletes all records in a table. Here, we use `removeIf` to delete all the employees in department 1: 
+
+```kotlin
+sequence.removeIf { it.departmentId eq 1 }
+```
+
+Generated SQL: 
+
+```sql
+delete from t_employee where department_id = ?
+```
+

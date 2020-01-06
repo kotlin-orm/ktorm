@@ -82,7 +82,7 @@ main:
     type: link
     path: en/entities-and-column-binding.html
 
-  - text: Entity Finding
+  - text: Entity Query
     type: link
     path: en/entity-finding.html
 

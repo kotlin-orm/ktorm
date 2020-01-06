@@ -4,7 +4,7 @@ lang: en
 related_path: zh-cn/entity-finding.html
 ---
 
-# Entity Finding
+# Entity Query
 
 Ktorm provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc.
 
