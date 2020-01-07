@@ -98,6 +98,10 @@ main:
     type: link
     path: zh-cn/entity-dml.html
 
+  - text: 使用任意的类作为实体类
+    type: link
+    path: zh-cn/define-entities-as-any-kind-of-classes.html
+
   - text: 支持和反馈
     type: label
 

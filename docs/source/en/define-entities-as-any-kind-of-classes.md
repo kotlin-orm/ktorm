@@ -18,7 +18,7 @@ Before the refactoring, `Table` was the common base class of all table objects i
 
 Just like before, `Table` limits our entity classes with an upper bound `Entity` on the type parameter. It provides the basic ability of table and column definition as it's a subclass of `BaseTable`, and it also supports a binding mechanism with `Entity` interfaces based on functions such as `bindTo`, `references`. Additionally, `Table` implements the `doCreateEntity` function from the parent class. This function automatically creates an entity object using the binding configuration specified by `bindTo` and `references`, reading columns' values from the result set and filling them into corresponding entity properties. 
 
-## Define an Entity as Data Class
+## Use Data Class
 
 To use data classes, we should define our table objects as subclasses of `BaseTable` instead of `Table`. Also, it's not needed to call `bindTo` and `references` anymore because `BaseTable` doesn't support any binding mechanisms. Instead, we implement the `doCreateEntity` function, creating an entity object from the result set manually by ourselves. 
 
@@ -63,22 +63,18 @@ Technically, it is OK for us to end this article here, because the usages (such 
 Query data via SQL DSL: 
 
 ```kotlin
-val staffs = Staffs
+val staffs = database
+    .from(Staffs)
     .select(Staffs.id, Staffs.name)
     .where { Staffs.id eq 1 }
     .map { Staffs.createEntity(it) }
 ```
 
-Obtain entity objects via `find*` functions: 
+Obtain entity objects via sequence APIs, and sorting them by the specific column: 
 
 ```kotlin
-val staffs = Staffs.findList { it.sectionId eq 1 }
-```
-
-Obtain entity objects via Sequence APIs, and sorting them by the specific column: 
-
-```kotlin
-val staffs = Staffs.asSequence()
+val staffs = database
+    .sequenceOf(Staffs)
     .filter { it.sectionId eq 1 }
     .sortedBy { it.id }
     .toList()
@@ -87,7 +83,8 @@ val staffs = Staffs.asSequence()
 Get the number of staffs with a salary of less than 100 thousand in each department: 
 
 ```kotlin
-val counts = Staffs.asSequence()
+val counts = database
+    .sequenceOf(Staffs)
     .filter { it.salary less 100000L }
     .groupingBy { it.sectionId }
     .eachCount()
@@ -100,6 +97,6 @@ For more usages, see the documentation of [SQL DSL](/en/query.html) and [Entity 
 However, data classes are not perfect, and that's why Ktorm decided to use `Entity` interfaces when it was originally designed. In fact, even after Ktorm 2.5 released, defining entities as interfaces is still our first choice because there are currently two limitations to using data classes: 
 
 - **Column bindings are not available:** Since `BaseTable` is directly used as the parent class, we cannot configure the bindings between database columns and entity properties via `bindTo` and `references` while defining our table objects. Therefore, each table object must implement the `doCreateEntity` function, in which we should create our entity objects manually. 
-- **Entity manipulation APIs are not available:** Since we define entities as data classes, Ktorm cannot proxy them and cannot detect the status changes of entity objects, which makes it impossible for us to use entity manipulation APIs such as `Table.add`, `Entity.flushChanges`, etc. But SQL DSL is not affected. We can still use DSL function such as `BaseTable.insert` and `BaseTable.update` to perform our data modifications. 
+- **Entity manipulation APIs are not available:** Since we define entities as data classes, Ktorm cannot proxy them and cannot detect the status changes of entity objects, which makes it impossible for us to use entity manipulation APIs such as `database.sequenceOf(..).add(..)`, `entity.flushChanges()`, etc. But SQL DSL is not affected. We can still use DSL function such as `database.insert(..) {..}` and `database.update(..) {..}` to perform our data modifications. 
 
 Because of these limitations, you should think carefully before you decide to define your entities as data classes. You might be benefited from using data classes and you would lose other things at the same time. Remember: **Defining entities as interfaces is still our first choice.** 

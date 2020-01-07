@@ -18,7 +18,7 @@ related_path: en/define-entities-as-any-kind-of-classes.html
 
 而 `Table` 则和以前一样，它限制了我们的实体类必须定义为 `Entity` interface。它是 `BaseTable` 的子类，除了基本的表定义、列定义等功能外，它还额外提供了 `bindTo`、`references` 等函数，以支持实体类的绑定功能。`Table` 实现了父类中的 `doCreateEntity` 函数，这个函数会使用 `bindTo`、`references` 等函数指定的列绑定配置，自动创建实体对象，从结果集中读取数据填充到实体对象的各个属性中。
 
-## 使用 data class 作为实体类
+## 以 data class 作为实体类
 
 要使用 data class 作为实体类，我们在定义表对象时，应该改为继承 `BaseTable`，而不是 `Table`。另外，也不再需要调用 `bindTo`、`references` 等函数指定数据库列与实体类属性的绑定关系，而是实现 `doCreateEntity` 函数，自行完成从查询结果 `QueryRowSet` 中创建一个实体对象的过程。
 
@@ -63,22 +63,18 @@ object Staffs : BaseTable<Staff>("t_employee") {
 使用 SQL DSL 查询数据：
 
 ```kotlin
-val staffs = Staffs
+val staffs = database
+    .from(Staffs)
     .select(Staffs.id, Staffs.name)
     .where { Staffs.id eq 1 }
     .map { Staffs.createEntity(it) }
 ```
 
-使用 `find*` 函数获取实体对象：
+使用序列 API 获取实体对象，并按指定字段排序：
 
 ```kotlin
-val staffs = Staffs.findList { it.sectionId eq 1 }
-```
-
-使用 Sequence API 获取实体对象，并按指定字段排序：
-
-```kotlin
-val staffs = Staffs.asSequence()
+val staffs = database
+    .sequenceOf(Staffs)
     .filter { it.sectionId eq 1 }
     .sortedBy { it.id }
     .toList()
@@ -87,7 +83,8 @@ val staffs = Staffs.asSequence()
 获取每个部门中薪资小于十万的员工的数量：
 
 ```kotlin
-val counts = Staffs.asSequence()
+val counts = database
+    .sequenceOf(Staffs)
     .filter { it.salary less 100000L }
     .groupingBy { it.sectionId }
     .eachCount()
@@ -100,7 +97,7 @@ val counts = Staffs.asSequence()
 如果 data class 真的那么完美的话，Ktorm 在最初设计的时候就不会决定使用 `Entity` interface 了。事实上，即使在 2.5 版本发布以后，使用 interface 定义实体类仍然是我们的第一选择。与使用 interface 定义实体类相比，使用 data class 目前还存在如下两个限制：
 
 - **无法使用列绑定功能：**由于直接以 `BaseTable` 作为父类，我们无法在定义表对象时使用 `bindTo`、`references` 等函数指定数据库列与实体类属性的绑定关系，因此每个表对象都必须实现 `doCreateEntity` 函数，在此函数中手动创建实体对象，并一一对各个属性赋值。
-- **无法使用实体对象的增删改 API：**由于使用 data class 作为实体类，Ktorm 无法对其进行代理，因此无法检测到实体对象的状态变化，这导致 `Table.add`、`Entity.flushChanges` 等针对实体对象的增删改 API 将无法使用。但是 SQL DSL 并没有影响，我们仍然可以使用 `BaseTable.insert`、`BaseTable.update` 等 DSL 函数进行增删改操作。
+- **无法使用实体对象的增删改 API：**由于使用 data class 作为实体类，Ktorm 无法对其进行代理，因此无法检测到实体对象的状态变化，这导致 `database.sequenceOf(..).add(..)`、`entity.flushChanges()` 等针对实体对象的增删改 API 将无法使用。但是 SQL DSL 并没有影响，我们仍然可以使用 `database.insert(..) {..}`、`database.update(..) {..}` 等 DSL 函数进行增删改操作。
 
 由于以上限制的存在，在你决定使用 data class 作为实体类之前，应该慎重考虑，你获得了使用 data class 的好处，同时也会失去其他的东西。请记住这句话：**使用 interface 定义实体类仍然是我们的第一选择。**
 

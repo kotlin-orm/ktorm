@@ -98,6 +98,10 @@ main:
     type: link
     path: en/entity-dml.html
 
+  - text: Define Entities as Any Class
+    type: link
+    path: en/define-entities-as-any-kind-of-classes.html
+
   - text: SUPPORT & FEEDBACK
     type: label
 
