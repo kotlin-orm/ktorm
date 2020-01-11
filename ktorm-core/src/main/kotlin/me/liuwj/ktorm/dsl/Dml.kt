@@ -352,7 +352,7 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
  */
 @KtormDsl
 class UpdateStatementBuilder(
-        assignments: MutableList<ColumnAssignmentExpression<*>>
+    assignments: MutableList<ColumnAssignmentExpression<*>>
 ) : AssignmentsBuilder(assignments) {
 
     internal var where: ColumnDeclaring<Boolean>? = null
