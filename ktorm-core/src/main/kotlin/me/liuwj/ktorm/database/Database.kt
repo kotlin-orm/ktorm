@@ -20,7 +20,6 @@ import me.liuwj.ktorm.database.Database.Companion.connect
 import me.liuwj.ktorm.database.Database.Companion.connectWithSpringSupport
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.SqlFormatter
 import me.liuwj.ktorm.logging.Logger
 import me.liuwj.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
