@@ -13,14 +13,14 @@ import java.time.LocalDate
 /**
  * Created by vince on Dec 12, 2018.
  */
-class SQLiteTest : BaseTest() {
+class SimpleSqliteTest : BaseTest() {
 
     lateinit var connection: Connection
 
     override fun init() {
         connection = DriverManager.getConnection("jdbc:sqlite::memory:")
 
-        Database.connect(logger = ConsoleLogger(LogLevel.TRACE)) {
+        Database.connect(dialect = SimpleSQLiteDialect(), logger = ConsoleLogger(LogLevel.TRACE)) {
             object : Connection by connection {
                 override fun close() {
                     // do nothing...
