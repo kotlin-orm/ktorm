@@ -42,11 +42,11 @@ class JoinTest : BaseTest() {
             .leftJoin(mgr, on = emp.managerId eq mgr.id)
             .select(emp.name, mgr.name, dept.name)
             .orderBy(emp.id.asc())
-            .map {
+            .map { row ->
                 Names(
-                    name = it.getString(1).orEmpty(),
-                    managerName = it.getString(2).orEmpty(),
-                    departmentName = it.getString(3).orEmpty()
+                    name = row[emp.name].orEmpty(),
+                    managerName = row[mgr.name].orEmpty(),
+                    departmentName = row[dept.name].orEmpty()
                 )
             }
 

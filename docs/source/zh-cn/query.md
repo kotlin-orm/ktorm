@@ -246,7 +246,7 @@ val query = database
 `groupBy` 和 `having` 也都是 `Query` 类的扩展函数，他们为 SQL 中的聚合功能提供了支持，下面是一个使用的例子：
 
 ```kotlin
-val t = Employees
+val t = Employees.aliased("t")
 val query = database
     .from(t)
     .select(t.departmentId, avg(t.salary))
@@ -313,7 +313,7 @@ val query = database
 与 `select` 函数一样，`orderBy` 不仅支持按普通的列排序，还支持复杂的表达式，下面的查询获取每个部门的 ID 和部门内员工的平均工资，并按平均工资从高到低排序：
 
 ```kotlin
-val t = Employees
+val t = Employees.aliased("t")
 val query = database
     .from(t)
     .select(t.departmentId, avg(t.salary))

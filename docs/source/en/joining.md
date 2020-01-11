@@ -91,9 +91,9 @@ val results = database
     .orderBy(emp.id.asc())
     .map { row -> 
         Names(
-            name = row.getString(1),
-            managerName = row.getString(2),
-            departmentName = row.getString(3)
+            name = row[emp.name],
+            managerName = row[mgr.name],
+            departmentName = row[dept.name]
         )
     }
 ```

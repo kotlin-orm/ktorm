@@ -244,7 +244,7 @@ Using `whereWithConditins`, we just need to add conditions to `it` which is exac
 Both `groupBy` and `having` are extension functions for `Query` class, they provide aggregation support for Ktorm, a usage example is shown below: 
 
 ```kotlin
-val t = Employees
+val t = Employees.aliased("t")
 val query = database
     .from(t)
     .select(t.departmentId, avg(t.salary))
@@ -311,7 +311,7 @@ val query = database
 Similar to `select`, the `orderBy` function not only supports sorting by normal columns, but complex expressions are also OK. The query below obtains departments' IDs and their average salaries, and sorting them by their average salaries descending: 
 
 ```kotlin
-val t = Employees
+val t = Employees.aliased("t")
 val query = database
     .from(t)
     .select(t.departmentId, avg(t.salary))
