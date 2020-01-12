@@ -12,7 +12,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
 ## Features
 
-- No configuration files, no XML, no third-party dependencies, lightweight, easy to use.
+- No configuration files, no XML, no annotations, even no third-party dependencies, lightweight, easy to use.
 - Strong typed SQL DSL, exposing low-level bugs at compile time.
 - Flexible queries, fine-grained control over the generated SQLs as you wish.
 - Entity sequence APIs, writing queries via sequence functions such as `filter`, `map`, `sortedBy`, etc., just like using Kotlin's native collections and sequences. 
