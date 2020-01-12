@@ -46,9 +46,9 @@ Then, connect to your database and write a simple query:
 
 ```kotlin
 fun main() {
-    Database.connect("jdbc:mysql://localhost:3306/ktorm", driver = "com.mysql.jdbc.Driver")
+    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
 
-    for (row in Employees.select()) {
+    for (row in database.from(Employees).select()) {
         println(row[Employees.name])
     }
 }
@@ -61,11 +61,13 @@ Now you can run this program, Ktorm will generate a SQL `select * from t_employe
 Let's add some filter conditions to the query: 
 
 ```kotlin
-val names = Employees
+database
+    .from(Employees)
     .select(Employees.name)
     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
-    .map { row -> row[Employees.name] }
-println(names)
+    .forEach { row -> 
+        println(row[Employees.name])
+    }
 ```
 
 Generated SQL: 
@@ -76,12 +78,13 @@ from t_employee
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
 ```
 
-That's the magic of Kotlin, writing a query with Ktorm is easy and natural, the generated SQL is exactly corresponding to the origin Kotlin code. And moreover, it's strong-typed, the compiler will check your codes before it runs, and you will be benefited from the IDE's intelligent sense and code completion.
+That's the magic of Kotlin, writing a query with Ktorm is easy and natural, the generated SQL is exactly corresponding to the origin Kotlin code. And moreover, it's strong-typed, the compiler will check your code before it runs, and you will be benefited from the IDE's intelligent sense and code completion.
 
-Dynamic query based on conditions: 
+Dynamic query that will apply different filter conditions in different situations: 
 
 ```kotlin
-val names = Employees
+val query = database
+    .from(Employees)
     .select(Employees.name)
     .whereWithConditions {
         if (someCondition) {
@@ -91,30 +94,33 @@ val names = Employees
             it += Employees.departmentId eq 1
         }
     }
-    .map { it.getString(1) }
 ```
 
 Aggregation: 
 
 ```kotlin
-val t = Employees
-val salaries = t
+val t = Employees.aliased("t")
+database
+    .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
     .having { avg(t.salary) greater 100.0 }
-    .associate { it.getInt(1) to it.getDouble(2) }
+    .forEach { row -> 
+        println("${row.getInt(1)}:${row.getDouble(2)}")
+    }
 ```
 
 Union: 
 
 ```kotlin
-Employees
+val query = database
+    .from(Employees)
     .select(Employees.id)
     .unionAll(
-        Departments.select(Departments.id)
+        database.from(Departments).select(Departments.id)
     )
     .unionAll(
-        Departments.select(Departments.id)
+        database.from(Departments).select(Departments.id)
     )
     .orderBy(Employees.id.desc())
 ```
@@ -122,22 +128,23 @@ Employees
 Joining: 
 
 ```kotlin
-data class Names(val name: String, val managerName: String?, val departmentName: String)
+data class Names(val name: String?, val managerName: String?, val departmentName: String?)
 
 val emp = Employees.aliased("emp")
 val mgr = Employees.aliased("mgr")
 val dept = Departments.aliased("dept")
 
-val results = emp
+val results = database
+    .from(emp)
     .leftJoin(dept, on = emp.departmentId eq dept.id)
     .leftJoin(mgr, on = emp.managerId eq mgr.id)
     .select(emp.name, mgr.name, dept.name)
     .orderBy(emp.id.asc())
-    .map {
+    .map { row -> 
         Names(
-            name = it.getString(1),
-            managerName = it.getString(2),
-            departmentName = it.getString(3)
+            name = row[emp.name],
+            managerName = row[mgr.name],
+            departmentName = row[dept.name]
         )
     }
 ```
@@ -145,7 +152,7 @@ val results = emp
 Insert: 
 
 ```kotlin
-Employees.insert {
+database.insert(Employees) {
     it.name to "jerry"
     it.job to "trainee"
     it.managerId to 1
@@ -158,11 +165,10 @@ Employees.insert {
 Update: 
 
 ```kotlin
-Employees.update {
+database.update(Employees) {
     it.job to "engineer"
     it.managerId to null
     it.salary to 100
-
     where {
         it.id eq 2
     }
@@ -172,7 +178,7 @@ Employees.update {
 Delete: 
 
 ```kotlin
-Employees.delete { it.id eq 4 }
+database.delete(Employees) { it.id eq 4 }
 ```
 
 Refer to [detailed documentation](https://ktorm.liuwj.me/en/query.html) for more usages about SQL DSL.
@@ -221,14 +227,20 @@ object Employees : Table<Employee>("t_employee") {
 
 > Naming Strategy: It's highly recommended to name your entity classes by singular nouns, name table objects by plurals (eg. Employee/Employees, Department/Departments). 
 
-Now that column bindings are configured, so we can use those convenient extension functions for entities. For example, finding an employee by name: 
+Now that column bindings are configured, so we can use [sequence APIs](#Entity-Sequence-APIs) to perform many operations on entities. Just like the following code, firstly we create a sequence object via `sequenceOf`, then we call the `find` function to obtain an employee by its name: 
 
 ```kotlin
-val vince = Employees.findOne { it.name eq "vince" }
-println(vince)
+val sequence = database.sequenceOf(Employees)
+val employee = sequence.find { it.name eq "vince" }
 ```
 
-The `findOne` function accepts a lambda expression, generating a select sql with the condition returned by the lambda, auto left joining the referenced table `t_department` . Generated SQL: 
+We can also filter the sequence by the function `filter`. For example, obtaining all the employees whose names are vince: 
+
+```kotlin
+val employees = sequence.filter { it.name eq "vince" }.toList()
+```
+
+The `find` and `filter` functions both accept a lambda expression, generating a select sql with the condition returned by the lambda. The generated SQL auto left joins the referenced table `t_department`: 
 
 ```sql
 select * 
@@ -237,36 +249,24 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 where t_employee.name = ?
 ```
 
-Some other `find*` functions: 
-
-```kotlin
-Employees.findAll()
-Employees.findById(1)
-Employees.findListByIds(listOf(1))
-Employees.findMapByIds(listOf(1))
-Employees.findList { it.departmentId eq 1 }
-Employees.findOne { it.name eq "vince" }
-```
-
 Save entities to database: 
 
 ```kotlin
 val employee = Employee {
     name = "jerry"
     job = "trainee"
-    manager = Employees.findOne { it.name eq "vince" }
     hireDate = LocalDate.now()
     salary = 50
-    department = Departments.findOne { it.name eq "tech" }
+    department = database.sequenceOf(Departments).find { it.name eq "tech" }
 }
 
-Employees.add(employee)
+sequence.add(employee)
 ```
 
 Flush property changes in memory to database: 
 
 ```kotlin
-val employee = Employees.findById(2) ?: return
+val employee = sequence.find { it.id eq 2 } ?: return
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()
@@ -275,21 +275,15 @@ employee.flushChanges()
 Delete a entity from database: 
 
 ```kotlin
-val employee = Employees.findById(2) ?: return
+val employee = sequence.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-Detailed usages of entity APIs can be found in the documentation of [column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html) and [entity findings](https://ktorm.liuwj.me/en/entity-finding.html).
+Detailed usages of entity APIs can be found in the documentation of [column binding](./entities-and-column-binding.html) and [entity query](./entity-finding.html).
 
 ## Entity Sequence APIs
 
-In addition to the `find*` functions, Ktorm also provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc.
-
-To create an entity sequence, we can call the extension function `asSequence` on a table object:
-
-```kotlin
-val sequence = Employees.asSequence()
-```
+Ktorm provides a set of APIs named *Entity Sequence*, which can be used to obtain entity objects from databases. As the name implies, its style and use pattern are highly similar to the sequence APIs in Kotlin standard lib, as it provides many extension functions with the same names, such as `filter`, `map`, `reduce`, etc.
 
 Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups, they are intermediate operations and terminal operations. 
 
@@ -298,14 +292,14 @@ Most of the entity sequence APIs are provided as extension functions, which can 
 These functions don’t execute the internal queries but return new-created sequence objects applying some modifications. For example, the `filter` function creates a new sequence object with the filter condition given by its parameter. The following code obtains all the employees in department 1 by using `filter`:
 
 ```kotlin
-val employees = Employees.asSequence().filter { it.departmentId eq 1 }.toList()
+val employees = database.sequenceOf(Employees).filter { it.departmentId eq 1 }.toList()
 ```
 
 We can see that the usage is almost the same as `kotlin.sequences`, the only difference is the `==` in the lambda is replaced by the `eq` function. The `filter` function can also be called continuously, as all the filter conditions are combined with the `and` operator. 
 
 ```kotlin
-val employees = Employees
-    .asSequence()
+val employees = database
+    .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .filter { it.managerId.isNotNull() }
     .toList()
@@ -323,13 +317,13 @@ where (t_employee.department_id = ?) and (t_employee.manager_id is not null)
 Use `sortedBy` or `soretdByDescending` to sort entities in a sequence: 
 
 ```kotlin
-val employees = Employees.asSequence().sortedBy { it.salary }.toList()
+val employees = database.sequenceOf(Employees).sortedBy { it.salary }.toList()
 ```
 
 Use `drop` and `take` for pagination: 
 
 ```kotlin
-val employees = Employees.asSequence().drop(1).take(1).toList()
+val employees = database.sequenceOf(Employees).drop(1).take(1).toList()
 ```
 
 ### Terminal Operations
@@ -337,7 +331,7 @@ val employees = Employees.asSequence().drop(1).take(1).toList()
 Terminal operations of entity sequences execute the queries right now, then obtain the query results and perform some calculations on them. The for-each loop is a typical terminal operation, and the following code uses it to print all employees in the sequence: 
 
 ```kotlin
-for (employee in Employees.asSequence()) {
+for (employee in database.sequenceOf(Employees)) {
     println(employee)
 }
 ```
@@ -353,20 +347,20 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 The `toCollection` functions (including `toList`, `toSet`, etc.) are used to collect all the elements into a collection: 
 
 ```kotlin
-val employees = Employees.asSequence().toCollection(ArrayList())
+val employees = database.sequenceOf(Employees).toCollection(ArrayList())
 ```
 
 The `mapColumns` function is used to obtain the results of a column: 
 
 ```kotlin
-val names = Employees.asSequenceWithoutReferences().mapColumns { it.name }
+val names = database.sequenceOf(Employees).mapColumns { it.name }
 ```
 
 Additional, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
 
 ```kotlin
-Employees
-    .asSequenceWithoutReferences()
+database
+    .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .mapColumns2 { Pair(it.id, it.name) }
     .forEach { (id, name) ->
@@ -385,7 +379,7 @@ where t_employee.department_id = ?
 Other familiar functions are also supported, such as `fold`, `reduce`, `forEach`, etc. The following code calculates the total salary of all employees: 
 
 ```kotlin
-val totalSalary = Employees.asSequence().fold(0L) { acc, employee -> acc + employee.salary }
+val totalSalary = database.sequenceOf(Employees).fold(0L) { acc, employee -> acc + employee.salary }
 ```
 
 ### Sequence Aggregation
@@ -395,8 +389,8 @@ The entity sequence APIs not only allow us to obtain entities from databases jus
 The following code obtains the max salary in department 1:
 
 ```kotlin
-val max = Employees
-    .asSequenceWithoutReferences()
+val max = database
+    .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .aggregateColumns { max(it.salary) }
 ```
@@ -404,8 +398,8 @@ val max = Employees
 Also, if we want to aggregate two or more columns, we can change to `aggregateColumns2` or `aggregateColumns3`, then we need to wrap our aggregate expressions by `Pair` or `Triple` in the closure, and the function’s return type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`. The example below obtains the average and the range of salaries in department 1: 
 
 ```kotlin
-val (avg, diff) = Employees
-    .asSequenceWithoutReferences()
+val (avg, diff) = database
+    .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
@@ -423,8 +417,8 @@ Ktorm also provides many convenient helper functions implemented based on `aggre
 The following code obtains the max salary in department 1 using `maxBy` instead: 
 
 ```kotlin
-val max = Employees
-    .asSequenceWithoutReferences()
+val max = database
+    .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .maxBy { it.salary }
 ```
@@ -432,8 +426,8 @@ val max = Employees
 Additionally, grouping aggregations are also supported, we just need to call `groupingBy` before calling `aggregateColumns`. The following code obtains the average salaries for each department. Here, the result's type is `Map<Int?, Double?>`, in which the keys are departments' IDs, and the values are the average salaries of the departments. 
 
 ```kotlin
-val averageSalaries = Employees
-    .asSequenceWithoutReferences()
+val averageSalaries = database
+    .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .aggregateColumns { avg(it.salary) }
 ```
@@ -449,8 +443,8 @@ group by t_employee.department_id
 Ktorm also provides many convenient helper functions for grouping aggregations, they are `eachCount(To)`, `eachSumBy(To)`, `eachMaxBy(To)`, `eachMinBy(To)`, `eachAverageBy(To)`. With these functions, we can write the code below to obtain average salaries for each department: 
 
 ```kotlin
-val averageSalaries = Employees
-    .asSequenceWithoutReferences()
+val averageSalaries = database
+    .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .eachAverageBy { it.salary }
 ```
@@ -458,12 +452,12 @@ val averageSalaries = Employees
 Other familiar functions are also supported, such as `aggregate`, `fold`, `reduce`, etc. They have the same names as the extension functions of `kotlin.collections.Grouping`, and the usages are totally the same. The following code calculates the total salaries for each department using `fold`:
 
 ```kotlin
-val totalSalaries = Employees
-    .asSequenceWithoutReferences()
+val totalSalaries = database
+    .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .fold(0L) { acc, employee -> 
         acc + employee.salary 
     }
 ```
 
-Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html) and [sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html). 
+Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](./entity-sequence.html) and [sequence aggregation](./sequence-aggregation.html). 
