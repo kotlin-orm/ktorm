@@ -242,6 +242,8 @@ fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
 
 /**
  * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
+ * It is assumed that at least one auto-generated key will be returned, and that the first key in
+ * the resultSet will be the primary key for the row.
  *
  * Usage:
  *
@@ -257,7 +259,7 @@ fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
  * ```
  *
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
- * @return the auto-generated key.
+ * @return the first auto-generated key.
  */
 fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
