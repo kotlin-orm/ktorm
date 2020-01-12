@@ -229,7 +229,7 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
 }
 
 /**
- * Set the arguments for a [PreparedStatement]
+ * Set the arguments for a [PreparedStatement].
  * @param args The arguments to set into the statement
  */
 fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
@@ -272,8 +272,9 @@ fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> U
                 if (resultSet.next()) {
                     val sqlType = primaryKey?.sqlType ?: error("Table $tableName must have a primary key.")
                     sqlType.getResult(resultSet, 1) ?: error("Generated key is null.")
-                } else
+                } else {
                     error("insert did not generate a key")
+                }
             }
         }.logDebug("Generated Key")
     }
@@ -309,7 +310,7 @@ fun BaseTable<*>.deleteAll(): Int {
 }
 
 /**
- * Utility function to make debug logging cleaner
+ * Utility function to make debug logging cleaner.
  * If a logger is configured, and it has debug logging enabled, emit a debug message formed from the
  * comment string and the receiver.toString()
  * @param comment A string to include in the log message
