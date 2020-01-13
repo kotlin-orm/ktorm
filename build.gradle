@@ -17,7 +17,7 @@ buildscript {
 
 allprojects {
     group = "me.liuwj.ktorm"
-    version = "2.6"
+    version = "2.7-SNAPSHOT"
 }
 
 subprojects { project ->
@@ -92,6 +92,11 @@ subprojects { project ->
                             id = "waluo"
                             name = "waluo"
                             email = "1b79349b@gmail.com"
+                        }
+                        developer {
+                            id = "clydebarrow"
+                            name = "Clyde"
+                            email = "clyde@control-j.com"
                         }
                     }
                     scm {
