@@ -9,7 +9,7 @@ Constructs strong-typed SQL DSL.
 
 # Package me.liuwj.ktorm.entity
 
-Entity supports, providing entity finding and sequence like query APIs.
+Provides entity sequence APIs.
 
 # Package me.liuwj.ktorm.expression
 

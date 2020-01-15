@@ -22,7 +22,7 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-首先，创建 Kotlin object，[描述你的表结构](https://ktorm.liuwj.me/zh-cn/schema-definition.html)： 
+首先，创建 Kotlin object，[描述你的表结构](./schema-definition.html)： 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -181,7 +181,7 @@ database.update(Employees) {
 database.delete(Employees) { it.id eq 4 }
 ```
 
-更多 SQL DSL 的用法，请参考[具体文档](https://ktorm.liuwj.me/zh-cn/query.html)。
+更多 SQL DSL 的用法，请参考[具体文档](./query.html)。
 
 ## 实体类与列绑定
 
@@ -279,7 +279,7 @@ val employee = sequence.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-更多实体 API 的用法，可参考[列绑定](https://ktorm.liuwj.me/zh-cn/entities-and-column-binding.html)和[实体查询](https://ktorm.liuwj.me/zh-cn/entity-finding.html)相关的文档。
+更多实体 API 的用法，可参考[列绑定](./entities-and-column-binding.html)和[实体查询](./entity-finding.html)相关的文档。
 
 ## 实体序列 API
 
@@ -460,4 +460,4 @@ val totalSalaries = database
     }
 ```
 
-更多实体序列 API 的用法，可参考[实体序列](https://ktorm.liuwj.me/zh-cn/entity-sequence.html)和[序列聚合](https://ktorm.liuwj.me/zh-cn/sequence-aggregation.html)相关的文档。
+更多实体序列 API 的用法，可参考[实体序列](./entity-sequence.html)和[序列聚合](./sequence-aggregation.html)相关的文档。

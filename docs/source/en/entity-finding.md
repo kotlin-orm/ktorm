@@ -1,5 +1,5 @@
 ---
-title: Entity Finding
+title: Entity Query
 lang: en
 related_path: zh-cn/entity-finding.html
 ---

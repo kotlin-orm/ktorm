@@ -8,7 +8,7 @@ related_path: en/define-entities-as-any-kind-of-classes.html
 
 在 Ktorm 2.5 版本中，我们对代码进行了一次重构，这次重构让我们可以使用 data class、POJO、或者任意的类作为实体类。从此，Ktorm 中的实体类，不一定非要定义为 interface 并继承 `Entity` 接口，在一定程度上降低了对用户代码的侵入性，这对于一个通用的框架而言是很重要的。
 
-> 关于如何使用 interface 定义实体类，可参考[实体类与列绑定](/zh-cn/entities-and-column-binding.html)相关的文档。
+> 关于如何使用 interface 定义实体类，可参考[实体类与列绑定](./entities-and-column-binding.html)相关的文档。
 
 ## Table & BaseTable
 
@@ -90,7 +90,7 @@ val counts = database
     .eachCount()
 ```
 
-更多用法，请参见 [SQL DSL](/zh-cn/query.html) 和[实体序列](/zh-cn/entity-sequence.html)等相关文档。
+更多用法，请参见 [SQL DSL](./query.html) 和[实体序列](./entity-sequence.html)等相关文档。
 
 ## 相关限制
 

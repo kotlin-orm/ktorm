@@ -98,7 +98,7 @@ val results = database
     }
 ```
 
-上面的代码很符合直觉，也正是 Ktorm 的 SQL DSL 所推荐的书写风格，但遗憾的是，它很有可能无法通过编译。为了帮助我们分析这个错误，在这里先贴出 `Employees` 表对象的定义，这个定义复制自[定义表结构 - 表对象](/zh-cn/schema-definition.html#%E8%A1%A8%E5%AF%B9%E8%B1%A1)一节：
+上面的代码很符合直觉，也正是 Ktorm 的 SQL DSL 所推荐的书写风格，但遗憾的是，它很有可能无法通过编译。为了帮助我们分析这个错误，在这里先贴出 `Employees` 表对象的定义，这个定义复制自[定义表结构 - 表对象](./schema-definition.html#%E8%A1%A8%E5%AF%B9%E8%B1%A1)一节：
 
 ````kotlin
 object Employees : Table<Nothing>("t_employee") {

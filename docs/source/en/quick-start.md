@@ -22,7 +22,7 @@ Or Gradle:
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-Firstly, create Kotlin objects to [describe your table schemas](https://ktorm.liuwj.me/en/schema-definition.html): 
+Firstly, create Kotlin objects to [describe your table schemas](./schema-definition.html): 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -181,7 +181,7 @@ Delete:
 database.delete(Employees) { it.id eq 4 }
 ```
 
-Refer to [detailed documentation](https://ktorm.liuwj.me/en/query.html) for more usages about SQL DSL.
+Refer to [detailed documentation](./query.html) for more usages about SQL DSL.
 
 ## Entities & Column Binding
 
@@ -356,7 +356,7 @@ The `mapColumns` function is used to obtain the results of a column:
 val names = database.sequenceOf(Employees).mapColumns { it.name }
 ```
 
-Additional, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
+Additionally, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
 
 ```kotlin
 database

@@ -8,7 +8,7 @@ related_path: zh-cn/define-entities-as-any-kind-of-classes.html
 
 In Ktorm 2.5, we did a refactoring of the code. This refactoring allowed us defining entities as any kind of classes, such as data class, POJO, and so on. From then on, the entity classes in Ktorm do not have to be defined as interfaces extending from `Entity` anymore. This reduces the invasion of user code to some extent, which is very important for a common-used library. 
 
-> About how to define entities as interfaces, see the documentation of [Entities & Column Binding](/en/entities-and-column-binding.html).
+> About how to define entities as interfaces, see the documentation of [Entities & Column Binding](./entities-and-column-binding.html).
 
 ## Table & BaseTable
 
@@ -90,7 +90,7 @@ val counts = database
     .eachCount()
 ```
 
-For more usages, see the documentation of [SQL DSL](/en/query.html) and [Entity Sequence](/en/entity-sequence.html). 
+For more usages, see the documentation of [SQL DSL](./query.html) and [Entity Sequence](./entity-sequence.html). 
 
 ## Limitation
 
