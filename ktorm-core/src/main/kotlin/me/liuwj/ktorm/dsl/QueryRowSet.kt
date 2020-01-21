@@ -148,7 +148,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Result
 
             if (indices.size > 1) {
                 val logger = query.database.logger
-                if (logger != null && logger.isWarnEnabled()) {
+                if (logger.isWarnEnabled()) {
                     logger.warn(warningConfusedColumnName(column.name))
                 }
             }

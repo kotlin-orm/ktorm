@@ -838,7 +838,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(index: Int)
     try {
         return drop(index).take(1).asKotlinSequence().firstOrNull()
     } catch (e: DialectFeatureNotSupportedException) {
-        if (database.logger != null && database.logger.isTraceEnabled()) {
+        if (database.logger.isTraceEnabled()) {
             database.logger.trace("Pagination is not supported, retrieving all records instead: ", e)
         }
 

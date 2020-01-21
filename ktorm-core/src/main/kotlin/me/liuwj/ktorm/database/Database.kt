@@ -60,22 +60,16 @@ import javax.sql.DataSource
  * ```
  *
  * @property transactionManager the transaction manager used to manage connections and transactions.
- * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
+ * @property dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @property logger the logger used to output logs, auto detects an implementation by default, null to disable logging.
  * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database(
     val transactionManager: TransactionManager,
-    dialect: SqlDialect? = null,
-    val logger: Logger? = detectLoggerImplementation(),
+    val dialect: SqlDialect = detectDialectImplementation(),
+    val logger: Logger = detectLoggerImplementation(),
     val exceptionTranslator: ((SQLException) -> Throwable)? = null
 ) {
-    /**
-     * The [SqlDialect] to use for operations on this database. If no dialect is passed into the constructor,
-     * use an auto-detected one (which may be a default generic dialect.)
-     */
-
-    val dialect: SqlDialect = dialect ?: detectDialectImplementation()
 
     /**
      * The URL of the connected database.
@@ -128,7 +122,7 @@ class Database(
             extraNameCharacters = metadata.runCatching { extraNameCharacters }.orEmpty()
         }
 
-        if (logger != null && logger.isInfoEnabled()) {
+        if (logger.isInfoEnabled()) {
             logger.info("Connected to $url, productName: $productName, " +
                 "productVersion: $productVersion, logger: $logger, dialect: $dialect")
         }
@@ -239,9 +233,7 @@ class Database(
         indentSize: Int = 2
     ): Pair<String, List<ArgumentExpression<*>>> {
 
-        val formatter = dialect
-            .createSqlFormatter(this, beautifySql, indentSize)
-
+        val formatter = dialect.createSqlFormatter(this, beautifySql, indentSize)
         formatter.visit(expression)
         return formatter.sql to formatter.parameters
     }
@@ -264,7 +256,7 @@ class Database(
     ): T {
         val (sql, args) = formatExpression(expression)
 
-        if (logger != null && logger.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             logger.debug("SQL: $sql")
             logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
         }
@@ -318,8 +310,8 @@ class Database(
          * @return the new-created database object.
          */
         fun connect(
-            dialect: SqlDialect? = detectDialectImplementation(),
-            logger: Logger? = detectLoggerImplementation(),
+            dialect: SqlDialect = detectDialectImplementation(),
+            logger: Logger = detectLoggerImplementation(),
             connector: () -> Connection
         ): Database {
             return Database(JdbcTransactionManager(connector), dialect, logger)
@@ -335,8 +327,8 @@ class Database(
          */
         fun connect(
             dataSource: DataSource,
-            dialect: SqlDialect? = detectDialectImplementation(),
-            logger: Logger? = detectLoggerImplementation()
+            dialect: SqlDialect = detectDialectImplementation(),
+            logger: Logger = detectLoggerImplementation()
         ): Database {
             return connect(dialect, logger) { dataSource.connection }
         }
@@ -357,8 +349,8 @@ class Database(
             driver: String? = null,
             user: String? = null,
             password: String? = null,
-            dialect: SqlDialect? = detectDialectImplementation(),
-            logger: Logger? = detectLoggerImplementation()
+            dialect: SqlDialect = detectDialectImplementation(),
+            logger: Logger = detectLoggerImplementation()
         ): Database {
             if (driver != null && driver.isNotBlank()) {
                 Class.forName(driver)
@@ -384,8 +376,8 @@ class Database(
          */
         fun connectWithSpringSupport(
             dataSource: DataSource,
-            dialect: SqlDialect? = detectDialectImplementation(),
-            logger: Logger? = detectLoggerImplementation()
+            dialect: SqlDialect = detectDialectImplementation(),
+            logger: Logger = detectLoggerImplementation()
         ): Database {
             val transactionManager = SpringManagedTransactionManager(dataSource)
             val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)

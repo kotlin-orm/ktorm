@@ -89,7 +89,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
         database.executeExpression(expression) { statement ->
             statement.executeQuery().use { rs ->
                 QueryRowSet(this, rs).also { rowSet ->
-                    if (database.logger != null && database.logger.isDebugEnabled()) {
+                    if (database.logger.isDebugEnabled()) {
                         database.logger.debug("Results: ${rowSet.size()}")
                     }
                 }
@@ -114,7 +114,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
                 statement.executeQuery().use { rs ->
                     if (rs.next()) {
                         rs.getInt(1).also { total ->
-                            if (database.logger != null && database.logger.isDebugEnabled()) {
+                            if (database.logger.isDebugEnabled()) {
                                 database.logger.debug("Total Records: $total")
                             }
                         }

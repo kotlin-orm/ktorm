@@ -105,7 +105,7 @@ internal fun Database.executeUpdate(expression: SqlExpression): Int {
     executeExpression(expression) { statement ->
         val effects = statement.executeUpdate()
 
-        if (logger != null && logger.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }
 
@@ -187,7 +187,7 @@ fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatemen
 private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
     val (sql, _) = formatExpression(expressions[0])
 
-    if (logger != null && logger.isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         logger.debug("SQL: $sql")
     }
 
@@ -196,7 +196,7 @@ private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
             for (expr in expressions) {
                 val (_, args) = formatExpression(expr)
 
-                if (logger != null && logger.isDebugEnabled()) {
+                if (logger.isDebugEnabled()) {
                     logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
                 }
 
@@ -211,7 +211,7 @@ private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
 
             val effects = statement.executeBatch()
 
-            if (logger != null && logger.isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 logger.debug("Effects: ${effects?.contentToString()}")
             }
 
@@ -506,7 +506,7 @@ fun Database.deleteAll(table: BaseTable<*>): Int {
  */
 @Suppress("DEPRECATION")
 fun <T : Any> T.logDebug(comment: String): T {
-    Database.global.logger?.let { logger ->
+    Database.global.logger.let { logger ->
         if (logger.isDebugEnabled()) logger.debug("$comment: $this")
     }
     return this

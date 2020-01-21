@@ -305,7 +305,7 @@ abstract class BaseTable<E : Any>(
         val entity = doCreateEntity(row, withReferences)
 
         val logger = row.query.database.logger
-        if (logger != null && logger.isTraceEnabled()) {
+        if (logger.isTraceEnabled()) {
             logger.trace("Entity: $entity")
         }
 

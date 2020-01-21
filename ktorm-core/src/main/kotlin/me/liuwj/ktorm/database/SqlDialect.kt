@@ -104,7 +104,7 @@ class DialectFeatureNotSupportedException(
 internal fun detectDialectImplementation(): SqlDialect {
     val dialects = ServiceLoader.load(SqlDialect::class.java).toList()
     return when (dialects.size) {
-        0 -> object : SqlDialect {}
+        0 -> object : SqlDialect { }
         1 -> dialects[0]
         else -> error("More than one dialect implementations found in the classpath, " +
             "please choose one manually, they are: $dialects")
