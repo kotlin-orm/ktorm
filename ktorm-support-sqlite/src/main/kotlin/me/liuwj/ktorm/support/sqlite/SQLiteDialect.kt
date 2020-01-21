@@ -18,13 +18,12 @@ package me.liuwj.ktorm.support.sqlite
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.SqlDialect
+import me.liuwj.ktorm.database.setArguments
 import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.dsl.setArguments
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.QueryExpression
 import me.liuwj.ktorm.expression.SqlFormatter
 import me.liuwj.ktorm.schema.IntSqlType
-import java.sql.Connection
 import java.sql.ResultSet
 
 /**
@@ -36,30 +35,36 @@ open class SQLiteDialect : SqlDialect {
         return SQLiteFormatter(database, beautifySql, indentSize)
     }
 
-    /**
-     * Excecute a statment from the provided sql string, pass the result set to a provided function
-     * and return its result.
-     * The typical use case for this will be an insert operation that returns an auto-generated key.
-     * @param conn The database connection to use
-     * @param sql The formatted SQL statement
-     * @param args The arguments to be provided to the statement
-     * @param resultSetHandler A function to convert the result set into a value of type T
-     * @return The result of [resultSetHandler]
-     */
-
-    override fun <T : Any> executeAndGenerate(
-        conn: Connection,
+    override fun <T> executeAndGetGeneratedKeys(
+        database: Database,
         sql: String,
         args: List<ArgumentExpression<*>>,
-        resultSetHandler: (ResultSet) -> T
+        generatedKeysHandler: (ResultSet) -> T
     ): T {
-        conn.prepareStatement(sql).use { statement ->
-            statement.setArguments(args)
-            statement.executeUpdate()
-        }
-        return conn.prepareStatement("select last_insert_rowid()").use { statement ->
-            statement.executeQuery().use { resultSet ->
-                resultSetHandler(resultSet)
+        database.useConnection { conn ->
+            if (database.logger.isDebugEnabled()) {
+                database.logger.debug("SQL: $sql")
+                database.logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
+            }
+
+            conn.prepareStatement(sql).use { statement ->
+                statement.setArguments(args)
+
+                val effects = statement.executeUpdate()
+                if (database.logger.isDebugEnabled()) {
+                    database.logger.debug("Effects: $effects")
+                }
+            }
+
+            val retrieveKeySql = "select last_insert_rowid()"
+            if (database.logger.isDebugEnabled()) {
+                database.logger.debug("Retrieving generated keys by SQL: $retrieveKeySql")
+            }
+
+            conn.prepareStatement(retrieveKeySql).use { statement ->
+                statement.executeQuery().use { rs ->
+                    return generatedKeysHandler(rs)
+                }
             }
         }
     }

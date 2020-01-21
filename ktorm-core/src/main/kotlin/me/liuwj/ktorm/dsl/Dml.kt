@@ -18,26 +18,20 @@ package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.ColumnAssignmentExpression
-import me.liuwj.ktorm.expression.ColumnExpression
-import me.liuwj.ktorm.expression.DeleteExpression
-import me.liuwj.ktorm.expression.InsertExpression
-import me.liuwj.ktorm.expression.InsertFromQueryExpression
-import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.SqlExpressionVisitor
-import me.liuwj.ktorm.expression.TableExpression
-import me.liuwj.ktorm.expression.UpdateExpression
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.SqlType
-import me.liuwj.ktorm.schema.defaultValue
+import me.liuwj.ktorm.expression.*
+import me.liuwj.ktorm.schema.*
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 import java.sql.PreparedStatement
 import java.sql.Statement
-import java.util.HashSet
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.MutableList
+import kotlin.collections.contentToString
+import kotlin.collections.map
+import kotlin.collections.plusAssign
+import kotlin.collections.withIndex
 
 /**
  * Construct an update expression in the given closure, then execute it and return the effected row count.
@@ -364,21 +358,10 @@ fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatemen
 }
 
 /**
- * Set the arguments for a [PreparedStatement].
- * @param args The arguments to set into the statement
- */
-fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
-    args.forEachIndexed { i, expr ->
-        @Suppress("UNCHECKED_CAST")
-        val sqlType = expr.sqlType as SqlType<Any>
-        sqlType.setParameter(this, i + 1, expr.value)
-    }
-}
-
-/**
  * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
- * It is assumed that at least one auto-generated key will be returned, and that the first key in
- * the resultSet will be the primary key for the row.
+ *
+ * This function assumes that at least one auto-generated key will be returned, and that the first key in
+ * the result set will be the primary key for the row.
  *
  * Usage:
  *
@@ -408,6 +391,9 @@ fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> U
 /**
  * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
  *
+ * This function assumes that at least one auto-generated key will be returned, and that the first key in
+ * the result set will be the primary key for the row.
+ *
  * Usage:
  *
  * ```kotlin
@@ -423,25 +409,29 @@ fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> U
  *
  * @param table the table to be inserted.
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
- * @return the auto-generated key.
+ * @return the first auto-generated key.
  */
 fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     AssignmentsBuilder(assignments).block(table)
 
     val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
-
     val (sql, args) = formatExpression(expression)
-    return useConnection { connection ->
-        dialect.executeAndGenerate(connection, sql, args) { resultSet ->
-            if (resultSet.next()) {
-                val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
-                sqlType.getResult(resultSet, 1) ?: error("Generated key is null.")
-            } else {
-                error("insert did not generate a key")
+
+    return dialect.executeAndGetGeneratedKeys(this, sql, args) { rs ->
+        if (rs.next()) {
+            val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
+            val generatedKey = sqlType.getResult(rs, 1) ?: error("Generated key is null.")
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Generated Key: $generatedKey")
             }
+
+            generatedKey
+        } else {
+            error("No generated key returns by database.")
         }
-    }.logDebug("Generated Key")
+    }
 }
 
 /**
@@ -495,21 +485,6 @@ fun BaseTable<*>.deleteAll(): Int {
 fun Database.deleteAll(table: BaseTable<*>): Int {
     val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), where = null))
     return executeUpdate(expression)
-}
-
-/**
- * Utility function to make debug logging cleaner.
- * If a logger is configured, and it has debug logging enabled, emit a debug message formed from the
- * comment string and the receiver.toString()
- * @param comment A string to include in the log message
- * @return The receiving object.
- */
-@Suppress("DEPRECATION")
-fun <T : Any> T.logDebug(comment: String): T {
-    Database.global.logger.let { logger ->
-        if (logger.isDebugEnabled()) logger.debug("$comment: $this")
-    }
-    return this
 }
 
 /**

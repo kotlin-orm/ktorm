@@ -17,6 +17,7 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.iterator
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BaseTable
@@ -139,38 +140,6 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
     override fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
     }
-}
-
-/**
- * Return an iterator over the rows of this [ResultSet].
- *
- * The returned iterator just wraps the [ResultSet.next] method and every element returned by the iterator is
- * exactly the same reference as the this [ResultSet].
- */
-@Suppress("IteratorHasNextCallsNextMethod")
-operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
-    private val rs = this@iterator
-    private var hasNext: Boolean? = null
-
-    override fun hasNext(): Boolean {
-        return hasNext ?: rs.next().also { hasNext = it }
-    }
-
-    override fun next(): T {
-        return if (hasNext()) rs.also { hasNext = null } else throw NoSuchElementException()
-    }
-}
-
-/**
- * Wrap this [ResultSet] as [Iterable].
- *
- * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
- * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
- *
- * @see ResultSet.iterator
- */
-fun <T : ResultSet> T.iterable(): Iterable<T> {
-    return Iterable { iterator() }
 }
 
 /**

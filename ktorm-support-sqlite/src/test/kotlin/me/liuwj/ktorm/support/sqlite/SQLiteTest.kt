@@ -97,7 +97,7 @@ class SQLiteTest : BaseTest() {
 
     @Test
     fun testInsert() {
-        val id = Employees.insertAndGenerateKey {
+        val id = database.insertAndGenerateKey(Employees) {
             Employees.name to "Joe Friend"
             Employees.job to "Tester"
             Employees.managerId to null
@@ -105,6 +105,7 @@ class SQLiteTest : BaseTest() {
             Employees.hireDate to LocalDate.of(2020, 1, 10)
             Employees.departmentId to 1
         } as Int
+
         assert(id > 4)
     }
 }

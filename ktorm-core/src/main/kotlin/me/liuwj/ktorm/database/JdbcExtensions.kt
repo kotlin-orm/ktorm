@@ -16,7 +16,11 @@
 
 package me.liuwj.ktorm.database
 
+import me.liuwj.ktorm.expression.ArgumentExpression
+import me.liuwj.ktorm.schema.SqlType
 import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 
 /**
  * Obtain a connection from [Database.global] and invoke the callback function with it.
@@ -77,4 +81,49 @@ inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
     } finally {
         this?.close()
     }
+}
+
+/**
+ * Set the arguments for this [PreparedStatement].
+ *
+ * @param args the arguments to set into the statement.
+ */
+fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
+    for ((i, expr) in args.withIndex()) {
+        @Suppress("UNCHECKED_CAST")
+        val sqlType = expr.sqlType as SqlType<Any>
+        sqlType.setParameter(this, i + 1, expr.value)
+    }
+}
+
+/**
+ * Return an iterator over the rows of this [ResultSet].
+ *
+ * The returned iterator just wraps the [ResultSet.next] method and every element returned by the iterator is
+ * exactly the same reference as the this [ResultSet].
+ */
+@Suppress("IteratorHasNextCallsNextMethod")
+operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
+    private val rs = this@iterator
+    private var hasNext: Boolean? = null
+
+    override fun hasNext(): Boolean {
+        return hasNext ?: rs.next().also { hasNext = it }
+    }
+
+    override fun next(): T {
+        return if (hasNext()) rs.also { hasNext = null } else throw NoSuchElementException()
+    }
+}
+
+/**
+ * Wrap this [ResultSet] as [Iterable].
+ *
+ * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
+ * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
+ *
+ * @see ResultSet.iterator
+ */
+fun <T : ResultSet> T.iterable(): Iterable<T> {
+    return Iterable { iterator() }
 }
