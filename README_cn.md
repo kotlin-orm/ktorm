@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/source/images/logo-full.png" alt="Ktorm" width="300" />
+    <img src="https://ktorm.liuwj.me/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
     <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">

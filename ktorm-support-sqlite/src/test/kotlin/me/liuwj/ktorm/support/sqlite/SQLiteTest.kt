@@ -8,6 +8,7 @@ import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
 import java.sql.Connection
 import java.sql.DriverManager
+import java.time.LocalDate
 
 /**
  * Created by vince on Dec 12, 2018.
@@ -92,5 +93,18 @@ class SQLiteTest : BaseTest() {
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
+    }
+
+    @Test
+    fun testInsert() {
+        val id = Employees.insertAndGenerateKey {
+            Employees.name to "Joe Friend"
+            Employees.job to "Tester"
+            Employees.managerId to null
+            Employees.salary to 50
+            Employees.hireDate to LocalDate.of(2020, 1, 10)
+            Employees.departmentId to 1
+        } as Int
+        assert(id > 4)
     }
 }

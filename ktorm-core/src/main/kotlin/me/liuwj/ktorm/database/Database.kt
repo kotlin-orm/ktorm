@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import me.liuwj.ktorm.database.Database.Companion.connect
 import me.liuwj.ktorm.database.Database.Companion.connectWithSpringSupport
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.SqlFormatter
 import me.liuwj.ktorm.logging.Logger
 import me.liuwj.ktorm.logging.detectLoggerImplementation
 import me.liuwj.ktorm.schema.SqlType
@@ -61,16 +60,23 @@ import javax.sql.DataSource
  * ```
  *
  * @property transactionManager the transaction manager used to manage connections and transactions.
- * @property dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
+ * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @property logger the logger used to output logs, auto detects an implementation by default, null to disable logging.
  * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database(
     val transactionManager: TransactionManager,
-    val dialect: SqlDialect? = detectDialectImplementation(),
+    dialect: SqlDialect? = null,
     val logger: Logger? = detectLoggerImplementation(),
     val exceptionTranslator: ((SQLException) -> Throwable)? = null
 ) {
+    /**
+     * The [SqlDialect] to use for operations on this database. If no dialect is passed into the constructor,
+     * use an auto-detected one (which may be a default generic dialect.)
+     */
+
+    val dialect: SqlDialect = dialect ?: detectDialectImplementation()
+
     /**
      * The URL of the connected database.
      */
@@ -234,8 +240,7 @@ class Database(
     ): Pair<String, List<ArgumentExpression<*>>> {
 
         val formatter = dialect
-            ?.createSqlFormatter(this, beautifySql, indentSize)
-            ?: SqlFormatter(this, beautifySql, indentSize)
+            .createSqlFormatter(this, beautifySql, indentSize)
 
         formatter.visit(expression)
         return formatter.sql to formatter.parameters
