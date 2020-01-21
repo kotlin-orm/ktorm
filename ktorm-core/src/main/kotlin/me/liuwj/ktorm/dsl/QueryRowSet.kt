@@ -16,6 +16,7 @@
 
 package me.liuwj.ktorm.dsl
 
+import me.liuwj.ktorm.database.iterable
 import me.liuwj.ktorm.expression.ColumnDeclaringExpression
 import me.liuwj.ktorm.schema.Column
 import java.io.InputStream

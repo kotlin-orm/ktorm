@@ -125,16 +125,7 @@ fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> U
 fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
     val expression = BulkInsertExpression(table.asExpression(), builder.assignments)
-
-    executeExpression(expression) { statement ->
-        val effects = statement.executeUpdate()
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Effects: $effects")
-        }
-
-        return effects
-    }
+    return executeUpdate(expression)
 }
 
 /**

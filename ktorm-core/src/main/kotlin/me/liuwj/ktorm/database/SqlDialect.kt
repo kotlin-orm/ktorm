@@ -54,35 +54,27 @@ interface SqlDialect {
 
     /**
      * Execute the given SQL string (typically an insert statement), then fetch the generated keys and pass it to the
-     * provided function [generatedKeysHandler] and return its result.
+     * provided function [keysHandler].
      *
      * @param database the database instance executing the statement.
      * @param sql the formatted SQL statement.
      * @param args the arguments to be provided to the statement.
-     * @param generatedKeysHandler a function to process the generated keys.
-     * @return the result of [generatedKeysHandler].
+     * @param keysHandler a function to process the generated keys.
+     * @return the effected row count of the executed SQL.
      */
-    fun <T> executeAndGetGeneratedKeys(
+    fun executeUpdateAndRetrieveKeys(
         database: Database,
         sql: String,
         args: List<ArgumentExpression<*>>,
-        generatedKeysHandler: (ResultSet) -> T
-    ): T {
-        if (database.logger.isDebugEnabled()) {
-            database.logger.debug("SQL: $sql")
-            database.logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
-        }
-
+        keysHandler: (ResultSet) -> Unit
+    ): Int {
         database.useConnection { conn ->
             conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS).use { statement ->
                 statement.setArguments(args)
 
                 val effects = statement.executeUpdate()
-                if (database.logger.isDebugEnabled()) {
-                    database.logger.debug("Effects: $effects")
-                }
-
-                return statement.generatedKeys.use(generatedKeysHandler)
+                statement.generatedKeys.use(keysHandler)
+                return effects
             }
         }
     }

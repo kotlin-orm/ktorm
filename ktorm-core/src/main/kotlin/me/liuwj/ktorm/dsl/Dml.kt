@@ -17,21 +17,19 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.setArguments
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.*
+import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.Column
+import me.liuwj.ktorm.schema.ColumnDeclaring
+import me.liuwj.ktorm.schema.defaultValue
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 import java.sql.PreparedStatement
 import java.sql.Statement
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.List
-import kotlin.collections.MutableList
-import kotlin.collections.contentToString
-import kotlin.collections.map
-import kotlin.collections.plusAssign
-import kotlin.collections.withIndex
 
 /**
  * Construct an update expression in the given closure, then execute it and return the effected row count.
@@ -90,21 +88,6 @@ fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(
     )
 
     return executeUpdate(expression)
-}
-
-/**
- * Execute the specific SQL expression, and return the effected row count. Used by Ktorm internal.
- */
-internal fun Database.executeUpdate(expression: SqlExpression): Int {
-    executeExpression(expression) { statement ->
-        val effects = statement.executeUpdate()
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Effects: $effects")
-        }
-
-        return effects
-    }
 }
 
 /**
@@ -194,12 +177,7 @@ private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
                     logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
                 }
 
-                for ((i, arg) in args.withIndex()) {
-                    @Suppress("UNCHECKED_CAST")
-                    val sqlType = arg.sqlType as SqlType<Any>
-                    sqlType.setParameter(statement, i + 1, arg.value)
-                }
-
+                statement.setArguments(args)
                 statement.addBatch()
             }
 
@@ -416,22 +394,22 @@ fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Assignment
     AssignmentsBuilder(assignments).block(table)
 
     val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
-    val (sql, args) = formatExpression(expression)
+    var generatedKey: Any? = null
 
-    return dialect.executeAndGetGeneratedKeys(this, sql, args) { rs ->
+    executeUpdateAndRetrieveKeys(expression) { rs ->
         if (rs.next()) {
             val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
-            val generatedKey = sqlType.getResult(rs, 1) ?: error("Generated key is null.")
+            generatedKey = sqlType.getResult(rs, 1) ?: error("Generated key is null.")
 
             if (logger.isDebugEnabled()) {
                 logger.debug("Generated Key: $generatedKey")
             }
-
-            generatedKey
         } else {
             error("No generated key returns by database.")
         }
     }
+
+    return generatedKey!!
 }
 
 /**

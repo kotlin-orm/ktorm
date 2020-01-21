@@ -118,15 +118,7 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
         InsertOrUpdateExpression(table.asExpression(), assignments, builder.updateAssignments)
     )
 
-    executeExpression(expr) { statement ->
-        val effects = statement.executeUpdate()
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Effects: $effects")
-        }
-
-        return effects
-    }
+    return executeUpdate(expr)
 }
 
 /**

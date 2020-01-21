@@ -36,9 +36,9 @@ open class BaseTest {
         database.useConnection { conn ->
             conn.createStatement().use { statement ->
                 javaClass.classLoader
-                    .getResourceAsStream(filename)
-                    .bufferedReader()
-                    .use { reader ->
+                    ?.getResourceAsStream(filename)
+                    ?.bufferedReader()
+                    ?.use { reader ->
                         for (sql in reader.readText().split(';')) {
                             if (sql.any { it.isLetterOrDigit() }) {
                                 statement.executeUpdate(sql)

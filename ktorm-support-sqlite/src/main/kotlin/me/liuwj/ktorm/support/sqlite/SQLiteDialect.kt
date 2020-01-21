@@ -35,25 +35,16 @@ open class SQLiteDialect : SqlDialect {
         return SQLiteFormatter(database, beautifySql, indentSize)
     }
 
-    override fun <T> executeAndGetGeneratedKeys(
+    override fun executeUpdateAndRetrieveKeys(
         database: Database,
         sql: String,
         args: List<ArgumentExpression<*>>,
-        generatedKeysHandler: (ResultSet) -> T
-    ): T {
+        keysHandler: (ResultSet) -> Unit
+    ): Int {
         database.useConnection { conn ->
-            if (database.logger.isDebugEnabled()) {
-                database.logger.debug("SQL: $sql")
-                database.logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
-            }
-
-            conn.prepareStatement(sql).use { statement ->
+            val effects = conn.prepareStatement(sql).use { statement ->
                 statement.setArguments(args)
-
-                val effects = statement.executeUpdate()
-                if (database.logger.isDebugEnabled()) {
-                    database.logger.debug("Effects: $effects")
-                }
+                statement.executeUpdate()
             }
 
             val retrieveKeySql = "select last_insert_rowid()"
@@ -62,10 +53,10 @@ open class SQLiteDialect : SqlDialect {
             }
 
             conn.prepareStatement(retrieveKeySql).use { statement ->
-                statement.executeQuery().use { rs ->
-                    return generatedKeysHandler(rs)
-                }
+                statement.executeQuery().use(keysHandler)
             }
+
+            return effects
         }
     }
 }
