@@ -370,7 +370,7 @@ fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Assignment
             logger.debug("Generated Key: $generatedKey")
         }
 
-        return rowSet
+        return generatedKey
     } else {
         error("No generated key returns by database.")
     }
