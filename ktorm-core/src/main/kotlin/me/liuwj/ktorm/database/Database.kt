@@ -265,6 +265,27 @@ class Database(
 
     /**
      * Format the given [expression] to a SQL string with its execution arguments, then execute it via
+     * [PreparedStatement.executeQuery] and return the result [CachedRowSet].
+     *
+     * @param expression the SQL expression to be executed.
+     * @return the result [CachedRowSet].
+     */
+    fun executeQuery(expression: SqlExpression): CachedRowSet {
+        executeExpression(expression) { statement ->
+            statement.executeQuery().use { rs ->
+                val rowSet = CachedRowSet(rs)
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Results: ${rowSet.size()}")
+                }
+
+                return rowSet
+            }
+        }
+    }
+
+    /**
+     * Format the given [expression] to a SQL string with its execution arguments, then execute it via
      * [PreparedStatement.executeUpdate] and return the effected row count.
      *
      * @param expression the SQL expression to be executed.

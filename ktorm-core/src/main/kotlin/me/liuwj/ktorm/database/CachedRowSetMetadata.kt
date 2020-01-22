@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package me.liuwj.ktorm.database
 
 import java.sql.ResultSetMetaData
 import java.sql.ResultSetMetaData.columnNullableUnknown
@@ -24,7 +24,7 @@ import java.sql.Types
 /**
  * Created by vince on Sep 03, 2019.
  */
-internal class QueryRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaData {
+internal class CachedRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMetaData {
     private val columns = Array(metadata.columnCount) { index ->
         val i = index + 1
 
