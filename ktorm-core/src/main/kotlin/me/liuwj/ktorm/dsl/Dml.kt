@@ -394,22 +394,20 @@ fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Assignment
     AssignmentsBuilder(assignments).block(table)
 
     val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
-    var generatedKey: Any? = null
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
-    executeUpdateAndRetrieveKeys(expression) { rs ->
-        if (rs.next()) {
-            val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
-            generatedKey = sqlType.getResult(rs, 1) ?: error("Generated key is null.")
+    if (rowSet.next()) {
+        val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
+        val generatedKey = sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("Generated Key: $generatedKey")
-            }
-        } else {
-            error("No generated key returns by database.")
+        if (logger.isDebugEnabled()) {
+            logger.debug("Generated Key: $generatedKey")
         }
-    }
 
-    return generatedKey!!
+        return rowSet
+    } else {
+        error("No generated key returns by database.")
+    }
 }
 
 /**

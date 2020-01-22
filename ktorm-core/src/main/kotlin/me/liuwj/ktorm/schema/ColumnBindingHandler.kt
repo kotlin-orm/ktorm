@@ -76,10 +76,10 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
 internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
     for (prop in declaringClass.kotlin.declaredMemberProperties) {
         if (prop.javaGetter == this) {
-            return prop to true
+            return Pair(prop, true)
         }
         if (prop is KMutableProperty<*> && prop.javaSetter == this) {
-            return prop to false
+            return Pair(prop, false)
         }
     }
     return null

@@ -18,7 +18,6 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlFormatter
-import java.sql.ResultSet
 import java.sql.Statement
 import java.util.ServiceLoader
 
@@ -53,28 +52,26 @@ interface SqlDialect {
     }
 
     /**
-     * Execute the given SQL string (typically an insert statement), then fetch the generated keys and pass it to the
-     * provided function [keysHandler].
+     * Execute the given SQL string (typically an insert statement), then return the effected row count along with
+     * the generated keys.
      *
      * @param database the database instance executing the statement.
      * @param sql the formatted SQL statement.
      * @param args the arguments to be provided to the statement.
-     * @param keysHandler a function to process the generated keys.
-     * @return the effected row count of the executed SQL.
+     * @return a [Pair] combines the effected row count and the generated keys.
      */
     fun executeUpdateAndRetrieveKeys(
         database: Database,
         sql: String,
-        args: List<ArgumentExpression<*>>,
-        keysHandler: (ResultSet) -> Unit
-    ): Int {
+        args: List<ArgumentExpression<*>>
+    ): Pair<Int, CachedRowSet> {
         database.useConnection { conn ->
             conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS).use { statement ->
                 statement.setArguments(args)
 
                 val effects = statement.executeUpdate()
-                statement.generatedKeys.use(keysHandler)
-                return effects
+                val rowSet = statement.generatedKeys.use { rs -> CachedRowSet(rs) }
+                return Pair(effects, rowSet)
             }
         }
     }

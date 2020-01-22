@@ -72,26 +72,29 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
     val ignoreGeneratedKeys =
         sourceTable.primaryKey?.binding == null || entity.implementation.getPrimaryKeyValue(sourceTable) != null
 
-    val effects = if (ignoreGeneratedKeys) {
-        database.executeUpdate(expression)
+    if (ignoreGeneratedKeys) {
+        val effects = database.executeUpdate(expression)
+        entity.implementation.fromTable = sourceTable
+        entity.implementation.doDiscardChanges()
+        return effects
     } else {
-        database.executeUpdateAndRetrieveKeys(expression) { rs ->
-            if (rs.next()) {
-                val generatedKey = sourceTable.primaryKey?.sqlType?.getResult(rs, 1)
-                if (generatedKey != null) {
-                    if (database.logger.isDebugEnabled()) {
-                        database.logger.debug("Generated Key: $generatedKey")
-                    }
+        val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
 
-                    entity.implementation.setPrimaryKeyValue(sourceTable, generatedKey)
+        if (rowSet.next()) {
+            val generatedKey = sourceTable.primaryKey?.sqlType?.getResult(rowSet, 1)
+            if (generatedKey != null) {
+                if (database.logger.isDebugEnabled()) {
+                    database.logger.debug("Generated Key: $generatedKey")
                 }
+
+                entity.implementation.setPrimaryKeyValue(sourceTable, generatedKey)
             }
         }
-    }
 
-    entity.implementation.fromTable = sourceTable
-    entity.implementation.doDiscardChanges()
-    return effects
+        entity.implementation.fromTable = sourceTable
+        entity.implementation.doDiscardChanges()
+        return effects
+    }
 }
 
 private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> {

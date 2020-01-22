@@ -16,15 +16,11 @@
 
 package me.liuwj.ktorm.support.sqlite
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.SqlDialect
-import me.liuwj.ktorm.database.setArguments
-import me.liuwj.ktorm.database.use
+import me.liuwj.ktorm.database.*
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.QueryExpression
 import me.liuwj.ktorm.expression.SqlFormatter
 import me.liuwj.ktorm.schema.IntSqlType
-import java.sql.ResultSet
 
 /**
  * [SqlDialect] implementation for SQLite database.
@@ -38,9 +34,8 @@ open class SQLiteDialect : SqlDialect {
     override fun executeUpdateAndRetrieveKeys(
         database: Database,
         sql: String,
-        args: List<ArgumentExpression<*>>,
-        keysHandler: (ResultSet) -> Unit
-    ): Int {
+        args: List<ArgumentExpression<*>>
+    ): Pair<Int, CachedRowSet> {
         database.useConnection { conn ->
             val effects = conn.prepareStatement(sql).use { statement ->
                 statement.setArguments(args)
@@ -52,11 +47,11 @@ open class SQLiteDialect : SqlDialect {
                 database.logger.debug("Retrieving generated keys by SQL: $retrieveKeySql")
             }
 
-            conn.prepareStatement(retrieveKeySql).use { statement ->
-                statement.executeQuery().use(keysHandler)
+            val rowSet = conn.prepareStatement(retrieveKeySql).use { statement ->
+                statement.executeQuery().use { rs -> CachedRowSet(rs) }
             }
 
-            return effects
+            return Pair(effects, rowSet)
         }
     }
 }

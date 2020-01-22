@@ -234,7 +234,7 @@ class Database(
 
         val formatter = dialect.createSqlFormatter(this, beautifySql, indentSize)
         formatter.visit(expression)
-        return formatter.sql to formatter.parameters
+        return Pair(formatter.sql, formatter.parameters)
     }
 
     /**
@@ -305,14 +305,12 @@ class Database(
 
     /**
      * Format the given [expression] to a SQL string with its execution arguments, execute it via
-     * [PreparedStatement.executeUpdate], then fetch the generated keys and pass it to the provided
-     * processor function [keysHandler], finally return the effected row count.
+     * [PreparedStatement.executeUpdate], then return the effected row count along with the generated keys.
      *
      * @param expression the SQL expression to be executed.
-     * @param keysHandler a function to process the generated keys.
-     * @return the effected row count.
+     * @return a [Pair] combines the effected row count and the generated keys.
      */
-    fun executeUpdateAndRetrieveKeys(expression: SqlExpression, keysHandler: (ResultSet) -> Unit): Int {
+    fun executeUpdateAndRetrieveKeys(expression: SqlExpression): Pair<Int, CachedRowSet> {
         val (sql, args) = formatExpression(expression)
 
         if (logger.isDebugEnabled()) {
@@ -320,13 +318,13 @@ class Database(
             logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
         }
 
-        val effects = dialect.executeUpdateAndRetrieveKeys(this, sql, args, keysHandler)
+        val (effects, rowSet) = dialect.executeUpdateAndRetrieveKeys(this, sql, args)
 
         if (logger.isDebugEnabled()) {
             logger.debug("Effects: $effects")
         }
 
-        return effects
+        return Pair(effects, rowSet)
     }
 
     /**
