@@ -17,7 +17,8 @@
 package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.database.Database.Companion.connect
-import me.liuwj.ktorm.database.Database.Companion.connectWithSpringSupport
+import me.liuwj.ktorm.dsl.Query
+import me.liuwj.ktorm.entity.EntitySequence
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.logging.Logger
@@ -33,34 +34,73 @@ import javax.sql.DataSource
 /**
  * The entry class of Ktorm, represents a physical database, used to manage connections and transactions.
  *
- * To create instances of this class, we need to call the [connect] functions on the companion object.
- * Ktorm also provides Spring support, to enable this feature, instances should be created by
- * [connectWithSpringSupport] instead.
+ * ### Connect with a URL
  *
- * The connect functions returns a new-created database object, you can define a variable to save the returned
- * value if needed. But generally, it’s not necessary to do that, because Ktorm will save the latest created
- * instance automatically, then obtain it via [Database.global] when needed.
- *
- * But sometimes, we have to operate many databases in one App, so it’s needed to create many instances
- * and choose one while performing our database specific operations. In this case, the [invoke] operator
- * should be used to switch among those databases.
+ * The simplest way to create a database instance, using a JDBC URL:
  *
  * ```kotlin
- * val mysql = Database.connect("jdbc:mysql://localhost:3306/ktorm", driver = "com.mysql.jdbc.Driver")
- * val h2 = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
- * mysql {
- *     assert(Database.global === mysql)
- *     // Use MySQL database
- * }
- * h2 {
- *     assert(Database.global === h2)
- *     // Use H2 database
- * }
+ * val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=123")
  * ```
+ *
+ * Easy to know what we do in the [connect] function. Just like any JDBC boilerplate code, Ktorm loads the MySQL
+ * database driver first, then calls [DriverManager.getConnection] with your URL to obtain a connection.
+ *
+ * Of course, Ktorm doesn't call [DriverManager.getConnection] in the beginning. Instead, we obtain connections
+ * only when it's really needed (such as executing a SQL), then close them after they are not useful anymore.
+ * Therefore, database objects created by this way won't reuse any connections, creating connections frequently
+ * can lead to huge performance costs. It's highly recommended to use connection pools in your production environment.
+ *
+ * ### Connect with a Pool
+ *
+ * Ktorm doesn't limit you, you can use any connection pool you like, such as DBCP, C3P0 or Druid. The [connect]
+ * function provides an overloaded version which accepts a [DataSource] parameter, you just need to create a
+ * [DataSource] object and call that function with it:
+ *
+ * ```kotlin
+ * val dataSource = SingleConnectionDataSource() // Any DataSource implementation is OK.
+ * val database = Database.connect(dataSource)
+ * ```
+ *
+ * Now, Ktorm will obtain connections from the [DataSource] when necessary, then return them to the pool after they
+ * are not useful. This avoids the performance costs of frequent connection creation.
+ *
+ * Connection pools are applicative and effective in most cases, we highly recommend you manage your connections
+ * in this way.
+ *
+ * ### Use SQL DSL & Sequence APIs
+ *
+ * Now that we've connected to the database, we can perform many operations on it. Ktorm's APIs are mainly divided
+ * into two parts, they are SQL DSL and sequence APIs.
+ *
+ * Here, we use SQL DSL to obtains the names of all engineers in department 1:
+ *
+ * ```kotlin
+ * database
+ *     .from(Employees)
+ *     .select(Employees.name)
+ *     .where { (Employees.departmentId eq 1) and (Employees.job eq "engineer") }
+ *     .forEach { row ->
+ *         println(row[Employees.name])
+ *     }
+ * ```
+ *
+ * Equivalent code using sequence APIs:
+ *
+ * ```kotlin
+ * database
+ *     .sequenceOf(Employees)
+ *     .filter { it.departmentId eq 1 }
+ *     .filter { it.job eq "engineer" }
+ *     .mapColumns { it.name }
+ *     .forEach { name ->
+ *         println(name)
+ *     }
+ * ```
+ * More details about SQL DSL, see [Query], about sequence APIs, see [EntitySequence].
  *
  * @property transactionManager the transaction manager used to manage connections and transactions.
  * @property dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
- * @property logger the logger used to output logs, auto detects an implementation by default, null to disable logging.
+ * @property logger the logger used to output logs, auto detects an implementation by default.
  * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database(
@@ -69,7 +109,6 @@ class Database(
     val logger: Logger = detectLoggerImplementation(),
     val exceptionTranslator: ((SQLException) -> Throwable)? = null
 ) {
-
     /**
      * The URL of the connected database.
      */
@@ -111,7 +150,8 @@ class Database(
 
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
 
-        useMetadata { metadata ->
+        useConnection { conn ->
+            val metadata = conn.metaData
             url = metadata.runCatching { url }.orEmpty()
             name = url.substringAfterLast('/').substringBefore('?')
             productName = metadata.runCatching { databaseProductName }.orEmpty()
@@ -128,21 +168,14 @@ class Database(
     }
 
     /**
-     * Obtain a connection and invoke the callback function with its [DatabaseMetaData],
-     * the connection will be automatically closed after the callback completes.
-     */
-    inline fun <T> useMetadata(func: (DatabaseMetaData) -> T): T {
-        useConnection { conn ->
-            return func(conn.metaData)
-        }
-    }
-
-    /**
      * Obtain a connection and invoke the callback function with it.
      *
      * If the current thread has opened a transaction, then this transaction's connection will be used.
      * Otherwise, Ktorm will pass a new-created connection to the function and auto close it after it's
      * not useful anymore.
+     *
+     * @param func the executed callback function.
+     * @return the result of the callback function.
      */
     inline fun <T> useConnection(func: (Connection) -> T): T {
         try {
@@ -373,7 +406,7 @@ class Database(
     }
 
     /**
-     * Companion object provides functions to connect to databases and holds the [global] database instances.
+     * Companion object provides functions to connect to databases.
      */
     companion object {
         @Deprecated("This property will be removed in the future.")
@@ -397,7 +430,7 @@ class Database(
          * Connect to a database by a specific [connector] function.
          *
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default.
          * @param connector the connector function used to obtain SQL connections.
          * @return the new-created database object.
          */
@@ -414,7 +447,7 @@ class Database(
          *
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default.
          * @return the new-created database object.
          */
         fun connect(
@@ -433,7 +466,7 @@ class Database(
          * @param user the user name of the database.
          * @param password the password of the database.
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default.
          * @return the new-created database object.
          */
         fun connect(
@@ -454,16 +487,16 @@ class Database(
         /**
          * Connect to a database using a [DataSource] with the Spring support enabled.
          *
-         * Once the Spring support enabled, the transaction management will be delegated to the Spring framework,
+         * Once the Spring support is enabled, the transaction management will be delegated to the Spring framework,
          * so the [useTransaction] function is not available anymore, we need to use Spring's [Transactional]
          * annotation instead.
          *
-         * This also enables the exception translation, which can convert any [SQLException] thrown by JDBC to
-         * Spring's [DataAccessException] and rethrow it.
+         * This function also enables the exception translation, which can convert any [SQLException] thrown by JDBC
+         * to Spring's [DataAccessException] and rethrow it.
          *
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default, null to disable logging.
+         * @param logger logger used to output logs, auto detects an implementation by default.
          * @return the new-created database object.
          */
         fun connectWithSpringSupport(
