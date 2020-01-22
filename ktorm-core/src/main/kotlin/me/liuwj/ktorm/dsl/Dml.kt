@@ -17,8 +17,6 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.setArguments
-import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.Column
@@ -28,7 +26,6 @@ import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 import java.sql.PreparedStatement
 import java.sql.Statement
-import java.util.*
 import kotlin.collections.ArrayList
 
 /**
@@ -158,37 +155,6 @@ fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatemen
         return IntArray(0)
     } else {
         return executeBatch(expressions)
-    }
-}
-
-private fun Database.executeBatch(expressions: List<SqlExpression>): IntArray {
-    val (sql, _) = formatExpression(expressions[0])
-
-    if (logger.isDebugEnabled()) {
-        logger.debug("SQL: $sql")
-    }
-
-    useConnection { conn ->
-        conn.prepareStatement(sql).use { statement ->
-            for (expr in expressions) {
-                val (_, args) = formatExpression(expr)
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
-                }
-
-                statement.setArguments(args)
-                statement.addBatch()
-            }
-
-            val effects = statement.executeBatch()
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("Effects: ${effects?.contentToString()}")
-            }
-
-            return effects
-        }
     }
 }
 
@@ -551,7 +517,6 @@ class UpdateStatementBuilder(
 @KtormDsl
 class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val database: Database, internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
-    internal val sqls = HashSet<String>()
 
     /**
      * Add an update statement to the current batch operation.
@@ -561,16 +526,7 @@ class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val database: Datab
         val builder = UpdateStatementBuilder(assignments)
         builder.block(table)
 
-        val expr = UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
-
-        val (sql, _) = database.formatExpression(expr, beautifySql = true)
-
-        if (sqls.isEmpty() || sql in sqls) {
-            sqls += sql
-            expressions += expr
-        } else {
-            throw IllegalArgumentException("Every item in a batch operation must be the same. SQL: \n\n$sql")
-        }
+        expressions += UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
     }
 }
 
@@ -580,7 +536,6 @@ class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val database: Datab
 @KtormDsl
 class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val database: Database, internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
-    internal val sqls = HashSet<String>()
 
     /**
      * Add an insert statement to the current batch operation.
@@ -590,16 +545,7 @@ class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val database: Datab
         val builder = AssignmentsBuilder(assignments)
         builder.block(table)
 
-        val expr = InsertExpression(table.asExpression(), assignments)
-
-        val (sql, _) = database.formatExpression(expr, beautifySql = true)
-
-        if (sqls.isEmpty() || sql in sqls) {
-            sqls += sql
-            expressions += expr
-        } else {
-            throw IllegalArgumentException("Every item in a batch operation must be the same. SQL: \n\n$sql")
-        }
+        expressions += InsertExpression(table.asExpression(), assignments)
     }
 }
 

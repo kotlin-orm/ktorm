@@ -328,6 +328,51 @@ class Database(
     }
 
     /**
+     * Batch execute the given SQL expressions and return the effected row counts for each expression.
+     *
+     * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
+     * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+     *
+     * @param expressions the SQL expressions to be executed.
+     * @return the effected row counts for each sub-operation.
+     */
+    fun executeBatch(expressions: List<SqlExpression>): IntArray {
+        val (sql, _) = formatExpression(expressions[0])
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("SQL: $sql")
+        }
+
+        useConnection { conn ->
+            conn.prepareStatement(sql).use { statement ->
+                for (expr in expressions) {
+                    val (subSql, args) = formatExpression(expr)
+
+                    if (subSql != sql) {
+                        throw IllegalArgumentException(
+                            "Every item in a batch operation must generate the same. SQL: \n\n$sql"
+                        )
+                    }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Parameters: " + args.map { "${it.value}(${it.sqlType.typeName})" })
+                    }
+
+                    statement.setArguments(args)
+                    statement.addBatch()
+                }
+
+                val effects = statement.executeBatch()
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Effects: ${effects?.contentToString()}")
+                }
+
+                return effects
+            }
+        }
+    }
+
+    /**
      * Companion object provides functions to connect to databases and holds the [global] database instances.
      */
     companion object {
