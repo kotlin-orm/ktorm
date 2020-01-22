@@ -18,7 +18,6 @@ package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.iterator
-import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.BooleanSqlType
@@ -87,15 +86,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
      * overrides the indexed access operator. More details can be found in the documentation of [QueryRowSet].
      */
     val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
-        database.executeExpression(expression) { statement ->
-            statement.executeQuery().use { rs ->
-                QueryRowSet(this, rs).also { rowSet ->
-                    if (database.logger.isDebugEnabled()) {
-                        database.logger.debug("Results: ${rowSet.size()}")
-                    }
-                }
-            }
-        }
+        QueryRowSet(this, database.executeQuery(expression))
     }
 
     /**
@@ -110,20 +101,17 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
             rowSet.size()
         } else {
             val countExpr = expression.toCountExpression()
+            val rowSet = database.executeQuery(countExpr)
 
-            database.executeExpression(countExpr) { statement ->
-                statement.executeQuery().use { rs ->
-                    if (rs.next()) {
-                        rs.getInt(1).also { total ->
-                            if (database.logger.isDebugEnabled()) {
-                                database.logger.debug("Total Records: $total")
-                            }
-                        }
-                    } else {
-                        val (sql, _) = database.formatExpression(countExpr, beautifySql = true)
-                        throw IllegalStateException("No result return for sql: $sql")
+            if (rowSet.next()) {
+                rowSet.getInt(1).also { total ->
+                    if (database.logger.isDebugEnabled()) {
+                        database.logger.debug("Total Records: $total")
                     }
                 }
+            } else {
+                val (sql, _) = database.formatExpression(countExpr, beautifySql = true)
+                throw IllegalStateException("No result return for sql: $sql")
             }
         }
     }
