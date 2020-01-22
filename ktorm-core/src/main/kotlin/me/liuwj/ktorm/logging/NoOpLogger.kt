@@ -26,7 +26,7 @@ object NoOpLogger : Logger {
     }
 
     override fun trace(msg: String, e: Throwable?) {
-
+        // no-op
     }
 
     override fun isDebugEnabled(): Boolean {
@@ -34,7 +34,7 @@ object NoOpLogger : Logger {
     }
 
     override fun debug(msg: String, e: Throwable?) {
-
+        // no-op
     }
 
     override fun isInfoEnabled(): Boolean {
@@ -42,7 +42,7 @@ object NoOpLogger : Logger {
     }
 
     override fun info(msg: String, e: Throwable?) {
-
+        // no-op
     }
 
     override fun isWarnEnabled(): Boolean {
@@ -50,7 +50,7 @@ object NoOpLogger : Logger {
     }
 
     override fun warn(msg: String, e: Throwable?) {
-
+        // no-op
     }
 
     override fun isErrorEnabled(): Boolean {
@@ -58,6 +58,6 @@ object NoOpLogger : Logger {
     }
 
     override fun error(msg: String, e: Throwable?) {
-
+        // no-op
     }
 }

@@ -23,6 +23,7 @@ import java.math.BigInteger
 import java.net.URL
 import java.sql.*
 import java.sql.Date
+import java.sql.ResultSet.*
 import java.text.DateFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -46,13 +47,14 @@ import javax.sql.rowset.serial.*
  * }
  * ```
  */
+@Suppress("LargeClass", "MethodOverloading")
 open class CachedRowSet(rs: ResultSet) : ResultSet {
     private val _typeMap = readTypeMap(rs)
     private val _metadata = readMetadata(rs)
     private val _values = readValues(rs)
     private var _cursor = -1
     private var _wasNull = false
-    private var _fetchDirection = ResultSet.FETCH_FORWARD
+    private var _fetchDirection = FETCH_FORWARD
     private var _fetchSize = 0
 
     /**
@@ -629,7 +631,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
     }
 
     override fun setFetchDirection(direction: Int) {
-        if (direction != ResultSet.FETCH_FORWARD && direction != ResultSet.FETCH_REVERSE && direction != ResultSet.FETCH_UNKNOWN) {
+        if (direction != FETCH_FORWARD && direction != FETCH_REVERSE && direction != FETCH_UNKNOWN) {
             throw SQLException("Invalid fetch direction: $direction")
         }
 
@@ -653,11 +655,11 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
     }
 
     override fun getType(): Int {
-        return ResultSet.TYPE_SCROLL_INSENSITIVE
+        return TYPE_SCROLL_INSENSITIVE
     }
 
     override fun getConcurrency(): Int {
-        return ResultSet.CONCUR_READ_ONLY
+        return CONCUR_READ_ONLY
     }
 
     @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
@@ -1095,7 +1097,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
     }
 
     override fun getHoldability(): Int {
-        return ResultSet.HOLD_CURSORS_OVER_COMMIT
+        return HOLD_CURSORS_OVER_COMMIT
     }
 
     override fun isClosed(): Boolean {
