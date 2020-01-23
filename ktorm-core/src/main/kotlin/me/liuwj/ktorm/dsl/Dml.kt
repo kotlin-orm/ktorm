@@ -92,7 +92,7 @@ fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(
  * row counts for each expression.
  *
  * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
- * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
  *
  * Usage:
  *
@@ -126,7 +126,7 @@ fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() ->
  * row counts for each expression.
  *
  * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
- * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
  *
  * Usage:
  *
@@ -219,7 +219,7 @@ fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -
  * row counts for each expression.
  *
  * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
- * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
  *
  * Usage:
  *
@@ -261,7 +261,7 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
  * row counts for each expression.
  *
  * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
- * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+ * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
  *
  * Usage:
  *
@@ -395,7 +395,7 @@ fun Query.insertTo(table: BaseTable<*>, vararg columns: Column<*>): Int {
 @Suppress("DEPRECATION")
 @Deprecated(
     message = "This function will be removed in the future. Please use database.delete(table) {...} instead.",
-    replaceWith = ReplaceWith("database.delete(this, block)")
+    replaceWith = ReplaceWith("database.delete(this, predicate)")
 )
 fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return Database.global.delete(this, predicate)

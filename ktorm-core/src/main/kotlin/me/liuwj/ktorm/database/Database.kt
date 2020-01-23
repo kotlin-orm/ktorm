@@ -364,7 +364,7 @@ class Database(
      * Batch execute the given SQL expressions and return the effected row counts for each expression.
      *
      * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
-     * and any item in a batch operation must generate the same SQL, otherwise an exception will be thrown.
+     * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
      *
      * @param expressions the SQL expressions to be executed.
      * @return the effected row counts for each sub-operation.
