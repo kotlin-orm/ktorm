@@ -14,7 +14,7 @@
     <a href="https://github.com/KotlinBy/awesome-kotlin">
         <img src="https://kotlin.link/awesome-kotlin.svg" alt="Awesome Kotlin Badge" />
     </a>
-    <a href="https://app.slack.com/client/TJPFHF81W/CSMS361EU">
+    <a href="https://join.slack.com/t/alpasdev/shared_invite/enQtODcwMjE1MzMxODQ3LTJjZWMzOWE5MzBlYzIzMWQ2MTcxN2M2YjU3MTQ5ZDE4NjBmYjY1YTljOGIwYmJmYWFlYjc4YTcwMDFmZDIzNDE">
         <img src="https://img.shields.io/badge/Chat-on%20Slack-brightgreen" alt="Chat on Slack Badge" />
     </a>
 </p>
