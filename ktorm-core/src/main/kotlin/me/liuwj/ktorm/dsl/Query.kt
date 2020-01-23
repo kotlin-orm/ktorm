@@ -28,14 +28,14 @@ import java.sql.ResultSet
 /**
  * [Query] is an abstraction of query operations and the core class of Ktorm's query DSL.
  *
- * The constructor of this class accepts a parameter of type [QueryExpression], which is the abstract
- * representation of the executing SQL statements. Usually, we don't use the constructor to create query
- * objects but use the [BaseTable.select] extension function instead.
+ * The constructor of this class accepts two parameters: [database] is the database instance that this query
+ * is running on; [expression] is the abstract representation of the executing SQL statement. Usually, we don't
+ * use the constructor to create [Query] objects but use the `database.from(..).select(..)` syntax instead.
  *
  * [Query] implements the [Iterable] interface, so we can iterate the results by a for-each loop:
  *
  * ```kotlin
- * for (row in Employees.select()) {
+ * for (row in database.from(Employees).select()) {
  *     println(row[Employees.name])
  * }
  * ```
@@ -47,13 +47,14 @@ import java.sql.ResultSet
  * chaining call these functions to modify them and create new query objects. Here is a simple example:
  *
  * ```kotlin
- * val query = Employees
+ * val query = database
+ *     .from(Employees)
  *     .select(Employees.salary)
  *     .where { (Employees.departmentId eq 1) and (Employees.name like "%vince%") }
  * ```
  *
  * Easy to know that the query obtains the salary of an employee named vince in department 1. The generated
- * SQL is easy too:
+ * SQL is obviously:
  *
  * ```sql
  * select t_employee.salary as t_employee_salary
@@ -90,10 +91,10 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
     }
 
     /**
-     * The total records count of this query ignoring the pagination params.
+     * The total record count of this query ignoring the pagination params.
      *
      * If the query doesn't limits the results via [Query.limit] function, return the size of the result set. Or if
-     * it does, return the total records count of the query ignoring the offset and limit parameters. This property
+     * it does, return the total record count of the query ignoring the offset and limit parameters. This property
      * is provided to support pagination, we can calculate the page count through dividing it by out page size.
      */
     val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
@@ -156,7 +157,7 @@ fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
     replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
@@ -171,7 +172,7 @@ fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
     replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
@@ -185,7 +186,7 @@ fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
     replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
@@ -199,7 +200,7 @@ fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).select(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
     replaceWith = ReplaceWith("database.from(this).select(columns)")
 )
 fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
@@ -232,7 +233,7 @@ fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
     replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
@@ -247,7 +248,7 @@ fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
     replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
@@ -261,7 +262,7 @@ fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Qu
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
     replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
@@ -275,7 +276,7 @@ fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query 
  */
 @Suppress("DEPRECATION")
 @Deprecated(
-    message = "This function will be removed in the future. Please use database.from(...).selectDistinct(...) instead.",
+    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
     replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
 )
 fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
@@ -431,8 +432,8 @@ fun ColumnDeclaring<*>.desc(): OrderByExpression {
 /**
  * Specify the pagination parameters of this query.
  *
- * This function requires a dialect enabled, different SQLs will be generated in different dialects. For example,
- * `limit ?, ?` in MySQL, `limit m offset n` in PostgreSQL.
+ * This function requires a dialect enabled, different SQLs will be generated with different dialects. For example,
+ * `limit ?, ?` by MySQL, `limit m offset n` by PostgreSQL.
  *
  * Note that if both [offset] and [limit] are zero, they will be ignored.
  */

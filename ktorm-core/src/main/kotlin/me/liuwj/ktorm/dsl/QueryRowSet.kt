@@ -36,7 +36,7 @@ import java.sql.ResultSet
  * column indices.
  *
  * ```kotlin
- * val query = Employees.select()
+ * val query = database.from(Employees).select()
  * for (row in query.rowSet) {
  *     println(row[Employees.name])
  * }
