@@ -20,9 +20,7 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.defaultValue
 import me.liuwj.ktorm.schema.kotlinProperty
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.io.Serializable
+import java.io.*
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -154,9 +152,42 @@ internal class EntityImplementation(
 
     private fun copy(): Entity<*> {
         val entity = Entity.create(entityClass, parent, fromDatabase, fromTable)
-        entity.implementation.values.putAll(values)
         entity.implementation.changedProperties.addAll(changedProperties)
+
+        for ((name, value) in values) {
+            if (value is Entity<*>) {
+                val valueCopy = value.copy()
+
+                // Keep the parent relationship.
+                if (valueCopy.implementation.parent == this) {
+                    valueCopy.implementation.parent = entity.implementation
+                }
+
+                entity.implementation.values[name] = valueCopy
+            } else {
+                entity.implementation.values[name] = value?.let { deserialize(serialize(it)) }
+            }
+        }
+
         return entity
+    }
+
+    private fun serialize(obj: Any): ByteArray {
+        ByteArrayOutputStream().use { buffer ->
+            ObjectOutputStream(buffer).use { output ->
+                output.writeObject(obj)
+                output.flush()
+                return buffer.toByteArray()
+            }
+        }
+    }
+
+    private fun deserialize(bytes: ByteArray): Any {
+        ByteArrayInputStream(bytes).use { buffer ->
+            ObjectInputStream(buffer).use { input ->
+                return input.readObject()
+            }
+        }
     }
 
     private fun writeObject(output: ObjectOutputStream) {

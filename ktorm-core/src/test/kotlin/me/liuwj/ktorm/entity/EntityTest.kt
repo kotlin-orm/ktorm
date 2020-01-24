@@ -393,13 +393,25 @@ class EntityTest : BaseTest() {
     }
 
     @Test
-    fun testCopy() {
-        var employee = database.sequenceOf(Employees).find { it.id eq 1 }?.copy() ?: return
+    fun testCopyStatus() {
+        var employee = database.sequenceOf(Employees).find { it.id eq 2 }?.copy() ?: return
         employee.name = "jerry"
+        employee.manager?.id = 3
         employee.flushChanges()
 
-        employee = database.sequenceOf(Employees).find { it.id eq 1 } ?: return
+        employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: return
         assert(employee.name == "jerry")
+        assert(employee.manager?.id == 3)
+    }
+
+    @Test
+    fun testDeepCopy() {
+        val employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: return
+        val copy = employee.copy()
+
+        assert(employee.hireDate == copy.hireDate)
+        assert(employee.hireDate !== copy.hireDate) // should not be the same instance because of deep copy.
+        assert(copy.manager?.implementation?.parent === copy.implementation) // should keep the parent relationship.
     }
 
     @Test

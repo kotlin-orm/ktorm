@@ -198,7 +198,7 @@ interface Entity<E : Entity<E>> : Serializable {
     operator fun set(name: String, value: Any?)
 
     /**
-     * Return a shallow copy of this entity, which has the same property values and tracked statuses.
+     * Return a deep copy of this entity, which has the same property values and tracked statuses.
      */
     fun copy(): E
 
