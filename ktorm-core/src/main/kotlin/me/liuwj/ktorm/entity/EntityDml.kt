@@ -257,30 +257,29 @@ internal fun EntityImplementation.doDiscardChanges() {
 // Add check to avoid bug #10
 private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) {
     for (column in fromTable.columns) {
-        val binding = column.binding ?: continue
+        if (column.binding !is NestedBinding) continue
 
-        if (binding is NestedBinding) {
-            var curr: Any? = this
+        var curr: Any? = this
+        for ((i, prop) in column.binding.properties.withIndex()) {
+            if (curr == null) {
+                break
+            }
+            if (curr is Entity<*>) {
+                curr = curr.implementation
+            }
 
-            for ((i, prop) in binding.properties.withIndex()) {
-                if (curr == null) {
-                    break
-                }
-                if (curr is Entity<*>) {
-                    curr = curr.implementation
-                }
+            check(curr is EntityImplementation)
 
-                check(curr is EntityImplementation)
-
+            if (i > 0 && prop.name in curr.changedProperties) {
                 val isExternalEntity = curr.fromTable != null && curr.getRoot() != this
-                if (i > 0 && prop.name in curr.changedProperties && isExternalEntity) {
-                    val propPath = binding.properties.subList(0, i + 1).joinToString(separator = ".") { it.name }
+                if (isExternalEntity) {
+                    val propPath = column.binding.properties.subList(0, i + 1).joinToString(separator = ".") { it.name }
                     val msg = "this.$propPath may be unexpectedly discarded, please save it to database first."
                     throw IllegalStateException(msg)
                 }
-
-                curr = curr.getProperty(prop.name)
             }
+
+            curr = curr.getProperty(prop.name)
         }
     }
 }

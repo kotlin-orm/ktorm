@@ -205,8 +205,8 @@ class EntityTest : BaseTest() {
     fun testFindMapById() {
         val employees = database.sequenceOf(Employees).filter { it.id.inList(1, 2) }.associateBy { it.id }
         assert(employees.size == 2)
-        assert(employees[1]!!.name == "vince")
-        assert(employees[2]!!.name == "marry")
+        assert(employees[1]?.name == "vince")
+        assert(employees[2]?.name == "marry")
     }
 
     interface Parent : Entity<Parent> {
@@ -238,6 +238,36 @@ class EntityTest : BaseTest() {
             // expected
             println(e.message)
         }
+    }
+
+    interface EmployeeTestForReferencePrimaryKey : Entity<EmployeeTestForReferencePrimaryKey> {
+        var employee: Employee
+        var manager: EmployeeManagerTestForReferencePrimaryKey
+    }
+
+    interface EmployeeManagerTestForReferencePrimaryKey : Entity<EmployeeManagerTestForReferencePrimaryKey> {
+        var employee: Employee
+    }
+
+    object EmployeeTestForReferencePrimaryKeys : Table<EmployeeTestForReferencePrimaryKey>("t_employee0") {
+        val id by int("id").primaryKey().references(Employees) { it.employee }
+        val managerId by int("manager_id").bindTo { it.manager.employee.id }
+    }
+
+    @Test
+    fun testUpdateReferencesPrimaryKey() {
+        val e = database.sequenceOf(EmployeeTestForReferencePrimaryKeys).find { it.id eq 2 } ?: return
+        e.manager.employee = database.sequenceOf(Employees).find { it.id eq 1 } ?: return
+
+        try {
+            e.employee = database.sequenceOf(Employees).find { it.id eq 1 } ?: return
+            throw AssertionError()
+        } catch (e: UnsupportedOperationException) {
+            // expected
+            println(e.message)
+        }
+
+        e.flushChanges()
     }
 
     @Test

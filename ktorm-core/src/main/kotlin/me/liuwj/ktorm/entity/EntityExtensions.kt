@@ -98,12 +98,10 @@ internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: 
 }
 
 internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
-    val binding = this.fromTable?.primaryKey?.binding
-
-    when (binding) {
+    when (val binding = this.fromTable?.primaryKey?.binding) {
         null -> return false
         is ReferenceBinding -> {
-            return binding.onProperty.name == name
+            return parent == null && binding.onProperty.name == name
         }
         is NestedBinding -> {
             val namesPath = LinkedList<Set<String>>()
