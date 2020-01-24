@@ -74,6 +74,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
 
     if (ignoreGeneratedKeys) {
         val effects = database.executeUpdate(expression)
+        entity.implementation.fromDatabase = database
         entity.implementation.fromTable = sourceTable
         entity.implementation.doDiscardChanges()
         return effects
@@ -91,6 +92,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
             }
         }
 
+        entity.implementation.fromDatabase = database
         entity.implementation.fromTable = sourceTable
         entity.implementation.doDiscardChanges()
         return effects

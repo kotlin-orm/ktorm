@@ -154,11 +154,11 @@ interface Entity<E : Entity<E>> : Serializable {
      *
      * 2. The entity object calling this function must **be associated with a table** first. In Ktorm’s implementation,
      * every entity object holds a reference `fromTable`, that means this object is associated with the table or
-     * obtained from it. For entity objects obtained by `find*` functions or sequence APIs, their `fromTable` references
-     * point to the current table object they are obtained from. But for entity objects created by [Entity.create] or
-     * [Entity.Factory], their `fromTable` references are `null` initially, so we can not call this function on them.
-     * But after we insert them into the database via [Table.add] function, Ktorm will modify their `fromTable` to the
-     * current table object, so we can call this function on them now.
+     * obtained from it. For entity objects obtained by sequence APIs, their `fromTable` references point to the current
+     * table object they are obtained from. But for entity objects created by [Entity.create] or [Entity.Factory], their
+     * `fromTable` references are `null` initially, so we can not call this function on them. But after we insert them
+     * into the database via the [add] function, Ktorm will modify their `fromTable` to the current table object, so we
+     * can call this function on them after the insertion.
      */
     @Throws(SQLException::class)
     fun flushChanges(): Int

@@ -415,4 +415,26 @@ class EntityTest : BaseTest() {
         sequence.clear()
         assert(sequence.isEmpty())
     }
+
+    @Test
+    fun testAddAndFlushChanges() {
+        val sequence = database.sequenceOf(Employees)
+
+        var employee = Employee {
+            name = "jerry"
+            job = "trainee"
+            manager = sequence.find { it.name eq "vince" }
+            hireDate = LocalDate.now()
+            salary = 50
+            department = database.sequenceOf(Departments).find { it.name eq "tech" } ?: throw AssertionError()
+        }
+
+        sequence.add(employee)
+
+        employee.job = "engineer"
+        employee.flushChanges()
+
+        employee = sequence.find { it.id eq employee.id!! } ?: throw AssertionError()
+        assert(employee.job == "engineer")
+    }
 }
