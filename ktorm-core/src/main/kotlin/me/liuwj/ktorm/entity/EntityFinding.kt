@@ -16,10 +16,10 @@
 
 package me.liuwj.ktorm.entity
 
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.expression.BinaryExpression
 import me.liuwj.ktorm.expression.BinaryExpressionType
-import me.liuwj.ktorm.expression.QuerySourceExpression
 import me.liuwj.ktorm.schema.*
 
 /**
@@ -119,6 +119,18 @@ inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclar
 /**
  * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "This function will be removed in the future. Use database.from(..).joinReferencesAndSelect() instead.",
+    replaceWith = ReplaceWith("database.from(this).joinReferencesAndSelect()")
+)
+fun BaseTable<*>.joinReferencesAndSelect(): Query {
+    return Database.global.from(this).joinReferencesAndSelect()
+}
+
+/**
+ * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
+ */
 fun QuerySource.joinReferencesAndSelect(): Query {
     val joinedTables = ArrayList<BaseTable<*>>()
 
@@ -133,47 +145,6 @@ private fun BaseTable<*>.joinReferences(
 ): QuerySource {
 
     var curr = querySource
-
-    joinedTables += this
-
-    for (column in columns) {
-        for (binding in column.allBindings) {
-            if (binding is ReferenceBinding) {
-                val refTable = binding.referenceTable
-                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
-
-                curr = curr.leftJoin(refTable, on = column eq primaryKey)
-                curr = refTable.joinReferences(curr, joinedTables)
-            }
-        }
-    }
-
-    return curr
-}
-
-/**
- * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Use database.from(..).joinReferencesAndSelect() instead.",
-    replaceWith = ReplaceWith("database.from(this).joinReferencesAndSelect()")
-)
-fun BaseTable<*>.joinReferencesAndSelect(): Query {
-    val joinedTables = ArrayList<BaseTable<*>>()
-
-    return this
-        .joinReferences(this.asExpression(), joinedTables)
-        .select(joinedTables.flatMap { it.columns })
-}
-
-@Suppress("DEPRECATION")
-private fun BaseTable<*>.joinReferences(
-    expr: QuerySourceExpression,
-    joinedTables: MutableList<BaseTable<*>>
-): QuerySourceExpression {
-
-    var curr = expr
 
     joinedTables += this
 
