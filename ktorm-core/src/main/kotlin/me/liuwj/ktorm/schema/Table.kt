@@ -78,7 +78,7 @@ open class Table<E : Entity<E>>(
      *
      * @return this column registration.
      *
-     * @see me.liuwj.ktorm.entity.joinReferencesAndSelect
+     * @see me.liuwj.ktorm.dsl.joinReferencesAndSelect
      * @see createEntity
      */
     inline fun <C : Any, R : Entity<R>> ColumnRegistration<C>.references(

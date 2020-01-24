@@ -17,11 +17,11 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.expression.JoinExpression
-import me.liuwj.ktorm.expression.JoinType
-import me.liuwj.ktorm.expression.QuerySourceExpression
+import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.BooleanSqlType
 import me.liuwj.ktorm.schema.ColumnDeclaring
+import me.liuwj.ktorm.schema.ReferenceBinding
 
 /**
  * Represents a query source, used in the `from` clause of a query.
@@ -93,6 +93,45 @@ fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = n
             condition = on?.asExpression()
         )
     )
+}
+
+/**
+ * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
+ */
+fun QuerySource.joinReferencesAndSelect(): Query {
+    val joinedTables = ArrayList<BaseTable<*>>()
+
+    return sourceTable
+        .joinReferences(this, joinedTables)
+        .select(joinedTables.flatMap { it.columns })
+}
+
+private fun BaseTable<*>.joinReferences(
+    querySource: QuerySource,
+    joinedTables: MutableList<BaseTable<*>>
+): QuerySource {
+
+    var curr = querySource
+
+    joinedTables += this
+
+    for (column in columns) {
+        for (binding in column.allBindings) {
+            if (binding is ReferenceBinding) {
+                val refTable = binding.referenceTable
+                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
+
+                curr = curr.leftJoin(refTable, on = column eq primaryKey)
+                curr = refTable.joinReferences(curr, joinedTables)
+            }
+        }
+    }
+
+    return curr
+}
+
+private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
 }
 
 /**

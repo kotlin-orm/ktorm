@@ -2,8 +2,8 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.from
+import me.liuwj.ktorm.dsl.joinReferencesAndSelect
 import me.liuwj.ktorm.entity.Entity
-import me.liuwj.ktorm.entity.joinReferencesAndSelect
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.int
 import org.junit.Test

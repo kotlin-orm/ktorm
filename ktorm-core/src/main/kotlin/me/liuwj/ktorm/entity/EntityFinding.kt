@@ -18,9 +18,10 @@ package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.BinaryExpression
-import me.liuwj.ktorm.expression.BinaryExpressionType
-import me.liuwj.ktorm.schema.*
+import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.Column
+import me.liuwj.ktorm.schema.ColumnDeclaring
+import me.liuwj.ktorm.schema.Table
 
 /**
  * Obtain a map of entity objects by IDs, auto left joining all the reference tables.
@@ -126,43 +127,4 @@ inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclar
 )
 fun BaseTable<*>.joinReferencesAndSelect(): Query {
     return Database.global.from(this).joinReferencesAndSelect()
-}
-
-/**
- * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
- */
-fun QuerySource.joinReferencesAndSelect(): Query {
-    val joinedTables = ArrayList<BaseTable<*>>()
-
-    return sourceTable
-        .joinReferences(this, joinedTables)
-        .select(joinedTables.flatMap { it.columns })
-}
-
-private fun BaseTable<*>.joinReferences(
-    querySource: QuerySource,
-    joinedTables: MutableList<BaseTable<*>>
-): QuerySource {
-
-    var curr = querySource
-
-    joinedTables += this
-
-    for (column in columns) {
-        for (binding in column.allBindings) {
-            if (binding is ReferenceBinding) {
-                val refTable = binding.referenceTable
-                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
-
-                curr = curr.leftJoin(refTable, on = column eq primaryKey)
-                curr = refTable.joinReferences(curr, joinedTables)
-            }
-        }
-    }
-
-    return curr
-}
-
-private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
-    return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
 }
