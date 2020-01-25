@@ -88,7 +88,7 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
 }
 ```
 
-We can see that any sequence object contains a query in it, and it's iterator exactly wraps the query's iterator. While an entity sequence is iterated, its internal query is executed, and the `entityExtractor` is applied to create an entity object for each row. As for other properties in sequences (such as `sql`, `rowSet`, `totalRecords`, etc), all of them delegates the callings to their internal query objects, and their usages are totally the same as the corresponding properties in `Query` class. 
+We can see this class wraps a `Query` object, and it's iterator exactly wraps the query's iterator. While an entity sequence is iterated, its internal query is executed, and the `entityExtractor` function is applied to create an entity object for each row. As for other properties in sequences (such as `sql`, `rowSet`, `totalRecords`, etc), all of them delegates the callings to their internal query objects, and their usages are totally the same as the corresponding properties in `Query` class. 
 
 Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups: 
 

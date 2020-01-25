@@ -26,6 +26,7 @@ import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import java.sql.ResultSet
 import java.util.*
+import kotlin.NoSuchElementException
 import kotlin.collections.ArrayList
 import kotlin.math.min
 
@@ -34,14 +35,27 @@ import kotlin.math.min
  * APIs are highly similar to [kotlin.sequences.Sequence] and the extension functions in Kotlin standard lib, as it
  * provides many extension functions with the same names, such as [filter], [map], [reduce], etc.
  *
- * To create an [EntitySequence], we can call one of the extension functions on a table object:
- * - [BaseTable.asSequence]
- * - [BaseTable.asSequenceWithoutReferences]
+ * To create an [EntitySequence], we can use the extension function [sequenceOf]:
+ *
+ * ```kotlin
+ * val sequence = database.sequenceOf(Employees)
+ * ```
+ *
+ * Now we got a default sequence, which can obtain all employees from the table. Please know that Ktorm doesn't execute
+ * the query right now. The sequence provides an iterator of type `Iterator<Employee>`, only when we iterate the
+ * sequence using the iterator, the query is executed. The following code prints all employees using a for-each loop:
+ *
+ * ```kotlin
+ * for (employee in sequence) {
+ *     println(employee)
+ * }
+ * ```
  *
  * This class wraps a [Query] object, and it’s iterator exactly wraps the query’s iterator. While an entity sequence is
  * iterated, its internal query is executed, and the [entityExtractor] function is applied to create an entity object
- * for each row. Here, the extractor might be [BaseTable.createEntity] or [BaseTable.createEntityWithoutReferences],
- * that depends on the arguments used to create sequence objects.
+ * for each row. As for other properties in sequences (such as [sql], [rowSet], [totalRecords], etc), all of them
+ * delegates the callings to their internal query objects, and their usages are totally the same as the corresponding
+ * properties in [Query] class.
  *
  * Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups:
  *
@@ -53,6 +67,8 @@ import kotlin.math.min
  * - **Terminal operations:** the return types of these functions are usually a collection or a computed result, as
  * they execute the queries right now, obtain their results and perform some calculations on them. Eg. [toList],
  * [reduce], etc.
+ *
+ * For the list of sequence operations available, see the extension functions below.
  */
 data class EntitySequence<E : Any, T : BaseTable<E>>(
 
@@ -77,7 +93,7 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
     val entityExtractor: (row: QueryRowSet) -> E
 ) {
     /**
-     * The internal query of this sequence to be executed, created by [expression].
+     * The internal query of this sequence to be executed, created by [database] and [expression].
      */
     val query = Query(database, expression)
 
@@ -503,9 +519,10 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDescending(
 /**
  * Returns a sequence containing all elements except first [n] elements.
  *
- * Note that this function is implemented based on the pagination feature of the specific databases. However, the SQL
- * standard doesn’t say how to implement paging queries, and different databases provide different implementations on
- * that. So we have to enable a dialect if we need to use this function, otherwise an exception will be thrown.
+ * Note that this function is implemented based on the pagination feature of the specific databases. It's known that
+ * there is a uniform standard for SQL language, but the SQL standard doesn’t say how to implement paging queries,
+ * different databases provide different implementations on that. So we have to enable a dialect if we need to use this
+ * function, otherwise an exception will be thrown.
  *
  * The operation is intermediate.
  */
@@ -521,9 +538,10 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): EntitySequenc
 /**
  * Returns a sequence containing first [n] elements.
  *
- * Note that this function is implemented based on the pagination feature of the specific databases. However, the SQL
- * standard doesn’t say how to implement paging queries, and different databases provide different implementations on
- * that. So we have to enable a dialect if we need to use this function, otherwise an exception will be thrown.
+ * Note that this function is implemented based on the pagination feature of the specific databases. It's known that
+ * there is a uniform standard for SQL language, but the SQL standard doesn’t say how to implement paging queries,
+ * different databases provide different implementations on that. So we have to enable a dialect if we need to use this
+ * function, otherwise an exception will be thrown.
  *
  * The operation is intermediate.
  */
@@ -918,7 +936,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(
  * The operation is terminal.
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(): E {
-    return elementAt(0)
+    return firstOrNull() ?: throw NoSuchElementException("Sequence is empty.")
 }
 
 /**
@@ -931,7 +949,8 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(): E {
  * The operation is terminal.
  */
 inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(predicate: (T) -> ColumnDeclaring<Boolean>): E {
-    return filter(predicate).elementAt(0)
+    val result = firstOrNull(predicate)
+    return result ?: throw NoSuchElementException("Sequence contains no elements matching the predicate")
 }
 
 /**
@@ -969,7 +988,8 @@ fun <E : Any> EntitySequence<E, *>.last(): E {
  * The operation is terminal.
  */
 inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.last(predicate: (T) -> ColumnDeclaring<Boolean>): E {
-    return filter(predicate).last()
+    val result = lastOrNull(predicate)
+    return result ?: throw NoSuchElementException("Sequence contains no elements matching the predicate")
 }
 
 /**
