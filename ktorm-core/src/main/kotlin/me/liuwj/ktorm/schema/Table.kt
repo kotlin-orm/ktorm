@@ -24,7 +24,7 @@ import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Base class of Ktorm's table objects. This class extends from [BaseTable], additionally providing a binding mechanism
- * with [Entity] interfaces based on fucntions such as [bindTo], [references].
+ * with [Entity] interfaces based on functions such as [bindTo], [references].
  *
  * [Table] implements the [doCreateEntity] function from the parent class. The function automatically creates an
  * entity object using the binding configuration specified by [bindTo] and [references], reading columns’ values from
@@ -68,17 +68,17 @@ open class Table<E : Entity<E>>(
 
     /**
      * Bind the column to a reference table, equivalent to a foreign key in relational databases.
-     * Entity finding functions would automatically left join all references (recursively) by default.
+     * Entity sequence APIs would automatically left join all references (recursively) by default.
      *
      * @param referenceTable the reference table, will be copied by calling its [aliased] function with
      * an alias like `_refN`.
      *
      * @param selector a lambda in which we should return the property used to hold the referenced entities.
-     * For exmaple: `val departmentId by int("department_id").references(Departments) { it.department }`.
+     * For example: `val departmentId by int("department_id").references(Departments) { it.department }`.
      *
      * @return this column registration.
      *
-     * @see me.liuwj.ktorm.dsl.joinReferencesAndSelect
+     * @see me.liuwj.ktorm.entity.sequenceOf
      * @see createEntity
      */
     inline fun <C : Any, R : Entity<R>> ColumnRegistration<C>.references(

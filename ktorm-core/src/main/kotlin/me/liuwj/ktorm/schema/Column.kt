@@ -37,11 +37,11 @@ data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding
 
 /**
  * Bind the column to a reference table, equivalent to a foreign key in relational databases.
- * Entity finding functions would automatically left join all references (recursively) by default.
+ * Entity sequence APIs would automatically left join all references (recursively) by default.
  *
  * @property referenceTable the reference table.
  * @property onProperty the property used to hold the referenced entity object.
- * @see me.liuwj.ktorm.dsl.joinReferencesAndSelect
+ * @see me.liuwj.ktorm.entity.sequenceOf
  * @see BaseTable.createEntity
  */
 data class ReferenceBinding(val referenceTable: BaseTable<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
