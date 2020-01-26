@@ -46,6 +46,8 @@ import javax.sql.rowset.serial.*
  *     CachedRowSet(rs)
  * }
  * ```
+ *
+ * @since 2.7
  */
 @Suppress("LargeClass", "MethodOverloading")
 open class CachedRowSet(rs: ResultSet) : ResultSet {

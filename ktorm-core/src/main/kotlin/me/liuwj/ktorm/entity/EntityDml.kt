@@ -49,6 +49,8 @@ fun <E : Entity<E>> Table<E>.add(entity: E): Int {
  * database and fill it into the corresponding property after the insertion completes. But this requires us not to
  * set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted into the
  * database, and no keys generated.
+ *
+ * @since 2.7
  */
 @Suppress("UNCHECKED_CAST")
 fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {

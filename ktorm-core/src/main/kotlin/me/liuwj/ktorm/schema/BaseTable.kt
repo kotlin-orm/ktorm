@@ -109,7 +109,7 @@ abstract class BaseTable<E : Any>(
     /**
      * Register a column to this table with the given [name] and [sqlType].
      *
-     * This function returns a [ColumnRegistration], we can perform more modificiation to the registered column by
+     * This function returns a [ColumnRegistration], we can perform more modifications to the registered column by
      * calling the returned object, such as configure a binding, mark it as the primary key, and so on.
      */
     fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): ColumnRegistration<C> {
@@ -140,7 +140,7 @@ abstract class BaseTable<E : Any>(
      * the primary key, and so on.
      *
      * This class implements the [ReadOnlyProperty] interface, so it can be used as a property delegate,
-     * and this delegate returns the registered column. For example:
+     * and the delegate returns the registered column. For example:
      *
      * ```kotlin
      * val foo by registerColumn("foo", IntSqlType)
@@ -171,7 +171,8 @@ abstract class BaseTable<E : Any>(
          * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm
          * library and its extension modules. Others should not use this function directly.
          */
-        fun doBindInternal(binding: ColumnBinding): ColumnRegistration<C> {
+        @PublishedApi
+        internal fun doBindInternal(binding: ColumnBinding): ColumnRegistration<C> {
             for (column in _columns.values) {
                 val hasConflict = when (binding) {
                     is NestedBinding -> column.allBindings

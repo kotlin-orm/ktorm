@@ -26,6 +26,7 @@ import me.liuwj.ktorm.schema.ReferenceBinding
 /**
  * Represents a query source, used in the `from` clause of a query.
  *
+ * @since 2.7
  * @property database the [Database] instance that the query is running on.
  * @property sourceTable the origin source table.
  * @property expression the underlying SQL expression.
@@ -34,6 +35,8 @@ data class QuerySource(val database: Database, val sourceTable: BaseTable<*>, va
 
 /**
  * Wrap the specific table as a [QuerySource].
+ *
+ * @since 2.7
  */
 fun Database.from(table: BaseTable<*>): QuerySource {
     return QuerySource(this, table, table.asExpression())

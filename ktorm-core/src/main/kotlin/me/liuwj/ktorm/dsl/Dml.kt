@@ -72,6 +72,7 @@ fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int 
  * }
  * ```
  *
+ * @since 2.7
  * @param table the table to be updated.
  * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
  * @return the effected row count.
@@ -143,6 +144,7 @@ fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() ->
  * }
  * ```
  *
+ * @since 2.7
  * @param table the table to be updated.
  * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
@@ -202,6 +204,7 @@ fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * }
  * ```
  *
+ * @since 2.7
  * @param table the table to be inserted.
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the effected row count.
@@ -286,6 +289,7 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
  * }
  * ```
  *
+ * @since 2.7
  * @param table the table to be inserted.
  * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
@@ -351,6 +355,7 @@ fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> U
  * }
  * ```
  *
+ * @since 2.7
  * @param table the table to be inserted.
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the first auto-generated key.
@@ -403,6 +408,8 @@ fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 
 /**
  * Delete the records in the [table] that matches the given [predicate].
+ *
+ * @since 2.7
  */
 fun <T : BaseTable<*>> Database.delete(table: T, predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), predicate(table).asExpression()))
@@ -423,6 +430,8 @@ fun BaseTable<*>.deleteAll(): Int {
 
 /**
  * Delete all the records in the table.
+ *
+ * @since 2.7
  */
 fun Database.deleteAll(table: BaseTable<*>): Int {
     val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), where = null))

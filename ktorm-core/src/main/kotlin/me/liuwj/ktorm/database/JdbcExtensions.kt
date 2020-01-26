@@ -86,6 +86,7 @@ inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
 /**
  * Set the arguments for this [PreparedStatement].
  *
+ * @since 2.7
  * @param args the arguments to set into the statement.
  */
 fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {

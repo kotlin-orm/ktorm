@@ -276,6 +276,7 @@ class Database(
      * callback function with it. After the callback function completes, the statement will be
      * closed automatically.
      *
+     * @since 2.7
      * @param expression the SQL expression to be executed.
      * @param func the callback function.
      * @return the result of the callback function.
@@ -300,6 +301,7 @@ class Database(
      * Format the given [expression] to a SQL string with its execution arguments, then execute it via
      * [PreparedStatement.executeQuery] and return the result [CachedRowSet].
      *
+     * @since 2.7
      * @param expression the SQL expression to be executed.
      * @return the result [CachedRowSet].
      */
@@ -321,6 +323,7 @@ class Database(
      * Format the given [expression] to a SQL string with its execution arguments, then execute it via
      * [PreparedStatement.executeUpdate] and return the effected row count.
      *
+     * @since 2.7
      * @param expression the SQL expression to be executed.
      * @return the effected row count.
      */
@@ -340,6 +343,7 @@ class Database(
      * Format the given [expression] to a SQL string with its execution arguments, execute it via
      * [PreparedStatement.executeUpdate], then return the effected row count along with the generated keys.
      *
+     * @since 2.7
      * @param expression the SQL expression to be executed.
      * @return a [Pair] combines the effected row count and the generated keys.
      */
@@ -366,6 +370,7 @@ class Database(
      * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
      * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
      *
+     * @since 2.7
      * @param expressions the SQL expressions to be executed.
      * @return the effected row counts for each sub-operation.
      */

@@ -55,6 +55,7 @@ interface SqlDialect {
      * Execute the given SQL string (typically an insert statement), then return the effected row count along with
      * the generated keys.
      *
+     * @since 2.7
      * @param database the database instance executing the statement.
      * @param sql the formatted SQL statement.
      * @param args the arguments to be provided to the statement.

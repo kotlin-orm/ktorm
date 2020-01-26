@@ -135,6 +135,8 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
  * Create a query object, selecting the specific columns or expressions from this [QuerySource].
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
+ *
+ * @since 2.7
  */
 fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
@@ -145,6 +147,8 @@ fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
  * Create a query object, selecting the specific columns or expressions from this [QuerySource].
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
+ *
+ * @since 2.7
  */
 fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
     return select(columns.asList())
@@ -211,6 +215,8 @@ fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
  * Create a query object, selecting the specific columns or expressions from this [QuerySource] distinctly.
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
+ *
+ * @since 2.7
  */
 fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
@@ -221,6 +227,8 @@ fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
  * Create a query object, selecting the specific columns or expressions from this [QuerySource] distinctly.
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
+ *
+ * @since 2.7
  */
 fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())

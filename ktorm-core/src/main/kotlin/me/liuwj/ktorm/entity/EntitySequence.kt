@@ -168,6 +168,8 @@ fun <E : Any, T : BaseTable<E>> T.asSequenceWithoutReferences(): EntitySequence<
 
 /**
  * Create an [EntitySequence] from the specific table.
+ *
+ * @since 2.7
  */
 fun <E : Any, T : BaseTable<E>> Database.sequenceOf(table: T, withReferences: Boolean = true): EntitySequence<E, T> {
     val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
