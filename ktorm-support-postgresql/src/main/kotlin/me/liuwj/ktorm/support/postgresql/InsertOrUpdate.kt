@@ -109,6 +109,7 @@ fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T
  * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
+ * @since 2.7
  * @param table the table to be inserted.
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.

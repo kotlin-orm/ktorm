@@ -37,6 +37,8 @@ data class NaturalJoinExpression(
 
 /**
  * Join the right table and return a new [QuerySource], translated to `natural join` in SQL.
+ *
+ * @since 2.7
  */
 fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
     return this.copy(expression = NaturalJoinExpression(left = expression, right = right.asExpression()))

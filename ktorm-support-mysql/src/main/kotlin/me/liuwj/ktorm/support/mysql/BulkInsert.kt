@@ -117,6 +117,7 @@ fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> U
  * }
  * ```
  *
+ * @since 2.7
  * @param table the table to be inserted.
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
  * @return the effected row count.
