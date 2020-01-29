@@ -44,21 +44,21 @@ import javax.sql.rowset.serial.SerialBlob
  * @see transform
  */
 inline fun <reified UNDERLYING : Any, EXTERIOR : Any> SqlType<UNDERLYING>.transform(
-        crossinline toExteriorType: (UNDERLYING) -> EXTERIOR,
-        crossinline toUnderlyingType: (EXTERIOR) -> UNDERLYING, // invariant functor
+    crossinline toExteriorType: (UNDERLYING) -> EXTERIOR,
+    crossinline toUnderlyingType: (EXTERIOR) -> UNDERLYING, // invariant functor
 
-        typeName: String = UNDERLYING::class.simpleName
-                ?: throw NullPointerException("couldn't infer type name from provided type, you should specify explicitly.")
+    typeName: String = UNDERLYING::class.simpleName
+        ?: throw NullPointerException("couldn't infer type name from provided type, you should specify explicitly.")
 ): SqlType<EXTERIOR> =
 
-        object : SqlType<EXTERIOR>(this.typeCode, typeName) {
+    object : SqlType<EXTERIOR>(this.typeCode, typeName) {
 
-            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: EXTERIOR) =
-                    this@transform.setParameter(ps, index, toUnderlyingType(parameter))
+        override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: EXTERIOR) =
+                this@transform.setParameter(ps, index, toUnderlyingType(parameter))
 
-            override fun doGetResult(rs: ResultSet, index: Int): EXTERIOR? =
-                    this@transform.getResult(rs, index)?.let(toExteriorType)
-        }
+        override fun doGetResult(rs: ResultSet, index: Int): EXTERIOR? =
+                this@transform.getResult(rs, index)?.let(toExteriorType)
+    }
 
 /**
  * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using the current
@@ -76,20 +76,20 @@ inline fun <reified UNDERLYING : Any, EXTERIOR : Any> SqlType<UNDERLYING>.transf
  * @see transform
  */
 inline fun <reified UNDERLYING : Any, EXTERIOR : Any, T : Any> BaseTable<T>.ColumnRegistration<UNDERLYING>.transform(
-        crossinline toExteriorType: (UNDERLYING) -> EXTERIOR,
-        crossinline toUnderlyingType: (EXTERIOR) -> UNDERLYING, // invariant functor
+    crossinline toExteriorType: (UNDERLYING) -> EXTERIOR,
+    crossinline toUnderlyingType: (EXTERIOR) -> UNDERLYING, // invariant functor
 
-        typeName: String = UNDERLYING::class.simpleName
-                ?: throw NullPointerException("couldn't infer type name from provided type, you should specify explicitly.")
+    typeName: String = UNDERLYING::class.simpleName
+        ?: throw NullPointerException("couldn't infer type name from provided type, you should specify explicitly.")
 ): BaseTable<T>.ColumnRegistration<EXTERIOR> =
-        this.getColumn().let {
+    this.getColumn().let { column ->
 
-            @Suppress("UNCHECKED_CAST")
-            (it.table as BaseTable<T>).replaceColumn(
-                    it.name,
-                    it.sqlType.transform(toExteriorType, toUnderlyingType, typeName)
-            )
-        }
+        @Suppress("UNCHECKED_CAST")
+        (column.table as BaseTable<T>).replaceColumn(
+                column.name,
+                column.sqlType.transform(toExteriorType, toUnderlyingType, typeName)
+        )
+    }
 
 /**
  * Define a column typed of [BooleanSqlType].
