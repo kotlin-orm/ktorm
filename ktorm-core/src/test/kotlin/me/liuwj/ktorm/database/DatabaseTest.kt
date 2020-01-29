@@ -57,7 +57,7 @@ class DatabaseTest : BaseTest() {
             useTransaction {
                 Departments.insert {
                     it.name to "administration"
-                    it.location to "Hong Kong"
+                    it.location to LocationWrapper("Hong Kong")
                 }
 
                 assert(Departments.count() == 3)
