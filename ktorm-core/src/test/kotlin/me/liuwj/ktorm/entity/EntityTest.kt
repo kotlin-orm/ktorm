@@ -291,12 +291,12 @@ class EntityTest : BaseTest() {
         employee.salary = 50
         Employees.add(employee)
 
-        department.location = "Guangzhou"
+        department.location = LocationWrapper("Guangzhou")
         department.flushChanges()
 
         department = Departments.findById(2) ?: return
         assert(department.name == "tech")
-        assert(department.location == "Guangzhou")
+        assert(department.location.underlying == "Guangzhou")
     }
 
     interface Emp : Entity<Emp> {

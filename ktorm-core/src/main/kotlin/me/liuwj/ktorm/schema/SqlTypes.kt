@@ -26,6 +26,72 @@ import java.time.temporal.ChronoField
 import javax.sql.rowset.serial.SerialBlob
 
 /**
+ * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using the current
+ * `registerColumn` mechanism.
+ *
+ * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
+ *
+ * ```kotlin
+ * val role by registerColumn("role", IntSqlType.transform({ UserRole.fromId(it) }, { it.id }))
+ * ```
+ *
+ * another [transform] extension is implemented based on this, it provide a even conciser syntax. Check that one instead
+ * of this is recommended.
+ *
+ * **UNDERLYING**: The representation of your type in the database.
+ * **EXTERIOR**: Your actual data type.
+ *
+ * @see transform
+ */
+inline fun <reified UNDERLYING : Any, EXTERIOR : Any> SqlType<UNDERLYING>.transform(
+        crossinline toExteriorType: (UNDERLYING) -> EXTERIOR,
+        crossinline toUnderlyingType: (EXTERIOR) -> UNDERLYING, // invariant functor
+
+        typeName: String = UNDERLYING::class.simpleName
+                ?: throw NullPointerException("couldn't infer type name from provided type, you should specify explicitly.")
+): SqlType<EXTERIOR> =
+
+        object : SqlType<EXTERIOR>(this.typeCode, typeName) {
+
+            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: EXTERIOR) =
+                    this@transform.setParameter(ps, index, toUnderlyingType(parameter))
+
+            override fun doGetResult(rs: ResultSet, index: Int): EXTERIOR? =
+                    this@transform.getResult(rs, index)?.let(toExteriorType)
+        }
+
+/**
+ * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using the current
+ * `registerColumn` mechanism.
+ *
+ * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
+ *
+ * ```kotlin
+ * val role by int("role").transform({ UserRole.fromId(it) }, { it.id })
+ * ```
+ *
+ * **UNDERLYING**: The representation of your type in the database.
+ * **EXTERIOR**: Your actual data type.
+ *
+ * @see transform
+ */
+inline fun <reified UNDERLYING : Any, EXTERIOR : Any, T : Any> BaseTable<T>.ColumnRegistration<UNDERLYING>.transform(
+        crossinline toExteriorType: (UNDERLYING) -> EXTERIOR,
+        crossinline toUnderlyingType: (EXTERIOR) -> UNDERLYING, // invariant functor
+
+        typeName: String = UNDERLYING::class.simpleName
+                ?: throw NullPointerException("couldn't infer type name from provided type, you should specify explicitly.")
+): BaseTable<T>.ColumnRegistration<EXTERIOR> =
+        this.getColumn().let {
+
+            @Suppress("UNCHECKED_CAST")
+            (it.table as BaseTable<T>).replaceColumn(
+                    it.name,
+                    it.sqlType.transform(toExteriorType, toUnderlyingType, typeName)
+            )
+        }
+
+/**
  * Define a column typed of [BooleanSqlType].
  */
 fun <E : Any> BaseTable<E>.boolean(name: String): BaseTable<E>.ColumnRegistration<Boolean> {

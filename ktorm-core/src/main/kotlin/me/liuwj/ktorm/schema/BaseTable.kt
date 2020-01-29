@@ -122,6 +122,16 @@ abstract class BaseTable<E : Any>(
         return ColumnRegistration(name)
     }
 
+    @PublishedApi
+    internal fun <C : Any> replaceColumn(name: String, sqlType: SqlType<C>): ColumnRegistration<C> {
+        if (name !in _columns) {
+            throw IllegalArgumentException("Column $name not found, define it first")
+        }
+
+        _columns[name] = Column(this, name, sqlType = sqlType)
+        return ColumnRegistration(name)
+    }
+
     /**
      * Mark the registered column as the primary key.
      */
