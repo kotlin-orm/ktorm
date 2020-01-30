@@ -122,16 +122,6 @@ abstract class BaseTable<E : Any>(
         return ColumnRegistration(name)
     }
 
-    @PublishedApi
-    internal fun <C : Any> replaceColumn(name: String, sqlType: SqlType<C>): ColumnRegistration<C> {
-        if (name !in _columns) {
-            throw IllegalArgumentException("Column $name not found, define it first")
-        }
-
-        _columns[name] = Column(this, name, sqlType = sqlType)
-        return ColumnRegistration(name)
-    }
-
     /**
      * Mark the registered column as the primary key.
      */
@@ -177,6 +167,35 @@ abstract class BaseTable<E : Any>(
             val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
             return column as Column<C>
         }
+
+        /**
+         * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using
+         * the current `registerColumn` mechanism.
+         *
+         * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
+         *
+         * ```kotlin
+         * val role by int("role").transform({ UserRole.fromId(it) }, { it.id })
+         * ```
+         *
+         * **C**: The representation of your type in the database.
+         *
+         * **EXTERIOR**: Your actual data type.
+         *
+         * @see SqlType.transform
+         */
+        fun <EXTERIOR : Any> transform(
+            toExteriorType: (C) -> EXTERIOR,
+            toUnderlyingType: (EXTERIOR) -> C
+        ): ColumnRegistration<EXTERIOR> =
+
+                getColumn().let { column ->
+
+                    val name = column.name
+                    val transformedType = column.sqlType.transform(toExteriorType, toUnderlyingType)
+                    column.table._columns[name] = Column(this@BaseTable, name, sqlType = transformedType)
+                    ColumnRegistration(name)
+                }
 
         /**
          * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm
