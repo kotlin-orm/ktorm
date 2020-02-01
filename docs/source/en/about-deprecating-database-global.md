@@ -1,69 +1,69 @@
 ---
-title: 关于废弃 Database.global 对象的说明
-lang: zh-cn
-related_path: en/about-deprecating-database-global.html
+title: About Deprecating Database.global
+lang: en
+related_path: zh-cn/about-deprecating-database-global.html
 ---
 
-# 关于废弃 Database.global 对象的说明
+# About Deprecating Database.global
 
-在 Ktorm 2.7 版本中，我们对代码进行了一次重构，这次重构废弃掉了 `Database.global` 以及基于它实现的一系列函数，使 Ktorm 的 API 设计更加直观、更易扩展。
+In Ktorm 2.7, we did a refactoring of the code. This refactoring deprecated `Database.global` and a series of functions implemented based on it, making Ktorm's API design more intuitive and easier to extend. 
 
-## 原因
+## Why?
 
-在之前的版本中，`Database.connect` 函数会自动把最近一次创建的 `Database` 对象保存到一个全局变量中，在需要的时候，Ktorm 会通过 `Database.global` 获取到这个对象进行操作。
+In previous versions, `Database.connect` function saved the latest created `Database` instance to a global variable automatically, then the framework would obtain it via `Database.global` when needed. 
 
 ```kotlin
 Database.global.useConnection { conn -> 
-    // 使用连接进行操作...
+    // Do something with the connection...
 }
 ```
 
-但是有时候，我们需要在一个 App 中操作多个数据库，这时就需要创建多个 `Database` 对象，在执行具体的操作时，指定你要使用哪个数据库。
+But sometimes, we have to operate many databases in one App, so it's needed to create many `Database` instances and choose one while performing our database specific operations. 
 
 ```kotlin
 val mysql = Database.connect("jdbc:mysql://localhost:3306/ktorm")
 val h2 = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1")
 
 mysql {
-    // 获取 MySQL 数据库中的员工列表
+    // Obtain all employees in MySQL database.
     for (employee in Employees.asSequence()) {
         println(employee)
     }
 }
 
 h2 {
-    // 获取 H2 数据库中的员工列表
+    // Obtain all employees in H2 database.
     for (employee in Employees.asSequence()) {
         println(employee)
     }
 }
 ```
 
-在这里，我们使用 `db { }` 的语法实现了多数据源的切换，但是现在看来，这并不是一个很好的设计，理由如下：
+Here, we use the `db { }` syntax to switch between databases, but now it seems that this is not a good design for the following reasons: 
 
-- `db { }` 使用 `ThreadLocal` 实现，这种切换数据源的方式过于隐蔽，可能会导致一些误解，产生一些意料之外的 bug，比如 [#65](https://github.com/vincentlauvlwj/Ktorm/issues/65), [#27](https://github.com/vincentlauvlwj/Ktorm/issues/27)
-- 使用全局变量是糟糕的设计模式，这样写出来的代码会与全局的状态耦合，不方便进行单元测试，也不方便以后的扩展，相关的讨论有 [#47](https://github.com/vincentlauvlwj/Ktorm/issues/47), [#41](https://github.com/vincentlauvlwj/Ktorm/issues/41)
+- `db { }` is implemented using `ThreadLocal`. Switching databases in this way is too implicit, which may lead to some misunderstandings and unexpected bugs, for example [#65](https://github.com/vincentlauvlwj/Ktorm/issues/65) and [#27](https://github.com/vincentlauvlwj/Ktorm/issues/27).
+- Using global variables is a bad design pattern. Code written in this way will be coupled with some global states, which is difficult to be tested and extended. Related discussions are [#47](https://github.com/vincentlauvlwj/Ktorm/issues/47) and [#41](https://github.com/vincentlauvlwj/Ktorm/issues/41).
 
-## 修改点
+## Changes
 
-这次重构，我们的主要目标就是废弃掉 `Database.global` 全局变量以及与之相关的一系列 API，让用户在操作数据库的时候，显式地指定要使用 `Database` 对象，而不是隐式地使用 `Database.global`。
+Our main goal of this refactoring is to deprecate the global variable `Database.global` and a series of APIs implemented based on it, making users explicitly specify the `Database` instances to use while performing database operations, instead of implicitly use `Database.global`. 
 
-在之前，虽然 `Database.connect` 函数会返回一个 `Database` 对象，但是我们通常都会忽略它，因为 Ktorm 会自动把它保存到内部的全局变量中。但是现在，我们必须自己定义一个变量去接收它的返回值：
+In previous versions, although `Database.connect` returns a new created `Database` object, we usually ignore it because Ktorm automatically saves it to an internal global variable. But now, we have to define a variable by ourselves to hold the return value: 
 
 ```kotlin
 val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
 ```
 
-在之前，我们直接使用 `Table.select` 扩展函数就可以创建一个查询：
+We used to create queries by the extension function `Table.select` before: 
 
 ```kotlin
-// 旧 API
+// Old API
 for (row in Employees.select()) {
     println(row[Employees.name])
 }
 ```
 
-这个查询使用 `Database.global` 对象，从 `Employees` 表中获取所有的记录，可以看到，这确实十分隐蔽。现在，我们必须要显式指定数据源对象，改用 `database.from(..).select(..)` 的语法创建查询：
+This query uses `Database.global`, obtaining all records from `Employees` table, which is indeed very implicit as you can see. Now we have to specify the database instance explicitly and use the syntax of `database.from(..).select(..)` to create queries: 
 
 ```kotlin
 for (row in database.from(Employees).select()) {
@@ -71,7 +71,7 @@ for (row in database.from(Employees).select()) {
 }
 ```
 
-一个稍微复杂的例子：
+Here is another example: 
 
 ```kotlin
 val t = Employees.aliased("t")
@@ -85,13 +85,13 @@ database
     }
 ```
 
-可以看出，SQL DSL 的修改十分简单，我们只需要把原来 `Table.select` 的语法改成 `database.from(..).select(..)` 即可。至于序列 API，我们之前是通过 `asSequence` 扩展函数获取序列对象，现在也只需要改成 `sequenceOf` 函数，例如：
+It can be seen that the changes of SQL DSL are very simple, we just need to change the syntax from `Table.select` to `database.from(..).select(..)`. As for sequence APIs, we used to create sequence objects via `asSequence` before, and now we just need to change it to `sequenceOf`. For example: 
 
 ```kotlin
 val employees = database.sequenceOf(Employees).toList()
 ```
 
-再举一个稍微复杂的例子：
+Another example using `sequenceOf`: 
 
 ```kotlin
 val employees = database
@@ -102,11 +102,11 @@ val employees = database
     .toList()
 ```
 
-以上就是本次重构中最明显的两个变化，Ktorm 官网中的文档现在都已经针对 2.7 版本做了更新，您可以查阅最新的文档获取你感兴趣的内容。
+These are the two most significant changes in this refactoring. The documents on Ktorm's official website have now been updated for version 2.7. You can refer to the latest documents for what you are interested in. 
 
-下面附上本次重构废弃的所有 API 的列表，这些 API 在 2.7 版本中仍然可用，但是已经被标记为 `@Deprecated`，并且将会在未来的版本中彻底移除。
+Attached below is a list of deprecated APIs. These APIs are still available in version 2.7, but they have been marked as `@Deprecated` and will be completely removed in the future. 
 
-| 废弃用法                                     | 新的用法                                                     |
+| Deprecated Usages                            | New Usages                                                   |
 | -------------------------------------------- | ------------------------------------------------------------ |
 | Database.global                              | -                                                            |
 | Employees.select()                           | database.from(Employees).select()                            |
@@ -140,6 +140,7 @@ val employees = database
 
 ## ktorm-global
 
-在未来的 Ktorm 3.0 版本中，这些废弃的 API 将会彻底移除。但是，它们其实也有一些可取之处，比如使用全局对象之后，某些 API 的设计可以变得更简洁。为了尽可能满足更多用户的需求，在 Ktorm 3.0 版本中，我们将增加一个 ktorm-global 模块。
+These deprecated APIs will be completely removed in a future Ktorm 3.0 release. However, they also have some advantages, as we can make some APIs more concise with the help of the global variable. In order to meet the needs of as many users as possible, we will add a module named ktorm-global in Ktorm 3.0. 
 
-届时，在 2.7 版本中废弃掉的 API 都会放到 ktorm-global 模块中重新实现。这个模块会作为 Ktorm 的扩展，提供基于全局对象设计的更简洁的 API，这样，在 Ktorm 的核心模块中就可以彻底移除全局变量相关的 API，如果要使用全局变量，额外添加 ktorm-global 的依赖即可。通过这种方式，我们希望能够找到一个微妙的平衡。敬请期待！
+At that time, APIs deprecated in version 2.7 will be reimplemented in the ktorm-global module. This module  will serve as an extension of Ktorm and provide more concise APIs based on a global variable. In this way, Ktorm's core module can completely remove those deprecated APIs, and if you want to use them, just need to add an extra dependency of ktorm-global. Hope we can find the right balance by adding this module. Stay tuned!!
+
