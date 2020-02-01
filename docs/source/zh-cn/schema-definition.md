@@ -202,3 +202,12 @@ Maven 依赖：
 compile "me.liuwj.ktorm:ktorm-jackson:${ktorm.version}"
 ```
 
+最后，Ktorm 2.7 版本还新增了一个 `transform` 函数，使用这个函数，我们可以基于现有的数据类型进行扩展，增加一些自定义的转换行为，得到新的数据类型，而不必手动写一个 `SqlType` 的实现类。
+
+例如下面的例子，我们定义了一个类型为 `Column<UserRole>` 的列，但是在数据库中保存的还是 `int` 值，只是在获取结果及设置参数到 `PreparedStatement` 时执行了一定的转换：
+
+```kotlin
+val role by int("role").transform({ UserRole.fromCode(it) }, { it.code })
+```
+
+需要注意的是，这个转换在获取每条结果时都会执行一次，所以在这里不要有太重的行为，以免对性能造成影响。

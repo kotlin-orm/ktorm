@@ -44,7 +44,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * Set the nullable [parameter] to a given [PreparedStatement].
      */
-    open fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
+    fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
         if (parameter == null) {
             ps.setNull(index, typeCode)
         } else {
@@ -55,7 +55,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * Obtain a result from a given [ResultSet] by [index].
      */
-    open fun getResult(rs: ResultSet, index: Int): T? {
+    fun getResult(rs: ResultSet, index: Int): T? {
         val result = doGetResult(rs, index)
         return if (rs.wasNull()) null else result
     }
@@ -63,42 +63,38 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * Obtain a result from a given [ResultSet] by [columnLabel].
      */
-    open fun getResult(rs: ResultSet, columnLabel: String): T? {
+    fun getResult(rs: ResultSet, columnLabel: String): T? {
         return getResult(rs, rs.findColumn(columnLabel))
     }
 
     /**
-     * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using the
-     * current `registerColumn` mechanism.
+     * Transform this [SqlType] to another. The returned [SqlType] has the same [typeCode] and [typeName] as the
+     * underlying one, and performs the specific transformations on column values.
      *
-     * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
+     * This function enables a user-friendly syntax to extend more data types. For example, the following code defines
+     * a column of type `Column<UserRole>`, based on the existing [IntSqlType]:
      *
      * ```kotlin
-     * val role by registerColumn("role", IntSqlType.transform({ UserRole.fromId(it) }, { it.id }))
+     * val role by registerColumn("role", IntSqlType.transform({ UserRole.fromCode(it) }, { it.code }))
      * ```
      *
-     * another [BaseTable.ColumnRegistration.transform] extension is implemented based on this, it provide an even
-     * conciser syntax. Check that one instead of this is recommended.
-     *
-     * **T**: The representation of your type in the database.
-     *
-     * **EXTERIOR**: Your actual data type.
-     *
-     * @see BaseTable.ColumnRegistration.transform
+     * @param fromUnderlyingValue a function that transforms a value of underlying type to the user's type.
+     * @param toUnderlyingValue a function that transforms a value of user's type the to the underlying type.
+     * @return a [SqlType] instance based on this underlying type with specific transformations.
      */
-    inline fun <EXTERIOR : Any> transform(
-        crossinline toExteriorType: (T) -> EXTERIOR,
-        crossinline toUnderlyingType: (EXTERIOR) -> T // invariant functor
-    ): SqlType<EXTERIOR> =
+    fun <R : Any> transform(fromUnderlyingValue: (T) -> R, toUnderlyingValue: (R) -> T): SqlType<R> {
+        return object : SqlType<R>(typeCode, typeName) {
+            val underlyingType = this@SqlType
 
-            object : SqlType<EXTERIOR>(typeCode, typeName) {
-
-                override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: EXTERIOR) =
-                        this@SqlType.setParameter(ps, index, toUnderlyingType(parameter))
-
-                override fun doGetResult(rs: ResultSet, index: Int): EXTERIOR? =
-                        this@SqlType.getResult(rs, index)?.let(toExteriorType)
+            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: R) {
+                underlyingType.doSetParameter(ps, index, toUnderlyingValue(parameter))
             }
+
+            override fun doGetResult(rs: ResultSet, index: Int): R? {
+                return underlyingType.doGetResult(rs, index)?.let(fromUnderlyingValue)
+            }
+        }
+    }
 
     /**
      * Indicates whether some other object is "equal to" this SQL type.

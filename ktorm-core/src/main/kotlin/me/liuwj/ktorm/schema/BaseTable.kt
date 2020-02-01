@@ -136,6 +136,36 @@ abstract class BaseTable<E : Any>(
     }
 
     /**
+     * Transform the registered column's [SqlType] to another. The transformed [SqlType] has the same `typeCode` and
+     * `typeName` as the underlying one, and performs the specific transformations on column values.
+     *
+     * This function enables a user-friendly syntax to extend more data types. For example, the following code defines
+     * a column of type `Column<UserRole>`, based on the existing column definition function [int]:
+     *
+     * ```kotlin
+     * val role by int("role").transform({ UserRole.fromCode(it) }, { it.code })
+     * ```
+     *
+     * @param fromUnderlyingValue a function that transforms a value of underlying type to the user's type.
+     * @param toUnderlyingValue a function that transforms a value of user's type the to the underlying type.
+     * @return this column registration with its type changed to [R].
+     * @see SqlType.transform
+     */
+    fun <C : Any, R : Any> ColumnRegistration<C>.transform(
+        fromUnderlyingValue: (C) -> R,
+        toUnderlyingValue: (R) -> C
+    ): ColumnRegistration<R> {
+        val column = getColumn()
+        if (column.binding != null || column.extraBindings.isNotEmpty()) {
+            throw IllegalStateException("Cannot transform a column after its bindings are configured.")
+        }
+
+        val transformedType = column.sqlType.transform(fromUnderlyingValue, toUnderlyingValue)
+        _columns[columnName] = Column(column.table, column.name, sqlType = transformedType)
+        return this as ColumnRegistration<R>
+    }
+
+    /**
      * Wrap a new registered column, providing more operations, such as configure a binding, mark it as
      * the primary key, and so on.
      *
@@ -166,35 +196,6 @@ abstract class BaseTable<E : Any>(
             val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
             return column as Column<C>
         }
-
-        /**
-         * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using
-         * the current `registerColumn` mechanism.
-         *
-         * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
-         *
-         * ```kotlin
-         * val role by int("role").transform({ UserRole.fromId(it) }, { it.id })
-         * ```
-         *
-         * **C**: The representation of your type in the database.
-         *
-         * **EXTERIOR**: Your actual data type.
-         *
-         * @see SqlType.transform
-         */
-        fun <EXTERIOR : Any> transform(
-            toExteriorType: (C) -> EXTERIOR,
-            toUnderlyingType: (EXTERIOR) -> C
-        ): ColumnRegistration<EXTERIOR> =
-
-                getColumn().let { column ->
-
-                    val name = column.name
-                    val transformedType = column.sqlType.transform(toExteriorType, toUnderlyingType)
-                    column.table._columns[name] = Column(this@BaseTable, name, sqlType = transformedType)
-                    ColumnRegistration(name)
-                }
 
         /**
          * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm

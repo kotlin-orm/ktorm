@@ -164,7 +164,7 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 }
 ```
 
-The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that the `registerColumn` function was called. This function is exactly the entry point provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
+The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that there is a `registerColumn` function called. This function is exactly the entry point provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
 
 ```kotlin
 fun <E : Any, C : Any> BaseTable<E>.json(
@@ -202,3 +202,12 @@ Or Gradle：
 compile "me.liuwj.ktorm:ktorm-jackson:${ktorm.version}"
 ```
 
+Additionally, Ktorm 2.7 provides a `transform` function. With this function, we can extend data types based on existing ones by adding some specific transformations to them. In this way, we get new data types without writing `SqlType` implementations manually. 
+
+For example, in the following code, we define a column of type `Column<UserRole>`, but the underlying SQL type in the database is still `int`. We just perform some transformations while obtaining column values or setting parameters into prepared statements. 
+
+```kotlin
+val role by int("role").transform({ UserRole.fromCode(it) }, { it.code })
+```
+
+Please note such transformations will perform on every access to a column, that means you should avoid heavy transformations here.
