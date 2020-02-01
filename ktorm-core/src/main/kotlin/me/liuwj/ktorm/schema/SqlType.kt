@@ -68,6 +68,39 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     }
 
     /**
+     * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using the
+     * current `registerColumn` mechanism.
+     *
+     * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
+     *
+     * ```kotlin
+     * val role by registerColumn("role", IntSqlType.transform({ UserRole.fromId(it) }, { it.id }))
+     * ```
+     *
+     * another [BaseTable.ColumnRegistration.transform] extension is implemented based on this, it provide an even
+     * conciser syntax. Check that one instead of this is recommended.
+     *
+     * **T**: The representation of your type in the database.
+     *
+     * **EXTERIOR**: Your actual data type.
+     *
+     * @see BaseTable.ColumnRegistration.transform
+     */
+    inline fun <EXTERIOR : Any> transform(
+        crossinline toExteriorType: (T) -> EXTERIOR,
+        crossinline toUnderlyingType: (EXTERIOR) -> T // invariant functor
+    ): SqlType<EXTERIOR> =
+
+            object : SqlType<EXTERIOR>(typeCode, typeName) {
+
+                override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: EXTERIOR) =
+                        this@SqlType.setParameter(ps, index, toUnderlyingType(parameter))
+
+                override fun doGetResult(rs: ResultSet, index: Int): EXTERIOR? =
+                        this@SqlType.getResult(rs, index)?.let(toExteriorType)
+            }
+
+    /**
      * Indicates whether some other object is "equal to" this SQL type.
      * Two SQL types are equal if they have the same type codes and names.
      */

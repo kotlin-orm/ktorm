@@ -168,6 +168,35 @@ abstract class BaseTable<E : Any>(
         }
 
         /**
+         * Define a column typed of [EXTERIOR]. Obviously, this is implemented in the invariant functor way, using
+         * the current `registerColumn` mechanism.
+         *
+         * This enables an user-friendly syntax, comparing to its equivalent, manually call `registerColumn`:
+         *
+         * ```kotlin
+         * val role by int("role").transform({ UserRole.fromId(it) }, { it.id })
+         * ```
+         *
+         * **C**: The representation of your type in the database.
+         *
+         * **EXTERIOR**: Your actual data type.
+         *
+         * @see SqlType.transform
+         */
+        fun <EXTERIOR : Any> transform(
+            toExteriorType: (C) -> EXTERIOR,
+            toUnderlyingType: (EXTERIOR) -> C
+        ): ColumnRegistration<EXTERIOR> =
+
+                getColumn().let { column ->
+
+                    val name = column.name
+                    val transformedType = column.sqlType.transform(toExteriorType, toUnderlyingType)
+                    column.table._columns[name] = Column(this@BaseTable, name, sqlType = transformedType)
+                    ColumnRegistration(name)
+                }
+
+        /**
          * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm
          * library and its extension modules. Others should not use this function directly.
          */

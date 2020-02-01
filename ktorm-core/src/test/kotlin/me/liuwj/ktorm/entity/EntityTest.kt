@@ -326,12 +326,12 @@ class EntityTest : BaseTest() {
         employee.salary = 50
         database.sequenceOf(Employees).add(employee)
 
-        department.location = "Guangzhou"
+        department.location = LocationWrapper("Guangzhou")
         department.flushChanges()
 
         department = database.sequenceOf(Departments).find { it.id eq 2 } ?: return
         assert(department.name == "tech")
-        assert(department.location == "Guangzhou")
+        assert(department.location.underlying == "Guangzhou")
     }
 
     interface Emp : Entity<Emp> {

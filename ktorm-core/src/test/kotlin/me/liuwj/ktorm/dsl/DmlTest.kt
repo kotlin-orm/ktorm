@@ -34,7 +34,7 @@ class DmlTest : BaseTest() {
         database.batchUpdate(Departments) {
             for (i in 1..2) {
                 item {
-                    it.location to "Hong Kong"
+                    it.location to LocationWrapper("Hong Kong")
                     where {
                         it.id eq i
                     }
@@ -46,7 +46,7 @@ class DmlTest : BaseTest() {
         assert(departments.size == 2)
 
         for (dept in departments) {
-            assert(dept.location == "Hong Kong")
+            assert(dept.location.underlying == "Hong Kong")
         }
     }
 

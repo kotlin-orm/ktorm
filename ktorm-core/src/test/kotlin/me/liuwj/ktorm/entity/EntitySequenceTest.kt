@@ -121,7 +121,7 @@ class EntitySequenceTest : BaseTest() {
             .filter { it.department.id eq 1 }
             .first()
 
-        assert(employee.department.location.isEmpty())
+        assert(employee.department.location.underlying.isEmpty())
     }
 
     @Test
