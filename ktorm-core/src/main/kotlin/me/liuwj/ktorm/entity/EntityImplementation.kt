@@ -87,7 +87,7 @@ internal class EntityImplementation(
                     if (result != null || prop.returnType.isMarkedNullable) {
                         return result
                     } else {
-                        return prop.defaultValue.also { this.setProperty(prop.name, it) }
+                        return prop.defaultValue.also { cacheDefaultValue(prop, it) }
                     }
                 } else {
                     this.setProperty(prop.name, args!![0])
@@ -116,6 +116,22 @@ internal class EntityImplementation(
                 "Please ensure its value exists, or you can mark the return type nullable [${this.returnType}?]"
             throw IllegalStateException(msg, e)
         }
+    }
+
+    private fun cacheDefaultValue(prop: KProperty1<*, *>, value: Any) {
+        val type = prop.returnType.jvmErasure
+
+        // Skip for primitive types, enums and string, because their default values always share the same instance.
+        if (type == Boolean::class) return
+        if (type == Char::class) return
+        if (type == Byte::class) return
+        if (type == Short::class) return
+        if (type == Int::class) return
+        if (type == Long::class) return
+        if (type == String::class) return
+        if (type.java.isEnum) return
+
+        setProperty(prop.name, value)
     }
 
     @Suppress("SwallowedException")

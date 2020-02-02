@@ -423,6 +423,13 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testDefaultValuesCache() {
+        val department = Department()
+        assert(department.id == 0)
+        assert(department["id"] == null)
+    }
+
+    @Test
     fun testCopyStatus() {
         var employee = database.sequenceOf(Employees).find { it.id eq 2 }?.copy() ?: return
         employee.name = "jerry"
