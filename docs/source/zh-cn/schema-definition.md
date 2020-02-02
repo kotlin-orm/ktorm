@@ -138,6 +138,7 @@ Ktorm 默认支持的数据类型如下表：
 | yearMonth     | java.time.YearMonth     | varchar       | Types.VARCHAR                |
 | year          | java.time.Year          | int           | Types.INTEGER                |
 | enum          | kotlin.Enum             | enum          | Types.VARCHAR                |
+| uuid          | java.util.UUID          | uuid          | Types.OTHER                  |
 
 ## 扩展更多的类型
 

@@ -18,11 +18,13 @@ package me.liuwj.ktorm.schema
 
 import java.math.BigDecimal
 import java.sql.*
+import java.sql.Date
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.SignStyle
 import java.time.temporal.ChronoField
+import java.util.*
 import javax.sql.rowset.serial.SerialBlob
 
 /**
@@ -473,5 +475,25 @@ class EnumSqlType<C : Enum<C>>(val enumClass: Class<C>) : SqlType<C>(Types.VARCH
 
     override fun doGetResult(rs: ResultSet, index: Int): C? {
         return rs.getString(index)?.takeIf { it.isNotBlank() }?.let { enumClass.cast(valueOf(null, it)) }
+    }
+}
+
+/**
+ * Define a column typed of [UuidSqlType].
+ */
+fun <E : Any> BaseTable<E>.uuid(name: String): BaseTable<E>.ColumnRegistration<UUID> {
+    return registerColumn(name, UuidSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `uuid` SQL type.
+ */
+object UuidSqlType : SqlType<UUID>(Types.OTHER, "uuid") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: UUID) {
+        ps.setObject(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): UUID? {
+        return rs.getObject(index) as UUID?
     }
 }

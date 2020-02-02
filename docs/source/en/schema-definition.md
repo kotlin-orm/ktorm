@@ -138,6 +138,7 @@ Here is a list of SQL types supported in Ktorm by default:
 | yearMonth     | java.time.YearMonth     | varchar       | Types.VARCHAR                |
 | year          | java.time.Year          | int           | Types.INTEGER                |
 | enum | kotlin.Enum | enum | Types.VARCHAR |
+| uuid | java.util.UUID | uuid | Types.OTHER |
 
 ## Extend More Data Types
 
