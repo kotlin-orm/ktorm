@@ -10,16 +10,7 @@ related_path: en/dialects-and-native-sql.html
 
 ## 启用方言
 
-在 Ktorm 中，方言被抽象为一个接口，这个接口中目前只有一个 `createSqlFormatter` 函数，用来创建一个 `SqlFormatter` 的子类对象，使用自己特有的方言语法将 SQL 表达式格式化为 SQL 字符串。
-
-```kotlin
-interface SqlDialect {
-
-    fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter
-}
-```
-
-Ktorm 目前支持多种数据库方言，每种方言都作为一个独立于 ktorm-core 的模块发布，他们都会提供一个自己的 `SqlDialect` 实现类：
+在 Ktorm 中，方言被抽象为一个接口 `SqlDialect`。Ktorm 目前支持多种数据库方言，每种方言都作为一个独立于 ktorm-core 的模块发布，他们都会提供一个自己的 `SqlDialect` 实现类：
 
 | 数据库类型 | 模块名                   | SqlDialect 实现类                                   |
 | ---------- | ------------------------ | --------------------------------------------------- |

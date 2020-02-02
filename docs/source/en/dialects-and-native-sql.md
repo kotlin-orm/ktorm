@@ -10,16 +10,7 @@ It's known that there is a uniform standard for SQL language, but beyond the sta
 
 ## Enable Dialects
 
-In Ktorm, `SqlDialect` interface is the abstraction of dialects, there is only one function `createSqlFormatter` in the interface now. This function is used to create `SqlFormatter` instances, formatting SQL expressions to strings using its own dialect grammars. 
-
-```kotlin
-interface SqlDialect {
-
-    fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter
-}
-```
-
-Ktorm supports many dialects now, each of them is published as a separated module independent of ktorm-core, and they all provide their own implementation of `SqlDialect`. 
+In Ktorm, `SqlDialect` interface is the abstraction of dialects. Ktorm supports many dialects now, each of them is published as a separated module independent of ktorm-core, and they all provide their own implementation of `SqlDialect`. 
 
 | Database Name | Module Name              | SqlDialect Implementation                           |
 | ------------- | ------------------------ | --------------------------------------------------- |
