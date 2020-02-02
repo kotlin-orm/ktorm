@@ -36,7 +36,7 @@ open class SQLiteDialect : SqlDialect {
         sql: String,
         args: List<ArgumentExpression<*>>
     ): Pair<Int, CachedRowSet> {
-        database.useTransaction { transaction ->
+        database.useTransaction(TransactionIsolation.SERIALIZABLE) { transaction ->
             val effects = transaction.connection.prepareStatement(sql).use { statement ->
                 statement.setArguments(args)
                 statement.executeUpdate()
