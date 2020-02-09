@@ -179,19 +179,24 @@ class Database(
         val current = transactionManager.currentTransaction
         val isOuter = current == null
         val transaction = current ?: transactionManager.newTransaction(isolation)
+        var throwable: Throwable? = null
 
         try {
-            val result = func(transaction)
-            if (isOuter) transaction.commit()
-            return result
+            return func(transaction)
         } catch (e: SQLException) {
-            if (isOuter) transaction.rollback()
-            throw exceptionTranslator?.invoke(e) ?: e
+            throwable = exceptionTranslator?.invoke(e) ?: e
+            throw throwable
         } catch (e: Throwable) {
-            if (isOuter) transaction.rollback()
-            throw e
+            throwable = e
+            throw throwable
         } finally {
-            if (isOuter) transaction.close()
+            if (isOuter) {
+                try {
+                    if (throwable == null) transaction.commit() else transaction.rollback()
+                } finally {
+                    transaction.close()
+                }
+            }
         }
     }
 

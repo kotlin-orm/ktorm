@@ -2,9 +2,8 @@ package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.plus
-import me.liuwj.ktorm.dsl.update
+import me.liuwj.ktorm.database.useTransaction
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
@@ -101,5 +100,20 @@ class PostgreSqlTest : BaseTest() {
 
         assert(Employees.findById(1)!!.salary == 1000L)
         assert(Employees.findById(5)!!.salary == 1000L)
+    }
+
+    @Test
+    fun testReturnInTransactionBlock() {
+        insertTransactional()
+        assert(Departments.count() == 3)
+    }
+
+    private fun insertTransactional(): Int {
+        useTransaction {
+            return Departments.insert {
+                it.name to "dept name"
+                it.location to "dept location"
+            }
+        }
     }
 }
