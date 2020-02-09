@@ -203,4 +203,20 @@ class MySqlTest : BaseTest() {
         val names = database.sequenceOf(Employees).mapColumns { it.name.replace("vince", "VINCE") }
         println(names)
     }
+
+    @Test
+    fun testInsertAndGenerateKey() {
+        val id = database.insertAndGenerateKey(Employees) {
+            it.name to "Joe Friend"
+            it.job to "Tester"
+            it.managerId to null
+            it.salary to 50
+            it.hireDate to LocalDate.of(2020, 1, 10)
+            it.departmentId to 1
+        } as Int
+
+        assert(id > 4)
+
+        assert(database.sequenceOf(Employees).count() == 5)
+    }
 }

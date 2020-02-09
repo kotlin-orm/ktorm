@@ -2,9 +2,7 @@ package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.plus
-import me.liuwj.ktorm.dsl.update
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
@@ -101,5 +99,36 @@ class PostgreSqlTest : BaseTest() {
 
         assert(database.sequenceOf(Employees).find { it.id eq 1 }!!.salary == 1000L)
         assert(database.sequenceOf(Employees).find { it.id eq 5 }!!.salary == 1000L)
+    }
+
+    @Test
+    fun testInsertAndGenerateKey() {
+        val id = database.insertAndGenerateKey(Employees) {
+            it.name to "Joe Friend"
+            it.job to "Tester"
+            it.managerId to null
+            it.salary to 50
+            it.hireDate to LocalDate.of(2020, 1, 10)
+            it.departmentId to 1
+        } as Int
+
+        assert(id > 4)
+
+        assert(database.sequenceOf(Employees).count() == 5)
+    }
+
+    @Test
+    fun testReturnInTransactionBlock() {
+        insertTransactional()
+        assert(database.sequenceOf(Departments).count() == 3)
+    }
+
+    private fun insertTransactional(): Int {
+        database.useTransaction {
+            return database.insert(Departments) {
+                it.name to "dept name"
+                it.location to LocationWrapper("dept location")
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@ package me.liuwj.ktorm.support.sqlite
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
+import me.liuwj.ktorm.entity.count
+import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
@@ -96,16 +98,18 @@ class SQLiteTest : BaseTest() {
     }
 
     @Test
-    fun testInsert() {
+    fun testInsertAndGenerateKey() {
         val id = database.insertAndGenerateKey(Employees) {
-            Employees.name to "Joe Friend"
-            Employees.job to "Tester"
-            Employees.managerId to null
-            Employees.salary to 50
-            Employees.hireDate to LocalDate.of(2020, 1, 10)
-            Employees.departmentId to 1
+            it.name to "Joe Friend"
+            it.job to "Tester"
+            it.managerId to null
+            it.salary to 50
+            it.hireDate to LocalDate.of(2020, 1, 10)
+            it.departmentId to 1
         } as Int
 
         assert(id > 4)
+
+        assert(database.sequenceOf(Employees).count() == 5)
     }
 }

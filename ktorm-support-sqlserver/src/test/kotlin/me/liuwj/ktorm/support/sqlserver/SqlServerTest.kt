@@ -3,6 +3,8 @@ package me.liuwj.ktorm.support.sqlserver
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
+import me.liuwj.ktorm.entity.count
+import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
@@ -12,6 +14,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.MSSQLServerContainer
 import java.sql.Timestamp
+import java.time.LocalDate
 
 class SqlServerTest : BaseTest() {
 
@@ -83,5 +86,21 @@ class SqlServerTest : BaseTest() {
             println(row[Foo.bar])
             println(row[Foo.bar1])
         }
+    }
+
+    @Test
+    fun testInsertAndGenerateKey() {
+        val id = database.insertAndGenerateKey(Employees) {
+            it.name to "Joe Friend"
+            it.job to "Tester"
+            it.managerId to null
+            it.salary to 50
+            it.hireDate to LocalDate.of(2020, 1, 10)
+            it.departmentId to 1
+        } as Int
+
+        assert(id > 4)
+
+        assert(database.sequenceOf(Employees).count() == 5)
     }
 }
