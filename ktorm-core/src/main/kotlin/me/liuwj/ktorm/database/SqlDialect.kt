@@ -66,8 +66,8 @@ interface SqlDialect {
         sql: String,
         args: List<ArgumentExpression<*>>
     ): Pair<Int, CachedRowSet> {
-        database.useTransaction { transaction ->
-            transaction.connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS).use { statement ->
+        database.useConnection { conn ->
+            conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS).use { statement ->
                 statement.setArguments(args)
 
                 val effects = statement.executeUpdate()

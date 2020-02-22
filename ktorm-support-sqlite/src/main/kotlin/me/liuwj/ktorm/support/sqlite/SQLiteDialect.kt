@@ -36,8 +36,8 @@ open class SQLiteDialect : SqlDialect {
         sql: String,
         args: List<ArgumentExpression<*>>
     ): Pair<Int, CachedRowSet> {
-        database.useTransaction(TransactionIsolation.SERIALIZABLE) { transaction ->
-            val effects = transaction.connection.prepareStatement(sql).use { statement ->
+        database.useConnection { conn ->
+            val effects = conn.prepareStatement(sql).use { statement ->
                 statement.setArguments(args)
                 statement.executeUpdate()
             }
@@ -47,7 +47,7 @@ open class SQLiteDialect : SqlDialect {
                 database.logger.debug("Retrieving generated keys by SQL: $retrieveKeySql")
             }
 
-            val rowSet = transaction.connection.prepareStatement(retrieveKeySql).use { statement ->
+            val rowSet = conn.prepareStatement(retrieveKeySql).use { statement ->
                 statement.executeQuery().use { rs -> CachedRowSet(rs) }
             }
 
