@@ -219,4 +219,15 @@ class MySqlTest : BaseTest() {
 
         assert(database.sequenceOf(Employees).count() == 5)
     }
+
+    @Test
+    fun testToUpperCase() {
+        val name = database
+            .sequenceOf(Employees)
+            .filter { it.id eq 1 }
+            .mapColumns { it.name.toUpperCase() }
+            .first()
+
+        assert(name == "VINCE")
+    }
 }

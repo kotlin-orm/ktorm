@@ -208,3 +208,27 @@ fun ColumnDeclaring<String>.replace(oldValue: String, newValue: String): Functio
         sqlType = VarcharSqlType
     )
 }
+
+/**
+ * MySQL lower function, translated to `lower(str). `
+ */
+fun ColumnDeclaring<String>.toLowerCase(): FunctionExpression<String> {
+    // lower(str)
+    return FunctionExpression(
+        functionName = "lower",
+        arguments = listOf(this.asExpression()),
+        sqlType = VarcharSqlType
+    )
+}
+
+/**
+ * MySQL upper function, translated to `upper(str). `
+ */
+fun ColumnDeclaring<String>.toUpperCase(): FunctionExpression<String> {
+    // upper(str)
+    return FunctionExpression(
+        functionName = "upper",
+        arguments = listOf(this.asExpression()),
+        sqlType = VarcharSqlType
+    )
+}
