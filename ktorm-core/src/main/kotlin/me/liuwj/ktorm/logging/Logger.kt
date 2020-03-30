@@ -130,7 +130,7 @@ enum class LogLevel {
 /**
  * Auto detect a logger implementation.
  */
-internal fun detectLoggerImplementation(): Logger {
+fun detectLoggerImplementation(): Logger {
     val loggerName = "me.liuwj.ktorm.database"
     var result: Logger? = null
 
