@@ -149,3 +149,38 @@ inline operator fun <T> Database.invoke(func: Database.() -> T): T {
         origin?.let { threadLocal.set(it) } ?: threadLocal.remove()
     }
 }
+
+/**
+ * Obtain a connection from [Database.Companion.global] and invoke the callback function with it.
+ *
+ * If the current thread has opened a transaction, then this transaction's connection will be used.
+ * Otherwise, Ktorm will pass a new-created connection to the function and auto close it after it's
+ * not useful anymore.
+ *
+ * @see Database.useConnection
+ */
+inline fun <T> useConnection(func: (Connection) -> T): T {
+    return Database.global.useConnection(func)
+}
+
+/**
+ * Execute the specific callback function in a transaction of [Database.Companion.global] and returns its result if the
+ * execution succeeds, otherwise, if the execution fails, the transaction will be rollback.
+ *
+ * Note:
+ *
+ * - Any exceptions thrown in the callback function can trigger a rollback.
+ * - This function is reentrant, so it can be called nested. However, the inner calls don’t open new transactions
+ * but share the same ones with outers.
+ *
+ * @param isolation transaction isolation, enums defined in [TransactionIsolation].
+ * @param func the executed callback function.
+ * @return the result of the callback function.
+ * @see Database.useTransaction
+ */
+inline fun <T> useTransaction(
+    isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
+    func: (Transaction) -> T
+): T {
+    return Database.global.useTransaction(isolation, func)
+}
