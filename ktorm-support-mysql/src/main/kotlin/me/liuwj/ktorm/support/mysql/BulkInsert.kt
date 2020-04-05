@@ -52,51 +52,6 @@ data class BulkInsertExpression(
  * Usage:
  *
  * ```kotlin
- * Employees.bulkInsert {
- *     item {
- *         it.name to "jerry"
- *         it.job to "trainee"
- *         it.managerId to 1
- *         it.hireDate to LocalDate.now()
- *         it.salary to 50
- *         it.departmentId to 1
- *     }
- *     item {
- *         it.name to "linda"
- *         it.job to "assistant"
- *         it.managerId to 3
- *         it.hireDate to LocalDate.now()
- *         it.salary to 100
- *         it.departmentId to 2
- *     }
- * }
- * ```
- *
- * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
- * @return the effected row count.
- * @see batchInsert
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.bulkInsert(table) {...} instead.",
-    replaceWith = ReplaceWith("database.bulkInsert(this, block)")
-)
-fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
-    return Database.global.bulkInsert(this, block)
-}
-
-/**
- * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
- *
- * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using MySQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
- * is much better than [batchInsert].
- *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
- *
- * Usage:
- *
- * ```kotlin
  * database.bulkInsert(Employees) {
  *     item {
  *         it.name to "jerry"

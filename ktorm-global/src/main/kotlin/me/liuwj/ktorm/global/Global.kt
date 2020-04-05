@@ -44,7 +44,8 @@ internal val threadLocal = ThreadLocal<Database>()
  * @see Database.invoke
  */
 val Database.Companion.global: Database get() {
-    return threadLocal.get() ?: lastConnected.get() ?: error("Not connected to any database yet.")
+    val database = threadLocal.get() ?: lastConnected.get()
+    return database ?: error("Not connected to any database yet, please connect to a one via Database.connectGlobally")
 }
 
 /**
