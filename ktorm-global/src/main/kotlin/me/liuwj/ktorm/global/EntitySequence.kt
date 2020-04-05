@@ -48,32 +48,23 @@ fun <E : Entity<E>> Table<E>.add(entity: E): Int {
 /**
  * Obtain a list of entity objects by IDs, auto left joining all the reference tables.
  */
-@Suppress("UNCHECKED_CAST")
 fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
     if (ids.isEmpty()) {
         return emptyList()
     } else {
-        return Database.global
-            .sequenceOf(this)
-            .filterTo(ArrayList()) {
-                val primaryKey = it.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
-                primaryKey inList ids
-            }
+        return Database.global.sequenceOf(this).filter { it.id inList ids }.toList()
     }
 }
 
 /**
  * Obtain a entity object by its ID, auto left joining all the reference tables.
  */
-@Suppress("UNCHECKED_CAST")
 fun <E : Any> BaseTable<E>.findById(id: Any): E? {
-    return Database.global
-        .sequenceOf(this)
-        .find {
-            val primaryKey = it.primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
-            primaryKey eq id
-        }
+    return Database.global.sequenceOf(this).find { it.id eq id }
 }
+
+@Suppress("UNCHECKED_CAST")
+private val BaseTable<*>.id get() = primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
 
 /**
  * Obtain a entity object matching the given [predicate], auto left joining all the reference tables.

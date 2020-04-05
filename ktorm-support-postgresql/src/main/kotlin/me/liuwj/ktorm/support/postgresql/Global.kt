@@ -18,22 +18,22 @@ package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.schema.BaseTable
+import java.lang.reflect.InvocationTargetException
 
 /**
  * Obtain the global database instance via reflection, throwing an exception if ktorm-global is not
  * available in the classpath.
  */
+@Suppress("SwallowedException")
 internal val Database.Companion.global: Database get() {
     try {
         val cls = Class.forName("me.liuwj.ktorm.global.GlobalKt")
         val method = cls.getMethod("getGlobal", Database.Companion::class.java)
         return method.invoke(null, Database.Companion) as Database
     } catch (e: ClassNotFoundException) {
-        throw IllegalStateException("Cannot obtain the global database object, please add ktorm-global to classpath", e)
-    } catch (e: NoSuchMethodException) {
-        throw IllegalStateException("Cannot obtain the global database object, please add ktorm-global to classpath", e)
-    } catch (e: Throwable) {
-        throw e
+        throw IllegalStateException("Cannot detect the global database object, please add ktorm-global to classpath", e)
+    } catch (e: InvocationTargetException) {
+        throw e.targetException
     }
 }
 
