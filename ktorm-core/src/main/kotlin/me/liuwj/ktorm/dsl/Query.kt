@@ -19,7 +19,6 @@ package me.liuwj.ktorm.dsl
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.iterator
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.BooleanSqlType
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
@@ -155,63 +154,6 @@ fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
 }
 
 /**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression].
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { it.asDeclaringExpression() }
-    return Query(Database.global, SelectExpression(columns = declarations, from = this))
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression].
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
-    return select(columns.asList())
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table.
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    return asExpression().select(columns)
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table.
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
-    return asExpression().select(columns.asList())
-}
-
-/**
  * Create a query object, selecting the specific columns or expressions from this [QuerySource] distinctly.
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
@@ -232,63 +174,6 @@ fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
  */
 fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression] distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { it.asDeclaringExpression() }
-    return Query(Database.global, SelectExpression(columns = declarations, from = this, isDistinct = true))
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression] distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
-    return selectDistinct(columns.asList())
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    return asExpression().selectDistinct(columns)
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
-    return asExpression().selectDistinct(columns.asList())
 }
 
 private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
