@@ -50,6 +50,13 @@ fun BaseTable<*>.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = 
 }
 
 /**
+ * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
+ */
+fun BaseTable<*>.joinReferencesAndSelect(): Query {
+    return Database.global.from(this).joinReferencesAndSelect()
+}
+
+/**
  * Create a query object, selecting the specific columns or expressions from this table.
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.

@@ -344,29 +344,10 @@ abstract class BaseTable<E : Any>(
     }
 
     /**
-     * Create an entity object from the specific row without obtaining referenced entities' data automatically.
-     *
-     * Similar to [createEntity], this function uses the binding configurations of this table object, filling
-     * columns' values into corresponding entities' properties. But differently, it treats all reference bindings
-     * as nested bindings to the referenced entities’ primary keys.
-     *
-     * For example the binding `c.references(Departments) { it.department }`, it is equivalent to
-     * `c.bindTo { it.department.id }` in this case, that avoids unnecessary object creations and
-     * some exceptions raised by conflict column names.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future. Use createEntity(row, withReferences = false) instead.",
-        replaceWith = ReplaceWith("createEntity(row, withReferences = false)")
-    )
-    fun createEntityWithoutReferences(row: QueryRowSet): E {
-        return createEntity(row, withReferences = false)
-    }
-
-    /**
      * Create an entity object from the specific row of query results.
      *
-     * This function is called by [createEntity] and [createEntityWithoutReferences]. Subclasses should override it
-     * and implement the actual logic of retrieving an entity object from the query results.
+     * This function is called by [createEntity]. Subclasses should override it and implement the actual logic of
+     * retrieving an entity object from the query results.
      */
     protected abstract fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): E
 
