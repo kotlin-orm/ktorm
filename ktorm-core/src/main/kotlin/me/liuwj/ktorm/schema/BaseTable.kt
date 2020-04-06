@@ -21,6 +21,7 @@ import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.ArrayList
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -71,7 +72,7 @@ abstract class BaseTable<E : Any>(
 
     private val _refCounter = AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
-    private var _primaryKeyName: String? = null
+    private val _primaryKeyNames = ArrayList<String>()
 
     /**
      * The table's name.
@@ -97,7 +98,8 @@ abstract class BaseTable<E : Any>(
     /**
      * The primary key column of this table.
      */
-    val primaryKey: Column<*>? get() = _primaryKeyName?.let { this[it] }
+    val primaryKeys: List<Column<*>> get() = _primaryKeyNames.map { this[it] }
+    val primaryKey get() = primaryKeys.firstOrNull()
 
     /**
      * Obtain a column from this table by the name.
@@ -125,13 +127,7 @@ abstract class BaseTable<E : Any>(
      * Mark the registered column as the primary key.
      */
     fun <C : Any> ColumnRegistration<C>.primaryKey(): ColumnRegistration<C> {
-        if (_primaryKeyName != null) {
-            throw IllegalStateException(
-                "Column '$_primaryKeyName' has been configured as the primary key, so you cannot configure another one."
-            )
-        }
-
-        _primaryKeyName = columnName
+        _primaryKeyNames += columnName
         return this
     }
 
@@ -281,12 +277,13 @@ abstract class BaseTable<E : Any>(
      * Copy column definitions from [src] to this table.
      */
     protected fun copyDefinitionsFrom(src: BaseTable<*>) {
-        rewriteDefinitions(src.columns, src._primaryKeyName, copyReferences = true)
+        rewriteDefinitions(src.columns, src._primaryKeyNames, copyReferences = true)
     }
 
-    private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyName: String?, copyReferences: Boolean) {
-        _primaryKeyName = primaryKeyName
+    private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyNames: List<String>, copyReferences: Boolean) {
         _columns.clear()
+        _primaryKeyNames.clear()
+        _primaryKeyNames.addAll(primaryKeyNames)
 
         if (copyReferences) {
             _refCounter.set(0)
@@ -308,7 +305,7 @@ abstract class BaseTable<E : Any>(
             column.copy(binding = binding, extraBindings = extraBindings)
         }
 
-        copy.rewriteDefinitions(columns, copy._primaryKeyName, copyReferences = false)
+        copy.rewriteDefinitions(columns, copy._primaryKeyNames, copyReferences = false)
         return copy
     }
 

@@ -122,9 +122,16 @@ private fun BaseTable<*>.joinReferences(
         for (binding in column.allBindings) {
             if (binding is ReferenceBinding) {
                 val refTable = binding.referenceTable
-                val primaryKey = refTable.primaryKey ?: error("Table ${refTable.tableName} doesn't have a primary key.")
 
-                curr = curr.leftJoin(refTable, on = column eq primaryKey)
+                val primaryKeys = refTable.primaryKeys
+                if (primaryKeys.isEmpty()) {
+                    error("Table ${refTable.tableName} doesn't have a primary key.")
+                }
+                if (primaryKeys.size > 1) {
+                    error("Cannot reference a table with compound primary keys.")
+                }
+
+                curr = curr.leftJoin(refTable, on = column eq primaryKeys[0])
                 curr = refTable.joinReferences(curr, joinedTables)
             }
         }

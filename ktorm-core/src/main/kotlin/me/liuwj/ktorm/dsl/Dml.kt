@@ -205,8 +205,15 @@ fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Assignment
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
     if (rowSet.next()) {
-        val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
-        val generatedKey = sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
+        val primaryKeys = table.primaryKeys
+        if (primaryKeys.isEmpty()) {
+            error("Table ${table.tableName} must have a primary key.")
+        }
+        if (primaryKeys.size > 1) {
+            error("Key retrieval is not supported for compound primary keys.")
+        }
+
+        val generatedKey = primaryKeys[0].sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
 
         if (logger.isDebugEnabled()) {
             logger.debug("Generated Key: $generatedKey")

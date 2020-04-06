@@ -16,9 +16,8 @@
 
 package me.liuwj.ktorm.entity
 
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.dsl.AliasRemover
-import me.liuwj.ktorm.dsl.delete
-import me.liuwj.ktorm.dsl.deleteAll
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 
@@ -52,8 +51,11 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
         )
     )
 
-    val ignoreGeneratedKeys =
-        sourceTable.primaryKey?.binding == null || entity.implementation.getPrimaryKeyValue(sourceTable) != null
+    val primaryKeys = sourceTable.primaryKeys
+
+    val ignoreGeneratedKeys = primaryKeys.size != 1
+        || primaryKeys[0].binding == null
+        || entity.implementation.getPrimaryKeyValue(sourceTable) != null
 
     if (ignoreGeneratedKeys) {
         val effects = database.executeUpdate(expression)
@@ -65,7 +67,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
         val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
 
         if (rowSet.next()) {
-            val generatedKey = sourceTable.primaryKey?.sqlType?.getResult(rowSet, 1)
+            val generatedKey = primaryKeys[0].sqlType.getResult(rowSet, 1)
             if (generatedKey != null) {
                 if (database.logger.isDebugEnabled()) {
                     database.logger.debug("Generated Key: $generatedKey")
@@ -141,7 +143,6 @@ internal fun EntityImplementation.doFlushChanges(): Int {
     val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
     checkUnexpectedDiscarding(fromTable)
 
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
     val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
 
     val expression = AliasRemover.visit(
@@ -153,16 +154,36 @@ internal fun EntityImplementation.doFlushChanges(): Int {
                     expression = ArgumentExpression(argument, col.sqlType as SqlType<Any>)
                 )
             },
-            where = BinaryExpression(
-                type = BinaryExpressionType.EQUAL,
-                left = primaryKey.asExpression(),
-                right = ArgumentExpression(getPrimaryKeyValue(fromTable), primaryKey.sqlType as SqlType<Any>),
-                sqlType = BooleanSqlType
-            )
+            where = constructIdentityCondition()
         )
     )
 
     return fromDatabase.executeUpdate(expression).also { doDiscardChanges() }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun EntityImplementation.constructIdentityCondition(): ScalarExpression<Boolean> {
+    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
+
+    val primaryKeys = fromTable.primaryKeys
+    if (primaryKeys.isEmpty()) {
+        error("Table ${fromTable.tableName} doesn't have a primary key.")
+    }
+
+    val conditions = primaryKeys.map { pk ->
+        if (pk.binding == null) {
+            error("Primary column $pk has no bindings to any entity field.")
+        }
+
+        BinaryExpression(
+            type = BinaryExpressionType.EQUAL,
+            left = pk.asExpression(),
+            right = ArgumentExpression(getColumnValue(pk.binding), pk.sqlType as SqlType<Any>),
+            sqlType = BooleanSqlType
+        )
+    }
+
+    return conditions.combineConditions().asExpression()
 }
 
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
@@ -292,17 +313,11 @@ internal fun EntityImplementation.doDelete(): Int {
 
     val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
     val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
 
     val expression = AliasRemover.visit(
         expr = DeleteExpression(
             table = fromTable.asExpression(),
-            where = BinaryExpression(
-                type = BinaryExpressionType.EQUAL,
-                left = primaryKey.asExpression(),
-                right = ArgumentExpression(getPrimaryKeyValue(fromTable), primaryKey.sqlType as SqlType<Any>),
-                sqlType = BooleanSqlType
-            )
+            where = constructIdentityCondition()
         )
     )
 
