@@ -295,8 +295,11 @@ abstract class BaseTable<E : Any>(
 
     private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyNames: List<String>, copyReferences: Boolean) {
         _columns.clear()
-        _primaryKeyNames.clear()
-        _primaryKeyNames.addAll(primaryKeyNames)
+
+        if (_primaryKeyNames !== primaryKeyNames) {
+            _primaryKeyNames.clear()
+            _primaryKeyNames.addAll(primaryKeyNames)
+        }
 
         if (copyReferences) {
             _refCounter.set(0)

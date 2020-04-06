@@ -214,7 +214,7 @@ class GlobalEntityTest : BaseGlobalTest() {
 
     @Test
     fun testAutoDiscardChanges() {
-        var department = Departments.findById(2) ?: return
+        var department = Departments.findOne { it.id eq 2 } ?: return
         department.name = "tech"
 
         val employee = Employee()
