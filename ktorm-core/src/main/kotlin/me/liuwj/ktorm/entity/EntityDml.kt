@@ -55,7 +55,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
 
     val ignoreGeneratedKeys = primaryKeys.size != 1
         || primaryKeys[0].binding == null
-        || entity.implementation.getPrimaryKeyValue(sourceTable) != null
+        || entity.implementation.getColumnValue(primaryKeys[0].binding!!) != null
 
     if (ignoreGeneratedKeys) {
         val effects = database.executeUpdate(expression)
@@ -73,7 +73,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
                     database.logger.debug("Generated Key: $generatedKey")
                 }
 
-                entity.implementation.setPrimaryKeyValue(sourceTable, generatedKey)
+                entity.implementation.setColumnValue(primaryKeys[0].binding!!, generatedKey)
             }
         }
 

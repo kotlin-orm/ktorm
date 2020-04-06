@@ -20,10 +20,24 @@ import me.liuwj.ktorm.schema.*
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 
+private fun Table<*>.getSinglePrimaryKey(): Column<*> {
+    val primaryKeys = primaryKeys
+    if (primaryKeys.isEmpty()) {
+        error("Table $tableName doesn't have a primary key.")
+    }
+    if (primaryKeys.size > 1) {
+        error("Table $tableName has compound primary keys.")
+    }
+    return primaryKeys[0]
+}
+
 internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? {
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    val binding = primaryKey.binding ?: error("Primary column $primaryKey has no bindings to any entity field.")
-    return getColumnValue(binding)
+    val pk = fromTable.getSinglePrimaryKey()
+    if (pk.binding == null) {
+        error("Primary column $pk has no bindings to any entity field.")
+    } else {
+        return getColumnValue(pk.binding)
+    }
 }
 
 internal fun EntityImplementation.getColumnValue(binding: ColumnBinding): Any? {
@@ -51,12 +65,15 @@ internal fun EntityImplementation.setPrimaryKeyValue(
     forceSet: Boolean = false,
     useExtraBindings: Boolean = false
 ) {
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    val binding = primaryKey.binding ?: error("Primary column $primaryKey has no bindings to any entity field.")
-    setColumnValue(binding, value, forceSet)
+    val pk = fromTable.getSinglePrimaryKey()
+    if (pk.binding == null) {
+        error("Primary column $pk has no bindings to any entity field.")
+    } else {
+        setColumnValue(pk.binding, value, forceSet)
+    }
 
     if (useExtraBindings) {
-        for (extraBinding in primaryKey.extraBindings) {
+        for (extraBinding in pk.extraBindings) {
             setColumnValue(extraBinding, value, forceSet)
         }
     }
