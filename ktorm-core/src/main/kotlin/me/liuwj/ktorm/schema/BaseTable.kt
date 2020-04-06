@@ -99,7 +99,20 @@ abstract class BaseTable<E : Any>(
      * The primary key column of this table.
      */
     val primaryKeys: List<Column<*>> get() = _primaryKeyNames.map { this[it] }
-    val primaryKey get() = primaryKeys.firstOrNull()
+
+    /**
+     * Obtain the single primary key or throw an exception.
+     */
+    internal inline fun singlePrimaryKey(errMsg: () -> String): Column<*> {
+        val primaryKeys = primaryKeys
+        if (primaryKeys.isEmpty()) {
+            error("Table $tableName doesn't have a primary key.")
+        }
+        if (primaryKeys.size > 1) {
+            error(errMsg())
+        }
+        return primaryKeys[0]
+    }
 
     /**
      * Obtain a column from this table by the name.

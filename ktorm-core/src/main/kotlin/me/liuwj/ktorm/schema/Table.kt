@@ -132,17 +132,17 @@ open class Table<E : Entity<E>>(
         for (binding in column.allBindings) {
             when (binding) {
                 is ReferenceBinding -> {
-                    val ref = binding.referenceTable as Table<*>
-                    val primaryKey = ref.primaryKey ?: error("Table ${ref.tableName} doesn't have a primary key.")
+                    val refTable = binding.referenceTable as Table<*>
+                    val pk = refTable.singlePrimaryKey { "Cannot reference a table with compound primary keys." }
 
                     if (withReferences) {
-                        val child = ref.doCreateEntity(this, withReferences = true)
-                        child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
+                        val child = refTable.doCreateEntity(this, withReferences = true)
+                        child.implementation.setColumnValue(pk, columnValue, forceSet = true)
                         intoEntity[binding.onProperty.name] = child
                     } else {
                         val entityClass = binding.onProperty.returnType.jvmErasure
-                        val child = Entity.create(entityClass, fromDatabase = query.database, fromTable = ref)
-                        child.implementation.setColumnValue(primaryKey, columnValue)
+                        val child = Entity.create(entityClass, fromDatabase = query.database, fromTable = refTable)
+                        child.implementation.setColumnValue(pk, columnValue)
                         intoEntity[binding.onProperty.name] = child
                     }
                 }

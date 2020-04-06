@@ -79,12 +79,15 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(table) }
 
-    val primaryKey = table.primaryKey ?: error("Table ${table.tableName} doesn't have a primary key.")
+    val primaryKeys = table.primaryKeys
+    if (primaryKeys.isEmpty()) {
+        error("Table ${table.tableName} doesn't have a primary key.")
+    }
 
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = assignments,
-        conflictTarget = listOf(primaryKey.asExpression()),
+        conflictTarget = primaryKeys.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
 

@@ -17,11 +17,8 @@
 package me.liuwj.ktorm.global
 
 import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.inList
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
 import me.liuwj.ktorm.schema.Table
 
@@ -44,27 +41,6 @@ fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = true): En
 fun <E : Entity<E>> Table<E>.add(entity: E): Int {
     return Database.global.sequenceOf(this).add(entity)
 }
-
-/**
- * Obtain a list of entity objects by IDs, auto left joining all the reference tables.
- */
-fun <E : Any> BaseTable<E>.findListByIds(ids: Collection<Any>): List<E> {
-    if (ids.isEmpty()) {
-        return emptyList()
-    } else {
-        return Database.global.sequenceOf(this).filter { it.id inList ids }.toList()
-    }
-}
-
-/**
- * Obtain a entity object by its ID, auto left joining all the reference tables.
- */
-fun <E : Any> BaseTable<E>.findById(id: Any): E? {
-    return Database.global.sequenceOf(this).find { it.id eq id }
-}
-
-@Suppress("UNCHECKED_CAST")
-private val BaseTable<*>.id get() = primaryKey as? Column<Any> ?: error("Table $tableName doesn't have a primary key.")
 
 /**
  * Obtain a entity object matching the given [predicate], auto left joining all the reference tables.
