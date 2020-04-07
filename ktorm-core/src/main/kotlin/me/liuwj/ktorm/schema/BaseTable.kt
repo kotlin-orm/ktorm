@@ -129,7 +129,7 @@ abstract class BaseTable<E : Any>(
      */
     fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): ColumnRegistration<C> {
         if (name in _columns) {
-            throw IllegalArgumentException("Duplicate column name: $name")
+            throw IllegalStateException("Duplicate column name: $name")
         }
 
         _columns[name] = Column(this, name, sqlType = sqlType)
@@ -212,27 +212,12 @@ abstract class BaseTable<E : Any>(
          */
         @PublishedApi
         internal fun doBindInternal(binding: ColumnBinding): ColumnRegistration<C> {
-            for (column in _columns.values) {
-                val hasConflict = when (binding) {
-                    is NestedBinding -> column.allBindings
-                        .filterIsInstance<NestedBinding>()
-                        .any { it.properties == binding.properties }
-                    is ReferenceBinding -> column.allBindings
-                        .filterIsInstance<ReferenceBinding>()
-                        .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
-                        .any { it.onProperty == binding.onProperty }
-                }
-
-                if (hasConflict) {
-                    throw IllegalStateException(
-                        "Column '$columnName' and '${column.name}' are bound to the same property. Please check your code."
-                    )
-                }
-            }
+            checkConflictBinding(binding)
 
             val b = when (binding) {
                 is NestedBinding -> binding
                 is ReferenceBinding -> {
+                    checkPrimaryKey(binding.referenceTable)
                     checkCircularReference(binding.referenceTable)
                     ReferenceBinding(copyReferenceTable(binding.referenceTable), binding.onProperty)
                 }
@@ -249,12 +234,47 @@ abstract class BaseTable<E : Any>(
             return this
         }
 
+        private fun checkConflictBinding(binding: ColumnBinding) {
+            for (col in _columns.values) {
+                val hasConflict = when (binding) {
+                    is NestedBinding -> col.allBindings
+                        .filterIsInstance<NestedBinding>()
+                        .any { it.properties == binding.properties }
+                    is ReferenceBinding -> col.allBindings
+                        .filterIsInstance<ReferenceBinding>()
+                        .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
+                        .any { it.onProperty == binding.onProperty }
+                }
+
+                if (hasConflict) {
+                    throw IllegalStateException(
+                        "Column '$columnName' and '${col.name}' are bound to the same property. Please check your code."
+                    )
+                }
+            }
+        }
+
+        private fun checkPrimaryKey(refTable: BaseTable<*>) {
+            val primaryKeys = refTable.primaryKeys
+            if (primaryKeys.isEmpty()) {
+                throw IllegalStateException(
+                    "Cannot reference the table ${refTable.tableName} as there is no primary keys."
+                )
+            }
+            if (primaryKeys.size > 1) {
+                throw IllegalStateException(
+                    "Cannot reference the table ${refTable.tableName} as there is compound primary keys."
+                )
+            }
+        }
+
         private fun checkCircularReference(root: BaseTable<*>, stack: LinkedList<String> = LinkedList()) {
             stack.push(root.tableName)
 
             if (tableName == root.tableName) {
-                val msg = "Circular reference detected, current table: %s, reference route: %s"
-                throw IllegalArgumentException(msg.format(tableName, stack.asReversed()))
+                throw IllegalStateException(
+                    "Circular reference detected, current table: $tableName, reference route: ${stack.asReversed()}"
+                )
             }
 
             for (column in root.columns) {

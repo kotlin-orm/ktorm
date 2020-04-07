@@ -50,7 +50,7 @@ class CircularReferenceTest : BaseTest() {
             throw AssertionError("unexpected")
 
         } catch (e: ExceptionInInitializerError) {
-            val ex = e.cause as IllegalArgumentException
+            val ex = e.cause as IllegalStateException
             println(ex.message)
         }
     }
@@ -72,7 +72,7 @@ class CircularReferenceTest : BaseTest() {
             throw AssertionError("unexpected")
 
         } catch (e: ExceptionInInitializerError) {
-            val ex = e.cause as IllegalArgumentException
+            val ex = e.cause as IllegalStateException
             println(ex.message)
         }
     }

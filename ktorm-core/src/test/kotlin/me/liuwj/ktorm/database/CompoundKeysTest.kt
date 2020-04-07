@@ -2,6 +2,8 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.dsl.eq
+import me.liuwj.ktorm.dsl.from
+import me.liuwj.ktorm.dsl.joinReferencesAndSelect
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.schema.*
 import org.junit.Test
@@ -87,6 +89,18 @@ class CompoundKeysTest : BaseTest() {
         } catch (e: UnsupportedOperationException) {
             // expected
             println(e.message)
+        }
+    }
+
+    @Test
+    fun test() {
+        try {
+            database.from(StaffRefs).joinReferencesAndSelect()
+            throw AssertionError("unexpected")
+
+        } catch (e: ExceptionInInitializerError) {
+            val ex = e.cause as IllegalStateException
+            println(ex.message)
         }
     }
 }
