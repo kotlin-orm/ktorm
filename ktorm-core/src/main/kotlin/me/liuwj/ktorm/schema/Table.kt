@@ -133,7 +133,9 @@ open class Table<E : Entity<E>>(
             when (binding) {
                 is ReferenceBinding -> {
                     val refTable = binding.referenceTable as Table<*>
-                    val pk = refTable.singlePrimaryKey { "Cannot reference a table with compound primary keys." }
+                    val pk = refTable.singlePrimaryKey {
+                        "Cannot reference the table ${refTable.tableName} as there is compound primary keys."
+                    }
 
                     if (withReferences) {
                         val child = refTable.doCreateEntity(this, withReferences = true)

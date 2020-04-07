@@ -225,7 +225,7 @@ abstract class BaseTable<E : Any>(
 
                 if (hasConflict) {
                     throw IllegalStateException(
-                        "Column '$columnName' and '${column.name}' have the same bindings. Please check your code."
+                        "Column '$columnName' and '${column.name}' are bound to the same property. Please check your code."
                     )
                 }
             }
