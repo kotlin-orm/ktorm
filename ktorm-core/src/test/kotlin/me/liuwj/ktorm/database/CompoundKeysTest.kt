@@ -93,7 +93,7 @@ class CompoundKeysTest : BaseTest() {
     }
 
     @Test
-    fun test() {
+    fun testReferenceTableWithCompoundKeys() {
         try {
             database.from(StaffRefs).joinReferencesAndSelect()
             throw AssertionError("unexpected")
