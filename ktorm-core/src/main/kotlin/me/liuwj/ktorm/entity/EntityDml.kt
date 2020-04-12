@@ -24,11 +24,11 @@ import me.liuwj.ktorm.schema.*
 /**
  * Insert the given entity into this sequence and return the affected record number.
  *
- * If we use an auto-increment key in our table, we need to tell Ktorm which column is the primary key by calling
- * [Table.primaryKey] on the column registration first, then this function will obtain the generated key from the
- * database and fill it into the corresponding property after the insertion completes. But this requires us not to
- * set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted into the
- * database, and no keys generated.
+ * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
+ * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
+ * database and fill it into the corresponding property after the insertion completes. But this requires us
+ * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
+ * into the database, and no keys generated.
  *
  * @since 2.7
  */

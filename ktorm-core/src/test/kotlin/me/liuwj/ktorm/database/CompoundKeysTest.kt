@@ -25,13 +25,13 @@ class CompoundKeysTest : BaseTest() {
     }
 
     object Staffs : Table<Staff>("t_employee") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val departmentId by int("department_id").primaryKey().bindTo { it.departmentId }
-        val name by varchar("name").bindTo { it.name }
-        val job by varchar("job").bindTo { it.job }
-        val managerId by int("manager_id").bindTo { it.managerId }
-        val hireDate by date("hire_date").bindTo { it.hireDate }
-        val salary by long("salary").bindTo { it.salary }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val departmentId = int("department_id").primaryKey().bindTo { it.departmentId }
+        val name = varchar("name").bindTo { it.name }
+        val job = varchar("job").bindTo { it.job }
+        val managerId = int("manager_id").bindTo { it.managerId }
+        val hireDate = date("hire_date").bindTo { it.hireDate }
+        val salary = long("salary").bindTo { it.salary }
     }
 
     interface StaffRef : Entity<StaffRef> {
@@ -40,8 +40,8 @@ class CompoundKeysTest : BaseTest() {
     }
 
     object StaffRefs : Table<StaffRef>("t_staff_ref") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val staffId by int("staff_id").references(Staffs) { it.staff }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val staffId = int("staff_id").references(Staffs) { it.staff }
     }
 
     @Test

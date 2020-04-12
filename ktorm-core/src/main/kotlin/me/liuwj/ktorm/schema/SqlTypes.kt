@@ -30,7 +30,7 @@ import javax.sql.rowset.serial.SerialBlob
 /**
  * Define a column typed of [BooleanSqlType].
  */
-fun <E : Any> BaseTable<E>.boolean(name: String): BaseTable<E>.ColumnRegistration<Boolean> {
+fun BaseTable<*>.boolean(name: String): Column<Boolean> {
     return registerColumn(name, BooleanSqlType)
 }
 
@@ -50,7 +50,7 @@ object BooleanSqlType : SqlType<Boolean>(Types.BOOLEAN, "boolean") {
 /**
  * Define a column typed of [IntSqlType].
  */
-fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
+fun BaseTable<*>.int(name: String): Column<Int> {
     return registerColumn(name, IntSqlType)
 }
 
@@ -70,7 +70,7 @@ object IntSqlType : SqlType<Int>(Types.INTEGER, "int") {
 /**
  * Define a column typed of [LongSqlType].
  */
-fun <E : Any> BaseTable<E>.long(name: String): BaseTable<E>.ColumnRegistration<Long> {
+fun BaseTable<*>.long(name: String): Column<Long> {
     return registerColumn(name, LongSqlType)
 }
 
@@ -90,7 +90,7 @@ object LongSqlType : SqlType<Long>(Types.BIGINT, "bigint") {
 /**
  * Define a column typed of [FloatSqlType].
  */
-fun <E : Any> BaseTable<E>.float(name: String): BaseTable<E>.ColumnRegistration<Float> {
+fun BaseTable<*>.float(name: String): Column<Float> {
     return registerColumn(name, FloatSqlType)
 }
 
@@ -110,7 +110,7 @@ object FloatSqlType : SqlType<Float>(Types.FLOAT, "float") {
 /**
  * Define a column typed of [DoubleSqlType].
  */
-fun <E : Any> BaseTable<E>.double(name: String): BaseTable<E>.ColumnRegistration<Double> {
+fun BaseTable<*>.double(name: String): Column<Double> {
     return registerColumn(name, DoubleSqlType)
 }
 
@@ -130,7 +130,7 @@ object DoubleSqlType : SqlType<Double>(Types.DOUBLE, "double") {
 /**
  * Define a column typed of [DecimalSqlType].
  */
-fun <E : Any> BaseTable<E>.decimal(name: String): BaseTable<E>.ColumnRegistration<BigDecimal> {
+fun BaseTable<*>.decimal(name: String): Column<BigDecimal> {
     return registerColumn(name, DecimalSqlType)
 }
 
@@ -150,7 +150,7 @@ object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
 /**
  * Define a column typed of [VarcharSqlType].
  */
-fun <E : Any> BaseTable<E>.varchar(name: String): BaseTable<E>.ColumnRegistration<String> {
+fun BaseTable<*>.varchar(name: String): Column<String> {
     return registerColumn(name, VarcharSqlType)
 }
 
@@ -170,7 +170,7 @@ object VarcharSqlType : SqlType<String>(Types.VARCHAR, "varchar") {
 /**
  * Define a column typed of [TextSqlType].
  */
-fun <E : Any> BaseTable<E>.text(name: String): BaseTable<E>.ColumnRegistration<String> {
+fun BaseTable<*>.text(name: String): Column<String> {
     return registerColumn(name, TextSqlType)
 }
 
@@ -190,7 +190,7 @@ object TextSqlType : SqlType<String>(Types.LONGVARCHAR, "text") {
 /**
  * Define a column typed of [BlobSqlType].
  */
-fun <E : Any> BaseTable<E>.blob(name: String): BaseTable<E>.ColumnRegistration<ByteArray> {
+fun BaseTable<*>.blob(name: String): Column<ByteArray> {
     return registerColumn(name, BlobSqlType)
 }
 
@@ -216,7 +216,7 @@ object BlobSqlType : SqlType<ByteArray>(Types.BLOB, "blob") {
 /**
  * Define a column typed of [BytesSqlType].
  */
-fun <E : Any> BaseTable<E>.bytes(name: String): BaseTable<E>.ColumnRegistration<ByteArray> {
+fun BaseTable<*>.bytes(name: String): Column<ByteArray> {
     return registerColumn(name, BytesSqlType)
 }
 
@@ -236,7 +236,7 @@ object BytesSqlType : SqlType<ByteArray>(Types.BINARY, "bytes") {
 /**
  * Define a column typed of [TimestampSqlType].
  */
-fun <E : Any> BaseTable<E>.jdbcTimestamp(name: String): BaseTable<E>.ColumnRegistration<Timestamp> {
+fun BaseTable<*>.jdbcTimestamp(name: String): Column<Timestamp> {
     return registerColumn(name, TimestampSqlType)
 }
 
@@ -256,7 +256,7 @@ object TimestampSqlType : SqlType<Timestamp>(Types.TIMESTAMP, "timestamp") {
 /**
  * Define a column typed of [DateSqlType].
  */
-fun <E : Any> BaseTable<E>.jdbcDate(name: String): BaseTable<E>.ColumnRegistration<Date> {
+fun BaseTable<*>.jdbcDate(name: String): Column<Date> {
     return registerColumn(name, DateSqlType)
 }
 
@@ -276,7 +276,7 @@ object DateSqlType : SqlType<Date>(Types.DATE, "date") {
 /**
  * Define a column typed of [TimeSqlType].
  */
-fun <E : Any> BaseTable<E>.jdbcTime(name: String): BaseTable<E>.ColumnRegistration<Time> {
+fun BaseTable<*>.jdbcTime(name: String): Column<Time> {
     return registerColumn(name, TimeSqlType)
 }
 
@@ -296,7 +296,7 @@ object TimeSqlType : SqlType<Time>(Types.TIME, "time") {
 /**
  * Define a column typed of [InstantSqlType].
  */
-fun <E : Any> BaseTable<E>.timestamp(name: String): BaseTable<E>.ColumnRegistration<Instant> {
+fun BaseTable<*>.timestamp(name: String): Column<Instant> {
     return registerColumn(name, InstantSqlType)
 }
 
@@ -316,7 +316,7 @@ object InstantSqlType : SqlType<Instant>(Types.TIMESTAMP, "timestamp") {
 /**
  * Define a column typed of [LocalDateTimeSqlType].
  */
-fun <E : Any> BaseTable<E>.datetime(name: String): BaseTable<E>.ColumnRegistration<LocalDateTime> {
+fun BaseTable<*>.datetime(name: String): Column<LocalDateTime> {
     return registerColumn(name, LocalDateTimeSqlType)
 }
 
@@ -336,7 +336,7 @@ object LocalDateTimeSqlType : SqlType<LocalDateTime>(Types.TIMESTAMP, "datetime"
 /**
  * Define a column typed of [LocalDateSqlType].
  */
-fun <E : Any> BaseTable<E>.date(name: String): BaseTable<E>.ColumnRegistration<LocalDate> {
+fun BaseTable<*>.date(name: String): Column<LocalDate> {
     return registerColumn(name, LocalDateSqlType)
 }
 
@@ -356,7 +356,7 @@ object LocalDateSqlType : SqlType<LocalDate>(Types.DATE, "date") {
 /**
  * Define a column typed of [LocalTimeSqlType].
  */
-fun <E : Any> BaseTable<E>.time(name: String): BaseTable<E>.ColumnRegistration<LocalTime> {
+fun BaseTable<*>.time(name: String): Column<LocalTime> {
     return registerColumn(name, LocalTimeSqlType)
 }
 
@@ -376,7 +376,7 @@ object LocalTimeSqlType : SqlType<LocalTime>(Types.TIME, "time") {
 /**
  * Define a column typed of [MonthDaySqlType], instances of [MonthDay] are saved as strings in format `MM-dd`.
  */
-fun <E : Any> BaseTable<E>.monthDay(name: String): BaseTable<E>.ColumnRegistration<MonthDay> {
+fun BaseTable<*>.monthDay(name: String): Column<MonthDay> {
     return registerColumn(name, MonthDaySqlType)
 }
 
@@ -402,7 +402,7 @@ object MonthDaySqlType : SqlType<MonthDay>(Types.VARCHAR, "varchar") {
 /**
  * Define a column typed of [YearMonthSqlType], instances of [YearMonth] are saved as strings in format `yyyy-MM`.
  */
-fun <E : Any> BaseTable<E>.yearMonth(name: String): BaseTable<E>.ColumnRegistration<YearMonth> {
+fun BaseTable<*>.yearMonth(name: String): Column<YearMonth> {
     return registerColumn(name, YearMonthSqlType)
 }
 
@@ -429,7 +429,7 @@ object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
 /**
  * Define a column typed of [YearSqlType], instances of [Year] are saved as integers.
  */
-fun <E : Any> BaseTable<E>.year(name: String): BaseTable<E>.ColumnRegistration<Year> {
+fun BaseTable<*>.year(name: String): Column<Year> {
     return registerColumn(name, YearSqlType)
 }
 
@@ -451,13 +451,10 @@ object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
  *
  * @param name the column's name.
  * @param typeRef the generic type information of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
- * @return the column registration that wraps the registered column.
+ * @return the registered column.
  */
-fun <E : Any, C : Enum<C>> BaseTable<E>.enum(
-    name: String,
-    typeRef: TypeReference<C>
-): BaseTable<E>.ColumnRegistration<C> {
-    @Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST")
+fun <C : Enum<C>> BaseTable<*>.enum(name: String, typeRef: TypeReference<C>): Column<C> {
     return registerColumn(name, EnumSqlType(typeRef.referencedType as Class<C>))
 }
 
@@ -481,7 +478,7 @@ class EnumSqlType<C : Enum<C>>(val enumClass: Class<C>) : SqlType<C>(Types.VARCH
 /**
  * Define a column typed of [UuidSqlType].
  */
-fun <E : Any> BaseTable<E>.uuid(name: String): BaseTable<E>.ColumnRegistration<UUID> {
+fun BaseTable<*>.uuid(name: String): Column<UUID> {
     return registerColumn(name, UuidSqlType)
 }
 

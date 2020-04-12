@@ -124,7 +124,7 @@ class GlobalEntityTest : BaseGlobalTest() {
     }
 
     object Parents : Table<Parent>("t_employee") {
-        val id by int("id").primaryKey().bindTo { it.child.grandChild.id }
+        val id = int("id").primaryKey().bindTo { it.child.grandChild.id }
     }
 
     @Test
@@ -152,8 +152,8 @@ class GlobalEntityTest : BaseGlobalTest() {
     }
 
     object EmployeeTestForReferencePrimaryKeys : Table<EmployeeTestForReferencePrimaryKey>("t_employee0") {
-        val id by int("id").primaryKey().references(Employees) { it.employee }
-        val managerId by int("manager_id").bindTo { it.manager.employee.id }
+        val id = int("id").primaryKey().references(Employees) { it.employee }
+        val managerId = int("manager_id").bindTo { it.manager.employee.id }
     }
 
     @Test
@@ -245,13 +245,13 @@ class GlobalEntityTest : BaseGlobalTest() {
     }
 
     object Emps : Table<Emp>("t_employee") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val name by varchar("name").bindTo { it.employee.name }
-        val job by varchar("job").bindTo { it.employee.job }
-        val managerId by int("manager_id").bindTo { it.manager.id }
-        val hireDate by date("hire_date").bindTo { it.hireDate }
-        val salary by long("salary").bindTo { it.salary }
-        val departmentId by int("department_id").bindTo { it.departmentId }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val name = varchar("name").bindTo { it.employee.name }
+        val job = varchar("job").bindTo { it.employee.job }
+        val managerId = int("manager_id").bindTo { it.manager.id }
+        val hireDate = date("hire_date").bindTo { it.hireDate }
+        val salary = long("salary").bindTo { it.salary }
+        val departmentId = int("department_id").bindTo { it.departmentId }
     }
 
     @Test

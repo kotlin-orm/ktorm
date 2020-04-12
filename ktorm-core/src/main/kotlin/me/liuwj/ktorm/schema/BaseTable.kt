@@ -174,7 +174,7 @@ abstract class BaseTable<E : Any>(
      *
      * @param fromUnderlyingValue a function that transforms a value of underlying type to the user's type.
      * @param toUnderlyingValue a function that transforms a value of user's type the to the underlying type.
-     * @return this column registration with its type changed to [R].
+     * @return the new [Column] instance with its type changed to [R].
      * @see SqlType.transform
      */
     fun <C : Any, R : Any> Column<C>.transform(

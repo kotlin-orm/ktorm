@@ -29,18 +29,18 @@ class CircularReferenceTest : BaseTest() {
     }
 
     object Foos1 : Table<Foo1>("foo1") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val r1 by int("r1").references(Foos2) { it.foo2 }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val r1 = int("r1").references(Foos2) { it.foo2 }
     }
 
     object Foos2 : Table<Foo2>("foo2") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val r2 by int("r2").references(Foos3) { it.foo3 }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val r2 = int("r2").references(Foos3) { it.foo3 }
     }
 
     object Foos3 : Table<Foo3>("foo3") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val r3 by int("r3").references(Foos1) { it.foo1 }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val r3 = int("r3").references(Foos1) { it.foo1 }
     }
 
     @Test
@@ -61,8 +61,8 @@ class CircularReferenceTest : BaseTest() {
     }
 
     object Bars : Table<Bar>("bar") {
-        val id by int("id").primaryKey().bindTo { it.id }
-        val r by int("r").references(Bars) { it.bar }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val r = int("r").references(Bars) { it.bar }
     }
 
     @Test

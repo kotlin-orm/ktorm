@@ -32,10 +32,10 @@ fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = true): En
 /**
  * Insert the given entity into this table and return the affected record number.
  *
- * If we use an auto-increment key in our table, we need to tell Ktorm which column is the primary key by calling
- * the [Table.primaryKey] function on the column registration, then this function will obtain
- * the generated key from the database and fill it into the corresponding property after the insertion completes.
- * But this requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
+ * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
+ * [Table.primaryKey] function while registering columns, then this function will obtain the generated key
+ * from the database and fill it into the corresponding property after the insertion completes. But this
+ * requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
  * will be inserted into the database, and no keys generated.
  */
 fun <E : Entity<E>> Table<E>.add(entity: E): Int {
