@@ -74,7 +74,8 @@ class JacksonAnnotationTest {
               "jacksonAlias" : "this key should be alias",
               "nullInJson" : null,
               "readOnly" : "readOnly",
-              "writeOnly": "writeOnly"
+              "writeOnly": "writeOnly",
+              "toIgnore": "this is empty in entity"
             }
         """
         val entity = objectMapper.readValue<TestEntity>(json)
@@ -85,5 +86,6 @@ class JacksonAnnotationTest {
         assert(entity.nullInJson == null)
         assert(entity.readOnly.isEmpty())
         assert(entity.writeOnly == "writeOnly")
+        assert(entity.toIgnore.isEmpty())
     }
 }
