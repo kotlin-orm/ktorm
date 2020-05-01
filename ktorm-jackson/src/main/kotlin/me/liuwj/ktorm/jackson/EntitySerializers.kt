@@ -67,16 +67,16 @@ internal class EntitySerializers : SimpleSerializers() {
             gen.writeEndObject()
         }
 
-        private fun findReadableProperties(
-            entity: Entity<*>
-        ) = propCache.computeIfAbsent(entity.entityClass.qualifiedName!!) { _ ->
-            entity.entityClass.memberProperties.filter { kp ->
-                !entityPrivateProperties.contains(kp.name) && kp.annotations.find { it is JacksonIgnore } == null
-            }.filter { kp ->
-                val annotation = kp.annotations.find { it is JacksonProperty } as JacksonProperty?
-                annotation == null || annotation.access != JsonProperty.Access.WRITE_ONLY
-            }.associateBy {
-                it.name
+        private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
+            return propCache.computeIfAbsent(entity.entityClass.qualifiedName!!) { _ ->
+                entity.entityClass.memberProperties.filter { kp ->
+                    !entityPrivateProperties.contains(kp.name) && kp.annotations.find { it is JacksonIgnore } == null
+                }.filter { kp ->
+                    val annotation = kp.annotations.find { it is JacksonProperty } as JacksonProperty?
+                    annotation == null || annotation.access != JsonProperty.Access.WRITE_ONLY
+                }.associateBy {
+                    it.name
+                }
             }
         }
 

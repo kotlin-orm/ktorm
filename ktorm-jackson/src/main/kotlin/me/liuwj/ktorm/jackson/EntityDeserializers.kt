@@ -66,14 +66,16 @@ internal class EntityDeserializers : SimpleDeserializers() {
         private fun findWritableProperties(
             parser: JsonParser,
             ctx: DeserializationContext
-        ) = propCache.computeIfAbsent(entityClass.qualifiedName!!) { _ ->
-            entityClass.memberProperties.filter { kp ->
-                !entityPrivateProperties.contains(entityClass.qualifiedName!!)
-                        && kp.annotations.find { annotation -> annotation is JacksonIgnore } == null
-            }.filter { kp ->
-                val annotation = kp.annotations.find { it is JacksonProperty } as JacksonProperty?
-                annotation == null || annotation.access != JsonProperty.Access.READ_ONLY
-            }.associateBy { parser.codec.nameForProperty(it, ctx.config) }
+        ): Map<String, KProperty1<*, *>> {
+            return propCache.computeIfAbsent(entityClass.qualifiedName!!) { _ ->
+                entityClass.memberProperties.filter { kp ->
+                    !entityPrivateProperties.contains(entityClass.qualifiedName!!)
+                            && kp.annotations.find { annotation -> annotation is JacksonIgnore } == null
+                }.filter { kp ->
+                    val annotation = kp.annotations.find { it is JacksonProperty } as JacksonProperty?
+                    annotation == null || annotation.access != JsonProperty.Access.READ_ONLY
+                }.associateBy { parser.codec.nameForProperty(it, ctx.config) }
+            }
         }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext, intoValue: Entity<*>): Entity<*> {
