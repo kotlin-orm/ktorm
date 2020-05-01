@@ -68,7 +68,7 @@ abstract class BaseTable<E : Any>(
     entityClass: KClass<E>? = null
 ) : TypeReference<E>() {
 
-    private val _refCounter = AtomicInteger()
+    private val _refCounter = RefCounterContext.getCounter() ?: AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
     private val _primaryKeyNames = LinkedHashSet<String>()
 
@@ -289,39 +289,22 @@ abstract class BaseTable<E : Any>(
      * Copy column definitions from [src] to this table.
      */
     protected fun copyDefinitionsFrom(src: BaseTable<*>) {
-        rewriteDefinitions(src.columns, src._primaryKeyNames, copyReferences = true)
-    }
-
-    private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyNames: Set<String>, copyReferences: Boolean) {
-        _columns.clear()
-
-        if (_primaryKeyNames !== primaryKeyNames) {
-            _primaryKeyNames.clear()
-            _primaryKeyNames.addAll(primaryKeyNames)
+        if (_columns.isNotEmpty()) {
+            throw IllegalStateException("Cannot update the column definitions of a table after it's initialized.")
         }
 
-        if (copyReferences) {
-            _refCounter.set(0)
-        }
+        _primaryKeyNames.addAll(src._primaryKeyNames)
 
-        for (column in columns) {
-            val binding = column.binding?.let { if (copyReferences) copyBinding(it) else it }
-            val extraBindings = column.extraBindings.map { if (copyReferences) copyBinding(it) else it }
-            _columns[column.name] = column.copy(table = this, binding = binding, extraBindings = extraBindings)
+        for ((name, column) in src._columns) {
+            val binding = column.binding?.let { copyBinding(it) }
+            val extraBindings = column.extraBindings.map { copyBinding(it) }
+            _columns[name] = column.copy(table = this, binding = binding, extraBindings = extraBindings)
         }
     }
 
     private fun copyReferenceTable(table: BaseTable<*>): BaseTable<*> {
-        val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
-
-        val columns = copy.columns.map { column ->
-            val binding = column.binding?.let { copyBinding(it) }
-            val extraBindings = column.extraBindings.map { copyBinding(it) }
-            column.copy(binding = binding, extraBindings = extraBindings)
-        }
-
-        copy.rewriteDefinitions(columns, copy._primaryKeyNames, copyReferences = false)
-        return copy
+        RefCounterContext.setCounter(_refCounter)
+        return table.aliased("_ref${_refCounter.getAndIncrement()}")
     }
 
     private fun copyBinding(binding: ColumnBinding): ColumnBinding {
