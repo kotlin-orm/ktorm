@@ -61,7 +61,7 @@ class JacksonAnnotationTest {
         assert(map["name"] == "TestEntity")
         assert(map["toIgnore"] == null)
         assert(map["readOnly"] == "readOnly")
-        assert(map["nullInJson"] == null)
+        assert(map.contains("nullInJson") && map["nullInJson"] == null)
         assert(map["jacksonAlias"] == "this key should be jacksonAlias")
     }
 
