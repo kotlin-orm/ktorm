@@ -16,6 +16,7 @@
 
 package me.liuwj.ktorm.jackson
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.*
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer
 import com.fasterxml.jackson.databind.module.SimpleDeserializers
 import me.liuwj.ktorm.entity.Entity
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
@@ -50,6 +52,10 @@ internal class EntityDeserializers : SimpleDeserializers() {
     }
 
     private class DeserializerImpl(val entityClass: KClass<*>) : JsonDeserializer<Entity<*>>() {
+        companion object {
+            private val entityPrivateProperties = setOf("properties", "entityClass")
+            private val propCache: MutableMap<String, Map<String, KProperty1<*, *>>> = HashMap()
+        }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext): Entity<*> {
             val entity = Entity.create(entityClass)
@@ -57,8 +63,21 @@ internal class EntityDeserializers : SimpleDeserializers() {
             return entity
         }
 
+        private fun findWritableProperties(
+            parser: JsonParser,
+            ctx: DeserializationContext
+        ) = propCache.computeIfAbsent(entityClass.qualifiedName!!) { _ ->
+            entityClass.memberProperties.filter { kp ->
+                !entityPrivateProperties.contains(entityClass.qualifiedName!!)
+                        && kp.annotations.find { annotation -> annotation is JacksonIgnore } == null
+            }.filter { kp ->
+                val annotation = kp.annotations.find { it is JacksonProperty } as JacksonProperty?
+                annotation == null || annotation.access != JsonProperty.Access.READ_ONLY
+            }.associateBy { parser.codec.nameForProperty(it, ctx.config) }
+        }
+
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext, intoValue: Entity<*>): Entity<*> {
-            val properties = entityClass.memberProperties.associateBy { parser.codec.nameForProperty(it, ctxt.config) }
+            val properties = findWritableProperties(parser, ctxt)
 
             if (parser.currentToken == JsonToken.START_OBJECT) {
                 parser.nextToken()

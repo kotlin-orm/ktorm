@@ -37,6 +37,10 @@ internal fun JsonGenerator.configureIndentOutputIfEnabled() {
 
 internal fun ObjectCodec.nameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): String {
     if (this is ObjectMapper) {
+        val alias = prop.annotations.find { it is JacksonAlias } as JacksonAlias?
+        if (alias != null && alias.value.isNotEmpty()) {
+            return alias.value
+        }
         val strategy = this.propertyNamingStrategy
         if (strategy != null) {
             val getter = AnnotatedMethod(null, prop.javaGetter!!, null, null)
