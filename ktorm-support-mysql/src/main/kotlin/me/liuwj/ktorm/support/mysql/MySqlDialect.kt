@@ -121,9 +121,8 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         write(") ")
     }
 
-    private fun visitColumnAssignmentsWithValues(
-            original: ArrayList<ColumnAssignmentExpression<*>>
-    ): List<ColumnAssignmentExpression<*>> {
+    private fun visitColumnAssignmentsWithValues(original: ArrayList<ColumnAssignmentExpression<*>>):
+            List<ColumnAssignmentExpression<*>> {
         for ((i, assignment) in original.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
@@ -212,9 +211,8 @@ open class MySqlExpressionVisitor : SqlExpressionVisitor() {
         }
     }
 
-    protected open fun visitBulkInsertAssignments(
-        assignments: List<List<ColumnAssignmentExpression<*>>>
-    ): List<List<ColumnAssignmentExpression<*>>> {
+    protected open fun visitBulkInsertAssignments(assignments: List<List<ColumnAssignmentExpression<*>>>):
+            List<List<ColumnAssignmentExpression<*>>> {
         val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
         var changed = false
 

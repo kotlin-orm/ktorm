@@ -464,6 +464,9 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
         this to wrapArgument(argument)
     }
 
+    /**
+     * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
+     */
     infix fun <C : Any> Column<C>.values(expr: ColumnDeclaring<C>) {
         // values(column)
         val values = FunctionExpression(
