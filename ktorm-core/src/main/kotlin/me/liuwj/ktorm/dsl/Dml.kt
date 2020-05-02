@@ -464,6 +464,16 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
         this to wrapArgument(argument)
     }
 
+    infix fun <C : Any> Column<C>.values(expr: ColumnDeclaring<C>) {
+        // values(column)
+        val values = FunctionExpression(
+            functionName = "values",
+            arguments = listOf(expr.asExpression()),
+            sqlType = expr.sqlType
+        )
+        assignments += ColumnAssignmentExpression(asExpression(), values)
+    }
+
     /**
      * Assign the current column to a specific value.
      *

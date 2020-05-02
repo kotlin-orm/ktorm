@@ -65,6 +65,10 @@ class MySqlTest : BaseTest() {
                 it.salary to 100
                 it.departmentId to 2
             }
+            onDuplicateKey {
+                it.name to it.name
+                it.job values it.job
+            }
         }
 
         assert(database.sequenceOf(Employees).count() == 6)

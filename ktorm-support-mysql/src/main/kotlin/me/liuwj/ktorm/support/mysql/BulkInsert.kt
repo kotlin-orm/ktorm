@@ -36,6 +36,7 @@ import me.liuwj.ktorm.schema.BaseTable
 data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
+    val updateAssignments: ArrayList<ColumnAssignmentExpression<*>>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -125,7 +126,7 @@ fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> U
  */
 fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
-    val expression = BulkInsertExpression(table.asExpression(), builder.assignments)
+    val expression = BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     return executeUpdate(expression)
 }
 
@@ -135,6 +136,7 @@ fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementB
 @KtormDsl
 class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     /**
      * Add the assignments of a new row to the bulk insert.
@@ -149,5 +151,15 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
         } else {
             throw IllegalArgumentException("Every item in a batch operation must be the same.")
         }
+    }
+
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
+    fun onDuplicateKey(block: AssignmentsBuilder.(T) -> Unit) {
+        val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+        val builder = AssignmentsBuilder(updateAssignments)
+        builder.block(table)
+        this.updateAssignments += updateAssignments
     }
 }

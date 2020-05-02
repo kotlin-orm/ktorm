@@ -106,6 +106,11 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
             writeValues(assignments)
         }
 
+        if (expr.updateAssignments.isNotEmpty()) {
+            write("on duplicate key update ")
+            visitColumnAssignmentsWithValues(expr.updateAssignments)
+        }
+
         return expr
     }
 
@@ -114,6 +119,22 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         visitExpressionList(assignments.map { it.expression as ArgumentExpression })
         removeLastBlank()
         write(") ")
+    }
+
+    private fun visitColumnAssignmentsWithValues(
+            original: ArrayList<ColumnAssignmentExpression<*>>
+    ): List<ColumnAssignmentExpression<*>> {
+        for ((i, assignment) in original.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+            visitColumn(assignment.column)
+            write("= ")
+            visit(assignment.expression)
+        }
+
+        return original
     }
 
     protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
