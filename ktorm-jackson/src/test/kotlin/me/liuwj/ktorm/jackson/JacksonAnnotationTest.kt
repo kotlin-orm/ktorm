@@ -83,7 +83,7 @@ class JacksonAnnotationTest {
               "writeOnly" : "test writeOnly"
             }
         """
-        // alias='this is alias for 'alias'#2
+        // alias = this is alias for 'alias'#1
         println(objectMapper.readValue(s, TestDefaultClass::class.java))
     }
 
@@ -98,7 +98,8 @@ class JacksonAnnotationTest {
               "writeOnly" : "test writeOnly"
             }
         """
-        // alias='this is alias for 'alias'#1
+        // alias = this is alias for 'alias'#1
+        // readOnly = default value
         println(objectMapper.readValue(s, TestDefaultClass::class.java))
     }
 
