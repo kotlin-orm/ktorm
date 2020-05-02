@@ -16,14 +16,18 @@
 
 package me.liuwj.ktorm.jackson
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.cfg.MapperConfig
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 
 internal fun JsonGenerator.configureIndentOutputIfEnabled() {
     val codec = this.codec
@@ -35,9 +39,38 @@ internal fun JsonGenerator.configureIndentOutputIfEnabled() {
     }
 }
 
-internal fun ObjectCodec.nameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): String {
+/**
+ * it may has multi alias name when property annotated with JsonAlias.
+ */
+internal fun ObjectCodec.deserializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): List<String> {
     if (this is ObjectMapper) {
-        val alias = prop.annotations.find { it is JacksonAlias } as JacksonAlias?
+        if (prop is KMutableProperty<*>) {
+            val nameList: MutableList<String> = ArrayList()
+            prop.javaSetter!!.annotations.forEach { annotation ->
+                if (annotation is JsonProperty && annotation.value.isNotEmpty()) {
+                    nameList.add(annotation.value)
+                }
+                if (annotation is JsonAlias && annotation.value.isNotEmpty()) {
+                    nameList.addAll(annotation.value)
+                }
+            }
+            if (nameList.isNotEmpty()) {
+                return nameList
+            }
+        }
+
+        this.propertyNamingStrategy?.let { strategy ->
+            val getter = AnnotatedMethod(null, prop.javaGetter!!, null, null)
+            return listOf(strategy.nameForGetterMethod(config, getter, prop.name))
+        }
+    }
+
+    return listOf(prop.name)
+}
+
+internal fun ObjectCodec.serializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): String {
+    if (this is ObjectMapper) {
+        val alias = prop.javaGetter!!.annotations.find { it is JsonProperty } as JsonProperty?
         if (alias != null && alias.value.isNotEmpty()) {
             return alias.value
         }

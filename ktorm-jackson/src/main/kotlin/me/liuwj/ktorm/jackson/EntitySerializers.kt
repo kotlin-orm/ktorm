@@ -16,6 +16,7 @@
 
 package me.liuwj.ktorm.jackson
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonToken.START_OBJECT
@@ -70,9 +71,10 @@ internal class EntitySerializers : SimpleSerializers() {
         private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
             return propCache.computeIfAbsent(entity.entityClass.qualifiedName!!) { _ ->
                 entity.entityClass.memberProperties.filter { kp ->
-                    !entityPrivateProperties.contains(kp.name) && kp.annotations.find { it is JacksonIgnore } == null
+                    !entityPrivateProperties.contains(kp.name)
+                            && kp.javaGetter!!.annotations.find { it is JsonIgnore } == null
                 }.filter { kp ->
-                    val annotation = kp.annotations.find { it is JacksonProperty } as JacksonProperty?
+                    val annotation = kp.javaGetter!!.annotations.find { it is JsonProperty } as JsonProperty?
                     annotation == null || annotation.access != JsonProperty.Access.WRITE_ONLY
                 }.associateBy {
                     it.name
@@ -90,7 +92,7 @@ internal class EntitySerializers : SimpleSerializers() {
 
                 val ser = serializers.findTypedValueSerializer(propType, true, null)
 
-                gen.writeFieldName(gen.codec.nameForProperty(prop, serializers.config))
+                gen.writeFieldName(gen.codec.serializeNameForProperty(prop, serializers.config))
 
                 val value = entity.properties[name]
 
