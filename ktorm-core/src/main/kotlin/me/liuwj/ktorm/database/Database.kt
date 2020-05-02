@@ -174,6 +174,11 @@ class Database(
      * @return the result of the callback function.
      */
     inline fun <T> useConnection(func: (Connection) -> T): T {
+        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
+        // contract {
+        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        // }
+
         try {
             transactionManager.currentTransaction?.let {
                 return func(it.connection)
@@ -203,6 +208,11 @@ class Database(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
         func: (Transaction) -> T
     ): T {
+        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
+        // contract {
+        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        // }
+
         val current = transactionManager.currentTransaction
         val isOuter = current == null
         val transaction = current ?: transactionManager.newTransaction(isolation)
@@ -259,6 +269,11 @@ class Database(
      * @return the result of the callback function.
      */
     inline fun <T> executeExpression(expression: SqlExpression, func: (PreparedStatement) -> T): T {
+        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
+        // contract {
+        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        // }
+
         val (sql, args) = formatExpression(expression)
 
         if (logger.isDebugEnabled()) {

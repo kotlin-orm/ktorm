@@ -20,6 +20,8 @@ import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.schema.SqlType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Execute the given [block] function on this resource and then close it down correctly whether an exception
@@ -30,6 +32,10 @@ import java.sql.ResultSet
  */
 @Suppress("ConvertTryFinallyToUseCall")
 inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     try {
         return block(this)
     } finally {

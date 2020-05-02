@@ -41,6 +41,9 @@ subprojects { project ->
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
         kotlinOptions.jvmTarget = "1.6"
         kotlinOptions.allWarningsAsErrors = true
+        kotlinOptions.freeCompilerArgs = [
+            "-Xuse-experimental=kotlin.contracts.ExperimentalContracts"
+        ]
     }
 
     task generateSourcesJar(type: Jar) {

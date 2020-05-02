@@ -61,7 +61,6 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * @since 2.5
  */
-@Suppress("CanBePrimaryConstructorProperty")
 abstract class BaseTable<E : Any>(
     tableName: String,
     alias: String? = null,
@@ -75,11 +74,13 @@ abstract class BaseTable<E : Any>(
     /**
      * The table's name.
      */
+    @Suppress("CanBePrimaryConstructorProperty")
     val tableName: String = tableName
 
     /**
      * The table's alias.
      */
+    @Suppress("CanBePrimaryConstructorProperty")
     val alias: String? = alias
 
     /**

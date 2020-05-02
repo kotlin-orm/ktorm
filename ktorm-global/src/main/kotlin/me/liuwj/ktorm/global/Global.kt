@@ -26,6 +26,8 @@ import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import javax.sql.DataSource
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 @PublishedApi
 internal val lastConnected = AtomicReference<Database>()
@@ -139,6 +141,11 @@ fun Database.Companion.connectWithSpringSupportGlobally(
  * @see Database.Companion.global
  */
 inline operator fun <T> Database.invoke(func: Database.() -> T): T {
+    // Contracts are not allowed for operator functions?
+    // contract {
+    //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+    // }
+
     val origin = threadLocal.get()
 
     try {
@@ -161,6 +168,10 @@ inline operator fun <T> Database.invoke(func: Database.() -> T): T {
  * @see Database.useConnection
  */
 inline fun <T> useConnection(func: (Connection) -> T): T {
+    contract {
+        callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+    }
+
     return Database.global.useConnection(func)
 }
 
@@ -183,5 +194,9 @@ inline fun <T> useTransaction(
     isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
     func: (Transaction) -> T
 ): T {
+    contract {
+        callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+    }
+
     return Database.global.useTransaction(isolation, func)
 }
