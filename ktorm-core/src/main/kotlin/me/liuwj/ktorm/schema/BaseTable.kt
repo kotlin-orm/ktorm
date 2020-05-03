@@ -239,12 +239,12 @@ abstract class BaseTable<E : Any>(
         val primaryKeys = refTable.primaryKeys
         if (primaryKeys.isEmpty()) {
             throw IllegalStateException(
-                "Cannot reference the table ${refTable.tableName} as there is no primary keys."
+                "Cannot reference the table ${refTable.tableName} because it doesn't have a primary key."
             )
         }
         if (primaryKeys.size > 1) {
             throw IllegalStateException(
-                "Cannot reference the table ${refTable.tableName} as there is compound primary keys."
+                "Cannot reference the table ${refTable.tableName} because it has compound primary keys."
             )
         }
     }
@@ -291,7 +291,7 @@ abstract class BaseTable<E : Any>(
      */
     protected fun copyDefinitionsFrom(src: BaseTable<*>) {
         if (_columns.isNotEmpty()) {
-            throw IllegalStateException("Cannot update the column definitions of a table after it's initialized.")
+            throw IllegalStateException("Cannot update the column definitions since the table is already initialized.")
         }
 
         _primaryKeyNames.addAll(src._primaryKeyNames)
