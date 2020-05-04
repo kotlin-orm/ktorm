@@ -108,7 +108,7 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
 
         if (expr.updateAssignments.isNotEmpty()) {
             write("on duplicate key update ")
-            visitColumnAssignmentsWithValues(expr.updateAssignments)
+            visitColumnAssignments(expr.updateAssignments)
         }
 
         return expr
@@ -119,21 +119,6 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         visitExpressionList(assignments.map { it.expression as ArgumentExpression })
         removeLastBlank()
         write(") ")
-    }
-
-    private fun visitColumnAssignmentsWithValues(original: ArrayList<ColumnAssignmentExpression<*>>):
-            List<ColumnAssignmentExpression<*>> {
-        for ((i, assignment) in original.withIndex()) {
-            if (i > 0) {
-                removeLastBlank()
-                write(", ")
-            }
-            visitColumn(assignment.column)
-            write("= ")
-            visit(assignment.expression)
-        }
-
-        return original
     }
 
     protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
@@ -211,8 +196,9 @@ open class MySqlExpressionVisitor : SqlExpressionVisitor() {
         }
     }
 
-    protected open fun visitBulkInsertAssignments(assignments: List<List<ColumnAssignmentExpression<*>>>):
-            List<List<ColumnAssignmentExpression<*>>> {
+    protected open fun visitBulkInsertAssignments(
+        assignments: List<List<ColumnAssignmentExpression<*>>>
+    ): List<List<ColumnAssignmentExpression<*>>> {
         val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
         var changed = false
 

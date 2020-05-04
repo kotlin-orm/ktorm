@@ -21,9 +21,11 @@ import me.liuwj.ktorm.dsl.AssignmentsBuilder
 import me.liuwj.ktorm.dsl.KtormDsl
 import me.liuwj.ktorm.dsl.batchInsert
 import me.liuwj.ktorm.expression.ColumnAssignmentExpression
+import me.liuwj.ktorm.expression.FunctionExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.expression.TableExpression
 import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.ColumnDeclaring
 
 /**
  * Bulk insert expression, represents a bulk insert statement in MySQL.
@@ -36,7 +38,7 @@ import me.liuwj.ktorm.schema.BaseTable
 data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
-    val updateAssignments: ArrayList<ColumnAssignmentExpression<*>>,
+    val updateAssignments: List<ColumnAssignmentExpression<*>>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -141,9 +143,9 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     /**
      * Add the assignments of a new row to the bulk insert.
      */
-    fun item(block: AssignmentsBuilder.(T) -> Unit) {
+    fun item(block: BulkInsertAssignmentsBuilder.(T) -> Unit) {
         val itemAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = AssignmentsBuilder(itemAssignments)
+        val builder = BulkInsertAssignmentsBuilder(itemAssignments)
         builder.block(table)
 
         if (assignments.isEmpty() || assignments[0].map { it.column.name } == itemAssignments.map { it.column.name }) {
@@ -156,10 +158,30 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    fun onDuplicateKey(block: AssignmentsBuilder.(T) -> Unit) {
+    fun onDuplicateKey(block: BulkInsertAssignmentsBuilder.(T) -> Unit) {
         val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = AssignmentsBuilder(updateAssignments)
+        val builder = BulkInsertAssignmentsBuilder(updateAssignments)
         builder.block(table)
         this.updateAssignments += updateAssignments
+    }
+}
+
+/**
+ * DSL builder for bulk insert assignments.
+ */
+@KtormDsl
+class BulkInsertAssignmentsBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) :
+        AssignmentsBuilder(assignments) {
+
+    /**
+     * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
+     */
+    fun <T : Any> values(expr: ColumnDeclaring<T>): FunctionExpression<T> {
+        // values(column)
+        return FunctionExpression(
+            functionName = "values",
+            arguments = listOf(expr.asExpression()),
+            sqlType = expr.sqlType
+        )
     }
 }

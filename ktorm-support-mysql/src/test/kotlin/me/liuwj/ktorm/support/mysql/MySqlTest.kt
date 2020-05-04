@@ -67,7 +67,7 @@ class MySqlTest : BaseTest() {
             }
             onDuplicateKey {
                 it.name to it.name
-                it.job values it.job
+                it.job to values(it.job)
             }
         }
 
