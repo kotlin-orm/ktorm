@@ -106,6 +106,11 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
             writeValues(assignments)
         }
 
+        if (expr.updateAssignments.isNotEmpty()) {
+            write("on duplicate key update ")
+            visitColumnAssignments(expr.updateAssignments)
+        }
+
         return expr
     }
 

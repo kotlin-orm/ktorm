@@ -106,6 +106,11 @@ subprojects { project ->
                             name = "Ray Eldath"
                             email = "ray.eldath@outlook.com"
                         }
+                        developer {
+                            id = "hangingman"
+                            name = "hiroyuki.nagata"
+                            email = "idiotpanzer@gmail.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/vincentlauvlwj/Ktorm.git"
