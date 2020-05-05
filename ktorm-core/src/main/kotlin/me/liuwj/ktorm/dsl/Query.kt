@@ -418,3 +418,29 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     forEachIndexed { index, row -> transform(index, row)?.let { destination += it } }
     return destination
 }
+
+inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
+    return asIterable().associate(transform)
+}
+
+inline fun <K, V> Query.associateBy(
+    keySelector: (row: QueryRowSet) -> K,
+    valueTransform: (row: QueryRowSet) -> V
+): Map<K, V> {
+    return asIterable().associateBy(keySelector, valueTransform)
+}
+
+inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
+    destination: M,
+    transform: (row: QueryRowSet) -> Pair<K, V>
+): M {
+    return asIterable().associateTo(destination, transform)
+}
+
+inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
+    destination: M,
+    keySelector: (row: QueryRowSet) -> K,
+    valueTransform: (row: QueryRowSet) -> V
+): M {
+    return asIterable().associateByTo(destination, keySelector, valueTransform)
+}
