@@ -66,7 +66,7 @@ import java.sql.ResultSet
  * @property database the [Database] instance that this query is running on.
  * @property expression the underlying SQL expression of this query object.
  */
-data class Query(val database: Database, val expression: QueryExpression) : Iterable<QueryRowSet> {
+data class Query(val database: Database, val expression: QueryExpression) {
 
     /**
      * The executable SQL string of this query.
@@ -125,7 +125,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
      * @see rowSet
      * @see ResultSet.iterator
      */
-    override fun iterator(): Iterator<QueryRowSet> {
+    operator fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
     }
 }
@@ -355,4 +355,66 @@ fun Query.union(right: Query): Query {
  */
 fun Query.unionAll(right: Query): Query {
     return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = true))
+}
+
+fun Query.asIterable(): Iterable<QueryRowSet> {
+    return Iterable { iterator() }
+}
+
+inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
+    for (row in this) action(row)
+}
+
+inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
+    var index = 0
+    for (row in this) action(index++, row)
+}
+
+fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
+    return asIterable().withIndex()
+}
+
+inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
+    return mapTo(ArrayList(), transform)
+}
+
+inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transform: (row: QueryRowSet) -> R): C {
+    for (row in this) destination += transform(row)
+    return destination
+}
+
+inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List<R> {
+    return mapNotNullTo(ArrayList(), transform)
+}
+
+inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
+    destination: C,
+    transform: (row: QueryRowSet) -> R?
+): C {
+    forEach { row -> transform(row)?.let { destination += it } }
+    return destination
+}
+
+inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
+    return mapIndexedTo(ArrayList(), transform)
+}
+
+inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
+    destination: C,
+    transform: (index: Int, row: QueryRowSet) -> R
+): C {
+    var index = 0
+    return mapTo(destination) { row -> transform(index++, row) }
+}
+
+inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
+    return mapIndexedNotNullTo(ArrayList(), transform)
+}
+
+inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
+    destination: C,
+    transform: (index: Int, row: QueryRowSet) -> R?
+): C {
+    forEachIndexed { index, row -> transform(index, row)?.let { destination += it } }
+    return destination
 }

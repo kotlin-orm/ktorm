@@ -85,6 +85,22 @@ operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
  *
  * @see ResultSet.iterator
  */
+@Deprecated(
+    message = "This function will be removed in the future. Please use asIterable() instead.",
+    replaceWith = ReplaceWith("asIterable()")
+)
 fun <T : ResultSet> T.iterable(): Iterable<T> {
+    return Iterable { iterator() }
+}
+
+/**
+ * Wrap this [ResultSet] as [Iterable].
+ *
+ * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
+ * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
+ *
+ * @see ResultSet.iterator
+ */
+fun <T : ResultSet> T.asIterable(): Iterable<T> {
     return Iterable { iterator() }
 }
