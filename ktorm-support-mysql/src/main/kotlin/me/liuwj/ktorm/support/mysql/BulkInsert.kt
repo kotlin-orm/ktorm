@@ -34,11 +34,12 @@ import me.liuwj.ktorm.schema.ColumnDeclaring
  *
  * @property table the table to be inserted.
  * @property assignments column assignments of the bulk insert statement.
+ * @property updateAssignments the updated column assignments while key conflict exists.
  */
 data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
-    val updateAssignments: List<ColumnAssignmentExpression<*>>,
+    val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -98,9 +99,9 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     /**
      * Add the assignments of a new row to the bulk insert.
      */
-    fun item(block: BulkInsertAssignmentsBuilder.(T) -> Unit) {
+    fun item(block: AssignmentsBuilder.(T) -> Unit) {
         val itemAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = BulkInsertAssignmentsBuilder(itemAssignments)
+        val builder = AssignmentsBuilder(itemAssignments)
         builder.block(table)
 
         if (assignments.isEmpty() || assignments[0].map { it.column.name } == itemAssignments.map { it.column.name }) {
@@ -113,11 +114,11 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    fun onDuplicateKey(block: BulkInsertAssignmentsBuilder.(T) -> Unit) {
-        val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = BulkInsertAssignmentsBuilder(updateAssignments)
+    fun onDuplicateKey(block: BulkInsertOnDuplicateKeyClauseBuilder.(T) -> Unit) {
+        val assignments = ArrayList<ColumnAssignmentExpression<*>>()
+        val builder = BulkInsertOnDuplicateKeyClauseBuilder(assignments)
         builder.block(table)
-        this.updateAssignments += updateAssignments
+        updateAssignments += assignments
     }
 }
 
@@ -125,14 +126,15 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
  * DSL builder for bulk insert assignments.
  */
 @KtormDsl
-class BulkInsertAssignmentsBuilder(assignments: MutableList<ColumnAssignmentExpression<*>>) :
-        AssignmentsBuilder(assignments) {
+class BulkInsertOnDuplicateKeyClauseBuilder(
+    assignments: MutableList<ColumnAssignmentExpression<*>>
+) : AssignmentsBuilder(assignments) {
 
     /**
      * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
      */
     fun <T : Any> values(expr: ColumnDeclaring<T>): FunctionExpression<T> {
-        // values(column)
+        // values(expr)
         return FunctionExpression(
             functionName = "values",
             arguments = listOf(expr.asExpression()),
