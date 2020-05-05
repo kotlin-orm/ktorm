@@ -52,7 +52,6 @@ internal class EntitySerializers : SimpleSerializers() {
     private object SerializerImpl : JsonSerializer<Entity<*>>() {
 
         private val entityPrivateProperties = setOf("properties", "entityClass")
-        private val propCache: MutableMap<String, Map<String, KProperty1<*, *>>> = HashMap()
 
         override fun serialize(
             entity: Entity<*>,
@@ -69,16 +68,14 @@ internal class EntitySerializers : SimpleSerializers() {
         }
 
         private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
-            return propCache.computeIfAbsent(entity.entityClass.qualifiedName!!) { _ ->
-                entity.entityClass.memberProperties.filter { kp ->
-                    !entityPrivateProperties.contains(kp.name)
-                            && kp.javaGetter!!.annotations.find { it is JsonIgnore } == null
-                }.filter { kp ->
-                    val annotation = kp.javaGetter!!.annotations.find { it is JsonProperty } as JsonProperty?
-                    annotation == null || annotation.access != JsonProperty.Access.WRITE_ONLY
-                }.associateBy {
-                    it.name
-                }
+            return entity.entityClass.memberProperties.filter { kp ->
+                !entityPrivateProperties.contains(kp.name)
+                        && kp.findAnnotationGetterFirst(JsonIgnore::class.java) == null
+            }.filter { kp ->
+                val jsonProperty = kp.findAnnotationGetterFirst(JsonProperty::class.java)
+                jsonProperty == null || jsonProperty.access != JsonProperty.Access.WRITE_ONLY
+            }.associateBy {
+                it.name
             }
         }
 

@@ -25,12 +25,10 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer
 import com.fasterxml.jackson.databind.module.SimpleDeserializers
 import me.liuwj.ktorm.entity.Entity
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
-import kotlin.reflect.jvm.javaSetter
 
 /**
  * Created by vince on Aug 13, 2018.
@@ -57,7 +55,6 @@ internal class EntityDeserializers : SimpleDeserializers() {
     private class DeserializerImpl(val entityClass: KClass<*>) : JsonDeserializer<Entity<*>>() {
         companion object {
             private val entityPrivateProperties = setOf("properties", "entityClass")
-            private val propCache: MutableMap<String, Map<String, KProperty1<*, *>>> = HashMap()
         }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext): Entity<*> {
@@ -70,27 +67,22 @@ internal class EntityDeserializers : SimpleDeserializers() {
             parser: JsonParser,
             ctx: DeserializationContext
         ): Map<String, KProperty1<*, *>> {
-            return propCache.computeIfAbsent(entityClass.qualifiedName!!) { _ ->
-                val props = entityClass.memberProperties.filter { kp ->
-                    !entityPrivateProperties.contains(kp.name)
-                }.filter { kp ->
-                    if (kp !is KMutableProperty<*>) {
-                        true
-                    } else {
-                        val jsonProperty = kp.javaSetter!!.annotations.find { it is JsonProperty } as JsonProperty?
-                        kp.javaSetter!!.annotations.find { it is JsonIgnore } == null &&
-                                (jsonProperty == null || jsonProperty.access != JsonProperty.Access.READ_ONLY)
-                    }
-                }
 
-                val ret: MutableMap<String, KProperty1<*, *>> = HashMap()
-                props.forEach { kp ->
-                    // it may has multi alias name when property annotated with JsonAlias
-                    val aliasName = parser.codec.deserializeNameForProperty(kp, ctx.config)
-                    aliasName.forEach { ret[it] = kp }
-                }
-                ret
+            val props = entityClass.memberProperties.filter { kp ->
+                !entityPrivateProperties.contains(kp.name)
+            }.filter { kp ->
+                val jsonProperty = kp.findAnnotationSetterFirst(JsonProperty::class.java)
+                (jsonProperty == null || jsonProperty.access != JsonProperty.Access.READ_ONLY)
+                        && kp.findAnnotationSetterFirst(JsonIgnore::class.java) == null
             }
+
+            val ret: MutableMap<String, KProperty1<*, *>> = HashMap()
+            props.forEach { kp ->
+                // it may has multi alias name when property annotated with JsonAlias
+                val aliasName = parser.codec.deserializeNameForProperty(kp, ctx.config)
+                aliasName.forEach { ret[it] = kp }
+            }
+            return ret
         }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext, intoValue: Entity<*>): Entity<*> {

@@ -41,19 +41,34 @@ internal fun JsonGenerator.configureIndentOutputIfEnabled() {
 
 /**
  * it may has multi alias name when property annotated with JsonAlias.
+ *
+ * [JsonAlias] and [JsonProperty] on getter method both don't work when deserialize, so we only need find them
+ * on setter method, see JacksonAnnotationTest.testAliasDeserializeJsonPropertyDontWork.
  */
 internal fun ObjectCodec.deserializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): List<String> {
     if (this is ObjectMapper) {
         if (prop is KMutableProperty<*>) {
             val nameList: MutableList<String> = ArrayList()
-            prop.javaSetter!!.annotations.forEach { annotation ->
-                if (annotation is JsonProperty && annotation.value.isNotEmpty()) {
-                    nameList.add(annotation.value)
+
+            val jsonAlias = prop.javaSetter!!.annotations.find { it is JsonAlias } as JsonAlias?
+            if (jsonAlias != null && jsonAlias.value.isNotEmpty()) {
+                nameList.addAll(jsonAlias.value)
+            }
+
+            val jsonProperty = prop.javaSetter!!.annotations.find { it is JsonProperty } as JsonProperty?
+            // according to JacksonAnnotationTest.testDeserializeAliasName2
+            // prop with `JsonProperty`, alias name don't contains prop's strategy name
+            if (jsonProperty != null) {
+                if (jsonProperty.value.isNotEmpty()) {
+                    nameList.add(jsonProperty.value)
                 }
-                if (annotation is JsonAlias && annotation.value.isNotEmpty()) {
-                    nameList.addAll(annotation.value)
+            } else {
+                this.propertyNamingStrategy?.let { strategy ->
+                    val getter = AnnotatedMethod(null, prop.javaGetter!!, null, null)
+                    nameList.add(strategy.nameForGetterMethod(config, getter, prop.name))
                 }
             }
+
             if (nameList.isNotEmpty()) {
                 return nameList
             }
@@ -70,7 +85,7 @@ internal fun ObjectCodec.deserializeNameForProperty(prop: KProperty1<*, *>, conf
 
 internal fun ObjectCodec.serializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): String {
     if (this is ObjectMapper) {
-        val alias = prop.javaGetter!!.annotations.find { it is JsonProperty } as JsonProperty?
+        val alias = prop.findAnnotationGetterFirst(JsonProperty::class.java)
         if (alias != null && alias.value.isNotEmpty()) {
             return alias.value
         }
@@ -82,4 +97,20 @@ internal fun ObjectCodec.serializeNameForProperty(prop: KProperty1<*, *>, config
     }
 
     return prop.name
+}
+
+internal inline fun <reified T : Any> KProperty1<*, *>.findAnnotationGetterFirst(annotation: Class<T>): T? {
+    if (this is KMutableProperty<*>) {
+        return (this.javaGetter!!.annotations.find { annotation.isInstance(it) } ?:
+            this.javaSetter!!.annotations.find { annotation.isInstance(it) }) as T?
+    }
+    return this.javaGetter!!.annotations.find { annotation.isInstance(it) } as T?
+}
+
+internal inline fun <reified T : Any> KProperty1<*, *>.findAnnotationSetterFirst(annotation: Class<T>): T? {
+    if (this is KMutableProperty<*>) {
+        return (this.javaSetter!!.annotations.find { annotation.isInstance(it) } ?:
+            this.javaGetter!!.annotations.find { annotation.isInstance(it) }) as T?
+    }
+    return this.javaGetter!!.annotations.find { annotation.isInstance(it) } as T?
 }
