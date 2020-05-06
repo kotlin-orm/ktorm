@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.SqlType
 import me.liuwj.ktorm.schema.TypeReference
 import java.sql.PreparedStatement
@@ -38,13 +39,13 @@ val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModules(KtormModul
  * @param name the column's name.
  * @param typeRef the generic type information of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
  * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
- * @return the column registration that wraps the registered column.
+ * @return the registered column.
  */
-fun <E : Any, C : Any> BaseTable<E>.json(
+fun <C : Any> BaseTable<*>.json(
     name: String,
     typeRef: TypeReference<C>,
     mapper: ObjectMapper = sharedObjectMapper
-): BaseTable<E>.ColumnRegistration<C> {
+): Column<C> {
     return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeRef.referencedType)))
 }
 

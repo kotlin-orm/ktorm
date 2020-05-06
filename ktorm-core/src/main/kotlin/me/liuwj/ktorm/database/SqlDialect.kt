@@ -97,7 +97,7 @@ class DialectFeatureNotSupportedException(
 /**
  * Auto detect a dialect implementation.
  */
-internal fun detectDialectImplementation(): SqlDialect {
+fun detectDialectImplementation(): SqlDialect {
     val dialects = ServiceLoader.load(SqlDialect::class.java).toList()
     return when (dialects.size) {
         0 -> object : SqlDialect { }

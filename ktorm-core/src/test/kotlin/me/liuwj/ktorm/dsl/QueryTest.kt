@@ -93,6 +93,10 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testAggregation() {
+        val iterable: Iterable<Int> = emptyList()
+
+        iterable.associate
+
         val t = Employees
 
         val salaries = database

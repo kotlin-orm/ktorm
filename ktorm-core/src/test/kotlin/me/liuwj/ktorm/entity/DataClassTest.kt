@@ -28,9 +28,9 @@ class DataClassTest : BaseTest() {
     )
 
     object Sections : BaseTable<Section>("t_department") {
-        val id by int("id").primaryKey()
-        val name by varchar("name")
-        val location by varchar("location")
+        val id = int("id").primaryKey()
+        val name = varchar("name")
+        val location = varchar("location")
 
         override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Section(
             id = row[id] ?: 0,
@@ -40,13 +40,13 @@ class DataClassTest : BaseTest() {
     }
 
     object Staffs : BaseTable<Staff>("t_employee") {
-        val id by int("id").primaryKey()
-        val name by varchar("name")
-        val job by varchar("job")
-        val managerId by int("manager_id")
-        val hireDate by date("hire_date")
-        val salary by long("salary")
-        val sectionId by int("department_id")
+        val id = int("id").primaryKey()
+        val name = varchar("name")
+        val job = varchar("job")
+        val managerId = int("manager_id")
+        val hireDate = date("hire_date")
+        val salary = long("salary")
+        val sectionId = int("department_id")
 
         override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Staff(
             id = row[id] ?: 0,

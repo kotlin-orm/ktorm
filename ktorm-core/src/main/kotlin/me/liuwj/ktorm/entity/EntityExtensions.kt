@@ -21,9 +21,12 @@ import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 
 internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? {
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    val binding = primaryKey.binding ?: error("Primary column $primaryKey has no bindings to any entity field.")
-    return getColumnValue(binding)
+    val pk = fromTable.singlePrimaryKey { "Table ${fromTable.tableName} has compound primary keys." }
+    if (pk.binding == null) {
+        error("Primary column $pk has no bindings to any entity field.")
+    } else {
+        return getColumnValue(pk.binding)
+    }
 }
 
 internal fun EntityImplementation.getColumnValue(binding: ColumnBinding): Any? {
@@ -51,12 +54,15 @@ internal fun EntityImplementation.setPrimaryKeyValue(
     forceSet: Boolean = false,
     useExtraBindings: Boolean = false
 ) {
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
-    val binding = primaryKey.binding ?: error("Primary column $primaryKey has no bindings to any entity field.")
-    setColumnValue(binding, value, forceSet)
+    val pk = fromTable.singlePrimaryKey { "Table ${fromTable.tableName} has compound primary keys." }
+    if (pk.binding == null) {
+        error("Primary column $pk has no bindings to any entity field.")
+    } else {
+        setColumnValue(pk.binding, value, forceSet)
+    }
 
     if (useExtraBindings) {
-        for (extraBinding in primaryKey.extraBindings) {
+        for (extraBinding in pk.extraBindings) {
             setColumnValue(extraBinding, value, forceSet)
         }
     }
@@ -98,37 +104,38 @@ internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: 
 }
 
 internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
-    when (val binding = this.fromTable?.primaryKey?.binding) {
-        null -> return false
-        is ReferenceBinding -> {
-            return parent == null && binding.onProperty.name == name
-        }
-        is NestedBinding -> {
-            val namesPath = LinkedList<Set<String>>()
-            namesPath.addFirst(setOf(name))
-
-            var curr: EntityImplementation = this
-            while (true) {
-                val parent = curr.parent ?: break
-                val children = parent.values.filterValues { it == curr }
-
-                if (children.isEmpty()) {
-                    break
-                } else {
-                    namesPath.addFirst(children.keys)
-                    curr = parent
+    for (pk in this.fromTable?.primaryKeys.orEmpty()) {
+        when (pk.binding) {
+            is ReferenceBinding -> {
+                if (parent == null && pk.binding.onProperty.name == name) {
+                    return true
                 }
             }
+            is NestedBinding -> {
+                val namesPath = LinkedList<Set<String>>()
+                namesPath.addFirst(setOf(name))
 
-            for ((i, possibleFields) in namesPath.withIndex()) {
-                if (binding.properties[i].name !in possibleFields) {
-                    return false
+                var curr: EntityImplementation = this
+                while (true) {
+                    val parent = curr.parent ?: break
+                    val children = parent.values.filterValues { it == curr }
+
+                    if (children.isEmpty()) {
+                        break
+                    } else {
+                        namesPath.addFirst(children.keys)
+                        curr = parent
+                    }
+                }
+
+                if (namesPath.withIndex().all { (i, names) -> pk.binding.properties[i].name in names }) {
+                    return true
                 }
             }
-
-            return true
         }
     }
+
+    return false
 }
 
 internal val Entity<*>.implementation: EntityImplementation get() {

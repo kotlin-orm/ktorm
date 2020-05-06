@@ -27,8 +27,7 @@ import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.transaction.annotation.Transactional
 import java.sql.*
-import java.util.concurrent.atomic.AtomicReference
-import java.util.ServiceLoader
+import java.util.*
 import javax.sql.DataSource
 
 /**
@@ -145,9 +144,6 @@ class Database(
     lateinit var extraNameCharacters: String private set
 
     init {
-        @Suppress("DEPRECATION")
-        lastConnected.set(this)
-
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
 
         useConnection { conn ->
@@ -178,6 +174,11 @@ class Database(
      * @return the result of the callback function.
      */
     inline fun <T> useConnection(func: (Connection) -> T): T {
+        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
+        // contract {
+        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        // }
+
         try {
             transactionManager.currentTransaction?.let {
                 return func(it.connection)
@@ -207,6 +208,11 @@ class Database(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
         func: (Transaction) -> T
     ): T {
+        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
+        // contract {
+        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        // }
+
         val current = transactionManager.currentTransaction
         val isOuter = current == null
         val transaction = current ?: transactionManager.newTransaction(isolation)
@@ -222,37 +228,13 @@ class Database(
             throw throwable
         } finally {
             if (isOuter) {
+                @Suppress("ConvertTryFinallyToUseCall")
                 try {
                     if (throwable == null) transaction.commit() else transaction.rollback()
                 } finally {
                     transaction.close()
                 }
             }
-        }
-    }
-
-    /**
-     * Execute the callback function using the current database instance.
-     *
-     * Useful when we have many database instances. Call this function to choose one to execute
-     * our database specific operations. While the callback functions are executing, the [Database.global]
-     * property will be set to the current database. And after the callback completes, it's automatically
-     * restored to the origin one.
-     *
-     * @see Database.global
-     */
-    @Suppress("DEPRECATION")
-    @Deprecated("This function will be removed in the future.")
-    operator fun <T> invoke(func: Database.() -> T): T {
-        val origin = threadLocal.get()
-
-        try {
-            threadLocal.set(this)
-            return this.func()
-        } catch (e: SQLException) {
-            throw exceptionTranslator?.invoke(e) ?: e
-        } finally {
-            origin?.let { threadLocal.set(it) } ?: threadLocal.remove()
         }
     }
 
@@ -287,6 +269,11 @@ class Database(
      * @return the result of the callback function.
      */
     inline fun <T> executeExpression(expression: SqlExpression, func: (PreparedStatement) -> T): T {
+        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
+        // contract {
+        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        // }
+
         val (sql, args) = formatExpression(expression)
 
         if (logger.isDebugEnabled()) {
@@ -419,22 +406,6 @@ class Database(
      * Companion object provides functions to connect to databases.
      */
     companion object {
-        @Deprecated("This property will be removed in the future.")
-        private val lastConnected = AtomicReference<Database>()
-
-        @Deprecated("This property will be removed in the future.")
-        private val threadLocal = ThreadLocal<Database>()
-
-        /**
-         * The global database instance, Ktorm uses this property to obtain a database when any SQL is executed.
-         *
-         * By default, it's the lasted connected one, but it may change if the [invoke] operator is used.
-         *
-         * @see invoke
-         */
-        @Suppress("DEPRECATION")
-        @Deprecated("This property will be removed in the future.")
-        val global get() = threadLocal.get() ?: lastConnected.get() ?: error("Not connected to any database yet.")
 
         /**
          * Connect to a database by a specific [connector] function.

@@ -10,7 +10,7 @@ import org.junit.Test
 class EntitySequenceTest : BaseTest() {
 
     @Test
-    fun testAsSequence() {
+    fun testSequenceOf() {
         val employee = database
             .sequenceOf(Employees, withReferences = false)
             .filter { it.name eq "vince" }

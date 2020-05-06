@@ -106,6 +106,11 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
             writeValues(assignments)
         }
 
+        if (expr.updateAssignments.isNotEmpty()) {
+            write("on duplicate key update ")
+            visitColumnAssignments(expr.updateAssignments)
+        }
+
         return expr
     }
 
@@ -183,11 +188,12 @@ open class MySqlExpressionVisitor : SqlExpressionVisitor() {
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         val table = expr.table
         val assignments = visitBulkInsertAssignments(expr.assignments)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
 
-        if (table === expr.table && assignments === expr.assignments) {
+        if (table === expr.table && assignments === expr.assignments && updateAssignments === expr.updateAssignments) {
             return expr
         } else {
-            return expr.copy(table = table, assignments = assignments)
+            return expr.copy(table = table, assignments = assignments, updateAssignments = updateAssignments)
         }
     }
 

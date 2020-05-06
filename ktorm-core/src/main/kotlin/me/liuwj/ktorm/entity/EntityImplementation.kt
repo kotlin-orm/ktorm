@@ -158,7 +158,7 @@ internal class EntityImplementation(
 
     fun setProperty(name: String, value: Any?, forceSet: Boolean = false) {
         if (!forceSet && isPrimaryKey(name) && name in values) {
-            val msg = "Cannot modify the primary key value because it's already set to ${values[name]}"
+            val msg = "Cannot modify the primary key `$name` because it's already set to ${values[name]}"
             throw UnsupportedOperationException(msg)
         }
 

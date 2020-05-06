@@ -23,6 +23,10 @@ Simple logging facade of Ktorm, provides adapters for variable logging framework
 
 Database schema supports, including table and column definition, column binding, and SQL types.
 
+# Package me.liuwj.ktorm.global
+
+Provide a more concise DSL syntax based on a global database instance. 
+
 # Package me.liuwj.ktorm.jackson
 
 Jackson extension module for Ktorm, providing json serialization for entity objects and json SQL type.

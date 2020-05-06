@@ -72,8 +72,8 @@ class SqlServerTest : BaseTest() {
     }
 
     object Foo : Table<Nothing>("foo") {
-        val bar by datetimeoffset("bar")
-        val bar1 by datetime("bar1")
+        val bar = datetimeoffset("bar")
+        val bar1 = datetime("bar1")
     }
 
     @Test

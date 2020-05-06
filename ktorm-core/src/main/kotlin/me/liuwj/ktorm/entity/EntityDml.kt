@@ -16,39 +16,19 @@
 
 package me.liuwj.ktorm.entity
 
-import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.dsl.AliasRemover
-import me.liuwj.ktorm.dsl.delete
-import me.liuwj.ktorm.dsl.deleteAll
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 
 /**
- * Insert the given entity into this table and return the affected record number.
- *
- * If we use an auto-increment key in our table, we need to tell Ktorm which column is the primary key by calling
- * the [Table.primaryKey] function on the column registration, then this function will obtain
- * the generated key from the database and fill it into the corresponding property after the insertion completes.
- * But this requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
- * will be inserted into the database, and no keys generated.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.sequenceOf(..).add(entity) instead.",
-    replaceWith = ReplaceWith("database.sequenceOf(this).add(entity)")
-)
-fun <E : Entity<E>> Table<E>.add(entity: E): Int {
-    return Database.global.sequenceOf(this).add(entity)
-}
-
-/**
  * Insert the given entity into this sequence and return the affected record number.
  *
- * If we use an auto-increment key in our table, we need to tell Ktorm which column is the primary key by calling
- * [Table.primaryKey] on the column registration first, then this function will obtain the generated key from the
- * database and fill it into the corresponding property after the insertion completes. But this requires us not to
- * set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted into the
- * database, and no keys generated.
+ * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
+ * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
+ * database and fill it into the corresponding property after the insertion completes. But this requires us
+ * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
+ * into the database, and no keys generated.
  *
  * @since 2.7
  */
@@ -71,8 +51,11 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
         )
     )
 
-    val ignoreGeneratedKeys =
-        sourceTable.primaryKey?.binding == null || entity.implementation.getPrimaryKeyValue(sourceTable) != null
+    val primaryKeys = sourceTable.primaryKeys
+
+    val ignoreGeneratedKeys = primaryKeys.size != 1
+        || primaryKeys[0].binding == null
+        || entity.implementation.getColumnValue(primaryKeys[0].binding!!) != null
 
     if (ignoreGeneratedKeys) {
         val effects = database.executeUpdate(expression)
@@ -84,13 +67,13 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
         val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
 
         if (rowSet.next()) {
-            val generatedKey = sourceTable.primaryKey?.sqlType?.getResult(rowSet, 1)
+            val generatedKey = primaryKeys[0].sqlType.getResult(rowSet, 1)
             if (generatedKey != null) {
                 if (database.logger.isDebugEnabled()) {
                     database.logger.debug("Generated Key: $generatedKey")
                 }
 
-                entity.implementation.setPrimaryKeyValue(sourceTable, generatedKey)
+                entity.implementation.setColumnValue(primaryKeys[0].binding!!, generatedKey)
             }
         }
 
@@ -160,7 +143,6 @@ internal fun EntityImplementation.doFlushChanges(): Int {
     val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
     checkUnexpectedDiscarding(fromTable)
 
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
     val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
 
     val expression = AliasRemover.visit(
@@ -172,16 +154,36 @@ internal fun EntityImplementation.doFlushChanges(): Int {
                     expression = ArgumentExpression(argument, col.sqlType as SqlType<Any>)
                 )
             },
-            where = BinaryExpression(
-                type = BinaryExpressionType.EQUAL,
-                left = primaryKey.asExpression(),
-                right = ArgumentExpression(getPrimaryKeyValue(fromTable), primaryKey.sqlType as SqlType<Any>),
-                sqlType = BooleanSqlType
-            )
+            where = constructIdentityCondition()
         )
     )
 
     return fromDatabase.executeUpdate(expression).also { doDiscardChanges() }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun EntityImplementation.constructIdentityCondition(): ScalarExpression<Boolean> {
+    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
+
+    val primaryKeys = fromTable.primaryKeys
+    if (primaryKeys.isEmpty()) {
+        error("Table ${fromTable.tableName} doesn't have a primary key.")
+    }
+
+    val conditions = primaryKeys.map { pk ->
+        if (pk.binding == null) {
+            error("Primary column $pk has no bindings to any entity field.")
+        }
+
+        BinaryExpression(
+            type = BinaryExpressionType.EQUAL,
+            left = pk.asExpression(),
+            right = ArgumentExpression(getColumnValue(pk.binding), pk.sqlType as SqlType<Any>),
+            sqlType = BooleanSqlType
+        )
+    }
+
+    return conditions.combineConditions().asExpression()
 }
 
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
@@ -311,17 +313,11 @@ internal fun EntityImplementation.doDelete(): Int {
 
     val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
     val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
-    val primaryKey = fromTable.primaryKey ?: error("Table ${fromTable.tableName} doesn't have a primary key.")
 
     val expression = AliasRemover.visit(
         expr = DeleteExpression(
             table = fromTable.asExpression(),
-            where = BinaryExpression(
-                type = BinaryExpressionType.EQUAL,
-                left = primaryKey.asExpression(),
-                right = ArgumentExpression(getPrimaryKeyValue(fromTable), primaryKey.sqlType as SqlType<Any>),
-                sqlType = BooleanSqlType
-            )
+            where = constructIdentityCondition()
         )
     )
 
