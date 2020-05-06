@@ -406,6 +406,11 @@ class JacksonAnnotationTest {
     interface EntityAlias: Entity<EntityAlias> {
         companion object: Entity.Factory<EntityAlias>()
         var name :String
+        @get:JsonAlias("aliasGetOnly")
+        var getOnlyAlias: String
+        @get:JsonProperty("propertyAliasGetOnly")
+        var getOnlyPropertyAlias: String
+
         @set:JsonAlias("setAlias")
         @get:JsonAlias("getAlias")
         var setGetAlias: String
@@ -421,6 +426,11 @@ class JacksonAnnotationTest {
 
     class JacksonAlias {
         var name :String = ""
+        @get:JsonAlias("aliasGetOnly")
+        var getOnlyAlias = ""
+        @get:JsonProperty("propertyAliasGetOnly")
+        var getOnlyPropertyAlias = ""
+
         @set:JsonAlias("setAlias")
         @get:JsonAlias("getAlias")
         var setGetAlias: String = ""
@@ -452,6 +462,8 @@ class JacksonAnnotationTest {
     fun testAliasSerialize() {
         val entityAlias = EntityAlias {
             name = "alias"
+            getOnlyAlias = "getOnlyAlias"
+            getOnlyPropertyAlias = "getOnlyPropertyAlias"
             setGetAlias = "setGetAlias"
             setGetPropertyAlias = "setGetPropertyAlias"
             bothAliasAndProperty = "bothAliasAndProperty"
@@ -460,6 +472,8 @@ class JacksonAnnotationTest {
 
         val jacksonAlias = JacksonAlias()
         jacksonAlias.name = "alias"
+        jacksonAlias.getOnlyAlias = "getOnlyAlias"
+        jacksonAlias.getOnlyPropertyAlias = "getOnlyPropertyAlias"
         jacksonAlias.setGetAlias = "setGetAlias"
         jacksonAlias.setGetPropertyAlias = "setGetPropertyAlias"
         jacksonAlias.bothAliasAndProperty = "bothAliasAndProperty"
@@ -484,7 +498,9 @@ class JacksonAnnotationTest {
             {
               "name" : "alias",
               "setAlias" : "setAlias",
-              "propertySetAlias" : "propertySetAlias"
+              "propertySetAlias" : "propertySetAlias",
+              "aliasGetOnly":"aliasGetOnly",
+              "propertyAliasGetOnly":"propertyAliasGetOnly"
             }
         """
         val entityAlias = objectMapper.readValue<EntityAlias>(json)
@@ -492,8 +508,16 @@ class JacksonAnnotationTest {
         val jacksonAlias = objectMapper.readValue<JacksonAlias>(json)
         println(jacksonAlias)
         assert(entityAlias.name == jacksonAlias.name)
-        assert(entityAlias.setGetAlias == jacksonAlias.setGetAlias) // setAlias
-        assert(entityAlias.setGetPropertyAlias == jacksonAlias.setGetPropertyAlias) // propertySetAlias
+        assert(entityAlias.setGetAlias == jacksonAlias.setGetAlias) // value: setAlias
+        assert(entityAlias.setGetPropertyAlias == jacksonAlias.setGetPropertyAlias) // value: propertySetAlias
+
+        // `JsonAlias` on `get` works
+        assert(jacksonAlias.getOnlyAlias == "aliasGetOnly")
+        assert(entityAlias.getOnlyAlias == jacksonAlias.getOnlyAlias)
+
+        // `JsonProperty` on `get` works
+        assert(jacksonAlias.getOnlyPropertyAlias == "propertyAliasGetOnly")
+        assert(entityAlias.getOnlyPropertyAlias == jacksonAlias.getOnlyPropertyAlias)
     }
 
     /**
@@ -534,13 +558,13 @@ class JacksonAnnotationTest {
         assert(jacksonAlias.setGetAlias == "set_get_alias")
         assert(entityAlias.setGetAlias == jacksonAlias.setGetAlias)
 
-        // line 518-519
         // prop with `JsonProperty`, its alias name don't contains either prop's origin strategy name or origin name
         assert(jacksonAlias.setGetPropertyAlias.isEmpty())
         assert(entityAlias.setGetPropertyAlias.isEmpty())
 
 
-        // "withAliasOnly", reason see `test alias vs property deserialize#1`
+        // "withAliasOnly", `JsonProperty` and `JsonAlias` has same priority
+        // but prop with `JsonProperty`,it don't contains either prop's origin strategy name
         assert(jacksonAlias.bothAliasAndProperty == "withAliasOnly")
         assert( entityAlias.bothAliasAndProperty == jacksonAlias.bothAliasAndProperty)
     }
@@ -550,11 +574,11 @@ class JacksonAnnotationTest {
      *  [multi annotation]
      *  make sure json alias behavior same when deserialize
      *
-     *  [JsonAlias] on  `get` don't work when deserialize
-     *  [JsonProperty] on `get` don't work when deserialize
+     *  [JsonAlias] on `set` takes precedence over `get`
+     *  [JsonProperty] on `set` takes precedence over `get`
      */
     @Test
-    fun testAliasDeserializeJsonPropertyDontWork() {
+    fun testAliasDeserializeAliasPropertyPriority() {
         val mapper = ObjectMapper().findAndRegisterModules().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         val json = """
             {
@@ -572,11 +596,12 @@ class JacksonAnnotationTest {
         println(jacksonAlias)
 
         // according to order issue in defaultJacksonDeserialize2
-        // setGetAlias's value is 'setAlias' shows that `JsonAlias` on  `get` don't work
+        // setGetAlias's value is 'setAlias' shows that `JsonAlias` on `set` takes precedence over `get`
         assert(jacksonAlias.setGetAlias == "setAlias")
         assert(entityAlias.setGetAlias == jacksonAlias.setGetAlias)
 
-        assert(jacksonAlias.setGetPropertyAlias == "propertySetAlias") // JsonProperties on `get` don't work
+        // JsonProperties on `set` takes precedence over `get`
+        assert(jacksonAlias.setGetPropertyAlias == "propertySetAlias")
         assert(entityAlias.setGetPropertyAlias == jacksonAlias.setGetPropertyAlias)
     }
 

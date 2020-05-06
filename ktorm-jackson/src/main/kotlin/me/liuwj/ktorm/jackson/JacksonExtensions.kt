@@ -41,21 +41,18 @@ internal fun JsonGenerator.configureIndentOutputIfEnabled() {
 
 /**
  * it may has multi alias name when property annotated with JsonAlias.
- *
- * [JsonAlias] and [JsonProperty] on getter method both don't work when deserialize, so we only need find them
- * on setter method, see JacksonAnnotationTest.testAliasDeserializeJsonPropertyDontWork.
  */
 internal fun ObjectCodec.deserializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): List<String> {
     if (this is ObjectMapper) {
         if (prop is KMutableProperty<*>) {
             val nameList: MutableList<String> = ArrayList()
 
-            val jsonAlias = prop.javaSetter!!.annotations.find { it is JsonAlias } as JsonAlias?
+            val jsonAlias = prop.findAnnotationSetterFirst(JsonAlias::class.java)
             if (jsonAlias != null && jsonAlias.value.isNotEmpty()) {
                 nameList.addAll(jsonAlias.value)
             }
 
-            val jsonProperty = prop.javaSetter!!.annotations.find { it is JsonProperty } as JsonProperty?
+            val jsonProperty = prop.findAnnotationSetterFirst(JsonProperty::class.java)
             // according to JacksonAnnotationTest.testDeserializeAliasName2
             // prop with `JsonProperty`, alias name don't contains prop's strategy name
             if (jsonProperty != null) {
