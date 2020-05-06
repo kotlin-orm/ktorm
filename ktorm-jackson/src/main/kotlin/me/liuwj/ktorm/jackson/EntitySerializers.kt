@@ -16,12 +16,15 @@
 
 package me.liuwj.ktorm.jackson
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonToken.START_OBJECT
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.module.SimpleSerializers
 import me.liuwj.ktorm.entity.Entity
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
 
@@ -48,6 +51,8 @@ internal class EntitySerializers : SimpleSerializers() {
 
     private object SerializerImpl : JsonSerializer<Entity<*>>() {
 
+        private val entityPrivateProperties = setOf("properties", "entityClass")
+
         override fun serialize(
             entity: Entity<*>,
             gen: JsonGenerator,
@@ -55,16 +60,38 @@ internal class EntitySerializers : SimpleSerializers() {
         ) {
             gen.configureIndentOutputIfEnabled()
 
-            val properties = entity.entityClass.memberProperties.associateBy { it.name }
-
             gen.writeStartObject()
 
-            for ((name, value) in entity.properties) {
-                val prop = properties[name] ?: continue
+            serializeProperties(entity, gen, serializers)
+
+            gen.writeEndObject()
+        }
+
+        private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
+            return entity.entityClass.memberProperties.filter { kp ->
+                !entityPrivateProperties.contains(kp.name)
+                        && kp.findAnnotationGetterFirst(JsonIgnore::class.java) == null
+            }.filter { kp ->
+                val jsonProperty = kp.findAnnotationGetterFirst(JsonProperty::class.java)
+                jsonProperty == null || jsonProperty.access != JsonProperty.Access.WRITE_ONLY
+            }.associateBy {
+                it.name
+            }
+        }
+
+        private fun serializeProperties(
+            entity: Entity<*>,
+            gen: JsonGenerator,
+            serializers: SerializerProvider
+        ) {
+            for ((name, prop) in findReadableProperties(entity)) {
                 val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
+
                 val ser = serializers.findTypedValueSerializer(propType, true, null)
 
-                gen.writeFieldName(gen.codec.nameForProperty(prop, serializers.config))
+                gen.writeFieldName(gen.codec.serializeNameForProperty(prop, serializers.config))
+
+                val value = entity.properties[name]
 
                 if (value == null) {
                     gen.writeNull()
@@ -72,8 +99,6 @@ internal class EntitySerializers : SimpleSerializers() {
                     ser.serialize(value, gen, serializers)
                 }
             }
-
-            gen.writeEndObject()
         }
 
         override fun serializeWithType(
@@ -83,24 +108,8 @@ internal class EntitySerializers : SimpleSerializers() {
             typeSer: TypeSerializer
         ) {
             gen.configureIndentOutputIfEnabled()
-
-            val properties = entity.entityClass.memberProperties.associateBy { it.name }
             val typeId = typeSer.writeTypePrefix(gen, typeSer.typeId(entity, entity.entityClass.java, START_OBJECT))
-
-            for ((name, value) in entity.properties) {
-                val prop = properties[name] ?: continue
-                val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
-                val ser = serializers.findTypedValueSerializer(propType, true, null)
-
-                gen.writeFieldName(gen.codec.nameForProperty(prop, serializers.config))
-
-                if (value == null) {
-                    gen.writeNull()
-                } else {
-                    ser.serialize(value, gen, serializers)
-                }
-            }
-
+            serializeProperties(entity, gen, serializers)
             typeSer.writeTypeSuffix(gen, typeId)
         }
     }

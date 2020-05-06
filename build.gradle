@@ -111,6 +111,11 @@ subprojects { project ->
                             name = "hiroyuki.nagata"
                             email = "idiotpanzer@gmail.com"
                         }
+                        developer {
+                            id = "onXoot"
+                            name = "beetlerx"
+                            email = "beetlerx@gmail.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/vincentlauvlwj/Ktorm.git"
