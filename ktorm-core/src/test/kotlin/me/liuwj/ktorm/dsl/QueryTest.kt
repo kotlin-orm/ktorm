@@ -95,7 +95,7 @@ class QueryTest : BaseTest() {
     fun testAggregation() {
         val iterable: Iterable<Int> = emptyList()
 
-        iterable.associate
+        iterable.joinToString {  }
 
         val t = Employees
 

@@ -377,6 +377,21 @@ inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.
     return destination
 }
 
+inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R> {
+    return flatMapTo(ArrayList(), transform)
+}
+
+inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapTo(
+    destination: C,
+    transform: (E) -> Iterable<R>
+): C {
+    for (element in this) {
+        val list = transform(element)
+        destination.addAll(list)
+    }
+    return destination
+}
+
 /**
  * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
  * containing the query results.

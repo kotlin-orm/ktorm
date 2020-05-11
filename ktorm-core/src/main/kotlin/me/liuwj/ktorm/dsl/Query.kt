@@ -22,6 +22,7 @@ import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.BooleanSqlType
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
+import java.lang.Appendable
 import java.sql.ResultSet
 
 /**
@@ -419,6 +420,21 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     return destination
 }
 
+inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List<R> {
+    return flatMapTo(ArrayList(), transform)
+}
+
+inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
+    destination: C,
+    transform: (row: QueryRowSet) -> Iterable<R>
+): C {
+    for (row in this) {
+        val list = transform(row)
+        destination.addAll(list)
+    }
+    return destination
+}
+
 inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
     return asIterable().associate(transform)
 }
@@ -443,4 +459,52 @@ inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
     valueTransform: (row: QueryRowSet) -> V
 ): M {
     return asIterable().associateByTo(destination, keySelector, valueTransform)
+}
+
+inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
+    var accumulator = initial
+    for (row in this) accumulator = operation(accumulator, row)
+    return accumulator
+}
+
+inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
+    var index = 0
+    var accumulator = initial
+    for (row in this) accumulator = operation(index++, accumulator, row)
+    return accumulator
+}
+
+fun <A : Appendable> Query.joinTo(
+    buffer: A,
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: (row: QueryRowSet) -> CharSequence
+): A {
+    buffer.append(prefix)
+    var count = 0
+    for (row in this) {
+        if (++count > 1) buffer.append(separator)
+        if (limit < 0 || count <= limit) {
+            buffer.append(transform(row))
+        } else {
+            break
+        }
+    }
+    if (limit >= 0 && count > limit) buffer.append(truncated)
+    buffer.append(postfix)
+    return buffer
+}
+
+fun Query.joinToString(
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: (row: QueryRowSet) -> CharSequence
+): String {
+    return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
