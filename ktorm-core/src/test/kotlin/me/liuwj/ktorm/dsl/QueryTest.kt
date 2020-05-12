@@ -93,10 +93,6 @@ class QueryTest : BaseTest() {
 
     @Test
     fun testAggregation() {
-        val iterable: Iterable<Int> = emptyList()
-
-        iterable.joinToString {  }
-
         val t = Employees
 
         val salaries = database
@@ -195,7 +191,7 @@ class QueryTest : BaseTest() {
             .select()
             .where { Employees.id.inList(1, 2, 3) }
 
-        assert(query.count() == 3)
+        assert(query.rowSet.size() == 3)
     }
 
     @Test
@@ -207,7 +203,7 @@ class QueryTest : BaseTest() {
             .select()
             .where { Employees.departmentId inList departmentIds }
 
-        assert(query.count() == 4)
+        assert(query.rowSet.size() == 4)
 
         println(query.sql)
     }
@@ -226,7 +222,7 @@ class QueryTest : BaseTest() {
                 )
             }
 
-        assert(query.count() == 4)
+        assert(query.rowSet.size() == 4)
         println(query.sql)
     }
 
@@ -243,7 +239,7 @@ class QueryTest : BaseTest() {
             )
             .orderBy(Employees.id.desc())
 
-        assert(query.count() == 8)
+        assert(query.rowSet.size() == 8)
 
         println(query.sql)
     }
@@ -251,7 +247,7 @@ class QueryTest : BaseTest() {
     @Test
     fun testMod() {
         val query = database.from(Employees).select().where { Employees.id % 2 eq 1 }
-        assert(query.count() == 2)
+        assert(query.rowSet.size() == 2)
         println(query.sql)
     }
 }

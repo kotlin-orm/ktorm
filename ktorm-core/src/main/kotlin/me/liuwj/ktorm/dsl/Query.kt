@@ -490,10 +490,10 @@ fun <A : Appendable> Query.joinTo(
         if (limit < 0 || count <= limit) {
             buffer.append(transform(row))
         } else {
+            buffer.append(truncated)
             break
         }
     }
-    if (limit >= 0 && count > limit) buffer.append(truncated)
     buffer.append(postfix)
     return buffer
 }
