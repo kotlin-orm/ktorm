@@ -6,6 +6,9 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
+import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.int
+import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.PostgreSQLContainer
@@ -34,6 +37,10 @@ class PostgreSqlTest : BaseTest() {
         )
 
         execSqlScript("init-postgresql-data.sql")
+    }
+
+    override fun destroy() {
+        execSqlScript("drop-postgresql-data.sql")
     }
 
     @Test
@@ -131,4 +138,57 @@ class PostgreSqlTest : BaseTest() {
             }
         }
     }
+
+    interface Metadata : Entity<Metadata> {
+        companion object : Entity.Factory<Metadata>()
+
+        val id: Int
+        var attributes: MutableMap<String, String>
+    }
+
+    open class Metadatas(alias: String?) : Table<Metadata>("t_metadata", alias) {
+        companion object : Metadatas(null)
+
+        override fun aliased(alias: String) = Metadatas(alias)
+
+        val id by int("id").primaryKey().bindTo { it.id }
+        val attributes by hstore("attrs").bindTo { it.attributes }
+    }
+
+    @Test
+    fun testHstore() {
+        val allMetadatas = database.sequenceOf(Metadatas).toList()
+        assert(allMetadatas.size == 1)
+        val attributes = allMetadatas[0].attributes
+        assert(attributes.size == 2)
+        assert(attributes["a"] == "1")
+        assert(attributes["b"] == "2")
+    }
+
+    @Test
+    fun testHstoreGetValue() {
+        testHstoreGetValue("a", "1")
+        testHstoreGetValue("b", "2")
+    }
+
+    private fun testHstoreGetValue(key: String, expectedValue: String?) {
+        val aValueSelect = (Metadatas.attributes getValue key).aliased("aValue")
+        val value = database.from(Metadatas)
+            .select(aValueSelect)
+            .map { it[aValueSelect] }
+            .first()
+        assert(value == expectedValue)
+    }
+
+    @Test
+    fun testHstoreGetValues() {
+        val abValuesSelect = (Metadatas.attributes getValues arrayOf("a", "b")).aliased("abValues")
+        val values = database.from(Metadatas)
+            .select(abValuesSelect)
+            .map { it[abValuesSelect] }
+            .first()
+        assert(values?.contentEquals(arrayOf("1", "2")) == true)
+    }
+
+
 }

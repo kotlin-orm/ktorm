@@ -32,12 +32,14 @@ import me.liuwj.ktorm.schema.VarcharSqlType
  * @property right the expression's right operand.
  */
 data class ILikeExpression(
-    val left: ScalarExpression<*>,
-    val right: ScalarExpression<*>,
+    override val left: ScalarExpression<*>,
+    override val right: ScalarExpression<*>,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
-) : ScalarExpression<Boolean>()
+) : BinaryExpression<Boolean>() {
+    override val operator: String = "ilike"
+}
 
 /**
  * ILike operator, translated to the `ilike` keyword in PostgreSQL.

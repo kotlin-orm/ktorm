@@ -49,12 +49,11 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
 
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
-            is ILikeExpression -> visitILike(expr)
+            is BinaryExpression -> visitBinary(expr)
             else -> super.visitScalar(expr)
         }
 
-        @Suppress("UNCHECKED_CAST")
-        return result as ScalarExpression<T>
+        return result
     }
 
     override fun writePagination(expr: QueryExpression) {
@@ -70,7 +69,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         }
     }
 
-    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
+    protected open fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
         if (expr.left.removeBrackets) {
             visit(expr.left)
         } else {
@@ -80,7 +79,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
             write(") ")
         }
 
-        write("ilike ")
+        write("${expr.operator} ")
 
         if (expr.right.removeBrackets) {
             visit(expr.right)
