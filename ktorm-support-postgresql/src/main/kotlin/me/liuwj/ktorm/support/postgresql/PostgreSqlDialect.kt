@@ -69,7 +69,9 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         }
     }
 
-    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(expr: BinaryExpression<LeftT, RightT, ReturnT>): BinaryExpression<LeftT, RightT, ReturnT> {
+    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(
+        expr: BinaryExpression<LeftT, RightT, ReturnT>
+    ): BinaryExpression<LeftT, RightT, ReturnT> {
         if (expr.left.removeBrackets) {
             visit(expr.left)
         } else {
