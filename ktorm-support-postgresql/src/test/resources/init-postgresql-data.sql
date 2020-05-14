@@ -35,4 +35,4 @@ insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
 values ('penny', 'assistant', 3, '2019-01-01', 100, 2);
 
 insert into t_metadata(attrs)
-values ('a=>1, b=>2'::hstore);
+values ('a=>1, b=>2, c=>NULL'::hstore);

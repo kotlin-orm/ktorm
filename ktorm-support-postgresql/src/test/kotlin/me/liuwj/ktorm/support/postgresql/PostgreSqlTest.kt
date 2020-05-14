@@ -143,7 +143,7 @@ class PostgreSqlTest : BaseTest() {
         companion object : Entity.Factory<Metadata>()
 
         val id: Int
-        var attributes: MutableMap<String, String>
+        var attributes: MutableMap<String, String?>
     }
 
     open class Metadatas(alias: String?) : Table<Metadata>("t_metadata", alias) {
@@ -160,15 +160,17 @@ class PostgreSqlTest : BaseTest() {
         val allMetadatas = database.sequenceOf(Metadatas).toList()
         assert(allMetadatas.size == 1)
         val attributes = allMetadatas[0].attributes
-        assert(attributes.size == 2)
+        assert(attributes.size == 3)
         assert(attributes["a"] == "1")
         assert(attributes["b"] == "2")
+        assert(attributes["c"] == null)
     }
 
     @Test
     fun testHstoreGetValue() {
         testHstoreGetValue("a", "1")
         testHstoreGetValue("b", "2")
+        testHstoreGetValue("c", null)
     }
 
     private fun testHstoreGetValue(key: String, expectedValue: String?) {
@@ -182,13 +184,12 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testHstoreGetValues() {
-        val abValuesSelect = (Metadatas.attributes getValues arrayOf("a", "b")).aliased("abValues")
+        val arrayOf: Array<String?> = arrayOf("a", "c")
+        val abValuesSelect = (Metadatas.attributes getValues arrayOf).aliased("acValues")
         val values = database.from(Metadatas)
             .select(abValuesSelect)
             .map { it[abValuesSelect] }
             .first()
-        assert(values?.contentEquals(arrayOf("1", "2")) == true)
+        assert(values?.contentEquals(arrayOf("1", null)) == true)
     }
-
-
 }
