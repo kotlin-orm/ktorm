@@ -39,7 +39,10 @@ data class ILikeExpression<LeftT : Any>(
 ) : BinaryExpression<LeftT, String, Boolean>() {
     override val sqlType: SqlType<Boolean> = BooleanSqlType
     override val operator: String = "ilike"
-    override fun copyWithNewOperands(left: ScalarExpression<LeftT>, right: ScalarExpression<String>) = copy(left = left, right = right)
+    override fun copyWithNewOperands(
+        left: ScalarExpression<LeftT>,
+        right: ScalarExpression<String>
+    ) = copy(left = left, right = right)
 }
 
 /**

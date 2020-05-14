@@ -143,7 +143,9 @@ open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
         return result
     }
 
-    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(expr: BinaryExpression<LeftT, RightT, ReturnT>): BinaryExpression<LeftT, RightT, ReturnT> {
+    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(
+        expr: BinaryExpression<LeftT, RightT, ReturnT>
+    ): BinaryExpression<LeftT, RightT, ReturnT> {
         val left = visitScalar(expr.left)
         val right = visitScalar(expr.right)
 

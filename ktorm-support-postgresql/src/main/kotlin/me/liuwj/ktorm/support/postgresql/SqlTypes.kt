@@ -7,7 +7,7 @@ import java.sql.ResultSet
 import java.sql.Types
 
 /**
- * Define a column typed [HstoreSqlType]
+ * Define a column typed [HstoreSqlType].
  */
 fun <E : Any> BaseTable<E>.hstore(name: String): BaseTable<E>.ColumnRegistration<Hstore> {
     return registerColumn(name, HstoreSqlType)
@@ -28,7 +28,7 @@ object HstoreSqlType : SqlType<Hstore>(Types.OTHER, "hstore") {
 }
 
 /**
- * Define a column typed [TextArraySqlType]
+ * Define a column typed [TextArraySqlType].
  */
 fun <E : Any> BaseTable<E>.textArray(name: String): BaseTable<E>.ColumnRegistration<TextArray> {
     return registerColumn(name, TextArraySqlType)

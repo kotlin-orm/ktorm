@@ -10,25 +10,65 @@ import me.liuwj.ktorm.schema.VarcharSqlType
 typealias Hstore = Map<String, String?>
 typealias TextArray = Array<String?>
 
+/**
+ * Super class for all hstore expressions/operators.
+ *
+ * @property rightSqlType The [SqlType] of the right operand
+ * @property returnSqlType The [SqlType] of the result of the operation
+ * @property operator The operator for this operation (must be properly escaped for JDBC prepared statements)
+ */
 sealed class HstoreExpressionType<RightT : Any, ReturnT : Any>(
     val rightSqlType: SqlType<RightT>,
     val returnSqlType: SqlType<ReturnT>,
     val operator: String
 )
+/**
+ * Hstore get value for key operator, translated to the -> operator in PostgreSQL.
+ */
 object GetValueForKey : HstoreExpressionType<String, String>(VarcharSqlType, VarcharSqlType, "->")
+/**
+ * Hstore get values for keys operator, translated to the -> operator in PostgreSQL.
+ */
 object GetValuesForKey : HstoreExpressionType<TextArray, TextArray>(TextArraySqlType, TextArraySqlType, "->")
+/**
+ * Hstore concatenate operator, translated to the || operator in PostgreSQL.
+ */
 object Concatenate : HstoreExpressionType<Hstore, Hstore>(HstoreSqlType, HstoreSqlType, "||")
+/**
+ * Hstore contains key operator, translated to the ? operator in PostgreSQL.
+ */
 object ContainsKey : HstoreExpressionType<String, Boolean>(VarcharSqlType, BooleanSqlType, "??")
+/**
+ * Hstore contains all keys operator, translated to the ?& operator in PostgreSQL.
+ */
 object ContainsAllKeys : HstoreExpressionType<TextArray, Boolean>(TextArraySqlType, BooleanSqlType, "??&")
+/**
+ * Hstore contains any keys operator, translated to the ?| operator in PostgreSQL.
+ */
 object ContainsAnyKeys : HstoreExpressionType<TextArray, Boolean>(TextArraySqlType, BooleanSqlType, "??|")
+/**
+ * Hstore contains operator, translated to the @> operator in PostgreSQL.
+ */
 object Contains : HstoreExpressionType<Hstore, Boolean>(HstoreSqlType, BooleanSqlType, "@>")
+/**
+ * Hstore contained in operator, translated to the <@ operator in PostgreSQL.
+ */
 object ContainedIn : HstoreExpressionType<Hstore, Boolean>(HstoreSqlType, BooleanSqlType, "<@")
+/**
+ * Hstore delete key operator, translated to the - operator in PostgreSQL.
+ */
 object DeleteKey : HstoreExpressionType<String, Hstore>(VarcharSqlType, HstoreSqlType, "-")
+/**
+ * Hstore delete keys operator, translated to the - operator in PostgreSQL.
+ */
 object DeleteKeys : HstoreExpressionType<TextArray, Hstore>(TextArraySqlType, HstoreSqlType, "-")
+/**
+ * Hstore delete matching pairs operator, translated to the - operator in PostgreSQL.
+ */
 object DeleteMatchingPairs : HstoreExpressionType<Hstore, Hstore>(HstoreSqlType, HstoreSqlType, "-")
 
 /**
- * Binary expression generic class for all binary operations on `hstore` types
+ * Binary expression generic class for all binary operations on `hstore` types.
  *
  * @property expressionType The [HstoreExpressionType] that represents this operation
  * @property left the expression's left operand.
@@ -43,11 +83,14 @@ data class HstoreBinaryExpression<RightT : Any, ReturnT : Any>(
 ) : BinaryExpression<Hstore, RightT, ReturnT>() {
     override val sqlType: SqlType<ReturnT> = expressionType.returnSqlType
     override val operator: String = expressionType.operator
-    override fun copyWithNewOperands(left: ScalarExpression<Hstore>, right: ScalarExpression<RightT>) = copy(left = left, right = right)
+    override fun copyWithNewOperands(
+        left: ScalarExpression<Hstore>,
+        right: ScalarExpression<RightT>
+    ) = copy(left = left, right = right)
 }
 
 /**
- * Hstore getValue operator, translated to the -> operator in PostgreSQL.
+ * Hstore get value for key operator, translated to the -> operator in PostgreSQL.
  */
 infix fun ColumnDeclaring<Hstore>.getValue(expr: ColumnDeclaring<String>): HstoreBinaryExpression<String, String> {
     return HstoreBinaryExpression(GetValueForKey, asExpression(), expr.asExpression())
@@ -61,9 +104,11 @@ infix fun ColumnDeclaring<Hstore>.getValue(value: String): HstoreBinaryExpressio
 }
 
 /**
- * Hstore get values for keys for key operator, translated to the -> operator in PostgreSQL.
+ * Hstore get values for keys operator, translated to the -> operator in PostgreSQL.
  */
-infix fun ColumnDeclaring<Hstore>.getValues(expr: ColumnDeclaring<TextArray>): HstoreBinaryExpression<TextArray, TextArray> {
+infix fun ColumnDeclaring<Hstore>.getValues(
+    expr: ColumnDeclaring<TextArray>
+): HstoreBinaryExpression<TextArray, TextArray> {
     return HstoreBinaryExpression(GetValuesForKey, asExpression(), expr.asExpression())
 }
 
@@ -105,7 +150,9 @@ infix fun ColumnDeclaring<Hstore>.containsKey(value: String): HstoreBinaryExpres
 /**
  * Hstore contains all keys operator, translated to the ?& operator in PostgreSQL.
  */
-infix fun ColumnDeclaring<Hstore>.containsAll(expr: ColumnDeclaring<TextArray>): HstoreBinaryExpression<TextArray, Boolean> {
+infix fun ColumnDeclaring<Hstore>.containsAll(
+    expr: ColumnDeclaring<TextArray>
+): HstoreBinaryExpression<TextArray, Boolean> {
     return HstoreBinaryExpression(ContainsAllKeys, asExpression(), expr.asExpression())
 }
 
@@ -119,7 +166,9 @@ infix fun ColumnDeclaring<Hstore>.containsAll(value: TextArray): HstoreBinaryExp
 /**
  * Hstore contains any keys operator, translated to the ?| operator in PostgreSQL.
  */
-infix fun ColumnDeclaring<Hstore>.containsAny(expr: ColumnDeclaring<TextArray>): HstoreBinaryExpression<TextArray, Boolean> {
+infix fun ColumnDeclaring<Hstore>.containsAny(
+    expr: ColumnDeclaring<TextArray>
+): HstoreBinaryExpression<TextArray, Boolean> {
     return HstoreBinaryExpression(ContainsAnyKeys, asExpression(), expr.asExpression())
 }
 
