@@ -9,8 +9,12 @@ import me.liuwj.ktorm.expression.ScalarExpression
  * @property left the expression's left operand.
  * @property right the expression's right operand.
  */
-abstract class BinaryExpression<T : Any> : ScalarExpression<T>() {
+abstract class BinaryExpression<LeftT : Any, RightT : Any, ReturnT : Any> : ScalarExpression<ReturnT>() {
+    /**
+     * Create a new instance of this expression with the two new operands and everything else the same
+     */
+    abstract fun copyWithNewOperands(left: ScalarExpression<LeftT>, right: ScalarExpression<RightT>): BinaryExpression<LeftT, RightT, ReturnT>
     abstract val operator: String
-    abstract val left: ScalarExpression<*>
-    abstract val right: ScalarExpression<*>
+    abstract val left: ScalarExpression<LeftT>
+    abstract val right: ScalarExpression<RightT>
 }

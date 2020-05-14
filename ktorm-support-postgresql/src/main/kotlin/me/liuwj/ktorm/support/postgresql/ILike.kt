@@ -31,26 +31,27 @@ import me.liuwj.ktorm.schema.VarcharSqlType
  * @property left the expression's left operand.
  * @property right the expression's right operand.
  */
-data class ILikeExpression(
-    override val left: ScalarExpression<*>,
-    override val right: ScalarExpression<*>,
-    override val sqlType: SqlType<Boolean> = BooleanSqlType,
+data class ILikeExpression<LeftT : Any>(
+    override val left: ScalarExpression<LeftT>,
+    override val right: ScalarExpression<String>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
-) : BinaryExpression<Boolean>() {
+) : BinaryExpression<LeftT, String, Boolean>() {
+    override val sqlType: SqlType<Boolean> = BooleanSqlType
     override val operator: String = "ilike"
+    override fun copyWithNewOperands(left: ScalarExpression<LeftT>, right: ScalarExpression<String>) = copy(left = left, right = right)
 }
 
 /**
  * ILike operator, translated to the `ilike` keyword in PostgreSQL.
  */
-infix fun ColumnDeclaring<*>.ilike(expr: ColumnDeclaring<String>): ILikeExpression {
+infix fun <T : Any> ColumnDeclaring<T>.ilike(expr: ColumnDeclaring<String>): ILikeExpression<T> {
     return ILikeExpression(asExpression(), expr.asExpression())
 }
 
 /**
  * ILike operator, translated to the `ilike` keyword in PostgreSQL.
  */
-infix fun ColumnDeclaring<*>.ilike(argument: String): ILikeExpression {
+infix fun <T : Any> ColumnDeclaring<T>.ilike(argument: String): ILikeExpression<T> {
     return this ilike ArgumentExpression(argument, VarcharSqlType)
 }
