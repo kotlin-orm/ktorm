@@ -26,7 +26,7 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
 
 查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me/zh-cn)。
 
-:cn: 简体中文 | :us: [English](README.md)
+:cn: 简体中文 | :us: [English](README.md) | :jp: [日本語](README_jp.md)
 
 # 特性
 
