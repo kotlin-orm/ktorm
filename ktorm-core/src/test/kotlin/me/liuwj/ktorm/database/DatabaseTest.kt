@@ -30,8 +30,8 @@ class DatabaseTest : BaseTest() {
     @Test
     fun testKeywordWrapping() {
         val configs = object : Table<Nothing>("t_config") {
-            val key by varchar("key").primaryKey()
-            val value by varchar("value")
+            val key = varchar("key").primaryKey()
+            val value = varchar("value")
         }
 
         database.useConnection { conn ->

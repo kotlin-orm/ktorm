@@ -18,54 +18,10 @@ package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.schema.SqlType
-import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
-
-/**
- * Obtain a connection from [Database.global] and invoke the callback function with it.
- *
- * If the current thread has opened a transaction, then this transaction's connection will be used.
- * Otherwise, Ktorm will pass a new-created connection to the function and auto close it after it's
- * not useful anymore.
- *
- * @see Database.useConnection
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.useConnection {...} instead.",
-    replaceWith = ReplaceWith("database.useConnection(func)")
-)
-inline fun <T> useConnection(func: (Connection) -> T): T {
-    return Database.global.useConnection(func)
-}
-
-/**
- * Execute the specific callback function in a transaction of [Database.global] and returns its result if the
- * execution succeeds, otherwise, if the execution fails, the transaction will be rollback.
- *
- * Note:
- *
- * - Any exceptions thrown in the callback function can trigger a rollback.
- * - This function is reentrant, so it can be called nested. However, the inner calls don’t open new transactions
- * but share the same ones with outers.
- *
- * @param isolation transaction isolation, enums defined in [TransactionIsolation].
- * @param func the executed callback function.
- * @return the result of the callback function.
- * @see Database.useTransaction
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.useTransaction {...} instead.",
-    replaceWith = ReplaceWith("database.useTransaction(isolation, func)")
-)
-inline fun <T> useTransaction(
-    isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
-    func: (Transaction) -> T
-): T {
-    return Database.global.useTransaction(isolation, func)
-}
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Execute the given [block] function on this resource and then close it down correctly whether an exception
@@ -76,6 +32,10 @@ inline fun <T> useTransaction(
  */
 @Suppress("ConvertTryFinallyToUseCall")
 inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+
     try {
         return block(this)
     } finally {
@@ -125,6 +85,22 @@ operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
  *
  * @see ResultSet.iterator
  */
+@Deprecated(
+    message = "This function will be removed in the future. Please use asIterable() instead.",
+    replaceWith = ReplaceWith("asIterable()")
+)
 fun <T : ResultSet> T.iterable(): Iterable<T> {
+    return Iterable { iterator() }
+}
+
+/**
+ * Wrap this [ResultSet] as [Iterable].
+ *
+ * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
+ * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
+ *
+ * @see ResultSet.iterator
+ */
+fun <T : ResultSet> T.asIterable(): Iterable<T> {
     return Iterable { iterator() }
 }

@@ -40,9 +40,9 @@ import kotlin.reflect.jvm.jvmErasure
  *    var location: String
  * }
  * object Departments : Table<Department>("t_department") {
- *    val id by int("id").primaryKey().bindTo { it.id }
- *    val name by varchar("name").bindTo { it.name }
- *    val location by varchar("location").bindTo { it.location }
+ *    val id = int("id").primaryKey().bindTo { it.id }
+ *    val name = varchar("name").bindTo { it.name }
+ *    val location = varchar("location").bindTo { it.location }
  * }
  * ```
  */
@@ -56,12 +56,15 @@ open class Table<E : Entity<E>>(
     /**
      * Bind the column to nested properties, eg. `employee.manager.department.id`.
      *
-     * @param selector a lambda in which we should return the property we want to bind.
-     * For example: `val name by varchar("name").bindTo { it.name }`.
+     * Note: Since [Column] is immutable, this function will create a new [Column] instance and replace the origin
+     * registered one.
      *
-     * @return this column registration.
+     * @param selector a lambda in which we should return the property we want to bind.
+     * For example: `val name = varchar("name").bindTo { it.name }`.
+     *
+     * @return the new [Column] instance.
      */
-    inline fun <C : Any> ColumnRegistration<C>.bindTo(selector: (E) -> C?): ColumnRegistration<C> {
+    inline fun <C : Any> Column<C>.bindTo(selector: (E) -> C?): Column<C> {
         val properties = detectBindingProperties(selector)
         return doBindInternal(NestedBinding(properties))
     }
@@ -70,21 +73,21 @@ open class Table<E : Entity<E>>(
      * Bind the column to a reference table, equivalent to a foreign key in relational databases.
      * Entity sequence APIs would automatically left join all references (recursively) by default.
      *
+     * Note: Since [Column] is immutable, this function will create a new [Column] instance and replace the origin
+     * registered one.
+     *
      * @param referenceTable the reference table, will be copied by calling its [aliased] function with
      * an alias like `_refN`.
      *
      * @param selector a lambda in which we should return the property used to hold the referenced entities.
-     * For example: `val departmentId by int("department_id").references(Departments) { it.department }`.
+     * For example: `val departmentId = int("department_id").references(Departments) { it.department }`.
      *
-     * @return this column registration.
+     * @return the new [Column] instance.
      *
      * @see me.liuwj.ktorm.entity.sequenceOf
      * @see createEntity
      */
-    inline fun <C : Any, R : Entity<R>> ColumnRegistration<C>.references(
-        referenceTable: Table<R>,
-        selector: (E) -> R?
-    ): ColumnRegistration<C> {
+    inline fun <C : Any, R : Entity<R>> Column<C>.references(referenceTable: Table<R>, selector: (E) -> R?): Column<C> {
         val properties = detectBindingProperties(selector)
 
         if (properties.size > 1) {
@@ -132,17 +135,19 @@ open class Table<E : Entity<E>>(
         for (binding in column.allBindings) {
             when (binding) {
                 is ReferenceBinding -> {
-                    val ref = binding.referenceTable as Table<*>
-                    val primaryKey = ref.primaryKey ?: error("Table ${ref.tableName} doesn't have a primary key.")
+                    val refTable = binding.referenceTable as Table<*>
+                    val pk = refTable.singlePrimaryKey {
+                        "Cannot reference the table ${refTable.tableName} as there is compound primary keys."
+                    }
 
                     if (withReferences) {
-                        val child = ref.doCreateEntity(this, withReferences = true)
-                        child.implementation.setColumnValue(primaryKey, columnValue, forceSet = true)
+                        val child = refTable.doCreateEntity(this, withReferences = true)
+                        child.implementation.setColumnValue(pk, columnValue, forceSet = true)
                         intoEntity[binding.onProperty.name] = child
                     } else {
                         val entityClass = binding.onProperty.returnType.jvmErasure
-                        val child = Entity.create(entityClass, fromDatabase = query.database, fromTable = ref)
-                        child.implementation.setColumnValue(primaryKey, columnValue)
+                        val child = Entity.create(entityClass, fromDatabase = query.database, fromTable = refTable)
+                        child.implementation.setColumnValue(pk, columnValue)
                         intoEntity[binding.onProperty.name] = child
                     }
                 }

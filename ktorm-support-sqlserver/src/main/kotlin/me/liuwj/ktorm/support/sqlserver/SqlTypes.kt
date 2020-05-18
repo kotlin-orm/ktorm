@@ -19,6 +19,7 @@
 package me.liuwj.ktorm.support.sqlserver
 
 import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.SqlType
 import microsoft.sql.DateTimeOffset
 import microsoft.sql.Types
@@ -28,7 +29,7 @@ import java.sql.ResultSet
 /**
  * Define a column typed of [DateTimeOffsetSqlType].
  */
-fun <E : Any> BaseTable<E>.datetimeoffset(name: String): BaseTable<E>.ColumnRegistration<DateTimeOffset> {
+fun BaseTable<*>.datetimeoffset(name: String): Column<DateTimeOffset> {
     return registerColumn(name, DateTimeOffsetSqlType)
 }
 

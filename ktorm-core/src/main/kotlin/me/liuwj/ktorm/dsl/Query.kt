@@ -19,10 +19,10 @@ package me.liuwj.ktorm.dsl
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.iterator
 import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.BooleanSqlType
 import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.ColumnDeclaring
+import java.lang.Appendable
 import java.sql.ResultSet
 
 /**
@@ -67,7 +67,7 @@ import java.sql.ResultSet
  * @property database the [Database] instance that this query is running on.
  * @property expression the underlying SQL expression of this query object.
  */
-data class Query(val database: Database, val expression: QueryExpression) : Iterable<QueryRowSet> {
+data class Query(val database: Database, val expression: QueryExpression) {
 
     /**
      * The executable SQL string of this query.
@@ -126,7 +126,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
      * @see rowSet
      * @see ResultSet.iterator
      */
-    override fun iterator(): Iterator<QueryRowSet> {
+    operator fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
     }
 }
@@ -155,63 +155,6 @@ fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
 }
 
 /**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression].
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun QuerySourceExpression.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { it.asDeclaringExpression() }
-    return Query(Database.global, SelectExpression(columns = declarations, from = this))
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression].
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun QuerySourceExpression.select(vararg columns: ColumnDeclaring<*>): Query {
-    return select(columns.asList())
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table.
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
-    return asExpression().select(columns)
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table.
- *
- * Note that the specific columns can be empty, that means `select *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).select(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).select(columns)")
-)
-fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
-    return asExpression().select(columns.asList())
-}
-
-/**
  * Create a query object, selecting the specific columns or expressions from this [QuerySource] distinctly.
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
@@ -232,63 +175,6 @@ fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
  */
 fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression] distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun QuerySourceExpression.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    val declarations = columns.map { it.asDeclaringExpression() }
-    return Query(Database.global, SelectExpression(columns = declarations, from = this, isDistinct = true))
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this [QuerySourceExpression] distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun QuerySourceExpression.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
-    return selectDistinct(columns.asList())
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
-    return asExpression().selectDistinct(columns)
-}
-
-/**
- * Create a query object, selecting the specific columns or expressions from this table distinctly.
- *
- * Note that the specific columns can be empty, that means `select distinct *` in SQL.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.from(..).selectDistinct(..) instead.",
-    replaceWith = ReplaceWith("database.from(this).selectDistinct(columns)")
-)
-fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
-    return asExpression().selectDistinct(columns.asList())
 }
 
 private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
@@ -470,4 +356,155 @@ fun Query.union(right: Query): Query {
  */
 fun Query.unionAll(right: Query): Query {
     return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = true))
+}
+
+fun Query.asIterable(): Iterable<QueryRowSet> {
+    return Iterable { iterator() }
+}
+
+inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
+    for (row in this) action(row)
+}
+
+inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
+    var index = 0
+    for (row in this) action(index++, row)
+}
+
+fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
+    return asIterable().withIndex()
+}
+
+inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
+    return mapTo(ArrayList(), transform)
+}
+
+inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transform: (row: QueryRowSet) -> R): C {
+    for (row in this) destination += transform(row)
+    return destination
+}
+
+inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List<R> {
+    return mapNotNullTo(ArrayList(), transform)
+}
+
+inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
+    destination: C,
+    transform: (row: QueryRowSet) -> R?
+): C {
+    forEach { row -> transform(row)?.let { destination += it } }
+    return destination
+}
+
+inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
+    return mapIndexedTo(ArrayList(), transform)
+}
+
+inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
+    destination: C,
+    transform: (index: Int, row: QueryRowSet) -> R
+): C {
+    var index = 0
+    return mapTo(destination) { row -> transform(index++, row) }
+}
+
+inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
+    return mapIndexedNotNullTo(ArrayList(), transform)
+}
+
+inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
+    destination: C,
+    transform: (index: Int, row: QueryRowSet) -> R?
+): C {
+    forEachIndexed { index, row -> transform(index, row)?.let { destination += it } }
+    return destination
+}
+
+inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List<R> {
+    return flatMapTo(ArrayList(), transform)
+}
+
+inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
+    destination: C,
+    transform: (row: QueryRowSet) -> Iterable<R>
+): C {
+    for (row in this) {
+        val list = transform(row)
+        destination.addAll(list)
+    }
+    return destination
+}
+
+inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
+    return asIterable().associate(transform)
+}
+
+inline fun <K, V> Query.associateBy(
+    keySelector: (row: QueryRowSet) -> K,
+    valueTransform: (row: QueryRowSet) -> V
+): Map<K, V> {
+    return asIterable().associateBy(keySelector, valueTransform)
+}
+
+inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
+    destination: M,
+    transform: (row: QueryRowSet) -> Pair<K, V>
+): M {
+    return asIterable().associateTo(destination, transform)
+}
+
+inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
+    destination: M,
+    keySelector: (row: QueryRowSet) -> K,
+    valueTransform: (row: QueryRowSet) -> V
+): M {
+    return asIterable().associateByTo(destination, keySelector, valueTransform)
+}
+
+inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
+    var accumulator = initial
+    for (row in this) accumulator = operation(accumulator, row)
+    return accumulator
+}
+
+inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
+    var index = 0
+    var accumulator = initial
+    for (row in this) accumulator = operation(index++, accumulator, row)
+    return accumulator
+}
+
+fun <A : Appendable> Query.joinTo(
+    buffer: A,
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: (row: QueryRowSet) -> CharSequence
+): A {
+    buffer.append(prefix)
+    var count = 0
+    for (row in this) {
+        if (++count > 1) buffer.append(separator)
+        if (limit < 0 || count <= limit) {
+            buffer.append(transform(row))
+        } else {
+            buffer.append(truncated)
+            break
+        }
+    }
+    buffer.append(postfix)
+    return buffer
+}
+
+fun Query.joinToString(
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "...",
+    transform: (row: QueryRowSet) -> CharSequence
+): String {
+    return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }

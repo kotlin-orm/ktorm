@@ -1,0 +1,7 @@
+
+dependencies {
+    compile project(":ktorm-core")
+    compileOnly "org.springframework:spring-jdbc:5.0.10.RELEASE"
+    compileOnly "org.springframework:spring-tx:5.0.10.RELEASE"
+    testCompile project(path: ":ktorm-core", configuration: "testOutput")
+}

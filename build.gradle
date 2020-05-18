@@ -41,6 +41,9 @@ subprojects { project ->
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
         kotlinOptions.jvmTarget = "1.6"
         kotlinOptions.allWarningsAsErrors = true
+        kotlinOptions.freeCompilerArgs = [
+            "-Xuse-experimental=kotlin.contracts.ExperimentalContracts"
+        ]
     }
 
     task generateSourcesJar(type: Jar) {
@@ -102,6 +105,16 @@ subprojects { project ->
                             id = "Ray-Eldath"
                             name = "Ray Eldath"
                             email = "ray.eldath@outlook.com"
+                        }
+                        developer {
+                            id = "hangingman"
+                            name = "hiroyuki.nagata"
+                            email = "idiotpanzer@gmail.com"
+                        }
+                        developer {
+                            id = "onXoot"
+                            name = "beetlerx"
+                            email = "beetlerx@gmail.com"
                         }
                         developer {
                             id = "arustleund"

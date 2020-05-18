@@ -21,9 +21,8 @@ import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.properties.ReadOnlyProperty
+import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.jvmErasure
 
 /**
@@ -47,10 +46,10 @@ import kotlin.reflect.jvm.jvmErasure
  *     val hireDate: LocalDate
  * )
  * object Staffs : BaseTable<Staff>("t_employee") {
- *     val id by int("id").primaryKey()
- *     val name by varchar("name")
- *     val job by varchar("job")
- *     val hireDate by date("hire_date")
+ *     val id = int("id").primaryKey()
+ *     val name = varchar("name")
+ *     val job = varchar("job")
+ *     val hireDate = date("hire_date")
  *     override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = Staff(
  *         id = row[id] ?: 0,
  *         name = row[name].orEmpty(),
@@ -62,30 +61,32 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * @since 2.5
  */
-@Suppress("CanBePrimaryConstructorProperty", "UNCHECKED_CAST")
 abstract class BaseTable<E : Any>(
     tableName: String,
     alias: String? = null,
     entityClass: KClass<E>? = null
 ) : TypeReference<E>() {
 
-    private val _refCounter = AtomicInteger()
+    private val _refCounter = RefCounterContext.getCounter() ?: AtomicInteger()
     private val _columns = LinkedHashMap<String, Column<*>>()
-    private var _primaryKeyName: String? = null
+    private val _primaryKeyNames = LinkedHashSet<String>()
 
     /**
      * The table's name.
      */
+    @Suppress("CanBePrimaryConstructorProperty")
     val tableName: String = tableName
 
     /**
      * The table's alias.
      */
+    @Suppress("CanBePrimaryConstructorProperty")
     val alias: String? = alias
 
     /**
      * The entity class this table is bound to.
      */
+    @Suppress("UNCHECKED_CAST")
     val entityClass: KClass<E>? =
         (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
@@ -95,9 +96,23 @@ abstract class BaseTable<E : Any>(
     val columns: List<Column<*>> get() = _columns.values.toList()
 
     /**
-     * The primary key column of this table.
+     * The primary key columns of this table.
      */
-    val primaryKey: Column<*>? get() = _primaryKeyName?.let { this[it] }
+    val primaryKeys: List<Column<*>> get() = _primaryKeyNames.map { this[it] }
+
+    /**
+     * Obtain the single primary key or throw an exception.
+     */
+    internal inline fun singlePrimaryKey(errMsg: () -> String): Column<*> {
+        val primaryKeys = primaryKeys
+        if (primaryKeys.isEmpty()) {
+            error("Table $tableName doesn't have a primary key.")
+        }
+        if (primaryKeys.size > 1) {
+            error(errMsg())
+        }
+        return primaryKeys[0]
+    }
 
     /**
      * Obtain a column from this table by the name.
@@ -109,154 +124,148 @@ abstract class BaseTable<E : Any>(
     /**
      * Register a column to this table with the given [name] and [sqlType].
      *
-     * This function returns a [ColumnRegistration], we can perform more modifications to the registered column by
-     * calling the returned object, such as configure a binding, mark it as the primary key, and so on.
+     * This function returns the registered column, we can perform more modifications to the column such as configure
+     * a binding, mark it as a primary key, and so on. But please note that [Column] is immutable, those modification
+     * functions will create new [Column] instances and replace the origin registered ones.
      */
-    fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): ColumnRegistration<C> {
+    fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): Column<C> {
         if (name in _columns) {
-            throw IllegalArgumentException("Duplicate column name: $name")
+            throw IllegalStateException("Duplicate column name: $name")
         }
 
-        _columns[name] = Column(this, name, sqlType = sqlType)
-        return ColumnRegistration(name)
+        val column = Column(this, name, sqlType = sqlType)
+        _columns[name] = column
+        return column
     }
 
     /**
-     * Mark the registered column as the primary key.
+     * Mark the registered column as a primary key.
      */
-    fun <C : Any> ColumnRegistration<C>.primaryKey(): ColumnRegistration<C> {
-        if (_primaryKeyName != null) {
-            throw IllegalStateException(
-                "Column '$_primaryKeyName' has been configured as the primary key, so you cannot configure another one."
-            )
-        }
-
-        _primaryKeyName = columnName
+    fun <C : Any> Column<C>.primaryKey(): Column<C> {
+        checkRegistered()
+        _primaryKeyNames += name
         return this
+    }
+
+    private fun <C : Any> Column<C>.checkRegistered() {
+        if (name !in _columns) {
+            throw IllegalStateException("The column $name was not registered to table $tableName.")
+        }
+    }
+
+    private fun <C : Any> Column<C>.checkTransformable() {
+        if (binding != null || extraBindings.isNotEmpty()) {
+            throw IllegalStateException("Cannot transform a column after its bindings are configured.")
+        }
     }
 
     /**
      * Transform the registered column's [SqlType] to another. The transformed [SqlType] has the same `typeCode` and
      * `typeName` as the underlying one, and performs the specific transformations on column values.
      *
-     * This function enables a user-friendly syntax to extend more data types. For example, the following code defines
-     * a column of type `Column<UserRole>`, based on the existing column definition function [int]:
+     * This enables a user-friendly syntax to extend more data types. For example, the following code defines a column
+     * of type `Column<UserRole>`, based on the existing column definition function [int]:
      *
      * ```kotlin
-     * val role by int("role").transform({ UserRole.fromCode(it) }, { it.code })
+     * val role = int("role").transform({ UserRole.fromCode(it) }, { it.code })
      * ```
+     *
+     * Note: Since [Column] is immutable, this function will create a new [Column] instance and replace the origin
+     * registered one.
      *
      * @param fromUnderlyingValue a function that transforms a value of underlying type to the user's type.
      * @param toUnderlyingValue a function that transforms a value of user's type the to the underlying type.
-     * @return this column registration with its type changed to [R].
+     * @return the new [Column] instance with its type changed to [R].
      * @see SqlType.transform
      */
-    fun <C : Any, R : Any> ColumnRegistration<C>.transform(
+    fun <C : Any, R : Any> Column<C>.transform(
         fromUnderlyingValue: (C) -> R,
         toUnderlyingValue: (R) -> C
-    ): ColumnRegistration<R> {
-        val column = getColumn()
-        if (column.binding != null || column.extraBindings.isNotEmpty()) {
-            throw IllegalStateException("Cannot transform a column after its bindings are configured.")
-        }
+    ): Column<R> {
+        checkRegistered()
+        checkTransformable()
 
-        val transformedType = column.sqlType.transform(fromUnderlyingValue, toUnderlyingValue)
-        _columns[columnName] = Column(column.table, column.name, sqlType = transformedType)
-        return this as ColumnRegistration<R>
+        val result = Column(table, name, sqlType = sqlType.transform(fromUnderlyingValue, toUnderlyingValue))
+        _columns[name] = result
+        return result
     }
 
     /**
-     * Wrap a new registered column, providing more operations, such as configure a binding, mark it as
-     * the primary key, and so on.
-     *
-     * This class implements the [ReadOnlyProperty] interface, so it can be used as a property delegate,
-     * and the delegate returns the registered column. For example:
-     *
-     * ```kotlin
-     * val foo by registerColumn("foo", IntSqlType)
-     * ```
-     *
-     * Here, the `registerColumn` function returns a `ColumnRegistration<Int>` and the `foo` property's
-     * type is `Column<Int>`.
+     * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm
+     * library and its extension modules. Others should not use this function directly.
      */
-    inner class ColumnRegistration<C : Any>(val columnName: String) : ReadOnlyProperty<BaseTable<E>, Column<C>> {
+    @PublishedApi
+    internal fun <C : Any> Column<C>.doBindInternal(binding: ColumnBinding): Column<C> {
+        checkRegistered()
+        checkConflictBinding(binding)
 
-        /**
-         * Return the registered column.
-         */
-        override operator fun getValue(thisRef: BaseTable<E>, property: KProperty<*>): Column<C> {
-            check(thisRef === this@BaseTable)
-            return getColumn()
+        val b = when (binding) {
+            is NestedBinding -> binding
+            is ReferenceBinding -> {
+                checkReferencePrimaryKey(binding.referenceTable)
+                checkCircularReference(binding.referenceTable)
+                ReferenceBinding(copyReferenceTable(binding.referenceTable), binding.onProperty)
+            }
         }
 
-        /**
-         * Return the registered column.
-         */
-        fun getColumn(): Column<C> {
-            val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
-            return column as Column<C>
+        val result = if (this.binding == null) this.copy(binding = b) else this.copy(extraBindings = extraBindings + b)
+        _columns[name] = result
+        return result
+    }
+
+    private fun <C : Any> Column<C>.checkConflictBinding(binding: ColumnBinding) {
+        for (column in _columns.values) {
+            val hasConflict = when (binding) {
+                is NestedBinding -> column.allBindings
+                    .filterIsInstance<NestedBinding>()
+                    .filter { it.properties == binding.properties }
+                    .any()
+                is ReferenceBinding -> column.allBindings
+                    .filterIsInstance<ReferenceBinding>()
+                    .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
+                    .filter { it.onProperty == binding.onProperty }
+                    .any()
+            }
+
+            if (hasConflict) {
+                throw IllegalStateException(
+                    "Column '$name' and '${column.name}' are bound to the same property. Please check your code."
+                )
+            }
+        }
+    }
+
+    private fun checkReferencePrimaryKey(refTable: BaseTable<*>) {
+        val primaryKeys = refTable.primaryKeys
+        if (primaryKeys.isEmpty()) {
+            throw IllegalStateException(
+                "Cannot reference the table ${refTable.tableName} because it doesn't have a primary key."
+            )
+        }
+        if (primaryKeys.size > 1) {
+            throw IllegalStateException(
+                "Cannot reference the table ${refTable.tableName} because it has compound primary keys."
+            )
+        }
+    }
+
+    private fun checkCircularReference(root: BaseTable<*>, stack: LinkedList<String> = LinkedList()) {
+        stack.push(root.tableName)
+
+        if (tableName == root.tableName) {
+            throw IllegalStateException(
+                "Circular reference detected, current table: $tableName, reference route: ${stack.asReversed()}"
+            )
         }
 
-        /**
-         * Configure the binding of the registered column. Note that this function is only used internally by the Ktorm
-         * library and its extension modules. Others should not use this function directly.
-         */
-        @PublishedApi
-        internal fun doBindInternal(binding: ColumnBinding): ColumnRegistration<C> {
-            for (column in _columns.values) {
-                val hasConflict = when (binding) {
-                    is NestedBinding -> column.allBindings
-                        .filterIsInstance<NestedBinding>()
-                        .any { it.properties == binding.properties }
-                    is ReferenceBinding -> column.allBindings
-                        .filterIsInstance<ReferenceBinding>()
-                        .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
-                        .any { it.onProperty == binding.onProperty }
-                }
-
-                if (hasConflict) {
-                    throw IllegalStateException(
-                        "Column '$columnName' and '${column.name}' have the same bindings. Please check your code."
-                    )
-                }
+        for (column in root.columns) {
+            val ref = column.referenceTable
+            if (ref != null) {
+                checkCircularReference(ref, stack)
             }
-
-            val b = when (binding) {
-                is NestedBinding -> binding
-                is ReferenceBinding -> {
-                    checkCircularReference(binding.referenceTable)
-                    ReferenceBinding(copyReferenceTable(binding.referenceTable), binding.onProperty)
-                }
-            }
-
-            val column = _columns[columnName] ?: throw NoSuchElementException(columnName)
-
-            if (column.binding == null) {
-                _columns[columnName] = column.copy(binding = b)
-            } else {
-                _columns[columnName] = column.copy(extraBindings = column.extraBindings + b)
-            }
-
-            return this
         }
 
-        private fun checkCircularReference(root: BaseTable<*>, stack: LinkedList<String> = LinkedList()) {
-            stack.push(root.tableName)
-
-            if (tableName == root.tableName) {
-                val msg = "Circular reference detected, current table: %s, reference route: %s"
-                throw IllegalArgumentException(msg.format(tableName, stack.asReversed()))
-            }
-
-            for (column in root.columns) {
-                val ref = column.referenceTable
-                if (ref != null) {
-                    checkCircularReference(ref, stack)
-                }
-            }
-
-            stack.pop()
-        }
+        stack.pop()
     }
 
     /**
@@ -281,35 +290,22 @@ abstract class BaseTable<E : Any>(
      * Copy column definitions from [src] to this table.
      */
     protected fun copyDefinitionsFrom(src: BaseTable<*>) {
-        rewriteDefinitions(src.columns, src._primaryKeyName, copyReferences = true)
-    }
-
-    private fun rewriteDefinitions(columns: List<Column<*>>, primaryKeyName: String?, copyReferences: Boolean) {
-        _primaryKeyName = primaryKeyName
-        _columns.clear()
-
-        if (copyReferences) {
-            _refCounter.set(0)
+        if (_columns.isNotEmpty()) {
+            throw IllegalStateException("Cannot update the column definitions since the table is already initialized.")
         }
 
-        for (column in columns) {
-            val binding = column.binding?.let { if (copyReferences) copyBinding(it) else it }
-            val extraBindings = column.extraBindings.map { if (copyReferences) copyBinding(it) else it }
-            _columns[column.name] = column.copy(table = this, binding = binding, extraBindings = extraBindings)
+        _primaryKeyNames.addAll(src._primaryKeyNames)
+
+        for ((name, column) in src._columns) {
+            val binding = column.binding?.let { copyBinding(it) }
+            val extraBindings = column.extraBindings.map { copyBinding(it) }
+            _columns[name] = column.copy(table = this, binding = binding, extraBindings = extraBindings)
         }
     }
 
     private fun copyReferenceTable(table: BaseTable<*>): BaseTable<*> {
-        val copy = table.aliased("_ref${_refCounter.getAndIncrement()}")
-
-        val columns = copy.columns.map { column ->
-            val binding = column.binding?.let { copyBinding(it) }
-            val extraBindings = column.extraBindings.map { copyBinding(it) }
-            column.copy(binding = binding, extraBindings = extraBindings)
-        }
-
-        copy.rewriteDefinitions(columns, copy._primaryKeyName, copyReferences = false)
-        return copy
+        RefCounterContext.setCounter(_refCounter)
+        return table.aliased("_ref${_refCounter.getAndIncrement()}")
     }
 
     private fun copyBinding(binding: ColumnBinding): ColumnBinding {
@@ -344,29 +340,10 @@ abstract class BaseTable<E : Any>(
     }
 
     /**
-     * Create an entity object from the specific row without obtaining referenced entities' data automatically.
-     *
-     * Similar to [createEntity], this function uses the binding configurations of this table object, filling
-     * columns' values into corresponding entities' properties. But differently, it treats all reference bindings
-     * as nested bindings to the referenced entities’ primary keys.
-     *
-     * For example the binding `c.references(Departments) { it.department }`, it is equivalent to
-     * `c.bindTo { it.department.id }` in this case, that avoids unnecessary object creations and
-     * some exceptions raised by conflict column names.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future. Use createEntity(row, withReferences = false) instead.",
-        replaceWith = ReplaceWith("createEntity(row, withReferences = false)")
-    )
-    fun createEntityWithoutReferences(row: QueryRowSet): E {
-        return createEntity(row, withReferences = false)
-    }
-
-    /**
      * Create an entity object from the specific row of query results.
      *
-     * This function is called by [createEntity] and [createEntityWithoutReferences]. Subclasses should override it
-     * and implement the actual logic of retrieving an entity object from the query results.
+     * This function is called by [createEntity]. Subclasses should override it and implement the actual logic of
+     * retrieving an entity object from the query results.
      */
     protected abstract fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): E
 

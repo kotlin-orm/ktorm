@@ -11,7 +11,7 @@ class JoinTest : BaseTest() {
     @Test
     fun testCrossJoin() {
         val query = database.from(Employees).crossJoin(Departments).select()
-        assert(query.count() == 8)
+        assert(query.rowSet.size() == 8)
     }
 
     @Test

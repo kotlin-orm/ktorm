@@ -50,45 +50,6 @@ data class InsertOrUpdateExpression(
  * Usage:
  *
  * ```kotlin
- * Employees.insertOrUpdate {
- *     it.id to 1
- *     it.name to "vince"
- *     it.job to "engineer"
- *     it.salary to 1000
- *     it.hireDate to LocalDate.now()
- *     it.departmentId to 1
- *     onDuplicateKey {
- *         it.salary to it.salary + 900
- *     }
- * }
- * ```
- *
- * Generated SQL:
- *
- * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
- * ```
- *
- * @param block the DSL block used to construct the expression.
- * @return the effected row count.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.insertOrUpdate(table) {...} instead.",
-    replaceWith = ReplaceWith("database.insertOrUpdate(this, block)")
-)
-fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
-    return Database.global.insertOrUpdate(this, block)
-}
-
-/**
- * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
- * performs an update if any conflict exists.
- *
- * Usage:
- *
- * ```kotlin
  * database.insertOrUpdate(Employees) {
  *     it.id to 1
  *     it.name to "vince"
@@ -118,12 +79,15 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
     val assignments = ArrayList<ColumnAssignmentExpression<*>>()
     val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(table) }
 
-    val primaryKey = table.primaryKey ?: error("Table ${table.tableName} doesn't have a primary key.")
+    val primaryKeys = table.primaryKeys
+    if (primaryKeys.isEmpty()) {
+        error("Table ${table.tableName} doesn't have a primary key.")
+    }
 
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = assignments,
-        conflictTarget = listOf(primaryKey.asExpression()),
+        conflictTarget = primaryKeys.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
 

@@ -34,34 +34,6 @@ import kotlin.collections.ArrayList
  * Usage:
  *
  * ```kotlin
- * Employees.update {
- *     it.job to "engineer"
- *     it.managerId to null
- *     it.salary to 100
- *     where {
- *         it.id eq 2
- *     }
- * }
- * ```
- *
- * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
- * @return the effected row count.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.update(table) {...} instead.",
-    replaceWith = ReplaceWith("database.update(this, block)")
-)
-fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
-    return Database.global.update(this, block)
-}
-
-/**
- * Construct an update expression in the given closure, then execute it and return the effected row count.
- *
- * Usage:
- *
- * ```kotlin
  * database.update(Employees) {
  *     it.job to "engineer"
  *     it.managerId to null
@@ -86,40 +58,6 @@ fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(
     )
 
     return executeUpdate(expression)
-}
-
-/**
- * Construct update expressions in the given closure, then batch execute them and return the effected
- * row counts for each expression.
- *
- * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
- * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
- *
- * Usage:
- *
- * ```kotlin
- * Departments.batchUpdate {
- *     for (i in 1..2) {
- *         item {
- *             it.location to "Hong Kong"
- *             where {
- *                 it.id eq i
- *             }
- *         }
- *     }
- * }
- * ```
- *
- * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
- * @return the effected row counts for each sub-operation.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.batchUpdate(table) {...} instead.",
-    replaceWith = ReplaceWith("database.batchUpdate(this, block)")
-)
-fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
-    return Database.global.batchUpdate(this, block)
 }
 
 /**
@@ -166,34 +104,6 @@ fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatemen
  * Usage:
  *
  * ```kotlin
- * Employees.insert {
- *     it.name to "jerry"
- *     it.job to "trainee"
- *     it.managerId to 1
- *     it.hireDate to LocalDate.now()
- *     it.salary to 50
- *     it.departmentId to 1
- * }
- * ```
- *
- * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
- * @return the effected row count.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.insert(table) {...} instead.",
-    replaceWith = ReplaceWith("database.insert(this, block)")
-)
-fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
-    return Database.global.insert(this, block)
-}
-
-/**
- * Construct an insert expression in the given closure, then execute it and return the effected row count.
- *
- * Usage:
- *
- * ```kotlin
  * database.insert(Employees) {
  *     it.name to "jerry"
  *     it.job to "trainee"
@@ -215,48 +125,6 @@ fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -
 
     val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
     return executeUpdate(expression)
-}
-
-/**
- * Construct insert expressions in the given closure, then batch execute them and return the effected
- * row counts for each expression.
- *
- * Note that this function is implemented based on [Statement.addBatch] and [Statement.executeBatch],
- * and any item in a batch operation must have the same structure, otherwise an exception will be thrown.
- *
- * Usage:
- *
- * ```kotlin
- * Employees.batchInsert {
- *     item {
- *         it.name to "jerry"
- *         it.job to "trainee"
- *         it.managerId to 1
- *         it.hireDate to LocalDate.now()
- *         it.salary to 50
- *         it.departmentId to 1
- *     }
- *     item {
- *         it.name to "linda"
- *         it.job to "assistant"
- *         it.managerId to 3
- *         it.hireDate to LocalDate.now()
- *         it.salary to 100
- *         it.departmentId to 2
- *     }
- * }
- * ```
- *
- * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
- * @return the effected row counts for each sub-operation.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.batchInsert(table) {...} instead.",
-    replaceWith = ReplaceWith("database.batchInsert(this, block)")
-)
-fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
-    return Database.global.batchInsert(this, block)
 }
 
 /**
@@ -314,37 +182,6 @@ fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatemen
  * Usage:
  *
  * ```kotlin
- * val id = Employees.insertAndGenerateKey {
- *     it.name to "jerry"
- *     it.job to "trainee"
- *     it.managerId to 1
- *     it.hireDate to LocalDate.now()
- *     it.salary to 50
- *     it.departmentId to 1
- * }
- * ```
- *
- * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
- * @return the first auto-generated key.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Use database.insertAndGenerateKey(table) {...} instead.",
-    replaceWith = ReplaceWith("database.insertAndGenerateKey(this, block)")
-)
-fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
-    return Database.global.insertAndGenerateKey(this, block)
-}
-
-/**
- * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
- *
- * This function assumes that at least one auto-generated key will be returned, and that the first key in
- * the result set will be the primary key for the row.
- *
- * Usage:
- *
- * ```kotlin
  * val id = database.insertAndGenerateKey(Employees) {
  *     it.name to "jerry"
  *     it.job to "trainee"
@@ -368,8 +205,8 @@ fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Assignment
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
     if (rowSet.next()) {
-        val sqlType = table.primaryKey?.sqlType ?: error("Table ${table.tableName} must have a primary key.")
-        val generatedKey = sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
+        val pk = table.singlePrimaryKey { "Key retrieval is not supported for compound primary keys." }
+        val generatedKey = pk.sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
 
         if (logger.isDebugEnabled()) {
             logger.debug("Generated Key: $generatedKey")
@@ -395,18 +232,6 @@ fun Query.insertTo(table: BaseTable<*>, vararg columns: Column<*>): Int {
 }
 
 /**
- * Delete the records in the table that matches the given [predicate].
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.delete(table) {...} instead.",
-    replaceWith = ReplaceWith("database.delete(this, predicate)")
-)
-fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
-    return Database.global.delete(this, predicate)
-}
-
-/**
  * Delete the records in the [table] that matches the given [predicate].
  *
  * @since 2.7
@@ -414,18 +239,6 @@ fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int
 fun <T : BaseTable<*>> Database.delete(table: T, predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), predicate(table).asExpression()))
     return executeUpdate(expression)
-}
-
-/**
- * Delete all the records in the table.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.deleteAll(table) instead.",
-    replaceWith = ReplaceWith("database.deleteAll(this)")
-)
-fun BaseTable<*>.deleteAll(): Int {
-    return Database.global.deleteAll(this)
 }
 
 /**

@@ -143,30 +143,6 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
 }
 
 /**
- * Create an [EntitySequence], auto left joining all the reference tables.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Please use database.sequenceOf(..) instead.",
-    replaceWith = ReplaceWith("database.sequenceOf(this)")
-)
-fun <E : Any, T : BaseTable<E>> T.asSequence(): EntitySequence<E, T> {
-    return Database.global.sequenceOf(this)
-}
-
-/**
- * Create an [EntitySequence] without left joining reference tables.
- */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "This function will be removed in the future. Use database.sequenceOf(.., withReferences=false) instead.",
-    replaceWith = ReplaceWith("database.sequenceOf(this, withReferences = false)")
-)
-fun <E : Any, T : BaseTable<E>> T.asSequenceWithoutReferences(): EntitySequence<E, T> {
-    return Database.global.sequenceOf(this, withReferences = false)
-}
-
-/**
  * Create an [EntitySequence] from the specific table.
  *
  * @since 2.7
@@ -343,7 +319,19 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
     destination: C,
     transform: (E) -> R
 ): C {
-    for (item in this) destination += transform(item)
+    for (element in this) destination += transform(element)
+    return destination
+}
+
+inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> R?): List<R> {
+    return mapNotNullTo(ArrayList(), transform)
+}
+
+inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapNotNullTo(
+    destination: C,
+    transform: (E) -> R?
+): C {
+    forEach { element -> transform(element)?.let { destination += it } }
     return destination
 }
 
@@ -375,6 +363,33 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapInd
 ): C {
     var index = 0
     return mapTo(destination) { transform(index++, it) }
+}
+
+inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: (index: Int, E) -> R?): List<R> {
+    return mapIndexedNotNullTo(ArrayList(), transform)
+}
+
+inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedNotNullTo(
+    destination: C,
+    transform: (index: Int, E) -> R?
+): C {
+    forEachIndexed { index, element -> transform(index, element)?.let { destination += it } }
+    return destination
+}
+
+inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R> {
+    return flatMapTo(ArrayList(), transform)
+}
+
+inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapTo(
+    destination: C,
+    transform: (E) -> Iterable<R>
+): C {
+    for (element in this) {
+        val list = transform(element)
+        destination.addAll(list)
+    }
+    return destination
 }
 
 /**
@@ -1108,7 +1123,7 @@ inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, 
  * The operation is terminal.
  */
 inline fun <E : Any> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
-    for (item in this) action(item)
+    for (element in this) action(element)
 }
 
 /**
@@ -1120,7 +1135,11 @@ inline fun <E : Any> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
  */
 inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
     var index = 0
-    for (item in this) action(index++, item)
+    for (element in this) action(index++, element)
+}
+
+fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
+    return asKotlinSequence().withIndex()
 }
 
 /**
