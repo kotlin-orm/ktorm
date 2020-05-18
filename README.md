@@ -26,7 +26,7 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
 For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
 
-:us: English | :cn: [简体中文](README_cn.md)
+:us: English | :cn: [简体中文](README_cn.md) | :jp: [日本語](README_jp.md)
 
 # Features
 
