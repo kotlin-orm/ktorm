@@ -177,7 +177,7 @@ class PostgreSqlTest : BaseTest() {
         testHstoreGetValue("c", null)
     }
 
-    private fun testHstoreGetValue(key: String, expectedValue: String?) = testHstoreOperator(ColumnDeclaring<Hstore>::getValue, key, expectedValue)
+    private fun testHstoreGetValue(key: String, expectedValue: String?) = testHstoreOperator({ column, param -> column[param] }, key, expectedValue)
 
     private fun <ParamT : Any, ResultT : Any> testHstoreOperator(
         operator: (ColumnDeclaring<Hstore>, ParamT) -> ScalarExpression<ResultT>,
@@ -195,15 +195,15 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHstoreGetValues() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHstoreOperator(ColumnDeclaring<Hstore>::getValues, arrayOfAC, arrayOf("1", null))
+        testHstoreOperator({ column, param -> column[param] }, arrayOfAC, arrayOf("1", null))
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHstoreOperator(ColumnDeclaring<Hstore>::getValues, arrayOfBD, arrayOf("2", null))
+        testHstoreOperator({ column, param -> column[param] }, arrayOfBD, arrayOf("2", null))
     }
 
     @Test
     fun testHstoreConcat() {
         database.update(Metadatas) {
-            Metadatas.attributes to (Metadatas.attributes concat mapOf(Pair("d", "4"), Pair("e", null)))
+            Metadatas.attributes to (Metadatas.attributes + mapOf(Pair("d", "4"), Pair("e", null)))
             where { it.id eq 1 }
         }
         val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
@@ -258,7 +258,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHstoreDeleteKey() {
         database.update(Metadatas) {
-            Metadatas.attributes to (Metadatas.attributes delKey "b")
+            Metadatas.attributes to (Metadatas.attributes - "b")
             where { it.id eq 1 }
         }
         val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
@@ -269,7 +269,7 @@ class PostgreSqlTest : BaseTest() {
     fun testHstoreDeleteKeys() {
         database.update(Metadatas) {
             val keysToDelete = arrayOf<String?>("b", "c")
-            Metadatas.attributes to (Metadatas.attributes delKeys keysToDelete)
+            Metadatas.attributes to (Metadatas.attributes - keysToDelete)
             where { it.id eq 1 }
         }
         val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
