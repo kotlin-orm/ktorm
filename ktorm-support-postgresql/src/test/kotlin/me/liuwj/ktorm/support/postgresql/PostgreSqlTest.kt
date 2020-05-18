@@ -275,4 +275,28 @@ class PostgreSqlTest : BaseTest() {
         val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
         assertThat(updatedAttributes, equalTo(mapOf<String, String?>(Pair("a", "1"))))
     }
+
+    @Test
+    fun testHstoreDeleteMatching() {
+        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), mapOf())
+        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2")), mapOf(Pair("c", null)))
+        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("c", null)), mapOf(Pair("b", "2")))
+        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "5")), mapOf(Pair("b", "2"), Pair("c", null)))
+        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "2")), mapOf(Pair("b", "2"), Pair("c", null)))
+        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "4")), mapOf(Pair("b", "2"), Pair("c", null)))
+    }
+
+    fun testHstoreDeleteMatching(toDelete: Hstore, expectedResult: Hstore) {
+        database.update(Metadatas) {
+            Metadatas.attributes to (Metadatas.attributes - toDelete)
+            where { it.id eq 1 }
+        }
+        val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
+        assertThat(updatedAttributes, equalTo(expectedResult))
+        // restore missing values
+        database.update(Metadatas) {
+            Metadatas.attributes to (Metadatas.attributes + mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)))
+            where { it.id eq 1 }
+        }
+    }
 }
