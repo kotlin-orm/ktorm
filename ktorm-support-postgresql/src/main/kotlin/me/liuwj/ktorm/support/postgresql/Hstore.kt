@@ -229,7 +229,8 @@ infix fun ColumnDeclaring<Hstore>.containedIn(value: Hstore): HstoreBinaryExpres
  * Hstore delete key operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusKey")
-infix operator fun ColumnDeclaring<Hstore>.minus(expr: ColumnDeclaring<String>): HstoreBinaryExpression<String, Hstore> {
+infix operator fun ColumnDeclaring<Hstore>.minus(expr: ColumnDeclaring<String>):
+        HstoreBinaryExpression<String, Hstore> {
     return HstoreBinaryExpression(DeleteKey, asExpression(), expr.asExpression())
 }
 
@@ -244,7 +245,8 @@ infix operator fun ColumnDeclaring<Hstore>.minus(value: String): HstoreBinaryExp
  * Hstore delete keys operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusKeys")
-infix operator fun ColumnDeclaring<Hstore>.minus(expr: ColumnDeclaring<TextArray>): HstoreBinaryExpression<TextArray, Hstore> {
+infix operator fun ColumnDeclaring<Hstore>.minus(expr: ColumnDeclaring<TextArray>):
+        HstoreBinaryExpression<TextArray, Hstore> {
     return HstoreBinaryExpression(DeleteKeys, asExpression(), expr.asExpression())
 }
 
@@ -259,7 +261,8 @@ infix operator fun ColumnDeclaring<Hstore>.minus(value: TextArray): HstoreBinary
  * Hstore delete matching pairs operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusMatching")
-infix operator fun ColumnDeclaring<Hstore>.minus(expr: ColumnDeclaring<Hstore>): HstoreBinaryExpression<Hstore, Hstore> {
+infix operator fun ColumnDeclaring<Hstore>.minus(expr: ColumnDeclaring<Hstore>):
+        HstoreBinaryExpression<Hstore, Hstore> {
     return HstoreBinaryExpression(DeleteMatchingPairs, asExpression(), expr.asExpression())
 }
 
