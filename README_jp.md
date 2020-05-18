@@ -90,8 +90,6 @@ fun main() {
 }
 ````
 
-Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use the for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` are also available, eg. map/filter/reduce provided by Kotlin standard lib.
-
 このプログラムを実行すると、Ktormは `select * from t_employee` というSQL文を生成し、テーブル内のすべての従業員を選択して名前を表示します。`select` 関数が返すクエリオブジェクトは `Iterable<T>` インターフェースを実装しているので、for-eachループを使うことができます。Kotlin標準ライブラリで提供されている`map/filter/reduce`などの`Iterable<T>`の拡張関数も利用できます。
 
 ## SQL DSL
@@ -274,8 +272,6 @@ val sequence = database.sequenceOf(Employees)
 val employee = sequence.find { it.name eq "vince" }
 ```
 
-We can also filter the sequence by the function `filter`. For example, obtaining all the employees whose names are vince: 
-
 また、`filter`関数でシーケンスをフィルタリングすることもできます。たとえば、名前が`vince`であるすべての従業員を取得します。
 
 ```kotlin
@@ -331,7 +327,6 @@ Ktormは*Entity Sequence*という名前のAPIセットを提供しており、�
 
 ### 中間処理
 
-These functions don’t execute the internal queries but return new-created sequence objects applying some modifications. For example, the `filter` function creates a new sequence object with the filter condition given by its parameter. The following code obtains all the employees in department 1 by using `filter`:
 これらの関数は，内部クエリを実行するのではなく，いくつかの変更を加えて新たに作成されたシーケンスオブジェクトを返します。たとえば、`filter`関数はパラメータで与えられたフィルタ条件を持つ新しいシーケンスオブジェクトを生成します。以下のコードは、`filter`を用いて部門IDが1である全従業員を取得します。
 
 ```kotlin
