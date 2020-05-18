@@ -116,6 +116,11 @@ subprojects { project ->
                             name = "beetlerx"
                             email = "beetlerx@gmail.com"
                         }
+                        developer {
+                            id = "arustleund"
+                            name = "Andrew Rustleund"
+                            email = "andrew@rustleund.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/vincentlauvlwj/Ktorm.git"

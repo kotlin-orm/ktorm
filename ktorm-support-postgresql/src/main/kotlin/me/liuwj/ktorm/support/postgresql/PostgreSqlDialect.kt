@@ -49,12 +49,11 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
 
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
-            is ILikeExpression -> visitILike(expr)
+            is BinaryExpression<*, *, T> -> visitBinary(expr)
             else -> super.visitScalar(expr)
         }
 
-        @Suppress("UNCHECKED_CAST")
-        return result as ScalarExpression<T>
+        return result
     }
 
     override fun writePagination(expr: QueryExpression) {
@@ -70,7 +69,9 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         }
     }
 
-    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
+    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(
+        expr: BinaryExpression<LeftT, RightT, ReturnT>
+    ): BinaryExpression<LeftT, RightT, ReturnT> {
         if (expr.left.removeBrackets) {
             visit(expr.left)
         } else {
@@ -80,7 +81,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
             write(") ")
         }
 
-        write("ilike ")
+        write("${expr.operator} ")
 
         if (expr.right.removeBrackets) {
             visit(expr.right)
@@ -138,22 +139,22 @@ open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
 
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
-            is ILikeExpression -> visitILike(expr)
+            is BinaryExpression<*, *, T> -> visitBinary(expr)
             else -> super.visitScalar(expr)
         }
-
-        @Suppress("UNCHECKED_CAST")
-        return result as ScalarExpression<T>
+        return result
     }
 
-    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
+    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(
+        expr: BinaryExpression<LeftT, RightT, ReturnT>
+    ): BinaryExpression<LeftT, RightT, ReturnT> {
         val left = visitScalar(expr.left)
         val right = visitScalar(expr.right)
 
         if (left === expr.left && right === expr.right) {
             return expr
         } else {
-            return expr.copy(left = left, right = right)
+            return expr.copyWithNewOperands(left = left, right = right)
         }
     }
 
