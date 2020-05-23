@@ -370,14 +370,14 @@ fun Query.asIterable(): Iterable<QueryRowSet> {
 }
 
 /**
- * Perform the given [action] on each row of the query result.
+ * Perform the given [action] on each row of the query.
  */
 inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
     for (row in this) action(row)
 }
 
 /**
- * Perform the given [action] on each row of the query result, providing sequential index with the row.
+ * Perform the given [action] on each row of the query, providing sequential index with the row.
  *
  * @param [action] function that takes the index of a row and the row itself and performs the desired action on the row.
  */
@@ -387,7 +387,7 @@ inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) 
 }
 
 /**
- * Return a lazy [Iterable] that wraps each row of the query result into an [IndexedValue] containing the index of
+ * Return a lazy [Iterable] that wraps each row of the query into an [IndexedValue] containing the index of
  * that row and the row itself.
  */
 fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
@@ -409,19 +409,33 @@ internal class IndexingIterator<out T>(private val iterator: Iterator<T>) : Iter
     }
 }
 
+/**
+ * Return a list containing the results of applying the given [transform] function to each row of the query.
+ */
 inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
     return mapTo(ArrayList(), transform)
 }
 
+/**
+ * Apply the given [transform] function to each row of the query and append the results to the given [destination].
+ */
 inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transform: (row: QueryRowSet) -> R): C {
     for (row in this) destination += transform(row)
     return destination
 }
 
+/**
+ * Return a list containing only the non-null results of applying the given [transform] function to each row of
+ * the query.
+ */
 inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform)
 }
 
+/**
+ * Apply the given [transform] function to each row of the query and append only the non-null results to
+ * the given [destination].
+ */
 inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
     destination: C,
     transform: (row: QueryRowSet) -> R?
@@ -430,10 +444,22 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
     return destination
 }
 
+/**
+ * Return a list containing the results of applying the given [transform] function to each row and its index.
+ *
+ * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * applied to the row.
+ */
 inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
     return mapIndexedTo(ArrayList(), transform)
 }
 
+/**
+ * Apply the given [transform] function the each row and its index and append the results to the given [destination].
+ *
+ * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * applied to the row.
+ */
 inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
     destination: C,
     transform: (index: Int, row: QueryRowSet) -> R
@@ -442,10 +468,24 @@ inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
     return mapTo(destination) { row -> transform(index++, row) }
 }
 
+/**
+ * Return a list containing only the non-null results of applying the given [transform] function to each row
+ * and its index.
+ *
+ * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * applied to the row.
+ */
 inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
     return mapIndexedNotNullTo(ArrayList(), transform)
 }
 
+/**
+ * Apply the given [transform] function the each row and its index and append only the non-null results to
+ * the given [destination].
+ *
+ * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * applied to row. 
+ */
 inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     destination: C,
     transform: (index: Int, row: QueryRowSet) -> R?
