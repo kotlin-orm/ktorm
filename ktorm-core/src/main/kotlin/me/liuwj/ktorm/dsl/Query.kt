@@ -32,7 +32,7 @@ import java.sql.ResultSet
  * is running on; [expression] is the abstract representation of the executing SQL statement. Usually, we don't
  * use the constructor to create [Query] objects but use the `database.from(..).select(..)` syntax instead.
  *
- * [Query] implements the [Iterable] interface, so we can iterate the results by a for-each loop:
+ * [Query] provides a built-in [iterator], so we can iterate the results by a for-each loop:
  *
  * ```kotlin
  * for (row in database.from(Employees).select()) {
@@ -40,8 +40,9 @@ import java.sql.ResultSet
  * }
  * ```
  *
- * Moreover, there are many extension functions for [Iterable] in Kotlin standard lib, so we can also
- * process the results via functions such as [Iterable.map], [Iterable.filter], [Iterable.reduce], etc.
+ * Moreover, there are many extension functions that can help us easily process the query results, such as
+ * [Query.map], [Query.flatMap], [Query.associate], [Query.fold], etc. With the help of these functions, we can
+ * obtain rows from a query just like it's a common Kotlin collection.
  *
  * Query objects are immutable. Query DSL functions are provided as its extension functions normally. We can
  * chaining call these functions to modify them and create new query objects. Here is a simple example:
@@ -95,7 +96,7 @@ data class Query(val database: Database, val expression: QueryExpression) {
      *
      * If the query doesn't limits the results via [Query.limit] function, return the size of the result set. Or if
      * it does, return the total record count of the query ignoring the offset and limit parameters. This property
-     * is provided to support pagination, we can calculate the page count through dividing it by out page size.
+     * is provided to support pagination, we can calculate the page count through dividing it by our page size.
      */
     val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
         if (expression.offset == null && expression.limit == null) {
@@ -177,6 +178,9 @@ fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
 }
 
+/**
+ * Wrap this expression as a [ColumnDeclaringExpression].
+ */
 private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
     return when (this) {
         is ColumnDeclaringExpression -> this
@@ -232,13 +236,13 @@ inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boole
 /**
  * Combine this iterable of boolean expressions with the [and] operator.
  *
- * If the iterable is empty, `true` will be returned.
+ * If the iterable is empty, the param [ifEmpty] will be returned.
  */
-fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(): ColumnDeclaring<Boolean> {
+fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true): ColumnDeclaring<Boolean> {
     if (this.any()) {
         return this.reduce { a, b -> a and b }
     } else {
-        return ArgumentExpression(true, BooleanSqlType)
+        return ArgumentExpression(ifEmpty, BooleanSqlType)
     }
 }
 
@@ -358,21 +362,51 @@ fun Query.unionAll(right: Query): Query {
     return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = true))
 }
 
+/**
+ * Wrap this query as [Iterable].
+ */
 fun Query.asIterable(): Iterable<QueryRowSet> {
     return Iterable { iterator() }
 }
 
+/**
+ * Perform the given [action] on each row of the query result.
+ */
 inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
     for (row in this) action(row)
 }
 
+/**
+ * Perform the given [action] on each row of the query result, providing sequential index with the row.
+ *
+ * @param [action] function that takes the index of a row and the row itself and performs the desired action on the row.
+ */
 inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
     var index = 0
     for (row in this) action(index++, row)
 }
 
+/**
+ * Return a lazy [Iterable] that wraps each row of the query result into an [IndexedValue] containing the index of
+ * that row and the row itself.
+ */
 fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
-    return asIterable().withIndex()
+    return Iterable { IndexingIterator(iterator()) }
+}
+
+/**
+ * Iterator transforming original [iterator] into iterator of [IndexedValue], counting index from zero.
+ */
+internal class IndexingIterator<out T>(private val iterator: Iterator<T>) : Iterator<IndexedValue<T>> {
+    private var index = 0
+
+    override fun hasNext(): Boolean {
+        return iterator.hasNext()
+    }
+
+    override fun next(): IndexedValue<T> {
+        return IndexedValue(index++, iterator.next())
+    }
 }
 
 inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {

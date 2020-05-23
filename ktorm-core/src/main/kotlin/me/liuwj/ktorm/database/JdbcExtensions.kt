@@ -81,7 +81,7 @@ operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
  * Wrap this [ResultSet] as [Iterable].
  *
  * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
- * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
+ * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.flatMap], etc.
  *
  * @see ResultSet.iterator
  */
@@ -97,7 +97,7 @@ fun <T : ResultSet> T.iterable(): Iterable<T> {
  * Wrap this [ResultSet] as [Iterable].
  *
  * This function is useful when we want to iterate a result set by a for-each loop, or process it via extension
- * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.filter], etc.
+ * functions of Kotlin standard lib, such as [Iterable.map], [Iterable.flatMap], etc.
  *
  * @see ResultSet.iterator
  */
