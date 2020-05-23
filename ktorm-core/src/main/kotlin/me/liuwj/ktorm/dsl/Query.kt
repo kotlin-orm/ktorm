@@ -484,7 +484,7 @@ inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryR
  * the given [destination].
  *
  * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
- * applied to row. 
+ * applied to the row.
  */
 inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     destination: C,
@@ -494,10 +494,18 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     return destination
 }
 
+/**
+ * Return a single list of all elements yielded from results of [transform] function being invoked on each row
+ * of the query.
+ */
 inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList(), transform)
 }
 
+/**
+ * Append all elements yielded from results of [transform] function being invoked on each row of the query,
+ * to the given [destination].
+ */
 inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
     destination: C,
     transform: (row: QueryRowSet) -> Iterable<R>
