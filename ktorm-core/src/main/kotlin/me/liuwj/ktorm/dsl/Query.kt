@@ -569,12 +569,22 @@ inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
     return destination
 }
 
+/**
+ * Accumulate value starting with [initial] value and applying [operation] to current accumulator value and each row.
+ */
 inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
     var accumulator = initial
     for (row in this) accumulator = operation(accumulator, row)
     return accumulator
 }
 
+/**
+ * Accumulate value starting with [initial] value and applying [operation] to current accumulator value and each row
+ * with its index in the original query results.
+ *
+ * @param [operation] function that takes the index of a row, current accumulator value and the row itself,
+ * and calculates the next accumulator value.
+ */
 inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
     var index = 0
     var accumulator = initial
@@ -582,6 +592,12 @@ inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row
     return accumulator
 }
 
+/**
+ * Append the string from all rows separated using [separator] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the query result could be huge, you can specify a non-negative value of [limit], in which case only the first
+ * [limit] rows will be appended, followed by the [truncated] string (which defaults to "...").
+ */
 fun <A : Appendable> Query.joinTo(
     buffer: A,
     separator: CharSequence = ", ",
@@ -606,6 +622,12 @@ fun <A : Appendable> Query.joinTo(
     return buffer
 }
 
+/**
+ * Create a string from all rows separated using [separator] and using the given [prefix] and [postfix] if supplied.
+ *
+ * If the query result could be huge, you can specify a non-negative value of [limit], in which case only the first
+ * [limit] rows will be appended, followed by the [truncated] string (which defaults to "...").
+ */
 fun Query.joinToString(
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
