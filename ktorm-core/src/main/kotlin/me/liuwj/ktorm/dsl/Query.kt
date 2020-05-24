@@ -510,37 +510,63 @@ inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
     destination: C,
     transform: (row: QueryRowSet) -> Iterable<R>
 ): C {
-    for (row in this) {
-        val list = transform(row)
-        destination.addAll(list)
-    }
+    for (row in this) destination += transform(row)
     return destination
 }
 
+/**
+ * Return a [Map] containing key-value pairs provided by [transform] function applied to rows of the query.
+ *
+ * If any of two pairs would have the same key the last one gets added to the map.
+ *
+ * The returned map preserves the entry iteration order of the original query results.
+ */
 inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
-    return asIterable().associate(transform)
+    return associateTo(LinkedHashMap(), transform)
 }
 
+/**
+ * Return a [Map] containing the values provided by [valueTransform] and indexed by [keySelector] functions applied to
+ * rows of the query.
+ *
+ * If any two rows would have the same key returned by [keySelector] the last one gets added to the map.
+ *
+ * The returned map preserves the entry iteration order of the original query results.
+ */
 inline fun <K, V> Query.associateBy(
     keySelector: (row: QueryRowSet) -> K,
     valueTransform: (row: QueryRowSet) -> V
 ): Map<K, V> {
-    return asIterable().associateBy(keySelector, valueTransform)
+    return associateByTo(LinkedHashMap(), keySelector, valueTransform)
 }
 
+/**
+ * Populate and return the [destination] mutable map with key-value pairs provided by [transform] function applied to
+ * each row of the query.
+ *
+ * If any of two pairs would have the same key the last one gets added to the map.
+ */
 inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
     destination: M,
     transform: (row: QueryRowSet) -> Pair<K, V>
 ): M {
-    return asIterable().associateTo(destination, transform)
+    for (row in this) destination += transform(row)
+    return destination
 }
 
+/**
+ * Populate and return the [destination] mutable map with key-value pairs, where key is provided by the [keySelector]
+ * function and value is provided by the [valueTransform] function applied to rows of the query.
+ *
+ * If any two rows would have the same key returned by [keySelector] the last one gets added to the map.
+ */
 inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
     destination: M,
     keySelector: (row: QueryRowSet) -> K,
     valueTransform: (row: QueryRowSet) -> V
 ): M {
-    return asIterable().associateByTo(destination, keySelector, valueTransform)
+    for (row in this) destination.put(keySelector(row), valueTransform(row))
+    return destination
 }
 
 inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
