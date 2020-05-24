@@ -323,10 +323,22 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
     return destination
 }
 
+/**
+ * Return a [List] containing only the non-null results of applying the given [transform] function
+ * to each element in the original sequence.
+ *
+ * The operation is terminal.
+ */
 inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform)
 }
 
+/**
+ * Apply the given [transform] function to each element in the original sequence
+ * and append only the non-null results to the given [destination].
+ *
+ * The operation is terminal.
+ */
 inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapNotNullTo(
     destination: C,
     transform: (E) -> R?
@@ -365,10 +377,28 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapInd
     return mapTo(destination) { transform(index++, it) }
 }
 
+/**
+ * Return a [List] containing only the non-null results of applying the given [transform] function
+ * to each element and its index in the original sequence.
+ *
+ * The [transform] function takes the index of an element and the element itself and
+ * returns the result of the transform applied to the element.
+ *
+ * The operation is terminal.
+ */
 inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: (index: Int, E) -> R?): List<R> {
     return mapIndexedNotNullTo(ArrayList(), transform)
 }
 
+/**
+ * Apply the given [transform] function to each element and its index in the original sequence
+ * and append only the non-null results to the given [destination].
+ *
+ * The [transform] function takes the index of an element and the element itself and
+ * returns the result of the transform applied to the element.
+ *
+ * The operation is terminal.
+ */
 inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedNotNullTo(
     destination: C,
     transform: (index: Int, E) -> R?
@@ -377,10 +407,22 @@ inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.
     return destination
 }
 
+/**
+ * Return a single list of all elements yielded from results of [transform] function being invoked
+ * on each element of original sequence.
+ *
+ * The operation is terminal.
+ */
 inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList(), transform)
 }
 
+/**
+ * Append all elements yielded from results of [transform] function being invoked on each element
+ * of original sequence, to the given [destination].
+ *
+ * The operation is terminal.
+ */
 inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapTo(
     destination: C,
     transform: (E) -> Iterable<R>
@@ -1138,6 +1180,10 @@ inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E)
     for (element in this) action(index++, element)
 }
 
+/**
+ * Return a lazy [Sequence] that wraps each element of the original sequence into an [IndexedValue] containing
+ * the index of that element and the element itself.
+ */
 fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
     return asKotlinSequence().withIndex()
 }

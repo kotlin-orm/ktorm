@@ -150,7 +150,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
         if (rs is CachedRowSet) {
             return rs._values
         } else {
-            return rs.iterable().map { row ->
+            return rs.asIterable().map { row ->
                 Array(_metadata.columnCount) { index ->
                     val obj = if (_typeMap.isNullOrEmpty()) {
                         row.getObject(index + 1)

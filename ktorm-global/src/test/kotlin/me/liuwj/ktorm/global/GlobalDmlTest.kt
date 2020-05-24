@@ -1,9 +1,6 @@
 package me.liuwj.ktorm.global
 
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.insertTo
-import me.liuwj.ktorm.dsl.plus
-import me.liuwj.ktorm.dsl.where
+import me.liuwj.ktorm.dsl.*
 import org.junit.Test
 import java.time.LocalDate
 

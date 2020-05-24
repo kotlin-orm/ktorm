@@ -152,11 +152,10 @@ class PostgreSqlTest : BaseTest() {
 
     open class Metadatas(alias: String?) : Table<Metadata>("t_metadata", alias) {
         companion object : Metadatas(null)
-
         override fun aliased(alias: String) = Metadatas(alias)
 
-        val id by int("id").primaryKey().bindTo { it.id }
-        val attributes by hstore("attrs").bindTo { it.attributes }
+        val id = int("id").primaryKey().bindTo { it.id }
+        val attributes = hstore("attrs").bindTo { it.attributes }
     }
 
     @Test

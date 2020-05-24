@@ -52,7 +52,7 @@ class SqlServerTest : BaseTest() {
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
-        assert(query.count() == 1)
+        assert(query.rowSet.size() == 1)
 
         query = database
             .from(Employees)
@@ -60,7 +60,7 @@ class SqlServerTest : BaseTest() {
             .limit(0, 1)
 
         assert(query.totalRecords == 2)
-        assert(query.count() == 1)
+        assert(query.rowSet.size() == 1)
 
         query = database
             .from(Employees)
@@ -68,7 +68,7 @@ class SqlServerTest : BaseTest() {
             .limit(0, 1)
 
         assert(query.totalRecords == 4)
-        assert(query.count() == 1)
+        assert(query.rowSet.size() == 1)
     }
 
     object Foo : Table<Nothing>("foo") {

@@ -83,7 +83,7 @@ class DatabaseTest : BaseTest() {
 
             conn.prepareStatement(sql).use { statement ->
                 statement.setInt(1, 1)
-                statement.executeQuery().iterable().map { it.getString(1) }
+                statement.executeQuery().asIterable().map { it.getString(1) }
             }
         }
 

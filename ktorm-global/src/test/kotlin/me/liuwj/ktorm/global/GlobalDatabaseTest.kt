@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.global
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.asIterable
 import me.liuwj.ktorm.database.iterable
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.eq
@@ -82,7 +83,7 @@ class GlobalDatabaseTest : BaseGlobalTest() {
 
             conn.prepareStatement(sql).use { statement ->
                 statement.setInt(1, 1)
-                statement.executeQuery().iterable().map { it.getString(1) }
+                statement.executeQuery().asIterable().map { it.getString(1) }
             }
         }
 

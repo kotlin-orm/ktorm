@@ -17,6 +17,7 @@
 package me.liuwj.ktorm.support.postgresql
 
 import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.Column
 import me.liuwj.ktorm.schema.SqlType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -25,7 +26,7 @@ import java.sql.Types
 /**
  * Define a column typed [HstoreSqlType].
  */
-fun <E : Any> BaseTable<E>.hstore(name: String): BaseTable<E>.ColumnRegistration<Hstore> {
+fun <E : Any> BaseTable<E>.hstore(name: String): Column<Hstore> {
     return registerColumn(name, HstoreSqlType)
 }
 
@@ -46,7 +47,7 @@ object HstoreSqlType : SqlType<Hstore>(Types.OTHER, "hstore") {
 /**
  * Define a column typed [TextArraySqlType].
  */
-fun <E : Any> BaseTable<E>.textArray(name: String): BaseTable<E>.ColumnRegistration<TextArray> {
+fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
     return registerColumn(name, TextArraySqlType)
 }
 

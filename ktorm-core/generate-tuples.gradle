@@ -223,6 +223,7 @@ task generateTuples {
                 package me.liuwj.ktorm.entity
                 
                 import me.liuwj.ktorm.dsl.Query
+                import me.liuwj.ktorm.dsl.mapTo
                 import me.liuwj.ktorm.schema.ColumnDeclaring
                 import me.liuwj.ktorm.schema.BaseTable
                 import java.io.Serializable

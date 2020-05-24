@@ -181,7 +181,7 @@ fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
 /**
  * Wrap this expression as a [ColumnDeclaringExpression].
  */
-private fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
+internal fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclaringExpression<T> {
     return when (this) {
         is ColumnDeclaringExpression -> this
         is Column -> this.aliased(label)
@@ -379,7 +379,7 @@ inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
 /**
  * Perform the given [action] on each row of the query, providing sequential index with the row.
  *
- * @param [action] function that takes the index of a row and the row itself and performs the desired action on the row.
+ * The [action] function takes the index of a row and the row itself and performs the desired action on the row.
  */
 inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
     var index = 0
@@ -397,6 +397,7 @@ fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
 /**
  * Iterator transforming original [iterator] into iterator of [IndexedValue], counting index from zero.
  */
+@Suppress("IteratorNotThrowingNoSuchElementException")
 internal class IndexingIterator<out T>(private val iterator: Iterator<T>) : Iterator<IndexedValue<T>> {
     private var index = 0
 
@@ -447,7 +448,7 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
 /**
  * Return a list containing the results of applying the given [transform] function to each row and its index.
  *
- * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
  */
 inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
@@ -457,7 +458,7 @@ inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R):
 /**
  * Apply the given [transform] function the each row and its index and append the results to the given [destination].
  *
- * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
  */
 inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
@@ -472,7 +473,7 @@ inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
  * Return a list containing only the non-null results of applying the given [transform] function to each row
  * and its index.
  *
- * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
  */
 inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
@@ -483,7 +484,7 @@ inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryR
  * Apply the given [transform] function the each row and its index and append only the non-null results to
  * the given [destination].
  *
- * @param [transform] function that takes the index of a row and the row itself and returns the result of the transform
+ * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
  */
 inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
@@ -582,7 +583,7 @@ inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R
  * Accumulate value starting with [initial] value and applying [operation] to current accumulator value and each row
  * with its index in the original query results.
  *
- * @param [operation] function that takes the index of a row, current accumulator value and the row itself,
+ * The [operation] function takes the index of a row, current accumulator value and the row itself,
  * and calculates the next accumulator value.
  */
 inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
