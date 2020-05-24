@@ -16,25 +16,35 @@
 
 package me.liuwj.ktorm.schema
 
-import java.util.concurrent.atomic.AtomicInteger
-
 /**
  * Created by vince at May 01, 2020.
  */
-internal object RefCounterContext {
-    private val threadLocal = ThreadLocal<AtomicInteger>()
+internal class RefCounter private constructor() {
+    private var count = 0
 
-    internal fun setCounter(counter: AtomicInteger) {
-        if (threadLocal.get() != null) {
-            throw IllegalStateException("The counter is already set.")
-        }
-
-        threadLocal.set(counter)
+    fun get(): Int {
+        return count
     }
 
-    internal fun getCounter(): AtomicInteger? {
-        val counter = threadLocal.get()
-        threadLocal.remove()
-        return counter
+    fun getAndIncrement(): Int {
+        return count++
+    }
+
+    companion object {
+        private val threadLocal = ThreadLocal<RefCounter>()
+
+        fun setContextCounter(counter: RefCounter) {
+            if (threadLocal.get() != null) {
+                throw IllegalStateException("The context counter is already set.")
+            }
+
+            threadLocal.set(counter)
+        }
+
+        fun getCounter(): RefCounter {
+            val counter = threadLocal.get() ?: return RefCounter()
+            threadLocal.remove()
+            return counter
+        }
     }
 }

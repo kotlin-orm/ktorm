@@ -20,7 +20,6 @@ import me.liuwj.ktorm.dsl.QueryRowSet
 import me.liuwj.ktorm.entity.Entity
 import me.liuwj.ktorm.expression.TableExpression
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmErasure
@@ -67,7 +66,7 @@ abstract class BaseTable<E : Any>(
     entityClass: KClass<E>? = null
 ) : TypeReference<E>() {
 
-    private val _refCounter = RefCounterContext.getCounter() ?: AtomicInteger()
+    private val _refCounter = RefCounter.getCounter()
     private val _columns = LinkedHashMap<String, Column<*>>()
     private val _primaryKeyNames = LinkedHashSet<String>()
 
@@ -304,7 +303,7 @@ abstract class BaseTable<E : Any>(
     }
 
     private fun copyReferenceTable(table: BaseTable<*>): BaseTable<*> {
-        RefCounterContext.setCounter(_refCounter)
+        RefCounter.setContextCounter(_refCounter)
         return table.aliased("_ref${_refCounter.getAndIncrement()}")
     }
 
