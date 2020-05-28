@@ -44,7 +44,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * Set the nullable [parameter] to a given [PreparedStatement].
      */
-    fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
+    open fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
         if (parameter == null) {
             ps.setNull(index, typeCode)
         } else {
@@ -55,7 +55,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * Obtain a result from a given [ResultSet] by [index].
      */
-    fun getResult(rs: ResultSet, index: Int): T? {
+    open fun getResult(rs: ResultSet, index: Int): T? {
         val result = doGetResult(rs, index)
         return if (rs.wasNull()) null else result
     }
@@ -63,7 +63,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
     /**
      * Obtain a result from a given [ResultSet] by [columnLabel].
      */
-    fun getResult(rs: ResultSet, columnLabel: String): T? {
+    open fun getResult(rs: ResultSet, columnLabel: String): T? {
         return getResult(rs, rs.findColumn(columnLabel))
     }
 
@@ -82,7 +82,7 @@ abstract class SqlType<T : Any>(val typeCode: Int, val typeName: String) {
      * @param toUnderlyingValue a function that transforms a value of user's type the to the underlying type.
      * @return a [SqlType] instance based on this underlying type with specific transformations.
      */
-    fun <R : Any> transform(fromUnderlyingValue: (T) -> R, toUnderlyingValue: (R) -> T): SqlType<R> {
+    open fun <R : Any> transform(fromUnderlyingValue: (T) -> R, toUnderlyingValue: (R) -> T): SqlType<R> {
         return object : SqlType<R>(typeCode, typeName) {
             val underlyingType = this@SqlType
 
