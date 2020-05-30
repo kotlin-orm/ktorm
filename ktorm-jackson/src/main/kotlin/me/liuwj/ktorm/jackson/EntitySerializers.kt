@@ -18,6 +18,7 @@ package me.liuwj.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonProperty.Access
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonToken.START_OBJECT
 import com.fasterxml.jackson.databind.*
@@ -41,7 +42,6 @@ internal class EntitySerializers : SimpleSerializers() {
         type: JavaType,
         beanDesc: BeanDescription
     ): JsonSerializer<*>? {
-
         if (type.isTypeOrSubTypeOf(Entity::class.java)) {
             return SerializerImpl
         } else {
@@ -51,32 +51,27 @@ internal class EntitySerializers : SimpleSerializers() {
 
     private object SerializerImpl : JsonSerializer<Entity<*>>() {
 
-        private val entityPrivateProperties = setOf("properties", "entityClass")
-
         override fun serialize(
             entity: Entity<*>,
             gen: JsonGenerator,
             serializers: SerializerProvider
         ) {
             gen.configureIndentOutputIfEnabled()
-
             gen.writeStartObject()
-
             serializeProperties(entity, gen, serializers)
-
             gen.writeEndObject()
         }
 
-        private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
-            return entity.entityClass.memberProperties.filter { kp ->
-                !entityPrivateProperties.contains(kp.name)
-                        && kp.findAnnotationGetterFirst(JsonIgnore::class.java) == null
-            }.filter { kp ->
-                val jsonProperty = kp.findAnnotationGetterFirst(JsonProperty::class.java)
-                jsonProperty == null || jsonProperty.access != JsonProperty.Access.WRITE_ONLY
-            }.associateBy {
-                it.name
-            }
+        private fun findReadableProperties(entity: Entity<*>): Sequence<KProperty1<*, *>> {
+            return entity.entityClass.memberProperties
+                .asSequence()
+                .filter { it.name != "entityClass" && it.name != "properties" }
+                .filter { it.isAbstract }
+                .filter { it.findAnnotationForSerialization<JsonIgnore>() == null }
+                .filter { prop ->
+                    val jsonProperty = prop.findAnnotationForSerialization<JsonProperty>()
+                    jsonProperty == null || jsonProperty.access != Access.WRITE_ONLY
+                }
         }
 
         private fun serializeProperties(
@@ -84,18 +79,16 @@ internal class EntitySerializers : SimpleSerializers() {
             gen: JsonGenerator,
             serializers: SerializerProvider
         ) {
-            for ((name, prop) in findReadableProperties(entity)) {
-                val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
-
-                val ser = serializers.findTypedValueSerializer(propType, true, null)
+            for (prop in findReadableProperties(entity)) {
+                val value = entity[prop.name]
 
                 gen.writeFieldName(gen.codec.serializeNameForProperty(prop, serializers.config))
-
-                val value = entity.properties[name]
 
                 if (value == null) {
                     gen.writeNull()
                 } else {
+                    val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
+                    val ser = serializers.findTypedValueSerializer(propType, true, null)
                     ser.serialize(value, gen, serializers)
                 }
             }
@@ -108,6 +101,7 @@ internal class EntitySerializers : SimpleSerializers() {
             typeSer: TypeSerializer
         ) {
             gen.configureIndentOutputIfEnabled()
+
             val typeId = typeSer.writeTypePrefix(gen, typeSer.typeId(entity, entity.entityClass.java, START_OBJECT))
             serializeProperties(entity, gen, serializers)
             typeSer.writeTypeSuffix(gen, typeId)

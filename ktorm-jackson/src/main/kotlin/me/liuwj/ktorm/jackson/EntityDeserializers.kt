@@ -18,6 +18,7 @@ package me.liuwj.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonProperty.Access
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
 import com.fasterxml.jackson.databind.*
@@ -43,7 +44,6 @@ internal class EntityDeserializers : SimpleDeserializers() {
         config: DeserializationConfig,
         beanDesc: BeanDescription
     ): JsonDeserializer<*>? {
-
         val ktClass = type.rawClass.kotlin
         if (ktClass.isSubclassOf(Entity::class)) {
             return DeserializerImpl(ktClass)
@@ -53,9 +53,6 @@ internal class EntityDeserializers : SimpleDeserializers() {
     }
 
     private class DeserializerImpl(val entityClass: KClass<*>) : JsonDeserializer<Entity<*>>() {
-        companion object {
-            private val entityPrivateProperties = setOf("properties", "entityClass")
-        }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext): Entity<*> {
             val entity = Entity.create(entityClass)
@@ -67,22 +64,20 @@ internal class EntityDeserializers : SimpleDeserializers() {
             parser: JsonParser,
             ctx: DeserializationContext
         ): Map<String, KProperty1<*, *>> {
-
-            val props = entityClass.memberProperties.filter { kp ->
-                !entityPrivateProperties.contains(kp.name)
-            }.filter { kp ->
-                val jsonProperty = kp.findAnnotationSetterFirst(JsonProperty::class.java)
-                (jsonProperty == null || jsonProperty.access != JsonProperty.Access.READ_ONLY)
-                        && kp.findAnnotationSetterFirst(JsonIgnore::class.java) == null
-            }
-
-            val ret: MutableMap<String, KProperty1<*, *>> = HashMap()
-            props.forEach { kp ->
-                // it may has multi alias name when property annotated with JsonAlias
-                val aliasName = parser.codec.deserializeNameForProperty(kp, ctx.config)
-                aliasName.forEach { ret[it] = kp }
-            }
-            return ret
+            return entityClass.memberProperties
+                .asSequence()
+                .filter { it.name != "entityClass" && it.name != "properties" }
+                .filter { it.isAbstract }
+                .filter { it.findAnnotationForDeserialization<JsonIgnore>() == null }
+                .filter { prop ->
+                    val jsonProperty = prop.findAnnotationForDeserialization<JsonProperty>()
+                    jsonProperty == null || jsonProperty.access != Access.READ_ONLY
+                }
+                .flatMap { prop ->
+                    val names = parser.codec.deserializeNamesForProperty(prop, ctx.config)
+                    names.map { it to prop }.asSequence()
+                }
+                .toMap()
         }
 
         override fun deserialize(parser: JsonParser, ctxt: DeserializationContext, intoValue: Entity<*>): Entity<*> {
@@ -97,8 +92,7 @@ internal class EntityDeserializers : SimpleDeserializers() {
                     ctxt.reportWrongTokenException(entityClass.java, JsonToken.FIELD_NAME, null)
                 }
 
-                val name = parser.currentName
-                val prop = properties[name]
+                val prop = properties[parser.currentName]
 
                 parser.nextToken() // skip to field value
 

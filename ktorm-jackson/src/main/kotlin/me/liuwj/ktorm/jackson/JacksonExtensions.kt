@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.cfg.MapperConfig
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaSetter
 
@@ -39,56 +40,40 @@ internal fun JsonGenerator.configureIndentOutputIfEnabled() {
     }
 }
 
-/**
- * it may has multi alias name when property annotated with JsonAlias.
- */
-internal fun ObjectCodec.deserializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): List<String> {
-    if (this is ObjectMapper) {
-        if (prop is KMutableProperty<*>) {
-            val nameList: MutableList<String> = ArrayList()
+internal fun ObjectCodec.deserializeNamesForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): List<String> {
+    val names = ArrayList<String>()
 
-            val jsonAlias = prop.findAnnotationSetterFirst(JsonAlias::class.java)
-            if (jsonAlias != null && jsonAlias.value.isNotEmpty()) {
-                nameList.addAll(jsonAlias.value)
-            }
-
-            val jsonProperty = prop.findAnnotationSetterFirst(JsonProperty::class.java)
-            // according to JacksonAnnotationTest.testDeserializeAliasName2
-            // prop with `JsonProperty`, alias name don't contains prop's strategy name
-            if (jsonProperty != null) {
-                if (jsonProperty.value.isNotEmpty()) {
-                    nameList.add(jsonProperty.value)
-                }
-            } else {
-                this.propertyNamingStrategy?.let { strategy ->
-                    val getter = AnnotatedMethod(null, prop.javaGetter!!, null, null)
-                    nameList.add(strategy.nameForGetterMethod(config, getter, prop.name))
-                }
-            }
-
-            if (nameList.isNotEmpty()) {
-                return nameList
-            }
-        }
-
-        this.propertyNamingStrategy?.let { strategy ->
-            val getter = AnnotatedMethod(null, prop.javaGetter!!, null, null)
-            return listOf(strategy.nameForGetterMethod(config, getter, prop.name))
+    val jsonProperty = prop.findAnnotationForDeserialization<JsonProperty>()
+    if (jsonProperty != null && jsonProperty.value.isNotEmpty()) {
+        names += jsonProperty.value
+    } else {
+        val strategy = (this as? ObjectMapper)?.propertyNamingStrategy
+        if (strategy == null) {
+            names += prop.name
+        } else {
+            val getter = AnnotatedMethod(null, prop.javaGetter, null, null)
+            names += strategy.nameForGetterMethod(config, getter, prop.name)
         }
     }
 
-    return listOf(prop.name)
+    val jsonAlias = prop.findAnnotationForDeserialization<JsonAlias>()
+    if (jsonAlias != null && jsonAlias.value.isNotEmpty()) {
+        names += jsonAlias.value
+    }
+
+    return names
 }
 
 internal fun ObjectCodec.serializeNameForProperty(prop: KProperty1<*, *>, config: MapperConfig<*>): String {
+    val jsonProperty = prop.findAnnotationForSerialization<JsonProperty>()
+    if (jsonProperty != null && jsonProperty.value.isNotEmpty()) {
+        return jsonProperty.value
+    }
+
     if (this is ObjectMapper) {
-        val alias = prop.findAnnotationGetterFirst(JsonProperty::class.java)
-        if (alias != null && alias.value.isNotEmpty()) {
-            return alias.value
-        }
         val strategy = this.propertyNamingStrategy
         if (strategy != null) {
-            val getter = AnnotatedMethod(null, prop.javaGetter!!, null, null)
+            val getter = AnnotatedMethod(null, prop.javaGetter, null, null)
             return strategy.nameForGetterMethod(config, getter, prop.name)
         }
     }
@@ -96,18 +81,34 @@ internal fun ObjectCodec.serializeNameForProperty(prop: KProperty1<*, *>, config
     return prop.name
 }
 
-internal inline fun <reified T : Any> KProperty1<*, *>.findAnnotationGetterFirst(annotation: Class<T>): T? {
-    if (this is KMutableProperty<*>) {
-        return (this.javaGetter!!.annotations.find { annotation.isInstance(it) } ?:
-            this.javaSetter!!.annotations.find { annotation.isInstance(it) }) as T?
+internal inline fun <reified T : Annotation> KProperty1<*, *>.findAnnotationForSerialization(): T? {
+    var annotation = javaGetter?.getAnnotation(T::class.java)
+
+    if (annotation == null && this is KMutableProperty<*>) {
+        annotation = javaSetter?.getAnnotation(T::class.java)
     }
-    return this.javaGetter!!.annotations.find { annotation.isInstance(it) } as T?
+
+    if (annotation == null) {
+        annotation = javaField?.getAnnotation(T::class.java)
+    }
+
+    return annotation
 }
 
-internal inline fun <reified T : Any> KProperty1<*, *>.findAnnotationSetterFirst(annotation: Class<T>): T? {
+internal inline fun <reified T : Annotation> KProperty1<*, *>.findAnnotationForDeserialization(): T? {
+    var annotation: T? = null
+
     if (this is KMutableProperty<*>) {
-        return (this.javaSetter!!.annotations.find { annotation.isInstance(it) } ?:
-            this.javaGetter!!.annotations.find { annotation.isInstance(it) }) as T?
+        annotation = javaSetter?.getAnnotation(T::class.java)
     }
-    return this.javaGetter!!.annotations.find { annotation.isInstance(it) } as T?
+
+    if (annotation == null) {
+        annotation = javaGetter?.getAnnotation(T::class.java)
+    }
+
+    if (annotation == null) {
+        annotation = javaField?.getAnnotation(T::class.java)
+    }
+
+    return annotation
 }
