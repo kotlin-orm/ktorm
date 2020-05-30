@@ -62,15 +62,18 @@ internal class EntitySerializers : SimpleSerializers() {
             gen.writeEndObject()
         }
 
-        private fun findReadableProperties(entity: Entity<*>): Sequence<KProperty1<*, *>> {
+        private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
             return entity.entityClass.memberProperties
                 .asSequence()
-                .filter { it.name != "entityClass" && it.name != "properties" }
                 .filter { it.isAbstract }
+                .filter { it.name != "entityClass" && it.name != "properties" }
                 .filter { it.findAnnotationForSerialization<JsonIgnore>() == null }
                 .filter { prop ->
                     val jsonProperty = prop.findAnnotationForSerialization<JsonProperty>()
                     jsonProperty == null || jsonProperty.access != Access.WRITE_ONLY
+                }
+                .associateBy {
+                    it.name
                 }
         }
 
@@ -79,8 +82,10 @@ internal class EntitySerializers : SimpleSerializers() {
             gen: JsonGenerator,
             serializers: SerializerProvider
         ) {
-            for (prop in findReadableProperties(entity)) {
-                val value = entity[prop.name]
+            val properties = findReadableProperties(entity)
+
+            for ((name, value) in entity.properties) {
+                val prop = properties[name] ?: continue
 
                 gen.writeFieldName(gen.codec.serializeNameForProperty(prop, serializers.config))
 
