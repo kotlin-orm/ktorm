@@ -45,35 +45,35 @@ fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): Fu
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-infix fun Column<List<Int>>.jsonContains(item: Int): FunctionExpression<Boolean> {
+fun Column<List<Int>>.jsonContains(item: Int): FunctionExpression<Boolean> {
     return this.jsonContains(item, IntSqlType)
 }
 
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-infix fun Column<List<Long>>.jsonContains(item: Long): FunctionExpression<Boolean> {
+fun Column<List<Long>>.jsonContains(item: Long): FunctionExpression<Boolean> {
     return this.jsonContains(item, LongSqlType)
 }
 
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-infix fun Column<List<Double>>.jsonContains(item: Double): FunctionExpression<Boolean> {
+fun Column<List<Double>>.jsonContains(item: Double): FunctionExpression<Boolean> {
     return this.jsonContains(item, DoubleSqlType)
 }
 
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-infix fun Column<List<Float>>.jsonContains(item: Float): FunctionExpression<Boolean> {
+fun Column<List<Float>>.jsonContains(item: Float): FunctionExpression<Boolean> {
     return this.jsonContains(item, FloatSqlType)
 }
 
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-infix fun Column<List<String>>.jsonContains(item: String): FunctionExpression<Boolean> {
+fun Column<List<String>>.jsonContains(item: String): FunctionExpression<Boolean> {
     return this.jsonContains(item, VarcharSqlType)
 }
 

@@ -24,23 +24,33 @@ import java.sql.ResultSet
 import java.sql.Types
 
 /**
- * Define a column typed [HstoreSqlType].
+ * Represent values of PostgreSQL `hstore` SQL type.
  */
-fun <E : Any> BaseTable<E>.hstore(name: String): Column<Hstore> {
-    return registerColumn(name, HstoreSqlType)
+typealias HStore = Map<String, String?>
+
+/**
+ * Represent values of PostgreSQL `text[]` SQL type.
+ */
+typealias TextArray = Array<String?>
+
+/**
+ * Define a column typed [HStoreSqlType].
+ */
+fun <E : Any> BaseTable<E>.hstore(name: String): Column<HStore> {
+    return registerColumn(name, HStoreSqlType)
 }
 
 /**
  * [SqlType] implementation represents PostgreSQL `hstore` type.
  */
-object HstoreSqlType : SqlType<Hstore>(Types.OTHER, "hstore") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Hstore) {
+object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
         ps.setObject(index, parameter)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun doGetResult(rs: ResultSet, index: Int): Hstore? {
-        return rs.getObject(index) as Hstore?
+    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
+        return rs.getObject(index) as HStore?
     }
 }
 
@@ -62,7 +72,7 @@ object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
     @Suppress("UNCHECKED_CAST")
     override fun doGetResult(rs: ResultSet, index: Int): TextArray? {
         val sqlArray = rs.getArray(index)
-        val objectArray = sqlArray.array as Array<Any>?
+        val objectArray = sqlArray?.array as Array<Any?>?
         return objectArray?.map { it as String? }?.toTypedArray()
     }
 }
