@@ -75,7 +75,7 @@ enum class HStoreExpressionType(private val value: String) {
 }
 
 /**
- * Expression type represents PostgreSQL's `hstore` operations.
+ * Expression class represents PostgreSQL's `hstore` operations.
  *
  * @property type the expression's type.
  * @property left the expression's left operand.

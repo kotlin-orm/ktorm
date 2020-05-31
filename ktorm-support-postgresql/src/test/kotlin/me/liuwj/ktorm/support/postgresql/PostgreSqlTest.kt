@@ -145,22 +145,21 @@ class PostgreSqlTest : BaseTest() {
 
     interface Metadata : Entity<Metadata> {
         companion object : Entity.Factory<Metadata>()
-
         val id: Int
-        var attributes: Hstore
+        var attributes: HStore
     }
 
     open class Metadatas(alias: String?) : Table<Metadata>("t_metadata", alias) {
         companion object : Metadatas(null)
         override fun aliased(alias: String) = Metadatas(alias)
-
         val id = int("id").primaryKey().bindTo { it.id }
         val attributes = hstore("attrs").bindTo { it.attributes }
     }
 
     @Test
-    fun testHstore() {
+    fun testHStore() {
         val allMetadatas = database.sequenceOf(Metadatas).toList()
+        println(allMetadatas)
         assert(allMetadatas.size == 1)
         val attributes = allMetadatas[0].attributes
         assertThat(attributes.size, equalTo(3))
@@ -170,37 +169,26 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testHstoreGetValue() {
-        testHstoreGetValue("a", "1")
-        testHstoreGetValue("b", "2")
-        testHstoreGetValue("c", null)
+    fun testHStoreGetValue() {
+        assert(get { it.attributes["a"] } == "1")
+        assert(get { it.attributes["b"] } == "2")
+        assert(get { it.attributes["c"] } == null)
     }
 
-    private fun testHstoreGetValue(key: String, expectedValue: String?) = testHstoreOperator({ column, param -> column[param] }, key, expectedValue)
-
-    private fun <ParamT : Any, ResultT : Any> testHstoreOperator(
-        operator: (ColumnDeclaring<Hstore>, ParamT) -> ScalarExpression<ResultT>,
-        parameter: ParamT,
-        expectedValue: ResultT?
-    ) {
-        val aliasedColumn = operator(Metadatas.attributes, parameter).aliased("label")
-        val value = database.from(Metadatas)
-            .select(aliasedColumn)
-            .map { it[aliasedColumn] }
-            .first()
-        assertThat(value, equalTo(expectedValue))
+    private inline fun <T : Any> get(op: (Metadatas) -> HStoreExpression<T>): T? {
+        return database.sequenceOf(Metadatas).mapColumns { op(it) }.first()
     }
 
     @Test
-    fun testHstoreGetValues() {
+    fun testHStoreGetValues() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHstoreOperator({ column, param -> column[param] }, arrayOfAC, arrayOf("1", null))
+        testHStoreOperator({ column, param -> column[param] }, arrayOfAC, arrayOf("1", null))
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHstoreOperator({ column, param -> column[param] }, arrayOfBD, arrayOf("2", null))
+        testHStoreOperator({ column, param -> column[param] }, arrayOfBD, arrayOf("2", null))
     }
 
     @Test
-    fun testHstoreConcat() {
+    fun testHStoreConcat() {
         database.update(Metadatas) {
             Metadatas.attributes to (Metadatas.attributes + mapOf(Pair("d", "4"), Pair("e", null)))
             where { it.id eq 1 }
@@ -215,47 +203,47 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testHstoreContainsKey() {
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsKey, "a", true)
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsKey, "d", false)
+    fun testHStoreContainsKey() {
+        testHStoreOperator(ColumnDeclaring<HStore>::containsKey, "a", true)
+        testHStoreOperator(ColumnDeclaring<HStore>::containsKey, "d", false)
     }
 
     @Test
-    fun testHstoreContainsAll() {
+    fun testHStoreContainsAll() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsAll, arrayOfAC, true)
+        testHStoreOperator(ColumnDeclaring<HStore>::containsAll, arrayOfAC, true)
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsAll, arrayOfBD, false)
+        testHStoreOperator(ColumnDeclaring<HStore>::containsAll, arrayOfBD, false)
     }
 
     @Test
-    fun testHstoreContainsAny() {
+    fun testHStoreContainsAny() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsAny, arrayOfAC, true)
+        testHStoreOperator(ColumnDeclaring<HStore>::containsAny, arrayOfAC, true)
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsAny, arrayOfBD, true)
+        testHStoreOperator(ColumnDeclaring<HStore>::containsAny, arrayOfBD, true)
         val arrayOfEF: TextArray = arrayOf("e", "f")
-        testHstoreOperator(ColumnDeclaring<Hstore>::containsAny, arrayOfEF, false)
+        testHStoreOperator(ColumnDeclaring<HStore>::containsAny, arrayOfEF, false)
     }
 
     @Test
-    fun testHstoreContains() {
-        testHstoreOperator(ColumnDeclaring<Hstore>::contains, mapOf(Pair("a", "1")), true)
-        testHstoreOperator(ColumnDeclaring<Hstore>::contains, mapOf(Pair("a", "1"), Pair("c", null)), true)
-        testHstoreOperator(ColumnDeclaring<Hstore>::contains, mapOf(Pair("a", "1"), Pair("c", "3")), false)
-        testHstoreOperator(ColumnDeclaring<Hstore>::contains, mapOf(Pair("a", "1"), Pair("d", "4")), false)
+    fun testHStoreContains() {
+        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1")), true)
+        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1"), Pair("c", null)), true)
+        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1"), Pair("c", "3")), false)
+        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1"), Pair("d", "4")), false)
     }
 
     @Test
-    fun testHstoreContainedIn() {
-        testHstoreOperator(ColumnDeclaring<Hstore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), true)
-        testHstoreOperator(ColumnDeclaring<Hstore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null), Pair("d", "4")), true)
-        testHstoreOperator(ColumnDeclaring<Hstore>::containedIn, mapOf(Pair("a", "1")), false)
-        testHstoreOperator(ColumnDeclaring<Hstore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", "3")), false)
+    fun testHStoreContainedIn() {
+        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), true)
+        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null), Pair("d", "4")), true)
+        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1")), false)
+        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", "3")), false)
     }
 
     @Test
-    fun testHstoreDeleteKey() {
+    fun testHStoreDeleteKey() {
         database.update(Metadatas) {
             Metadatas.attributes to (Metadatas.attributes - "b")
             where { it.id eq 1 }
@@ -265,7 +253,7 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testHstoreDeleteKeys() {
+    fun testHStoreDeleteKeys() {
         database.update(Metadatas) {
             val keysToDelete = arrayOf<String?>("b", "c")
             Metadatas.attributes to (Metadatas.attributes - keysToDelete)
@@ -276,16 +264,16 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testHstoreDeleteMatching() {
-        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), mapOf())
-        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2")), mapOf(Pair("c", null)))
-        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("c", null)), mapOf(Pair("b", "2")))
-        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "5")), mapOf(Pair("b", "2"), Pair("c", null)))
-        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "2")), mapOf(Pair("b", "2"), Pair("c", null)))
-        testHstoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "4")), mapOf(Pair("b", "2"), Pair("c", null)))
+    fun testHStoreDeleteMatching() {
+        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), mapOf())
+        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2")), mapOf(Pair("c", null)))
+        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("c", null)), mapOf(Pair("b", "2")))
+        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "5")), mapOf(Pair("b", "2"), Pair("c", null)))
+        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "2")), mapOf(Pair("b", "2"), Pair("c", null)))
+        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "4")), mapOf(Pair("b", "2"), Pair("c", null)))
     }
 
-    fun testHstoreDeleteMatching(toDelete: Hstore, expectedResult: Hstore) {
+    fun testHStoreDeleteMatching(toDelete: HStore, expectedResult: HStore) {
         database.update(Metadatas) {
             Metadatas.attributes to (Metadatas.attributes - toDelete)
             where { it.id eq 1 }

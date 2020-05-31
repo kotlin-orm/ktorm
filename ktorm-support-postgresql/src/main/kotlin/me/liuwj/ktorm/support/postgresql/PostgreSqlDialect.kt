@@ -49,11 +49,13 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
 
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
-            is BinaryExpression<*, *, T> -> visitBinary(expr)
+            is ILikeExpression -> visitILike(expr)
+            is HStoreExpression -> visitHStore(expr)
             else -> super.visitScalar(expr)
         }
 
-        return result
+        @Suppress("UNCHECKED_CAST")
+        return result as ScalarExpression<T>
     }
 
     override fun writePagination(expr: QueryExpression) {
@@ -69,9 +71,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         }
     }
 
-    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(
-        expr: BinaryExpression<LeftT, RightT, ReturnT>
-    ): BinaryExpression<LeftT, RightT, ReturnT> {
+    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
         if (expr.left.removeBrackets) {
             visit(expr.left)
         } else {
@@ -81,7 +81,31 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
             write(") ")
         }
 
-        write("${expr.operator} ")
+        write("ilike ")
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
+        return expr
+    }
+
+    protected open fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
+        write("${expr.type} ")
 
         if (expr.right.removeBrackets) {
             visit(expr.right)
@@ -139,22 +163,34 @@ open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
 
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
-            is BinaryExpression<*, *, T> -> visitBinary(expr)
+            is ILikeExpression -> visitILike(expr)
+            is HStoreExpression -> visitHStore(expr)
             else -> super.visitScalar(expr)
         }
-        return result
+
+        @Suppress("UNCHECKED_CAST")
+        return result as ScalarExpression<T>
     }
 
-    protected open fun <LeftT : Any, RightT : Any, ReturnT : Any> visitBinary(
-        expr: BinaryExpression<LeftT, RightT, ReturnT>
-    ): BinaryExpression<LeftT, RightT, ReturnT> {
+    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
         val left = visitScalar(expr.left)
         val right = visitScalar(expr.right)
 
         if (left === expr.left && right === expr.right) {
             return expr
         } else {
-            return expr.copyWithNewOperands(left = left, right = right)
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    protected open fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
         }
     }
 

@@ -72,7 +72,11 @@ object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
     @Suppress("UNCHECKED_CAST")
     override fun doGetResult(rs: ResultSet, index: Int): TextArray? {
         val sqlArray = rs.getArray(index)
-        val objectArray = sqlArray?.array as Array<Any?>?
-        return objectArray?.map { it as String? }?.toTypedArray()
+        try {
+            val objectArray = sqlArray?.array as Array<Any?>?
+            return objectArray?.map { it as String? }?.toTypedArray()
+        } finally {
+            sqlArray.free()
+        }
     }
 }
