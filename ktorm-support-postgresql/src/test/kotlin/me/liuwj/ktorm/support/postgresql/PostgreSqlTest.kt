@@ -4,7 +4,6 @@ import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.expression.ScalarExpression
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.ColumnDeclaring
@@ -143,25 +142,15 @@ class PostgreSqlTest : BaseTest() {
         }
     }
 
-    interface Metadata : Entity<Metadata> {
-        companion object : Entity.Factory<Metadata>()
-        val id: Int
-        var attributes: HStore
-    }
-
-    open class Metadatas(alias: String?) : Table<Metadata>("t_metadata", alias) {
-        companion object : Metadatas(null)
-        override fun aliased(alias: String) = Metadatas(alias)
-        val id = int("id").primaryKey().bindTo { it.id }
-        val attributes = hstore("attrs").bindTo { it.attributes }
+    object Metadatas : Table<Nothing>("t_metadata") {
+        val id = int("id").primaryKey()
+        val attributes = hstore("attrs")
+        val numbers = textArray("numbers")
     }
 
     @Test
     fun testHStore() {
-        val allMetadatas = database.sequenceOf(Metadatas).toList()
-        println(allMetadatas)
-        assert(allMetadatas.size == 1)
-        val attributes = allMetadatas[0].attributes
+        val attributes = get { it.attributes } ?: error("Cannot get the attributes!")
         assertThat(attributes.size, equalTo(3))
         assertThat(attributes["a"], equalTo("1"))
         assertThat(attributes["b"], equalTo("2"))
@@ -175,25 +164,27 @@ class PostgreSqlTest : BaseTest() {
         assert(get { it.attributes["c"] } == null)
     }
 
-    private inline fun <T : Any> get(op: (Metadatas) -> HStoreExpression<T>): T? {
+    private inline fun <T : Any> get(op: (Metadatas) -> ColumnDeclaring<T>): T? {
         return database.sequenceOf(Metadatas).mapColumns { op(it) }.first()
     }
 
     @Test
     fun testHStoreGetValues() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHStoreOperator({ column, param -> column[param] }, arrayOfAC, arrayOf("1", null))
+        assertThat(get { it.attributes[arrayOfAC] }, equalTo(arrayOf("1", null)))
+
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHStoreOperator({ column, param -> column[param] }, arrayOfBD, arrayOf("2", null))
+        assertThat(get { it.attributes[arrayOfBD] }, equalTo(arrayOf("2", null)))
     }
 
     @Test
     fun testHStoreConcat() {
         database.update(Metadatas) {
-            Metadatas.attributes to (Metadatas.attributes + mapOf(Pair("d", "4"), Pair("e", null)))
+            it.attributes to (it.attributes + mapOf("d" to "4", "e" to null))
             where { it.id eq 1 }
         }
-        val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
+
+        val updatedAttributes = get { it.attributes } ?: error("Cannot get the attributes!")
         assertThat(updatedAttributes.size, equalTo(5))
         assertThat(updatedAttributes["a"], equalTo("1"))
         assertThat(updatedAttributes["b"], equalTo("2"))
@@ -204,86 +195,88 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testHStoreContainsKey() {
-        testHStoreOperator(ColumnDeclaring<HStore>::containsKey, "a", true)
-        testHStoreOperator(ColumnDeclaring<HStore>::containsKey, "d", false)
+        assert(get { it.attributes.containsKey("a") } == true)
+        assert(get { it.attributes.containsKey("d") } == false)
     }
 
     @Test
     fun testHStoreContainsAll() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHStoreOperator(ColumnDeclaring<HStore>::containsAll, arrayOfAC, true)
+        assert(get { it.attributes.containsAll(arrayOfAC) } == true)
+
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHStoreOperator(ColumnDeclaring<HStore>::containsAll, arrayOfBD, false)
+        assert(get { it.attributes.containsAll(arrayOfBD) } == false)
     }
 
     @Test
     fun testHStoreContainsAny() {
         val arrayOfAC: TextArray = arrayOf("a", "c")
-        testHStoreOperator(ColumnDeclaring<HStore>::containsAny, arrayOfAC, true)
+        assert(get { it.attributes.containsAny(arrayOfAC) } == true)
+
         val arrayOfBD: TextArray = arrayOf("b", "d")
-        testHStoreOperator(ColumnDeclaring<HStore>::containsAny, arrayOfBD, true)
+        assert(get { it.attributes.containsAny(arrayOfBD) } == true)
+
         val arrayOfEF: TextArray = arrayOf("e", "f")
-        testHStoreOperator(ColumnDeclaring<HStore>::containsAny, arrayOfEF, false)
+        assert(get { it.attributes.containsAny(arrayOfEF) } == false)
     }
 
     @Test
     fun testHStoreContains() {
-        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1")), true)
-        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1"), Pair("c", null)), true)
-        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1"), Pair("c", "3")), false)
-        testHStoreOperator(ColumnDeclaring<HStore>::contains, mapOf(Pair("a", "1"), Pair("d", "4")), false)
+        assert(get { it.attributes.contains(mapOf("a" to "1")) } == true)
+        assert(get { it.attributes.contains(mapOf("a" to "1", "c" to null)) } == true)
+        assert(get { it.attributes.contains(mapOf("a" to "1", "c" to "3")) } == false)
+        assert(get { it.attributes.contains(mapOf("a" to "1", "d" to "4")) } == false)
     }
 
     @Test
     fun testHStoreContainedIn() {
-        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), true)
-        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null), Pair("d", "4")), true)
-        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1")), false)
-        testHStoreOperator(ColumnDeclaring<HStore>::containedIn, mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", "3")), false)
+        assert(get { it.attributes.containedIn(mapOf("a" to "1", "b" to "2", "c" to null)) } == true)
+        assert(get { it.attributes.containedIn(mapOf("a" to "1", "b" to "2", "c" to null, "d" to "4")) } == true)
+        assert(get { it.attributes.containedIn(mapOf("a" to "1")) } == false)
+        assert(get { it.attributes.containedIn(mapOf("a" to "1", "b" to "2", "c" to "c")) } == false)
     }
 
     @Test
     fun testHStoreDeleteKey() {
         database.update(Metadatas) {
-            Metadatas.attributes to (Metadatas.attributes - "b")
+            it.attributes to (it.attributes - "b")
             where { it.id eq 1 }
         }
-        val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
-        assertThat(updatedAttributes, equalTo(mapOf(Pair("a", "1"), Pair("c", null))))
+
+        val updatedAttributes = get { it.attributes } ?: error("Cannot get the attributes!")
+        assertThat(updatedAttributes, equalTo(mapOf("a" to "1", "c" to null)))
     }
 
     @Test
     fun testHStoreDeleteKeys() {
         database.update(Metadatas) {
-            val keysToDelete = arrayOf<String?>("b", "c")
-            Metadatas.attributes to (Metadatas.attributes - keysToDelete)
+            it.attributes to (it.attributes - arrayOf<String?>("b", "c"))
             where { it.id eq 1 }
         }
-        val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
-        assertThat(updatedAttributes, equalTo(mapOf<String, String?>(Pair("a", "1"))))
+
+        val updatedAttributes = get { it.attributes } ?: error("Cannot get the attributes!")
+        assertThat(updatedAttributes, equalTo(mapOf<String, String?>("a" to "1")))
     }
 
     @Test
     fun testHStoreDeleteMatching() {
-        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)), mapOf())
-        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "2")), mapOf(Pair("c", null)))
-        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("c", null)), mapOf(Pair("b", "2")))
-        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("b", "5")), mapOf(Pair("b", "2"), Pair("c", null)))
-        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "2")), mapOf(Pair("b", "2"), Pair("c", null)))
-        testHStoreDeleteMatching(mapOf(Pair("a", "1"), Pair("d", "4")), mapOf(Pair("b", "2"), Pair("c", null)))
+        database.update(Metadatas) {
+            it.attributes to (it.attributes - mapOf("a" to "1", "b" to "2", "c" to null))
+            where { it.id eq 1 }
+        }
+
+        val updatedAttributes = get { it.attributes } ?: error("Cannot get the attributes!")
+        assertThat(updatedAttributes, equalTo(emptyMap()))
     }
 
-    fun testHStoreDeleteMatching(toDelete: HStore, expectedResult: HStore) {
+    @Test
+    fun testTextArray() {
         database.update(Metadatas) {
-            Metadatas.attributes to (Metadatas.attributes - toDelete)
+            it.numbers to arrayOf("a", "b")
             where { it.id eq 1 }
         }
-        val updatedAttributes = database.sequenceOf(Metadatas).find { it.id eq 1 }!!.attributes
-        assertThat(updatedAttributes, equalTo(expectedResult))
-        // restore missing values
-        database.update(Metadatas) {
-            Metadatas.attributes to (Metadatas.attributes + mapOf(Pair("a", "1"), Pair("b", "2"), Pair("c", null)))
-            where { it.id eq 1 }
-        }
+
+        val numbers = get { it.numbers } ?: error("Cannot get the numbers!")
+        assertThat(numbers, equalTo(arrayOf<String?>("a", "b")))
     }
 }
