@@ -143,7 +143,7 @@ names.forEach { println(it) }
 At first glance, there are only boilerplate JDBC code in the example, but actually, it's also benefited from some convenient functions of Ktorm: 
 
 - `useConnection` function is used to obtain or create connections. If the current thread has opened a transaction, then this transaction's connection will be passed to the closure. Otherwise, Ktorm will pass a new-created connection to the closure and auto close it after it's not useful anymore. Ktorm also uses this function to obtain connections to execute generated SQLs. So, by calling `useConnection`, we can share the transactions or connection pools with Ktorm's internal SQLs. 
-- `asIterable` function is used to wrap `ResultSet` instances as `Iterable`, then we can iterate the result sets by for-each loops, or process them via extension functions of Kotlin standard lib, such as `map`, `filter`, etc. 
+- `asIterable` function is used to wrap `ResultSet` instances as `Iterable`, then we can iterate the result sets by for-each loops, or process them via extension functions of Kotlin standard lib, such as `map`, `flatMap`, etc. 
 
 > Note: Although Ktorm provides supports for native SQLs, we don't recommend you to use it, because it violates the design philosophy of Ktorm. Once native SQL is used, we will lose the benefits of the strong typed DSL, so please ensure whether it's really necessary to do that. In general, most complex SQLs can be converted to equivalent simple joining queries, and most special keywords and SQL functions can also be implemented by writing some extensions with Ktorm. 
 
