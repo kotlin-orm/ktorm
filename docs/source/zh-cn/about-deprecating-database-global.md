@@ -46,7 +46,7 @@ h2 {
 
 ## 修改点
 
-这次重构，我们的主要目标就是废弃掉 `Database.global` 全局变量以及与之相关的一系列 API，让用户在操作数据库的时候，显式地指定要使用 `Database` 对象，而不是隐式地使用 `Database.global`。
+这次重构，我们的主要目标就是废弃掉 `Database.global` 全局变量以及与之相关的一系列 API，让用户在操作数据库的时候，显式地指定要使用的 `Database` 对象，而不是隐式地使用 `Database.global`。
 
 在之前，虽然 `Database.connect` 函数会返回一个 `Database` 对象，但是我们通常都会忽略它，因为 Ktorm 会自动把它保存到内部的全局变量中。但是现在，我们必须自己定义一个变量去接收它的返回值：
 
