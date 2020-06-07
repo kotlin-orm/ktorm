@@ -20,7 +20,8 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
 
 ## 最新文章
 
-- 2020-02-01 [Ktorm 2.7 发布，废弃 Database.global 对象，使 API 的设计更直观、更易扩展](/zh-cn/about-deprecating-database-global.html) <sup class="new-icon">NEW</sup>
+- 2020-06-07 [Ktorm 3.0 不兼容更新](/zh-cn/break-changes-in-ktorm-3.0.html) <sup class="new-icon">NEW</sup>
+- 2020-02-01 [Ktorm 2.7 发布，废弃 Database.global 对象，使 API 的设计更直观、更易扩展](/zh-cn/about-deprecating-database-global.html)
 - 2019-08-12 [Ktorm 2.5 发布，支持使用 data class、POJO 或者任意的类型作为实体类](/zh-cn/define-entities-as-any-kind-of-classes.html)
 - 2019-06-28 [Ktorm - 让你的数据库操作更具 Kotlin 风味](https://www.liuwj.me/posts/ktorm-write-database-operations-in-kotlin-style/)
 - 2019-05-04 [你还在用 MyBatis 吗，Ktorm 了解一下？ - 专注于 Kotlin 的 ORM 框架](https://www.liuwj.me/posts/ktorm-introduction/)

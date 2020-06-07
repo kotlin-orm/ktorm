@@ -2,7 +2,6 @@ package me.liuwj.ktorm.global
 
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.asIterable
-import me.liuwj.ktorm.database.iterable
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.eq
 import me.liuwj.ktorm.schema.Table

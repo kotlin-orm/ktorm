@@ -20,7 +20,8 @@ Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on 
 
 ## Latest Posts
 
-- 2020-02-01 [Ktorm 2.7 Released, Deprecate Database.global, Making APIs More Intuitive and Easier to Extend](/en/about-deprecating-database-global.html) <sup class="new-icon">NEW</sup>
+- 2020-06-07 [Break Changes in Ktorm 3.0](/en/break-changes-in-ktorm-3.0.html) <sup class="new-icon">NEW</sup>
+- 2020-02-01 [Ktorm 2.7 Released, Deprecate Database.global, Making APIs More Intuitive and Easier to Extend](/en/about-deprecating-database-global.html)
 - 2019-08-24 [Ktorm 2.5 Released, Support Defining Entities as Any Kind of Classes, Such as Data Class or POJO](/en/define-entities-as-any-kind-of-classes.html)
 - 2019-06-28 [Ktorm - Write Your Database Operations in Kotlin Style](https://www.liuwj.me/posts/ktorm-write-database-operations-in-kotlin-style/)
 - 2019-05-04 [Still Using MyBatis? Try Ktorm, an ORM Framework for Kotlin!](https://www.liuwj.me/posts/ktorm-introduction/)

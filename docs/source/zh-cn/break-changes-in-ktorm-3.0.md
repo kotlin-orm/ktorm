@@ -1,5 +1,5 @@
 ---
-title: Ktorm 3.0 不兼容升级
+title: Ktorm 3.0 不兼容更新
 lang: zh-cn
 related_path: en/break-changes-in-ktorm-3.0.html
 ---

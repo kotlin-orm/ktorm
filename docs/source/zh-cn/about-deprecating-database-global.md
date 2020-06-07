@@ -143,3 +143,5 @@ val employees = database
 在未来的 Ktorm 3.0 版本中，这些废弃的 API 将会彻底移除。但是，它们其实也有一些可取之处，比如使用全局对象之后，某些 API 的设计可以变得更简洁。为了尽可能满足更多用户的需求，在 Ktorm 3.0 版本中，我们将增加一个 ktorm-global 模块。
 
 届时，在 2.7 版本中废弃掉的 API 都会放到 ktorm-global 模块中重新实现。这个模块会作为 Ktorm 的扩展，提供基于全局对象设计的更简洁的 API，这样，在 Ktorm 的核心模块中就可以彻底移除全局变量相关的 API，如果要使用全局变量，额外添加 ktorm-global 的依赖即可。通过这种方式，我们希望能够找到一个微妙的平衡。敬请期待！
+
+> ktorm-global 模块现已发布，请参见 [Ktorm 3.0 不兼容更新](./break-changes-in-ktorm-3.0.html)。

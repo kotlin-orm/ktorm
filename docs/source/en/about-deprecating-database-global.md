@@ -144,3 +144,4 @@ These deprecated APIs will be completely removed in a future Ktorm 3.0 release. 
 
 At that time, APIs deprecated in version 2.7 will be reimplemented in the ktorm-global module. This module  will serve as an extension of Ktorm and provide more concise APIs based on a global variable. In this way, Ktorm's core module can completely remove those deprecated APIs, and if you want to use them, just need to add an extra dependency of ktorm-global. Hope we can find the right balance by adding this module. Stay tuned!!
 
+> The ktorm-global module has been released, please see [Break Changes in Ktorm 3.0](./break-changes-in-ktorm-3.0.html).
