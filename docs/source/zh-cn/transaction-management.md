@@ -49,25 +49,24 @@ try {
 
 ## 事务管理器
 
-有时，简单的 `useTransaction` 方法并不能满足你的需求。你可能希望对事务进行更精细的控制，比如指定事务的隔离级别，或者当符合特定条件的异常抛出时不需要回滚事务。这时，你可以使用 `database.transactionManager` 获取事务管理器完成你的操作，下面是一个例子：
+有时，简单的 `useTransaction` 方法并不能满足你的需求。你可能希望对事务进行更精细的控制，比如指定事务的隔离级别，或者仅当符合特定条件的异常抛出时才回滚事务。这时，你可以使用 `database.transactionManager` 获取事务管理器完成你的操作，下面是一个例子：
 
 ```kotlin
 val transactionManager = database.transactionManager
 val transaction = transactionManager.newTransaction(isolation = TransactionIsolation.READ_COMMITTED)
+var throwable: Throwable? = null
 
 try {
     // do something...
-    transaction.commit()
-
 } catch (e: Throwable) {
-    if (someCondition) {
-        transaction.commit()
-    } else {
-        transaction.rollback()
-    }
-
+    throwable = e
+    throw e
 } finally {
-    transaction.close()
+    try {
+        if (shouldRollback(throwable)) transaction.rollback() else transaction.commit()
+    } finally {
+        transaction.close()
+    }
 }
 ```
 
