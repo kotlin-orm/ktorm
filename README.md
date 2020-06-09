@@ -44,43 +44,43 @@ For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.l
 
 Ktorm was deployed to maven central and jcenter, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
 
-````xml
+```xml
 <dependency>
     <groupId>me.liuwj.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
-````
+```
 
 Or Gradle: 
 
-````groovy
+```groovy
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
-````
+```
 
 Firstly, create Kotlin objects to [describe your table schemas](https://ktorm.liuwj.me/en/schema-definition.html): 
 
-````kotlin
+```kotlin
 object Departments : Table<Nothing>("t_department") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val location by varchar("location")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val location = varchar("location")
 }
 
 object Employees : Table<Nothing>("t_employee") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
-````
+```
 
 Then, connect to your database and write a simple query: 
 
-````kotlin
+```kotlin
 fun main() {
     val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
 
@@ -88,7 +88,7 @@ fun main() {
         println(row[Employees.name])
     }
 }
-````
+```
 
 Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use the for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` are also available, eg. map/filter/reduce provided by Kotlin standard lib.
 
@@ -96,7 +96,7 @@ Now you can run this program, Ktorm will generate a SQL `select * from t_employe
 
 Let's add some filter conditions to the query: 
 
-````kotlin
+```kotlin
 database
     .from(Employees)
     .select(Employees.name)
@@ -104,15 +104,15 @@ database
     .forEach { row -> 
         println(row[Employees.name])
     }
-````
+```
 
 Generated SQL: 
 
-````sql
+```sql
 select t_employee.name as t_employee_name 
 from t_employee 
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
-````
+```
 
 That's the magic of Kotlin, writing a query with Ktorm is easy and natural, the generated SQL is exactly corresponding to the origin Kotlin code. And moreover, it's strong-typed, the compiler will check your code before it runs, and you will be benefited from the IDE's intelligent sense and code completion.
 
@@ -223,7 +223,7 @@ Refer to [detailed documentation](https://ktorm.liuwj.me/en/query.html) for more
 
 In addition to SQL DSL, entity objects are also supported just like other ORM frameworks do. We need to define entity classes firstly and bind table objects to them. In Ktorm, entity classes are defined as interfaces extending from `Entity<E>`: 
 
-````kotlin
+```kotlin
 interface Department : Entity<Department> {
     val id: Int
     var name: String
@@ -239,27 +239,27 @@ interface Employee : Entity<Employee> {
     var salary: Long
     var department: Department
 }
-````
+```
 
 Modify the table objects above, binding database columns to entity properties:  
 
-````kotlin
+```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val location by varchar("location").bindTo { it.location }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val location = varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val job by varchar("job").bindTo { it.job }
-    val managerId by int("manager_id").bindTo { it.manager.id }
-    val hireDate by date("hire_date").bindTo { it.hireDate }
-    val salary by long("salary").bindTo { it.salary }
-    val departmentId by int("department_id").references(Departments) { it.department }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val job = varchar("job").bindTo { it.job }
+    val managerId = int("manager_id").bindTo { it.manager.id }
+    val hireDate = date("hire_date").bindTo { it.hireDate }
+    val salary = long("salary").bindTo { it.salary }
+    val departmentId = int("department_id").references(Departments) { it.department }
 }
-````
+```
 
 > Naming Strategy: It's highly recommended to name your entity classes by singular nouns, name table objects by plurals (eg. Employee/Employees, Department/Departments). 
 
@@ -278,12 +278,12 @@ val employees = sequence.filter { it.name eq "vince" }.toList()
 
 The `find` and `filter` functions both accept a lambda expression, generating a select sql with the condition returned by the lambda. The generated SQL auto left joins the referenced table `t_department`: 
 
-````sql
+```sql
 select * 
 from t_employee 
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 where t_employee.name = ?
-````
+```
 
 Save entities to database: 
 

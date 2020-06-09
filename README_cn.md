@@ -44,43 +44,43 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
 
 Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
 
-````xml
+```xml
 <dependency>
     <groupId>me.liuwj.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
-````
+```
 
 或者 gradle： 
 
-````groovy
+```groovy
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
-````
+```
 
 首先，创建 Kotlin object，[描述你的表结构](https://ktorm.liuwj.me/zh-cn/schema-definition.html)： 
 
-````kotlin
+```kotlin
 object Departments : Table<Nothing>("t_department") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val location by varchar("location")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val location = varchar("location")
 }
 
 object Employees : Table<Nothing>("t_employee") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
-````
+```
 
 然后，连接到数据库，执行一个简单的查询：
 
-````kotlin
+```kotlin
 fun main() {
     val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
 
@@ -88,7 +88,7 @@ fun main() {
         println(row[Employees.name])
     }
 }
-````
+```
 
 现在，你可以执行这个程序了，Ktorm 会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 因为 `select` 函数返回的查询对象实现了 `Iterable<T>` 接口，所以你可以在这里使用 for-each 循环的语法。当然，任何针对 `Iteralble<T>` 的扩展函数也都可用，比如 Kotlin 标准库提供的 map/filter/reduce 系列函数。
 
@@ -245,19 +245,19 @@ interface Employee : Entity<Employee> {
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val location by varchar("location").bindTo { it.location }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val location = varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val job by varchar("job").bindTo { it.job }
-    val managerId by int("manager_id").bindTo { it.manager.id }
-    val hireDate by date("hire_date").bindTo { it.hireDate }
-    val salary by long("salary").bindTo { it.salary }
-    val departmentId by int("department_id").references(Departments) { it.department }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val job = varchar("job").bindTo { it.job }
+    val managerId = int("manager_id").bindTo { it.manager.id }
+    val hireDate = date("hire_date").bindTo { it.hireDate }
+    val salary = long("salary").bindTo { it.salary }
+    val departmentId = int("department_id").references(Departments) { it.department }
 }
 ```
 
@@ -358,9 +358,9 @@ val employees = database.sequenceOf(Employees).sortedBy { it.salary }.toList()
 
 使用 `drop` 和 `take` 函数进行分页：
 
-````kotlin
+```kotlin
 val employees = database.sequenceOf(Employees).drop(1).take(1).toList()
-````
+```
 
 ### 终止操作
 
@@ -382,15 +382,15 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
 
 `toCollection`、`toList` 等方法用于将序列中的元素保存为一个集合：
 
-````kotlin
+```kotlin
 val employees = database.sequenceOf(Employees).toCollection(ArrayList())
-````
+```
 
 `mapColumns` 函数用于获取指定列的结果：
 
-````kotlin
+```kotlin
 val names = database.sequenceOf(Employees).mapColumns { it.name }
-````
+```
 
 除此之外，还有 `mapColumns2`、`mapColumns3` 等更多函数，它们用来同时获取多个列的结果，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些字段，函数的返回值也相应变成了 `List<Pair<C1?, C2?>>` 或 `List<Triple<C1?, C2?, C3?>>`：
 
@@ -414,9 +414,9 @@ where t_employee.department_id = ?
 
 其他我们熟悉的序列函数也都支持，比如 `fold`、`reduce`、`forEach` 等，下面使用 `fold` 计算所有员工的工资总和：
 
-````kotlin
+```kotlin
 val totalSalary = database.sequenceOf(Employees).fold(0L) { acc, employee -> acc + employee.salary }
-````
+```
 
 ### 序列聚合
 
@@ -452,21 +452,21 @@ where t_employee.department_id = ?
 
 下面改用 `maxBy` 函数获取部门 1 中工资的最大值：
 
-````kotlin
+```kotlin
 val max = database
     .sequenceOf(Employees)
     .filter { it.departmentId eq 1 }
     .maxBy { it.salary }
-````
+```
 
 除此之外，Ktorm 还支持分组聚合，只需要先调用 `groupingBy`，再调用 `aggregateColumns`。下面的代码可以获取所有部门的平均工资，它的返回值类型是 `Map<Int?, Double?>`，其中键为部门 ID，值是各个部门工资的平均值：
 
-````kotlin
+```kotlin
 val averageSalaries = database
     .sequenceOf(Employees)
     .groupingBy { it.departmentId }
     .aggregateColumns { avg(it.salary) }
-````
+```
 
 生成 SQL：
 

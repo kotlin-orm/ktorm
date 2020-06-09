@@ -44,43 +44,43 @@ Ktormは純粋なJDBCをベースにしたKotlin用の軽量で効率的なORM�
 
 Ktormはmaven centralとjcenterにデプロイされているので、mavenを使っている場合は `pom.xml` ファイルに依存関係を追加するだけです。
 
-````xml
+```xml
 <dependency>
     <groupId>me.liuwj.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
-````
+```
 
 Gradleの場合: 
 
-````groovy
+```groovy
 compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
-````
+```
 
 第一に、[テーブルスキーマを記述する](https://ktorm.liuwj.me/en/schema-definition.html)ためのKotlinオブジェクトを作成します。
 
-````kotlin
+```kotlin
 object Departments : Table<Nothing>("t_department") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val location by varchar("location")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val location = varchar("location")
 }
 
 object Employees : Table<Nothing>("t_employee") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
-````
+```
 
 そして、データベースに接続して、簡単なクエリを書きます。
 
-````kotlin
+```kotlin
 fun main() {
     val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
 
@@ -88,7 +88,7 @@ fun main() {
         println(row[Employees.name])
     }
 }
-````
+```
 
 このプログラムを実行すると、Ktormは `select * from t_employee` というSQL文を生成し、テーブル内のすべての従業員を選択して名前を表示します。`select` 関数が返すクエリオブジェクトは `Iterable<T>` インターフェースを実装しているので、for-eachループを使うことができます。Kotlin標準ライブラリで提供されている`map/filter/reduce`などの`Iterable<T>`の拡張関数も利用できます。
 
@@ -96,7 +96,7 @@ fun main() {
 
 クエリにいくつかフィルタ条件を追加してみましょう。 
 
-````kotlin
+```kotlin
 database
     .from(Employees)
     .select(Employees.name)
@@ -104,15 +104,15 @@ database
     .forEach { row -> 
         println(row[Employees.name])
     }
-````
+```
 
 生成される SQL文: 
 
-````sql
+```sql
 select t_employee.name as t_employee_name 
 from t_employee 
 where (t_employee.department_id = ?) and (t_employee.name like ?) 
-````
+```
 
 Ktormを使ってクエリを書くのは簡単で自然です。生成されたSQLは元のKotlinのコードに正確に対応しています。さらに、強力な型付けがされており、実行前にコンパイラがあなたのコードをチェックし、IDEのintelligent senseとコード補完の恩恵を受けることができます。
 
@@ -224,7 +224,7 @@ SQL DSLの詳しい使い方については、[詳細ドキュメント](https:/
 
 SQL DSL に加えて、他の ORM フレームワークと同様にエンティティオブジェクトもサポートされています。まず、エンティティクラスを定義し、それにテーブルオブジェクトをバインドする必要があります。Ktormでは、エンティティクラスは `Entity<E>` を拡張したインタフェースとして定義されています。
 
-````kotlin
+```kotlin
 interface Department : Entity<Department> {
     val id: Int
     var name: String
@@ -240,32 +240,32 @@ interface Employee : Entity<Employee> {
     var salary: Long
     var department: Department
 }
-````
+```
 
 上記のテーブルオブジェクトを変更し、データベースの列をエンティティのプロパティにバインドします。 
 
-````kotlin
+```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val location by varchar("location").bindTo { it.location }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val location = varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val job by varchar("job").bindTo { it.job }
-    val managerId by int("manager_id").bindTo { it.manager.id }
-    val hireDate by date("hire_date").bindTo { it.hireDate }
-    val salary by long("salary").bindTo { it.salary }
-    val departmentId by int("department_id").references(Departments) { it.department }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val job = varchar("job").bindTo { it.job }
+    val managerId = int("manager_id").bindTo { it.manager.id }
+    val hireDate = date("hire_date").bindTo { it.hireDate }
+    val salary = long("salary").bindTo { it.salary }
+    val departmentId = int("department_id").references(Departments) { it.department }
 }
-````
+```
 
 > 名前付けのコツ：エンティティクラスに単数名詞で名前を付け、テーブルオブジェクトに複数形で名前を付けることを強くお勧めします（例：Employee/Employees、Department/Departments）。
 
 
-これで列バインディングが設定されたので、[sequence APIs](#Entity-Sequence-APIs)を使ってエンティティに対して多くの操作を行うことができます。以下のコードのように、まず `sequenceOf` でシーケンスオブジェクトを作成し、次に `find` 関数を呼び出して`vince`と言う名前の従業員情報を取得します。
+これで列バインディングが設定されたので、[エンティティシーケンス API](#エンティティシーケンス-API)を使ってエンティティに対して多くの操作を行うことができます。以下のコードのように、まず `sequenceOf` でシーケンスオブジェクトを作成し、次に `find` 関数を呼び出して`vince`と言う名前の従業員情報を取得します。
 
 ```kotlin
 val sequence = database.sequenceOf(Employees)
@@ -280,12 +280,12 @@ val employees = sequence.filter { it.name eq "vince" }.toList()
 
 関数 `find` と `filter` はどちらもラムダ式を受け取り、ラムダによって返された条件を持つSELECT SQLを生成します。生成されたSQLは自動的に参照されたテーブル `t_department` に結合します。
 
-````sql
+```sql
 select * 
 from t_employee 
 left join t_department _ref0 on t_employee.department_id = _ref0.id 
 where t_employee.name = ?
-````
+```
 
 エンティティをデータベースに保存します。: 
 
