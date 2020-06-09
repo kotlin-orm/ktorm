@@ -26,19 +26,19 @@ compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val location by varchar("location")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val location = varchar("location")
 }
 
 object Employees : Table<Nothing>("t_employee") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
 ```
 
@@ -209,19 +209,19 @@ interface Employee : Entity<Employee> {
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val location by varchar("location").bindTo { it.location }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val location = varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val job by varchar("job").bindTo { it.job }
-    val managerId by int("manager_id").bindTo { it.manager.id }
-    val hireDate by date("hire_date").bindTo { it.hireDate }
-    val salary by long("salary").bindTo { it.salary }
-    val departmentId by int("department_id").references(Departments) { it.department }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val job = varchar("job").bindTo { it.job }
+    val managerId = int("manager_id").bindTo { it.manager.id }
+    val hireDate = date("hire_date").bindTo { it.hireDate }
+    val salary = long("salary").bindTo { it.salary }
+    val departmentId = int("department_id").references(Departments) { it.department }
 }
 ```
 

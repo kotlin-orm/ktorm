@@ -32,44 +32,42 @@ Generally, we can define Kotlin objects extending `Table` to descript our table 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val location by varchar("location")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val location = varchar("location")
 }
 
 object Employees : Table<Nothing>("t_employee") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
 ```
 
 We can see that both `Departments` and `Employees` are extending from `Table` whose constructor accepts a table name as the parameter. There is also a generic type parameter for `Table` class, that is the entity class's type that current table is binding to. Here we don't bind to any entity classes, so `Nothing` is OK. 
 
-Columns are defined as properties in table objects by Kotlin's *val* and *by* keyword, their types are defined by type definition functions, such as int, long, varchar, date, etc. Commonly, these type definition functions follow the rules below:  
+Columns are defined as properties in table objects by Kotlin's *val* keyword, their types are defined by type definition functions, such as int, long, varchar, date, etc. Commonly, these type definition functions follow the rules below:  
 
 - They are all `Table` class's extension functions that are only allowed to be used in table object definitions. 
 - Their names are corresponding to the underlying SQL types' names. 
 - They all accept a parameter of string type, that is the column's name.
-- Their return types are `Table<E>.ColumnRegistration<C>`, in which E is the entity class, C is the type of current column. We can chaining call the `primaryKey` function on `ColumnRegistration` to declare the current column as a primary key. 
-
-> `ColumnRegistration` implements the `ReadOnlyProperty` interface, so we can use it as a [property delegate](https://kotlinlang.org/docs/reference/delegated-properties.html) via Kotlin's *by* keyword. Therefore, in the definition `val name by varchar("name")`, although the return type of `varchar` is `ColumnRegistration<String>`, the `val name` property's type is `Column<String>`. For the same reason, the `val managerId by int("manager_id")` property's type is `Column<Int>`.
+- Their return types are `Column<C>`, in which C is the type of current column. We can chaining call the extension function `primaryKey` to declare the current column as a primary key. 
 
 In general, we define tables as Kotlin singleton objects, but we don't really have to stop there. For instance, assuming that we have two tables that are totally the same, they have the same columns, but their names are different. In this special case, do we have to copy the same column definitions to each table? No, we don't. We can reuse our codes by subclassing: 
 
 ```kotlin
 sealed class Employees(tableName: String) : Table<Nothing>(tableName) {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
 
 object RegularEmployees : Employees("t_regular_employee")
@@ -81,8 +79,8 @@ For another example, sometimes our table is one-off, we don't need to use it twi
 
 ```kotlin
 val t = object : Table<Nothing>("t_config") {
-    val key by varchar("key").primaryKey()
-    val value by varchar("value")
+    val key = varchar("key").primaryKey()
+    val value = varchar("value")
 }
 
 // Get all configs as a Map<String, String>
@@ -96,7 +94,7 @@ Flexible usage of Kotlin's language features is helpful for us to reduce duplica
 `SqlType` is an abstract class which provides a unified abstraction for data types in SQL. Based on JDBC, it encapsulates the common operations of obtaining data from a `ResultSet` and setting parameters to a `PreparedStatement`. In the section above, we defined columns by column definition functions, eg. int, varchar, etc. All these functions have a `SqlType` implementation behind them. For example, here is the implementation of `int` function: 
 
 ```kotlin
-fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
+fun BaseTable<*>.int(name: String): Column<Int> {
     return registerColumn(name, IntSqlType)
 }
 
@@ -168,11 +166,11 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 The class above is a subclass of `SqlType`, it provides JSON data type support via the Jackson framework. Now we have `JsonSqlType`, how can we use it to define a column? Looking back the `int` function's implementation above, we notice that there is a `registerColumn` function called. This function is exactly the entry point provided by Ktorm to support datatype extensions. We can also write an extension function like this: 
 
 ```kotlin
-fun <E : Any, C : Any> BaseTable<E>.json(
+fun <C : Any> BaseTable<*>.json(
     name: String,
     typeReference: TypeReference<C>,
     objectMapper: ObjectMapper = sharedObjectMapper
-): BaseTable<E>.ColumnRegistration<C> {
+): Column<C> {
     return registerColumn(name, JsonSqlType(typeReference.referencedType, objectMapper))
 }
 ```
@@ -181,7 +179,7 @@ The usage is as follows:
 
 ```kotlin
 object Foo : Table<Nothing>("foo") {
-    val bar by json("bar", typeRef<List<Int>>())
+    val bar = json("bar", typeRef<List<Int>>())
 }
 ```
 
@@ -208,7 +206,7 @@ Additionally, Ktorm 2.7 provides a `transform` function. With this function, we 
 For example, in the following code, we define a column of type `Column<UserRole>`, but the underlying SQL type in the database is still `int`. We just perform some transformations while obtaining column values or setting parameters into prepared statements. 
 
 ```kotlin
-val role by int("role").transform({ UserRole.fromCode(it) }, { it.code })
+val role = int("role").transform({ UserRole.fromCode(it) }, { it.code })
 ```
 
 Please note such transformations will perform on every access to a column, that means you should avoid heavy transformations here.

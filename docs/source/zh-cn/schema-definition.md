@@ -32,44 +32,42 @@ create table t_employee(
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val location by varchar("location")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val location = varchar("location")
 }
 
 object Employees : Table<Nothing>("t_employee") {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
 ```
 
 可以看到，`Departments` 和 `Employees` 都继承了 `Table`，并且在构造函数中指定了表名，`Table` 类还有一个泛型参数，它是此表绑定到的实体类的类型，在这里我们不需要绑定到任何实体类，因此指定为 `Nothing` 即可。
 
-表中的列则使用 val 和 by 关键字定义为表对象中的成员属性，列的类型使用 int、long、varchar、date 等函数定义，它们分别对应了 SQL 中的相应类型，这些类型定义函数的普遍特征如下：
+表中的列则使用 val 关键字定义为表对象中的成员属性，列的类型使用 int、long、varchar、date 等函数定义，它们分别对应了 SQL 中的相应类型，这些类型定义函数的普遍特征如下：
 
 - 它们是 `Table` 类的扩展函数，只能在定义表对象时使用
 - 它们的名称一般对应于其实际的 SQL 类型的名称
 - 它们都接收一个字符串的参数，在这里我们需要把列的名称传入
-- 它们的返回值都是 `Table<E>.ColumnRegistration<C>`，E 为实体类的类型，C 为该列的类型，我们可以链式调用 `ConlumnRegistration` 上的 `primaryKey` 函数，将当前列声明为主键
-
-> `ColumnRegistration` 实现了 `ReadOnlyProperty` 接口，所以可以结合 by 关键字用作[属性委托](https://kotlinlang.org/docs/reference/delegated-properties.html)。因此，在 `val name by varchar("name")` 中，虽然 varchar 函数的返回值类型为 `ColumnRegistration<String>`，但 `val name` 的类型却是 `Column<String>`。以此类推， `val managerId by int("manager_id")` 定义的属性的类型应该是 `Column<Int>`。
+- 它们的返回值都是 `Column<C>`，C 为该列的类型，我们可以链式调用 `primaryKey` 扩展函数，将当前列声明为主键
 
 通常我们都会将表定义为 Kotlin 单例对象，但我们其实不必拘泥于此。例如，在某些情况下，我们有两个结构完全相同的表，只是表名不同（在数据备份的时候比较常见），难道我们一定要在每一个表对象中都写一遍完全相同的字段定义吗？当然不需要，这里我们可以使用继承重用代码：
 
 ```kotlin
 sealed class Employees(tableName: String) : Table<Nothing>(tableName) {
-    val id by int("id").primaryKey()
-    val name by varchar("name")
-    val job by varchar("job")
-    val managerId by int("manager_id")
-    val hireDate by date("hire_date")
-    val salary by long("salary")
-    val departmentId by int("department_id")
+    val id = int("id").primaryKey()
+    val name = varchar("name")
+    val job = varchar("job")
+    val managerId = int("manager_id")
+    val hireDate = date("hire_date")
+    val salary = long("salary")
+    val departmentId = int("department_id")
 }
 
 object RegularEmployees : Employees("t_regular_employee")
@@ -81,8 +79,8 @@ object FormerEmployees : Employees("t_former_employee")
 
 ```kotlin
 val t = object : Table<Nothing>("t_config") {
-    val key by varchar("key").primaryKey()
-    val value by varchar("value")
+    val key = varchar("key").primaryKey()
+    val value = varchar("value")
 }
 
 // Get all configs as a Map<String, String>
@@ -96,7 +94,7 @@ val configs = database.from(t).select().associate { row -> row[t.key] to row[t.v
 `SqlType` 是一个抽象类，它为 SQL 中的数据类型提供了统一的抽象，基于 JDBC，它封装了从 `ResultSet` 中获取数据，往 `PreparedStatement` 设置参数等通用的操作。在前面定义表中的字段时，我们曾使用了表示不同类型的 int、varchar 等列定义函数，这些函数的背后其实都有一个特定的 `SqlType` 的子类。比如 int 函数的实现是这样的：
 
 ```kotlin
-fun <E : Any> BaseTable<E>.int(name: String): BaseTable<E>.ColumnRegistration<Int> {
+fun BaseTable<*>.int(name: String): Column<Int> {
     return registerColumn(name, IntSqlType)
 }
 
@@ -168,11 +166,11 @@ class JsonSqlType<T : Any>(type: java.lang.reflect.Type, val objectMapper: Objec
 上面这个类使用 Jackson 框架进行 json 与对象之间的转换，提供了 json 数据类型的支持。有了 `JsonSqlType` 之后，怎样使用这个类型定义一个列呢？在前面 int 函数的实现中，我们注意到其中调用了 `registerColumn` 函数，这正是其中的秘诀，`registerColumn` 函数正是 Ktorm 提供的用来支持类型扩展的入口。我们可以写一个这样的扩展函数：
 
 ```kotlin
-fun <E : Any, C : Any> BaseTable<E>.json(
+fun <C : Any> BaseTable<*>.json(
     name: String,
     typeReference: TypeReference<C>,
     objectMapper: ObjectMapper = sharedObjectMapper
-): BaseTable<E>.ColumnRegistration<C> {
+): Column<C> {
     return registerColumn(name, JsonSqlType(typeReference.referencedType, objectMapper))
 }
 ```
@@ -181,7 +179,7 @@ fun <E : Any, C : Any> BaseTable<E>.json(
 
 ```kotlin
 object Foo : Table<Nothing>("foo") {
-    val bar by json("bar", typeRef<List<Int>>())
+    val bar = json("bar", typeRef<List<Int>>())
 }
 ```
 
@@ -208,7 +206,7 @@ compile "me.liuwj.ktorm:ktorm-jackson:${ktorm.version}"
 例如下面的例子，我们定义了一个类型为 `Column<UserRole>` 的列，但是在数据库中保存的还是 `int` 值，只是在获取结果及设置参数到 `PreparedStatement` 时执行了一定的转换：
 
 ```kotlin
-val role by int("role").transform({ UserRole.fromCode(it) }, { it.code })
+val role = int("role").transform({ UserRole.fromCode(it) }, { it.code })
 ```
 
 需要注意的是，这个转换在获取每条结果时都会执行一次，所以在这里不要有太重的行为，以免对性能造成影响。
