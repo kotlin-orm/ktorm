@@ -70,25 +70,25 @@ val department = Department {
 
 The core feature of an ORM framework is to bind database tables to entities, bind tables' columns to entities' properties. Now let's learn how to do that with Ktorm. 
 
-In former sections learning SQL DSL, we created two table objects, they are `Departments` and `Employees`. In these table objects, we defined columns by calling column definition functions such as `int`, `long`, `varchar`, etc. The return type of them is `Table<E>.ColumnRegistration<C>`, in which `E` is the entity's type, `C` is the declaring column's type.
+In former sections learning SQL DSL, we created two table objects, they are `Departments` and `Employees`. In these table objects, we defined columns by calling column definition functions such as `int`, `long`, `varchar`, etc. The return type of them is `Column<C>`, in which, `C` is the declaring column's type.
 
-It's easy to bind a column to an entity's property, we just need to chaining call the `bindTo` or `references` function on the `ColumnRegistration` instance. The code below modifies those two table objects and completes the O-R bindings: 
+It's easy to bind a column to an entity's property, we just need to chaining call the `bindTo` or `references` extension function on the `Column` instance. The code below modifies those two table objects and completes the O-R bindings: 
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val location by varchar("location").bindTo { it.location }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val location = varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val job by varchar("job").bindTo { it.job }
-    val managerId by int("manager_id").bindTo { it.manager.id }
-    val hireDate by date("hire_date").bindTo { it.hireDate }
-    val salary by long("salary").bindTo { it.salary }
-    val departmentId by int("department_id").references(Departments) { it.department }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val job = varchar("job").bindTo { it.job }
+    val managerId = int("manager_id").bindTo { it.manager.id }
+    val hireDate = date("hire_date").bindTo { it.hireDate }
+    val salary = long("salary").bindTo { it.salary }
+    val departmentId = int("department_id").references(Departments) { it.department }
 }
 ```
 
@@ -117,8 +117,8 @@ interface Config : Entity<Config> {
 }
 
 object Configs : Table<Config>("t_config") {
-    val key by varchar("key").primaryKey().bindTo { it.key }
-    val value by varchar("value").bindTo { it.value1 }.bindTo { it.value2 }
+    val key = varchar("key").primaryKey().bindTo { it.key }
+    val value = varchar("value").bindTo { it.value1 }.bindTo { it.value2 }
 }
 ```
 

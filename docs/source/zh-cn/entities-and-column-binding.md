@@ -70,25 +70,25 @@ val department = Department {
 
 ORM 框架的一大功能就是将数据表与实体类进行绑定、将表中的列与实体类中的属性进行绑定，现在我们来了解 Ktorm 如何实现这个功能。
 
-在前面介绍 SQL DSL 的时候，我们已经创建了两个表对象，他们分别是部门表 `Departments` 和员工表 `Employees`，在表对象中，使用 int、long、varchar 等函数声明表中的列。这些声明列的函数的返回值都是 `Table<E>.ColumnRegistration<C>`，在这里，`E` 代表实体类的类型，`C` 代表被声明的列的类型。
+在前面介绍 SQL DSL 的时候，我们已经创建了两个表对象，他们分别是部门表 `Departments` 和员工表 `Employees`，在表对象中，使用 int、long、varchar 等函数声明表中的列。这些声明列的函数的返回值都是 `Column<C>`，在这里，`C` 代表被声明的列的类型。
 
-要将列绑定到实体类的属性十分简单，只需要链式调用 `ColumnRegistration` 类中的 `bindTo` 函数或 `references` 函数即可，下面的代码修改了前面的两个表对象，完成了 ORM 绑定：
+要将列绑定到实体类的属性十分简单，只需要链式调用 `Column` 的 `bindTo` 函数或 `references` 扩展	函数即可，下面的代码修改了前面的两个表对象，完成了 ORM 绑定：
 
 ```kotlin
 object Departments : Table<Department>("t_department") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val location by varchar("location").bindTo { it.location }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val location = varchar("location").bindTo { it.location }
 }
 
 object Employees : Table<Employee>("t_employee") {
-    val id by int("id").primaryKey().bindTo { it.id }
-    val name by varchar("name").bindTo { it.name }
-    val job by varchar("job").bindTo { it.job }
-    val managerId by int("manager_id").bindTo { it.manager.id }
-    val hireDate by date("hire_date").bindTo { it.hireDate }
-    val salary by long("salary").bindTo { it.salary }
-    val departmentId by int("department_id").references(Departments) { it.department }
+    val id = int("id").primaryKey().bindTo { it.id }
+    val name = varchar("name").bindTo { it.name }
+    val job = varchar("job").bindTo { it.job }
+    val managerId = int("manager_id").bindTo { it.manager.id }
+    val hireDate = date("hire_date").bindTo { it.hireDate }
+    val salary = long("salary").bindTo { it.salary }
+    val departmentId = int("department_id").references(Departments) { it.department }
 }
 ```
 
@@ -117,8 +117,8 @@ interface Config : Entity<Config> {
 }
 
 object Configs : Table<Config>("t_config") {
-    val key by varchar("key").primaryKey().bindTo { it.key }
-    val value by varchar("value").bindTo { it.value1 }.bindTo { it.value2 }
+    val key = varchar("key").primaryKey().bindTo { it.key }
+    val value = varchar("value").bindTo { it.value1 }.bindTo { it.value2 }
 }
 ```
 
