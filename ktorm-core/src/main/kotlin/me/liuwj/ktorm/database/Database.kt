@@ -179,11 +179,9 @@ class Database(
      */
     inline fun <T> useConnection(func: (Connection) -> T): T {
         try {
-            transactionManager.currentTransaction?.let {
-                return func(it.connection)
-            } ?: transactionManager.newConnection().use {
-                return func(it)
-            }
+            val conn = transactionManager.currentTransaction?.connection
+                ?: transactionManager.newConnection()
+            return func(conn)
         } catch (e: SQLException) {
             throw exceptionTranslator?.invoke(e) ?: e
         }
