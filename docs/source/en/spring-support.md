@@ -22,6 +22,8 @@ Or Gradle：
 compile "org.springframework:spring-jdbc:${spring.version}"
 ```
 
+> `spring-jdbc` is just the minimal dependency that we require, if you are using Spring Boot, we recommend you use `spring-boot-starter-jdbc` directly. 
+
 ## Create Database Objects
 
 Just like any other Ktorm programs, we need to create `Database` objects first. But this time, we use the `Database.connectWithSpringSupport` function instead of `Database.connect`, both of them accept a `DataSource` parameter: 

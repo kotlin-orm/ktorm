@@ -22,6 +22,8 @@ related_path: en/spring-support.html
 compile "org.springframework:spring-jdbc:${spring.version}"
 ````
 
+> `spring-jdbc` 只是我们所需的最小依赖，如果你使用 Spring Boot 的话，建议直接引入 `spring-boot-starter-jdbc`。
+
 ## 创建 Database 对象
 
 跟其他 Ktorm 程序一样，你需要一个 `Database` 对象才能对数据库进行操作。但这次我们并不使用 `Database.connect` 方法，而是改用 `Database.connectWithSpringSupport`，这个方法需要我们传入一个 `DataSource` 数据源对象：
