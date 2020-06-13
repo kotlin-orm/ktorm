@@ -180,17 +180,13 @@ class Database(
         // }
 
         try {
-            var inTransaction = false
-            val conn = transactionManager.currentTransaction?.run {
-                inTransaction = true
-                connection
-            } ?: transactionManager.newConnection()
-            return try {
-                func(conn)
+            val transaction = transactionManager.currentTransaction
+            val connection = transaction?.connection ?: transactionManager.newConnection()
+
+            try {
+                return func(connection)
             } finally {
-                if (!inTransaction) {
-                    conn.close()
-                }
+                if (transaction == null) connection.close()
             }
         } catch (e: SQLException) {
             throw exceptionTranslator?.invoke(e) ?: e
