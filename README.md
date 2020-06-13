@@ -90,7 +90,7 @@ fun main() {
 }
 ```
 
-Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use the for-each loop because the query object returned by the `select` function implements the `Iterable<T>` interface. Any other extension functions on `Iterable<T>` are also available, eg. map/filter/reduce provided by Kotlin standard lib.
+Now you can run this program, Ktorm will generate a SQL `select * from t_employee`, selecting all employees in the table and printing their names. You can use the for-each loop here because the query object returned by the `select` function overloads the iteration operator. 
 
 ## SQL DSL
 

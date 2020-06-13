@@ -90,7 +90,7 @@ fun main() {
 }
 ```
 
-このプログラムを実行すると、Ktormは `select * from t_employee` というSQL文を生成し、テーブル内のすべての従業員を選択して名前を表示します。`select` 関数が返すクエリオブジェクトは `Iterable<T>` インターフェースを実装しているので、for-eachループを使うことができます。Kotlin標準ライブラリで提供されている`map/filter/reduce`などの`Iterable<T>`の拡張関数も利用できます。
+このプログラムを実行すると、Ktormは `select * from t_employee` というSQL文を生成し、テーブル内のすべての従業員を選択して名前を表示します。`select` 関数が返すクエリオブジェクトは反復演算子をオーバーロードしているので、for-eachループを使うことができます。
 
 ## SQL DSL
 
