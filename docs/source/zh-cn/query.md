@@ -19,7 +19,7 @@ for (row in database.from(Employees).select()) {
 在上面的例子中，`select` 方法返回了一个类型为 `Query` 的对象，然后使用 for-each 循环对其进行迭代，那么除了迭代外，`Query` 类还支持什么操作呢？让我们先来看一下它的定义：
 
 ```kotlin
-data class Query(val database: Database, val expression: QueryExpression) : Iterable<QueryRowSet> {
+data class Query(val database: Database, val expression: QueryExpression) {
     
     val sql: String by lazy { ... }
 
@@ -27,7 +27,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
 
     val totalRecords: Int by lazy { ... }
 
-    override fun iterator(): Iterator<QueryRowSet> {
+    operator fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
     }
 }
@@ -37,7 +37,7 @@ data class Query(val database: Database, val expression: QueryExpression) : Iter
 
 可以看到，`Query` 类的构造函数接收两个参数：`database` 是执行此查询的数据库对象；`expression` 是被执行的 SQL 语句的抽象表示。一般来说，我们不需要自己使用这个构造函数创建 `Query` 对象，而是使用 `database.from(..).select(..)` 的语法，由 Ktorm 为我们构造一个查询。
 
-`Query` 类还实现了 `Iterable<QueryRowSet>` 接口，通过实现这个接口，我们才能够使用 for-each 循环的语法遍历查询返回的结果集。而且，Kotlin 标准库中也有许多针对 `Iterable` 接口的扩展函数，所以我们还可以使用 `map`、 `filter` 等函数对结果集进行各种各样的处理，就像这样：
+`Query` 类还重载了迭代运算符 `iterator`，通过重载这个运算符，我们才能够使用 for-each 循环的语法遍历查询返回的结果集。而且，Ktorm 还额外提供了一些类似 Kotlin 标准库中 `Iterable` 的扩展函数，所以我们还可以使用 `map`、 `flatMap` 等函数对结果集进行各种各样的处理，就像这样：
 
 ```kotlin
 data class Emp(val id: Int?, val name: String?, val salary: Long?)
@@ -51,7 +51,7 @@ query
     .forEach { println(it.name) }
 ```
 
-实际上，在这里 Ktorm 所完成的工作，也只是生成了一句简单的 SQL `select * from t_employee` 而已，后面的 `.map { }.filter { }.sortedBy { }.forEach { }` 全部都是 Kotlin 标准库中的函数，这就是实现 `Iterable` 接口给我们带来的好处。
+> 需要注意的是，在这里 Ktorm 所完成的工作，只是生成了一句简单的 SQL `select * from t_employee` 而已，后面的 `.map { }.filter { }.sortedBy { }.forEach { }` 全部都是内存中的集合操作。
 
 `Query` 类中还有一些有用的属性：
 
@@ -63,7 +63,7 @@ query
 
 如果你用过 JDBC，你应该知道如何从 `ResultSet` 中获取你的查询结果。你需要使用一个循环不断地遍历结果集中的行，在循环中调用 `getInt` 、`getString` 等方法获取指定列中的数据，典型的用法是一个 while 循环：`while (rs.next()) { ... }`。而且，使用完毕后，你还得调用 `close` 方法关闭结果集。
 
-这种写法虽说并不复杂，但重复的代码写多了也难免让人厌烦。Ktorm 通过让 `Query` 类实现 `Iterable` 接口，为你提供了另一种可能。你可以使用 for-each 循环迭代 `Query` 的结果集，也可以使用 `map`、`filter` 等扩展函数对结果集进行二次处理，就像前面的例子一样。
+这种写法虽说并不复杂，但重复的代码写多了也难免让人厌烦，而 Ktorm 为你提供了另一种可能。你可以使用 for-each 循环迭代 `Query` 的结果集，也可以使用 `map`、`flatMap 等扩展函数对结果集进行二次处理，就像前面的例子一样。
 
 你可能已经发现，`Query.rowSet` 返回的结果集并不是普通的 `ResultSet`，而是 `QueryRowSet`。这是 Ktorm 提供的特殊的 `ResultSet` 的实现，与普通的 `ResultSet` 不同，它增加了如下特性：
 

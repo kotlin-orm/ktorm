@@ -54,7 +54,7 @@ fun main() {
 }
 ```
 
-现在，你可以执行这个程序了，Ktorm 会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 因为 `select` 函数返回的查询对象实现了 `Iterable<T>` 接口，所以你可以在这里使用 for-each 循环的语法。当然，任何针对 `Iteralble<T>` 的扩展函数也都可用，比如 Kotlin 标准库提供的 map/filter/reduce 系列函数。
+现在，你可以执行这个程序了，Ktorm 会生成一条 SQL `select * from t_employee`，查询表中所有的员工记录，然后打印出他们的名字。 因为 `select` 函数返回的查询对象重载了迭代运算符，所以你可以在这里使用 for-each 循环的语法。
 
 ## SQL DSL
 
