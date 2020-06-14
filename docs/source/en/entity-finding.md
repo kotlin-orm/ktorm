@@ -90,7 +90,7 @@ val employees = database
 employees.forEach { println(it) }
 ```
 
-`Query` implements the `Iterable<QueryRowSet>` interface, so we can use the Kotlin built-in `map` function to iterate it and create an entity object from the result set via `createEntity` for each row. `createEntity` is a function of `Table` class, it will create an entity object from the result set, using the binding configurations of the table, filling columns' values into corresponding entities' properties. And if there are any reference bindings to other tables, it will also create the referenced entity objects recursively. 
+Here, we use the `map` function to iterate the query and create an entity object from the result set via `createEntity` for each row. `createEntity` is a function of `Table` class, it will create an entity object from the result set, using the binding configurations of the table, filling columns' values into corresponding entities' properties. And if there are any reference bindings to other tables, it will also create the referenced entity objects recursively. 
 
 However, the selected columns in query DSL are customizable, and there may be no columns from referenced tables. In this case, the function provides a parameter named `withReferences`, which is defaultly `true`. But if we set it to `false`, it will not obtain referenced entities' data anymore, it will treat all reference bindings as nested bindings to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`, it is equivalent to `c.bindTo { it.department.id }` for it, that avoids some unnecessary object creations. 
 
@@ -98,7 +98,7 @@ However, the selected columns in query DSL are customizable, and there may be no
 Employees.createEntity(row, withReferences = false)
 ```
 
-Get back the example above, because we didn't join any tables, so no matter we set the parameter to `true` or `false`, Ktorm will generate a simple SQL `select * from t_employee order by t_employee.id` and print the same results:  
+Get back the above example that we didn't join any tables, so no matter we set the parameter to `true` or `false`, Ktorm will generate a simple SQL `select * from t_employee order by t_employee.id` and print the same results:  
 
 ```plain
 Employee{id=1, name=vince, job=engineer, hireDate=2018-01-01, salary=100, department=Department{id=1}}

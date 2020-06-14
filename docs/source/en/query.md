@@ -49,7 +49,7 @@ query
     .forEach { println(it.name) }
 ```
 
-> Please note: in the example above, all the work Ktorm does is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedBy { }.forEach { }` are just collection operations in memory. 
+> Please note: In the example above, all the work Ktorm does is just to generate a simple SQL `select * from t_employee`. The following `.map { }.filter { }.sortedBy { }.forEach { }` are just collection operations in memory. 
 
 There are some other useful properties in the `Query` class: 
 
