@@ -318,9 +318,15 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
             is java.util.Date -> Date(value.time)
+            is Number -> Date(value.toLong())
             is String -> {
-                val date = DateFormat.getDateInstance().parse(value)
-                Date(date.time)
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Date(number)
+                } else {
+                    val date = DateFormat.getDateInstance().parse(value)
+                    Date(date.time)
+                }
             }
             else -> {
                 throw SQLException("Cannot convert ${value.javaClass.name} value to Date.")
@@ -332,9 +338,15 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
             is java.util.Date -> Time(value.time)
+            is Number -> Time(value.toLong())
             is String -> {
-                val date = DateFormat.getTimeInstance().parse(value)
-                Time(date.time)
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Time(number)
+                } else {
+                    val date = DateFormat.getTimeInstance().parse(value)
+                    Time(date.time)
+                }
             }
             else -> {
                 throw SQLException("Cannot convert ${value.javaClass.name} value to Time.")
@@ -346,9 +358,15 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
             is java.util.Date -> Timestamp(value.time)
+            is Number -> Timestamp(value.toLong())
             is String -> {
-                val date = DateFormat.getDateTimeInstance().parse(value)
-                Timestamp(date.time)
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Timestamp(number)
+                } else {
+                    val date = DateFormat.getDateTimeInstance().parse(value)
+                    Timestamp(date.time)
+                }
             }
             else -> {
                 throw SQLException("Cannot convert ${value.javaClass.name} value to Timestamp.")
