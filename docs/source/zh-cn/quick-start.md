@@ -240,7 +240,7 @@ val employee = sequence.find { it.name eq "vince" }
 val employees = sequence.filter { it.name eq "vince" }.toList()
 ```
 
-`find` 和 `filter` 函数都接受一个 lambda 表达式作为参数，使用该 lambda 的返回值作为条件，生成一条查询 SQL。可以看到，生成的 SQL 自动 left jion 了关联表 `t_department`：
+`find` 和 `filter` 函数都接受一个 lambda 表达式作为参数，使用该 lambda 的返回值作为条件，生成一条查询 SQL。可以看到，生成的 SQL 自动 left join 了关联表 `t_department`：
 
 ```sql
 select * 

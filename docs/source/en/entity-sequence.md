@@ -243,15 +243,18 @@ val employees = database.sequenceOf(Employees).toCollection(ArrayList())
 
 In addition, Ktorm also provides some convenient `toXxx` functions based on `toCollection` to convert sequences to particular type of collections, they are `toList`, `toMutableList`, `toSet`, `toMutableSet`, `toHashSet`, `toSortedSet`. 
 
-### map
+### map/flatMap
 
 ```kotlin
 inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
+inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R>
 ```
 
-According to our experience of functional programming, we might consider the `map` function as intermediate. However, it is terminal instead, which is a compromise of Ktorm's design. 
+According to our experience of functional programming, we might consider the `map` and `flatMap` functions as intermediate. However, they are terminal instead, which is a compromise of Ktorm's design. 
 
-The `map` function will execute the internal query and iterate the query results right now, then perform the transformation specified by the `transform` closure for each element, finally collect the transforming results into a list. The following code obtains all the employees' names: 
+The `map` function will execute the internal query and iterate the query results right now, then perform the transformation specified by the `transform` closure for each element, finally collect the transforming results into a list. The `flatMap` function will also execute the query immediately, and the difference between `map` and `flatMap` is obvious to those who are familiar with functional programming, so I won't go into details here. 
+
+The following code obtains all the employees' names: 
 
 ```kotlin
 val names = database.sequenceOf(Employees, withReferences = false).map { it.name }
@@ -266,7 +269,7 @@ from t_employee
 
 Note that although we only need the names here, the generated SQL still selects all columns, that's because Ktorm doesn't know which columns are required. If we are sensitive to that performance issue, we can use the `filterColumns` function cooperatively, or we can also use the `mapColumns` function instead. 
 
-In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `mapIndexed` and `mapIndexedTo`, they have the same names as the extension functions of `kotlin.sequences` in Kotlin standard lib and their usages are totally the same. 
+In addition to the basic form of `map` function, Ktorm also provides `mapTo`, `mapIndexed`,  `mapIndexedTo`, etc. they have the same names as the extension functions of `kotlin.sequences` in Kotlin standard lib and their usages are totally the same. 
 
 ### mapColumns
 

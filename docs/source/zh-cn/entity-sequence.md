@@ -243,15 +243,18 @@ val employees = database.sequenceOf(Employees).toCollection(ArrayList())
 
 除此之外，Ktorm 还提供了一些简便的 `toXxx` 系列函数，用于将序列中的元素保存为特定类型的集合，它们分别是：`toList`、`toMutableList`、`toSet`、`toMutableSet`、`toHashSet`、`toSortedSet`。
 
-### map
+### map/flatMap
 
 ```kotlin
 inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R>
+inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R>
 ```
 
-根据以往函数式编程的经验，你很可能会认为 `map` 是中间操作，但是很遗憾，在 Ktorm 中，它是终止操作，这是我们在设计上的一个妥协。
+根据以往函数式编程的经验，你很可能会认为 `map` 和 `flatMap` 是中间操作，但是很遗憾，在 Ktorm 中，它们是终止操作，这是我们在设计上的一个妥协。
 
-`map` 函数会马上执行查询，迭代查询结果中的元素，对每一个元素都应用参数 `transform` 所指定的转换，然后把转换的结果保存到一个列表中返回。下面的代码可以获取所有员工的名字：
+`map` 函数会马上执行查询，迭代查询结果中的元素，对每一个元素都应用参数 `transform` 所指定的转换，然后把转换的结果保存到一个列表中返回。`flatMap` 也会马上执行查询，它与 `map` 的区别，熟悉函数式编程的同学都能一眼看出来，在此不赘述。
+
+下面的代码可以获取所有员工的名字：
 
 ```kotlin
 val names = database.sequenceOf(Employees, withReferences = false).map { it.name }
@@ -266,7 +269,7 @@ from t_employee
 
 请注意，虽然在这里我们只需要获取员工的名字，但是生成的 SQL 仍然查询了所有的字段，这是因为 Ktorm 无法通过我们传入的 `transform` 函数识别出所需的具体字段。如果你对这点性能的损失比较敏感，可以把 `map` 函数与 `filterColumns` 函数配合使用，也可以使用下面将要介绍的 `mapColumns` 函数代替。
 
-除了基本的 `map` 函数，Ktorm 还提供了 `mapTo`、`mapIndexed`、`mapIndexedTo`，他们的功能与 `kotlin.sequences` 中的同名函数是一样的，在此不再赘述。
+除了基本的 `map` 函数，Ktorm 还提供了 `mapTo`、`mapIndexed`、`mapIndexedTo` 等，他们的功能与 `kotlin.sequences` 中的同名函数是一样的，在此也不再赘述。
 
 ### mapColumns
 
