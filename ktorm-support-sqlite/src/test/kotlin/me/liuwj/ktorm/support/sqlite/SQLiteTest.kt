@@ -114,4 +114,11 @@ class SQLiteTest : BaseTest() {
         println(database.sequenceOf(Employees).find { it.id eq id })
         assert(database.sequenceOf(Employees).count() == 5)
     }
+
+    @Test
+    fun testSequence() {
+        for (employee in database.sequenceOf(Employees)) {
+            println(employee)
+        }
+    }
 }
