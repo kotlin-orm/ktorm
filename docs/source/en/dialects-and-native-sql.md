@@ -97,6 +97,7 @@ Here is a list of features provided by module **ktorm-support-mysql**:
 - Support paginations via `limit` function, translating paging expressions into PostgreSQL's `limit ? offset ?` statement. 
 - Add `insertOrUpdate` function for data "upsert", based on PostgreSQL's `on conflict (key) do update set` syntax.
 - Add `ilike` operator for string matchings ignoring cases, based on PostgreSQL's `ilike` keyword. 
+- Add `hstore` data type and a series of operators for it, such as `->`, `||`, `?`, `?&`, `?|` and so on. 
 
 **ktorm-support-oracle** provides: 
 

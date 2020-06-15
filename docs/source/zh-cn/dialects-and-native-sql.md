@@ -98,6 +98,7 @@ on duplicate key update salary = salary + ?
 - 支持使用 `limit` 函数进行分页，会自动翻译为 PostgreSQL 中的 `limit ? offset ?` 语句
 - 增加了 `insertOrUpdate` 函数，支持插入或更新的功能，基于 PostgreSQL 中的 `on conflict (key) do update set` 语法
 - 增加了 `ilike` 运算符，用于忽略大小写的字符串匹配，基于 PostgreSQL 的 `ilike` 关键字
+- 增加了 `hstore` 数据类型及其一系列运算符，如 `->`、`||`、`?`、`?&`、`?|` 等
 
 **ktorm-support-oracle** 提供的功能有：
 

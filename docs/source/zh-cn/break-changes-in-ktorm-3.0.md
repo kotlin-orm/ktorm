@@ -139,5 +139,5 @@ object Departments : Table<Nothing>("t_department") {
 除了上述的不兼容变更，Ktorm 3.0 中还有不少来自开源社区热心人的更新，感谢他们的贡献：
 
 - MySQL `bulkInsert` 函数支持 `on duplcate key update`，感谢 [@hangingman](https://github.com/hangingman)
-- PostgreSQL `hstore` 数据类型及其一系列操作符，感谢 [@arustleund](https://github.com/arustleund)
+- PostgreSQL `hstore` 数据类型及其一系列运算符，感谢 [@arustleund](https://github.com/arustleund)
 - ktorm-jackson 模块支持简单的 Jackson 注解，如 `@JsonProperty`、`@JsonAlias`、`@JsonIgnore`，感谢 [@onXoot](https://github.com/onXoot)
