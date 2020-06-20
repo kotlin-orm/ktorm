@@ -4,13 +4,13 @@ language: java
 env:
   - GRADLE_OPTS="-Xms2048m -Xmx2048m"
 
-services:
-  - mysql
-  - postgresql
-
-before_install:
-  - mysql -e "create database ktorm;"
-  - psql -c "create database ktorm;" -U postgres
+#services:
+#  - mysql
+#  - postgresql
+#
+#before_install:
+#  - mysql -e "create database ktorm;"
+#  - psql -c "create database ktorm;" -U postgres
 
 after_success: 
   - chmod +x auto-upload.sh

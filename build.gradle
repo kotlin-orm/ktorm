@@ -139,7 +139,7 @@ subprojects { project ->
         user = System.getenv("BINTRAY_USER")
         key = System.getenv("BINTRAY_KEY")
         publications = ["bintray"]
-        publish = false
+        publish = true
 
         pkg {
             repo = "maven"
