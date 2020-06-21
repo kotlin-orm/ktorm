@@ -3,6 +3,7 @@ package me.liuwj.ktorm
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.entity.Entity
+import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.*
@@ -90,6 +91,10 @@ open class BaseTest {
         val hireDate = date("hire_date").bindTo { it.hireDate }
         val salary = long("salary").bindTo { it.salary }
         val departmentId = int("department_id").references(Departments) { it.department }
-        val department get() = departmentId.referenceTable as Departments
+        val department = departmentId.referenceTable as Departments
     }
+
+    val Database.departments get() = this.sequenceOf(Departments)
+
+    val Database.employees get() = this.sequenceOf(Employees)
 }

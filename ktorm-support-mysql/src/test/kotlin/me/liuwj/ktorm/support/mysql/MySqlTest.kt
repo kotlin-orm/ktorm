@@ -71,7 +71,7 @@ class MySqlTest : BaseTest() {
             }
         }
 
-        assert(database.sequenceOf(Employees).count() == 6)
+        assert(database.employees.count() == 6)
     }
 
     @Test
@@ -101,8 +101,8 @@ class MySqlTest : BaseTest() {
             }
         }
 
-        assert(database.sequenceOf(Employees).find { it.id eq 1 }!!.salary == 1000L)
-        assert(database.sequenceOf(Employees).find { it.id eq 5 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
     }
 
     @Test
@@ -162,30 +162,29 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testDrop() {
-        val employees = database.sequenceOf(Employees).drop(1).drop(1).drop(1).toList()
+        val employees = database.employees.drop(1).drop(1).drop(1).toList()
         assert(employees.size == 1)
         assert(employees[0].name == "penny")
     }
 
     @Test
     fun testTake() {
-        val employees = database.sequenceOf(Employees).take(2).take(1).toList()
+        val employees = database.employees.take(2).take(1).toList()
         assert(employees.size == 1)
         assert(employees[0].name == "vince")
     }
 
     @Test
     fun testElementAt() {
-        val employee = database.sequenceOf(Employees).drop(2).elementAt(1)
+        val employee = database.employees.drop(2).elementAt(1)
 
         assert(employee.name == "penny")
-        assert(database.sequenceOf(Employees).elementAtOrNull(4) == null)
+        assert(database.employees.elementAtOrNull(4) == null)
     }
 
     @Test
     fun testMapColumns3() {
-        database
-            .sequenceOf(Employees)
+        database.employees
             .filter { it.departmentId eq 1 }
             .mapColumns3 { tupleOf(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
             .forEach { (id, name, days) ->
@@ -195,7 +194,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testMatchAgainst() {
-        val employees = database.sequenceOf(Employees).filterTo(ArrayList()) {
+        val employees = database.employees.filterTo(ArrayList()) {
             match(it.name, it.job).against("vince", SearchModifier.IN_NATURAL_LANGUAGE_MODE)
         }
 
@@ -204,7 +203,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testReplace() {
-        val names = database.sequenceOf(Employees).mapColumns { it.name.replace("vince", "VINCE") }
+        val names = database.employees.mapColumns { it.name.replace("vince", "VINCE") }
         println(names)
     }
 
@@ -221,13 +220,12 @@ class MySqlTest : BaseTest() {
 
         assert(id > 4)
 
-        assert(database.sequenceOf(Employees).count() == 5)
+        assert(database.employees.count() == 5)
     }
 
     @Test
     fun testToUpperCase() {
-        val name = database
-            .sequenceOf(Employees)
+        val name = database.employees
             .filter { it.id eq 1 }
             .mapColumns { it.name.toUpperCase() }
             .first()

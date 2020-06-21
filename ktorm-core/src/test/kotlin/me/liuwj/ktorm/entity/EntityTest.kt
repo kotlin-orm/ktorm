@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.schema.*
 import org.junit.Test
@@ -52,10 +53,10 @@ class EntityTest : BaseTest() {
         val employee = Employee {
             name = "jerry"
             job = "trainee"
-            manager = database.sequenceOf(Employees).find { it.name eq "vince" }
+            manager = database.employees.find { it.name eq "vince" }
             hireDate = LocalDate.now()
             salary = 50
-            department = database.sequenceOf(Departments).find { it.name eq "tech" } ?: throw AssertionError()
+            department = database.departments.find { it.name eq "tech" } ?: throw AssertionError()
         }
 
         val bytes = serialize(employee)
@@ -110,7 +111,7 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testFind() {
-        val employee = database.sequenceOf(Employees).find { it.id eq 1 } ?: throw AssertionError()
+        val employee = database.employees.find { it.id eq 1 } ?: throw AssertionError()
         println(employee)
 
         assert(employee.name == "vince")
@@ -119,12 +120,8 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testFindWithReference() {
-        val employees = database
-            .sequenceOf(Employees)
-            .filter {
-                val dept = it.departmentId.referenceTable as Departments
-                dept.location like "%Guangzhou%"
-            }
+        val employees = database.employees
+            .filter { it.department.location like "%Guangzhou%" }
             .sortedBy { it.id }
             .toList()
 
@@ -152,23 +149,23 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testFlushChanges() {
-        var employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
+        var employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         employee.job = "engineer"
         employee.salary = 100
         employee.flushChanges()
         employee.flushChanges()
 
-        employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
+        employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.job == "engineer")
         assert(employee.salary == 100L)
     }
 
     @Test
     fun testDeleteEntity() {
-        val employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
+        val employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         employee.delete()
 
-        assert(database.sequenceOf(Employees).count() == 3)
+        assert(database.employees.count() == 3)
     }
 
     @Test
@@ -176,16 +173,16 @@ class EntityTest : BaseTest() {
         var employee = Employee {
             name = "jerry"
             job = "trainee"
-            manager = database.sequenceOf(Employees).find { it.name eq "vince" }
+            manager = database.employees.find { it.name eq "vince" }
             hireDate = LocalDate.now()
             salary = 50
-            department = database.sequenceOf(Departments).find { it.name eq "tech" } ?: throw AssertionError()
+            department = database.departments.find { it.name eq "tech" } ?: throw AssertionError()
         }
 
-        database.sequenceOf(Employees).add(employee)
+        database.employees.add(employee)
         println(employee)
 
-        employee = database.sequenceOf(Employees).find { it.id eq 5 } ?: throw AssertionError()
+        employee = database.employees.find { it.id eq 5 } ?: throw AssertionError()
         assert(employee.name == "jerry")
         assert(employee.department.name == "tech")
 
@@ -193,17 +190,17 @@ class EntityTest : BaseTest() {
         employee.salary = 100
         employee.flushChanges()
 
-        employee = database.sequenceOf(Employees).find { it.id eq 5 } ?: throw AssertionError()
+        employee = database.employees.find { it.id eq 5 } ?: throw AssertionError()
         assert(employee.job == "engineer")
         assert(employee.salary == 100L)
 
         employee.delete()
-        assert(database.sequenceOf(Employees).count() == 4)
+        assert(database.employees.count() == 4)
     }
 
     @Test
     fun testFindMapById() {
-        val employees = database.sequenceOf(Employees).filter { it.id.inList(1, 2) }.associateBy { it.id }
+        val employees = database.employees.filter { it.id.inList(1, 2) }.associateBy { it.id }
         assert(employees.size == 2)
         assert(employees[1]?.name == "vince")
         assert(employees[2]?.name == "marry")
@@ -314,22 +311,22 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testAutoDiscardChanges() {
-        var department = database.sequenceOf(Departments).find { it.id eq 2 } ?: return
+        var department = database.departments.find { it.id eq 2 } ?: return
         department.name = "tech"
 
         val employee = Employee()
         employee.department = department
         employee.name = "jerry"
         employee.job = "trainee"
-        employee.manager = database.sequenceOf(Employees).find { it.name eq "vince" }
+        employee.manager = database.employees.find { it.name eq "vince" }
         employee.hireDate = LocalDate.now()
         employee.salary = 50
-        database.sequenceOf(Employees).add(employee)
+        database.employees.add(employee)
 
         department.location = LocationWrapper("Guangzhou")
         department.flushChanges()
 
-        department = database.sequenceOf(Departments).find { it.id eq 2 } ?: return
+        department = database.departments.find { it.id eq 2 } ?: return
         assert(department.name == "tech")
         assert(department.location.underlying == "Guangzhou")
     }
@@ -354,9 +351,11 @@ class EntityTest : BaseTest() {
         val departmentId = int("department_id").bindTo { it.departmentId }
     }
 
+    val Database.emps get() = this.sequenceOf(Emps)
+
     @Test
     fun testCheckUnexpectedFlush() {
-        val emp1 = database.sequenceOf(Emps).find { it.id eq 1 } ?: return
+        val emp1 = database.emps.find { it.id eq 1 } ?: return
         emp1.employee.name = "jerry"
         // emp1.flushChanges()
 
@@ -368,7 +367,7 @@ class EntityTest : BaseTest() {
         }
 
         try {
-            database.sequenceOf(Emps).add(emp2)
+            database.emps.add(emp2)
             throw AssertionError("failed")
 
         } catch (e: IllegalStateException) {
@@ -378,11 +377,11 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testCheckUnexpectedFlush0() {
-        val emp1 = database.sequenceOf(Emps).find { it.id eq 1 } ?: return
+        val emp1 = database.emps.find { it.id eq 1 } ?: return
         emp1.employee.name = "jerry"
         // emp1.flushChanges()
 
-        val emp2 = database.sequenceOf(Emps).find { it.id eq 2 } ?: return
+        val emp2 = database.emps.find { it.id eq 2 } ?: return
         emp2.employee = emp1.employee
 
         try {
@@ -396,11 +395,11 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testCheckUnexpectedFlush1() {
-        val employee = database.sequenceOf(Employees).find { it.id eq 1 } ?: return
+        val employee = database.employees.find { it.id eq 1 } ?: return
         employee.name = "jerry"
         // employee.flushChanges()
 
-        val emp = database.sequenceOf(Emps).find { it.id eq 2 } ?: return
+        val emp = database.emps.find { it.id eq 2 } ?: return
         emp.employee = employee
 
         try {
@@ -414,11 +413,11 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testFlushChangesForDefaultValues() {
-        var emp = database.sequenceOf(Emps).find { it.id eq 1 } ?: return
+        var emp = database.emps.find { it.id eq 1 } ?: return
         emp.manager.id = 2
         emp.flushChanges()
 
-        emp = database.sequenceOf(Emps).find { it.id eq 1 } ?: return
+        emp = database.emps.find { it.id eq 1 } ?: return
         assert(emp.manager.id == 2)
     }
 
@@ -431,19 +430,19 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testCopyStatus() {
-        var employee = database.sequenceOf(Employees).find { it.id eq 2 }?.copy() ?: return
+        var employee = database.employees.find { it.id eq 2 }?.copy() ?: return
         employee.name = "jerry"
         employee.manager?.id = 3
         employee.flushChanges()
 
-        employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: return
+        employee = database.employees.find { it.id eq 2 } ?: return
         assert(employee.name == "jerry")
         assert(employee.manager?.id == 3)
     }
 
     @Test
     fun testDeepCopy() {
-        val employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: return
+        val employee = database.employees.find { it.id eq 2 } ?: return
         val copy = employee.copy()
 
         assert(employee.hireDate == copy.hireDate)
@@ -453,37 +452,33 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testRemoveIf() {
-        val sequence = database.sequenceOf(Employees)
-        sequence.removeIf { it.departmentId eq 1 }
-        assert(sequence.count() == 2)
+        database.employees.removeIf { it.departmentId eq 1 }
+        assert(database.employees.count() == 2)
     }
 
     @Test
     fun testClear() {
-        val sequence = database.sequenceOf(Employees)
-        sequence.clear()
-        assert(sequence.isEmpty())
+        database.employees.clear()
+        assert(database.employees.isEmpty())
     }
 
     @Test
     fun testAddAndFlushChanges() {
-        val sequence = database.sequenceOf(Employees)
-
         var employee = Employee {
             name = "jerry"
             job = "trainee"
-            manager = sequence.find { it.name eq "vince" }
+            manager = database.employees.find { it.name eq "vince" }
             hireDate = LocalDate.now()
             salary = 50
-            department = database.sequenceOf(Departments).find { it.name eq "tech" } ?: throw AssertionError()
+            department = database.departments.find { it.name eq "tech" } ?: throw AssertionError()
         }
 
-        sequence.add(employee)
+        database.employees.add(employee)
 
         employee.job = "engineer"
         employee.flushChanges()
 
-        employee = sequence.find { it.id eq employee.id!! } ?: throw AssertionError()
+        employee = database.employees.find { it.id eq employee.id!! } ?: throw AssertionError()
         assert(employee.job == "engineer")
     }
 }

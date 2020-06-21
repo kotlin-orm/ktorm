@@ -1,6 +1,7 @@
 package me.liuwj.ktorm.entity
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.schema.*
 import org.junit.Test
@@ -59,16 +60,18 @@ class DataClassTest : BaseTest() {
         )
     }
 
+    val Database.staffs get() = this.sequenceOf(Staffs)
+
     @Test
     fun testFindById() {
-        val staff = database.sequenceOf(Staffs).find { it.id eq 1 } ?: throw AssertionError()
+        val staff = database.staffs.find { it.id eq 1 } ?: throw AssertionError()
         assert(staff.name == "vince")
         assert(staff.job == "engineer")
     }
 
     @Test
     fun testFindList() {
-        val staffs = database.sequenceOf(Staffs).filter { it.sectionId eq 1 }.toList()
+        val staffs = database.staffs.filter { it.sectionId eq 1 }.toList()
         assert(staffs.size == 2)
         assert(staffs.mapTo(HashSet()) { it.name } == setOf("vince", "marry"))
     }
@@ -100,8 +103,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testSequence() {
-        val staffs = database
-            .sequenceOf(Staffs)
+        val staffs = database.staffs
             .filter { it.sectionId eq 1 }
             .sortedBy { it.id }
             .toList()
@@ -113,19 +115,18 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testCount() {
-        assert(database.sequenceOf(Staffs).count { it.sectionId eq 1 } == 2)
+        assert(database.staffs.count { it.sectionId eq 1 } == 2)
     }
 
     @Test
     fun testFold() {
-        val totalSalary = database.sequenceOf(Staffs).fold(0L) { acc, staff -> acc + staff.salary }
+        val totalSalary = database.staffs.fold(0L) { acc, staff -> acc + staff.salary }
         assert(totalSalary == 450L)
     }
 
     @Test
     fun testGroupingBy() {
-        val salaries = database
-            .sequenceOf(Staffs)
+        val salaries = database.staffs
             .groupingBy { it.sectionId * 2 }
             .fold(0L) { acc, staff ->
                 acc + staff.salary
@@ -139,8 +140,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testEachCount() {
-        val counts = database
-            .sequenceOf(Staffs)
+        val counts = database.staffs
             .filter { it.salary less 100000L }
             .groupingBy { it.sectionId }
             .eachCount()
@@ -153,8 +153,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testMapColumns() {
-        val (name, job) = database
-            .sequenceOf(Staffs)
+        val (name, job) = database.staffs
             .filter { it.sectionId eq 1 }
             .filterNot { it.managerId.isNotNull() }
             .mapColumns2 { tupleOf(it.name, it.job) }
@@ -166,8 +165,7 @@ class DataClassTest : BaseTest() {
 
     @Test
     fun testGroupingAggregate() {
-        database
-            .sequenceOf(Staffs)
+        database.staffs
             .groupingBy { it.sectionId }
             .aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
             .forEach { sectionId, (max, min) ->

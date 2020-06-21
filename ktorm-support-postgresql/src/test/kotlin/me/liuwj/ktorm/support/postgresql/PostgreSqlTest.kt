@@ -48,7 +48,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testILike() {
-        val names = database.sequenceOf(Employees).filter { it.name ilike "VINCE" }.mapColumns { it.name }
+        val names = database.employees.filter { it.name ilike "VINCE" }.mapColumns { it.name }
         println(names)
         assert(names.size == 1)
         assert(names[0] == "vince")
@@ -56,7 +56,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testDropTake() {
-        val employees = database.sequenceOf(Employees).drop(1).take(1).toList()
+        val employees = database.employees.drop(1).take(1).toList()
         println(employees)
         assert(employees.size == 1)
     }
@@ -73,7 +73,7 @@ class PostgreSqlTest : BaseTest() {
             }
         }
 
-        val employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
+        val employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.name == "marry")
         assert(employee.job == "engineer")
         assert(employee.manager == null)
@@ -107,8 +107,8 @@ class PostgreSqlTest : BaseTest() {
             }
         }
 
-        assert(database.sequenceOf(Employees).find { it.id eq 1 }!!.salary == 1000L)
-        assert(database.sequenceOf(Employees).find { it.id eq 5 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
     }
 
     @Test
@@ -124,13 +124,13 @@ class PostgreSqlTest : BaseTest() {
 
         assert(id > 4)
 
-        assert(database.sequenceOf(Employees).count() == 5)
+        assert(database.employees.count() == 5)
     }
 
     @Test
     fun testReturnInTransactionBlock() {
         insertTransactional()
-        assert(database.sequenceOf(Departments).count() == 3)
+        assert(database.departments.count() == 3)
     }
 
     private fun insertTransactional(): Int {

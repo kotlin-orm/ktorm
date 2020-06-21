@@ -44,6 +44,10 @@ class CompoundKeysTest : BaseTest() {
         val staffId = int("staff_id").references(Staffs) { it.staff }
     }
 
+    val Database.staffs get() = this.sequenceOf(Staffs)
+
+    val Database.staffRefs get() = this.sequenceOf(StaffRefs)
+
     @Test
     fun testAdd() {
         val staff = Entity.create<Staff>()
@@ -53,36 +57,36 @@ class CompoundKeysTest : BaseTest() {
         staff.managerId = 1
         staff.hireDate = LocalDate.now()
         staff.salary = 100
-        database.sequenceOf(Staffs).add(staff)
+        database.staffs.add(staff)
         println(staff)
         assert(staff.id == 0)
     }
 
     @Test
     fun testFlushChanges() {
-        var staff = database.sequenceOf(Staffs).find { it.id eq 2 } ?: throw AssertionError()
+        var staff = database.staffs.find { it.id eq 2 } ?: throw AssertionError()
         staff.job = "engineer"
         staff.salary = 100
         staff.flushChanges()
         staff.flushChanges()
 
-        staff = database.sequenceOf(Staffs).find { it.id eq 2 } ?: throw AssertionError()
+        staff = database.staffs.find { it.id eq 2 } ?: throw AssertionError()
         assert(staff.job == "engineer")
         assert(staff.salary == 100L)
     }
 
     @Test
     fun testDeleteEntity() {
-        val staff = database.sequenceOf(Staffs).find { it.id eq 2 } ?: throw AssertionError()
+        val staff = database.staffs.find { it.id eq 2 } ?: throw AssertionError()
         staff.delete()
 
-        assert(database.sequenceOf(Staffs).count() == 3)
+        assert(database.staffs.count() == 3)
     }
 
     @Test
     fun testUpdatePrimaryKey() {
         try {
-            val staff = database.sequenceOf(Staffs).find { it.id eq 1 } ?: return
+            val staff = database.staffs.find { it.id eq 1 } ?: return
             staff.departmentId = 2
             throw AssertionError()
 

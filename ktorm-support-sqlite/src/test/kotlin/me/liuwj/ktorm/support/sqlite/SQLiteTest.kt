@@ -5,7 +5,6 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.count
 import me.liuwj.ktorm.entity.find
-import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import org.junit.Test
@@ -111,13 +110,13 @@ class SQLiteTest : BaseTest() {
 
         assert(id > 4)
 
-        println(database.sequenceOf(Employees).find { it.id eq id })
-        assert(database.sequenceOf(Employees).count() == 5)
+        println(database.employees.find { it.id eq id })
+        assert(database.employees.count() == 5)
     }
 
     @Test
     fun testSequence() {
-        for (employee in database.sequenceOf(Employees)) {
+        for (employee in database.employees) {
             println(employee)
         }
     }

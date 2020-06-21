@@ -22,7 +22,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        val employee = database.sequenceOf(Employees).find { it.id eq 2 } ?: throw AssertionError()
+        val employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.name == "marry")
         assert(employee.job == "engineer")
         assert(employee.manager == null)
@@ -42,7 +42,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        val departments = database.sequenceOf(Departments).toList()
+        val departments = database.departments.toList()
         assert(departments.size == 2)
 
         for (dept in departments) {
@@ -78,7 +78,7 @@ class DmlTest : BaseTest() {
             it.departmentId to 1
         }
 
-        assert(database.sequenceOf(Employees).count() == 5)
+        assert(database.employees.count() == 5)
     }
 
     @Test
@@ -102,7 +102,7 @@ class DmlTest : BaseTest() {
             }
         }
 
-        assert(database.sequenceOf(Employees).count() == 6)
+        assert(database.employees.count() == 6)
     }
 
     @Test
@@ -118,7 +118,7 @@ class DmlTest : BaseTest() {
             it.departmentId to 1
         }
 
-        val employee = database.sequenceOf(Employees).find { it.id eq (id as Int) } ?: throw AssertionError()
+        val employee = database.employees.find { it.id eq (id as Int) } ?: throw AssertionError()
         assert(employee.name == "jerry")
         assert(employee.hireDate == today)
     }
@@ -131,12 +131,12 @@ class DmlTest : BaseTest() {
             .where { Departments.id eq 1 }
             .insertTo(Departments, Departments.name, Departments.location)
 
-        assert(database.sequenceOf(Departments).count() == 3)
+        assert(database.departments.count() == 3)
     }
 
     @Test
     fun testDelete() {
         database.delete(Employees) { it.id eq 4 }
-        assert(database.sequenceOf(Employees).count() == 3)
+        assert(database.employees.count() == 3)
     }
 }

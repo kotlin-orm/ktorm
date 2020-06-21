@@ -4,7 +4,6 @@ import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.count
-import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
@@ -101,6 +100,6 @@ class SqlServerTest : BaseTest() {
 
         assert(id > 4)
 
-        assert(database.sequenceOf(Employees).count() == 5)
+        assert(database.employees.count() == 5)
     }
 }

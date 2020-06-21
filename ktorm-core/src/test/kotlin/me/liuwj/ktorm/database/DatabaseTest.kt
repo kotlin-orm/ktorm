@@ -62,13 +62,13 @@ class DatabaseTest : BaseTest() {
                     it.location to LocationWrapper("Hong Kong")
                 }
 
-                assert(database.sequenceOf(Departments).count() == 3)
+                assert(database.departments.count() == 3)
 
                 throw DummyException()
             }
 
         } catch (e: DummyException) {
-            assert(database.sequenceOf(Departments).count() == 2)
+            assert(database.departments.count() == 2)
         }
     }
 
