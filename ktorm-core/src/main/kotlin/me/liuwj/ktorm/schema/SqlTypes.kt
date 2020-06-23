@@ -148,6 +148,26 @@ object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
 }
 
 /**
+ * Define a column typed of [ShortSqlType].
+ */
+fun BaseTable<*>.short(name: String): Column<Short> {
+    return registerColumn(name, ShortSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `smallint` SQL type.
+ */
+object ShortSqlType : SqlType<Short>(Types.SMALLINT, typeName = "smallint") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Short) {
+        ps.setShort(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Short? {
+        return rs.getShort(index)
+    }
+}
+
+/**
  * Define a column typed of [VarcharSqlType].
  */
 fun BaseTable<*>.varchar(name: String): Column<String> {
