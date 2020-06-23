@@ -121,6 +121,7 @@ Ktorm 默认支持的数据类型如下表：
 | float         | kotlin.Float            | float         | Types.FLOAT                  |
 | double        | kotlin.Double           | double        | Types.DOUBLE                 |
 | decimal       | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
+| short         | kotlin.Short            | smallint      | Types.SMALLINT               |
 | varchar       | kotlin.String           | varchar       | Types.VARCHAR                |
 | text          | kotlin.String           | text          | Types.LONGVARCHAR            |
 | blob          | kotlin.ByteArray        | blob          | Types.BLOB                   |

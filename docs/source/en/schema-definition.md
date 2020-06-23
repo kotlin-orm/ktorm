@@ -121,6 +121,7 @@ Here is a list of SQL types supported in Ktorm by default:
 | float         | kotlin.Float            | float         | Types.FLOAT                  |
 | double        | kotlin.Double           | double        | Types.DOUBLE                 |
 | decimal       | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
+| short         | kotlin.Short            | smallint      | Types.SMALLINT               |
 | varchar       | kotlin.String           | varchar       | Types.VARCHAR                |
 | text          | kotlin.String           | text          | Types.LONGVARCHAR            |
 | blob          | kotlin.ByteArray        | blob          | Types.BLOB                   |
