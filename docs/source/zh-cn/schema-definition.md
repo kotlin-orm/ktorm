@@ -117,11 +117,11 @@ Ktorm 默认支持的数据类型如下表：
 | ------------- | ----------------------- | ------------- | ---------------------------- |
 | boolean       | kotlin.Boolean          | boolean       | Types.BOOLEAN                |
 | int           | kotlin.Int              | int           | Types.INTEGER                |
+| short         | kotlin.Short            | smallint      | Types.SMALLINT               |
 | long          | kotlin.Long             | bigint        | Types.BIGINT                 |
 | float         | kotlin.Float            | float         | Types.FLOAT                  |
 | double        | kotlin.Double           | double        | Types.DOUBLE                 |
 | decimal       | java.math.BigDecimal    | decimal       | Types.DECIMAL                |
-| short         | kotlin.Short            | smallint      | Types.SMALLINT               |
 | varchar       | kotlin.String           | varchar       | Types.VARCHAR                |
 | text          | kotlin.String           | text          | Types.LONGVARCHAR            |
 | blob          | kotlin.ByteArray        | blob          | Types.BLOB                   |
