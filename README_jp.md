@@ -219,7 +219,6 @@ database.delete(Employees) { it.id eq 4 }
 
 SQL DSLの詳しい使い方については、[詳細ドキュメント](https://ktorm.liuwj.me/en/query.html)を参照してください。
 
-
 ## エンティティと列のバインド
 
 SQL DSL に加えて、他の ORM フレームワークと同様にエンティティオブジェクトもサポートされています。まず、エンティティクラスを定義し、それにテーブルオブジェクトをバインドする必要があります。Ktormでは、エンティティクラスは `Entity<E>` を拡張したインタフェースとして定義されています。
@@ -264,18 +263,23 @@ object Employees : Table<Employee>("t_employee") {
 
 > 名前付けのコツ：エンティティクラスに単数名詞で名前を付け、テーブルオブジェクトに複数形で名前を付けることを強くお勧めします（例：Employee/Employees、Department/Departments）。
 
-
-これで列バインディングが設定されたので、[エンティティシーケンス API](#エンティティシーケンス-API)を使ってエンティティに対して多くの操作を行うことができます。以下のコードのように、まず `sequenceOf` でシーケンスオブジェクトを作成し、次に `find` 関数を呼び出して`vince`と言う名前の従業員情報を取得します。
+これで列バインディングが設定されたので、[エンティティシーケンス API](#エンティティシーケンス-API)を使ってエンティティに対して多くの操作を行うことができます。最初に、 `Database`の2つの拡張プロパティを定義します。これは、` sequenceOf`関数を使用してシーケンスオブジェクトを作成して返します。 これらの2つの属性は、コードを読みやすくするのに役立ちます。
 
 ```kotlin
-val sequence = database.sequenceOf(Employees)
-val employee = sequence.find { it.name eq "vince" }
+val Database.departments get() = this.sequenceOf(Departments)
+val Database.employees get() = this.sequenceOf(Employees)
+```
+
+次のコードは、 `find`関数を使用して、名前からシーケンスからEmployeeオブジェクトを取得します。
+
+```kotlin
+val employee = database.employees.find { it.name eq "vince" }
 ```
 
 また、`filter`関数でシーケンスをフィルタリングすることもできます。たとえば、名前が`vince`であるすべての従業員を取得します。
 
 ```kotlin
-val employees = sequence.filter { it.name eq "vince" }.toList()
+val employees = database.employees.filter { it.name eq "vince" }.toList()
 ```
 
 関数 `find` と `filter` はどちらもラムダ式を受け取り、ラムダによって返された条件を持つSELECT SQLを生成します。生成されたSQLは自動的に参照されたテーブル `t_department` に結合します。
@@ -295,16 +299,16 @@ val employee = Employee {
     job = "trainee"
     hireDate = LocalDate.now()
     salary = 50
-    department = database.sequenceOf(Departments).find { it.name eq "tech" }
+    department = database.departments.find { it.name eq "tech" }
 }
 
-sequence.add(employee)
+database.employees.add(employee)
 ```
 
 メモリ内のプロパティの変更をデータベースにフラッシュする
 
 ```kotlin
-val employee = sequence.find { it.id eq 2 } ?: return
+val employee = database.employees.find { it.id eq 2 } ?: return
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()
@@ -313,7 +317,7 @@ employee.flushChanges()
 データベースからエンティティを削除する: 
 
 ```kotlin
-val employee = sequence.find { it.id eq 2 } ?: return
+val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
@@ -330,14 +334,13 @@ Ktormは*Entity Sequence*という名前のAPIセットを提供しており、�
 これらの関数は，内部クエリを実行するのではなく，いくつかの変更を加えて新たに作成されたシーケンスオブジェクトを返します。たとえば、`filter`関数はパラメータで与えられたフィルタ条件を持つ新しいシーケンスオブジェクトを生成します。以下のコードは、`filter`を用いて部門IDが1である全従業員を取得します。
 
 ```kotlin
-val employees = database.sequenceOf(Employees).filter { it.departmentId eq 1 }.toList()
+val employees = database.employees.filter { it.departmentId eq 1 }.toList()
 ```
 
 使い方は `kotlin.sequences` とほぼ同じですが、唯一の違いはラムダの `==` が `eq` 関数に置き換えられていることです。フィルタ条件はすべて `and` 演算子と結合されるので、`filter` 関数は連続して呼び出すこともできます。
 
 ```kotlin
-val employees = database
-    .sequenceOf(Employees)
+val employees = database.employees
     .filter { it.departmentId eq 1 }
     .filter { it.managerId.isNotNull() }
     .toList()
@@ -355,13 +358,13 @@ where (t_employee.department_id = ?) and (t_employee.manager_id is not null)
 エンティティを順番に並べ替えるには、`sortedBy` や `soretdByDescending` を使います。:
 
 ```kotlin
-val employees = database.sequenceOf(Employees).sortedBy { it.salary }.toList()
+val employees = database.employees.sortedBy { it.salary }.toList()
 ```
 
 ページネーションには `drop` と `take` を使います。: 
 
 ```kotlin
-val employees = database.sequenceOf(Employees).drop(1).take(1).toList()
+val employees = database.employees.drop(1).take(1).toList()
 ```
 
 ### 末端処理
@@ -369,7 +372,7 @@ val employees = database.sequenceOf(Employees).drop(1).take(1).toList()
 エンティティシーケンスの端末操作は、今すぐにクエリを実行し、クエリの結果を取得し、それに対していくつかの計算を行います。for-eachループは典型的な端末操作であり、次のコードはこれを使用して、シーケンス内のすべての従業員を出力します。: 
 
 ```kotlin
-for (employee in database.sequenceOf(Employees)) {
+for (employee in database.employees) {
     println(employee)
 }
 ```
@@ -385,20 +388,19 @@ left join t_department _ref0 on t_employee.department_id = _ref0.id
  `toCollection` のような関数群( `toList`, `toSet` などを含む) は、すべての要素を指定したコレクションに集めるために用いられます。: 
 
 ```kotlin
-val employees = database.sequenceOf(Employees).toCollection(ArrayList())
+val employees = database.employees.toCollection(ArrayList())
 ```
 
 カラムの結果を得るには、`mapColumns`関数を用います。: 
 
 ```kotlin
-val names = database.sequenceOf(Employees).mapColumns { it.name }
+val names = database.employees.mapColumns { it.name }
 ```
 
 さらに、2つ以上のカラムを選択したい場合は`mapColumns2` や `mapColumns3`に変更し、選択したカラムを `Pair` あるいは `Triple` でクロージャでラップする必要があります。この関数の戻り値の型は `List<Pair<C1?, C2?>>` か `List<Triple<C1?, C2?, C3?>>`になります: 
 
 ```kotlin
-database
-    .sequenceOf(Employees)
+database.employees
     .filter { it.departmentId eq 1 }
     .mapColumns2 { Pair(it.id, it.name) }
     .forEach { (id, name) ->
@@ -417,7 +419,7 @@ where t_employee.department_id = ?
 他にも、`fold`, `reduce`, `forEach` などのおなじみの関数もサポートされています。以下のコードは全従業員の給与総額を計算します。: 
 
 ```kotlin
-val totalSalary = database.sequenceOf(Employees).fold(0L) { acc, employee -> acc + employee.salary }
+val totalSalary = database.employees.fold(0L) { acc, employee -> acc + employee.salary }
 ```
 
 ### シーケンスの集約
@@ -427,8 +429,7 @@ val totalSalary = database.sequenceOf(Employees).fold(0L) { acc, employee -> acc
 以下のコードは、第1部門の最大給与を取得します。: 
 
 ```kotlin
-val max = database
-    .sequenceOf(Employees)
+val max = database.employees
     .filter { it.departmentId eq 1 }
     .aggregateColumns { max(it.salary) }
 ```
@@ -436,8 +437,7 @@ val max = database
 また、2つ以上の列を集約したい場合は `aggregateColumns2` や `aggregateColumns3` に変更し、クロージャ内で `Pair` や `Triple` で集約式をラップする必要があり、関数の戻り値の型は `Pair<C1?, C2?>` や `Triple<C1?, C2?, C3?>` となります。以下の例では、第1部門の給与の平均と範囲を求めています。: 
 
 ```kotlin
-val (avg, diff) = database
-    .sequenceOf(Employees)
+val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
@@ -455,8 +455,7 @@ Ktormは、`aggregateColumns` に基づいて実装された多くの便利な�
 以下のコードでは、第1部門の給与の最大値を `maxBy`関数を用いて取得しています。: 
 
 ```kotlin
-val max = database
-    .sequenceOf(Employees)
+val max = database.employees
     .filter { it.departmentId eq 1 }
     .maxBy { it.salary }
 ```
@@ -464,8 +463,7 @@ val max = database
 さらに、グループ化された集約もサポートされているので、`aggregateColumns` を呼び出す前に `groupingBy` を呼び出すだけで良いのです。以下のコードは、各部門の平均給与を取得するものです。ここでは、結果の型は `Map<Int?, Double?>` であり、キーは部門のID、値は部門の平均給与額です。: 
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees)
+val averageSalaries = database.employees
     .groupingBy { it.departmentId }
     .aggregateColumns { avg(it.salary) }
 ```
@@ -481,8 +479,7 @@ group by t_employee.department_id
 Ktormはまた、集計をグループ化するための便利なヘルパー関数を多数提供しています（`eachCount(To)`, `eachSumBy(To)`, `eachMaxBy(To)`, `eachMinBy(To)`, `eachAverageBy(To)`）。これらの関数を使って、以下のコードを書けば、各部門の平均給与を求めることができます。: 
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees)
+val averageSalaries = database.employees
     .groupingBy { it.departmentId }
     .eachAverageBy { it.salary }
 ```
@@ -490,8 +487,7 @@ val averageSalaries = database
 他にも `aggregate`, `fold`, `reduce` などのおなじみの関数がサポートされています。これらの関数は `kotlin.collections.Grouping` の拡張関数と同じ名前で、使い方も全く同じです。以下のコードは `fold` を用いて各部門の給与総額を計算しています。: 
 
 ```kotlin
-val totalSalaries = database
-    .sequenceOf(Employees)
+val totalSalaries = database.employees
     .groupingBy { it.departmentId }
     .fold(0L) { acc, employee -> 
         acc + employee.salary 
