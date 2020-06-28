@@ -20,7 +20,7 @@ interface Department : Entity<Department> {
 }
 
 interface Employee : Entity<Employee> {
-    val id: Int?
+    val id: Int
     var name: String
     var job: String
     var manager: Employee?

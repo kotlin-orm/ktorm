@@ -189,13 +189,15 @@ database.delete(Employees) { it.id eq 4 }
 
 ```kotlin
 interface Department : Entity<Department> {
+    companion object : Entity.Factory<Department>()
     val id: Int
     var name: String
     var location: String
 }
 
 interface Employee : Entity<Employee> {
-    val id: Int?
+    companion object : Entity.Factory<Employee>()
+    val id: Int
     var name: String
     var job: String
     var manager: Employee?
