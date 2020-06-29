@@ -233,7 +233,7 @@ object Employees : Table<Employee>("t_employee") {
 
 ```kotlin
 val Database.departments get() = this.sequenceOf(Departments)
-val Database.employees get() = this.sequenceOf(Employees)s
+val Database.employees get() = this.sequenceOf(Employees)
 ```
 
 下面的代码使用 `find` 函数从序列中根据名字获取一个 Employee 对象：  

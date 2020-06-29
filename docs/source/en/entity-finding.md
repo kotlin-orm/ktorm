@@ -10,16 +10,17 @@ Ktorm provides a set of APIs named *Entity Sequence*, which can be used to obtai
 
 ## Get Entities by Sequences
 
-To use entity sequence, we need to create a sequence object via `sequenceOf` firstly: 
+To use sequence APIs, we need to create sequence objects first. In general, we'd like to define some extension properties for `Database`. These properties return new created sequence objects via `sequenceOf` and they can help us improve the readability of the code: 
 
 ```kotlin
-val sequence = database.sequenceOf(Employees)
+val Database.departments get() = this.sequenceOf(Departments)
+val Database.employees get() = this.sequenceOf(Employees)
 ```
 
-The returned object can be thought of as a sequence holding all records in the `Employees` table. To get an entity object from this sequence, you can use the `find` function: 
+The following code uses the `find` function to obtain an employee by its name:
 
 ```kotlin
-val employee = sequence.find { it.id eq 1 }
+val employee = database.employees.find { it.name eq "vince" }
 ```
 
 This is natural, just like finding from a collection via Kotlin’s built-in extension functions, the only difference is the `==` in the lambda is replace by the `eq` function.
@@ -44,7 +45,7 @@ Reading the generated SQL, we can find that Ktorm auto left joins `t_employee`'s
 Now that referenced tables are auto left joined, we can also use their columns in our filter conditions. The code below uses `Column.referenceTable` to access `departmentId`'s referenced table and obtains an employee who works at Guangzhou:
 
 ```kotlin
-val employee = sequence.find {
+val employee = database.employees.find {
     val dept = it.departmentId.referenceTable as Departments
     dept.location eq "Guangzhou"
 }
@@ -58,7 +59,7 @@ open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
     val department get() = departmentId.referenceTable as Departments
 }
 
-val employee = sequence.find { it.department.location eq "Guangzhou" }
+val employee = database.employees.find { it.department.location eq "Guangzhou" }
 ```
 
 Generated SQL: 
