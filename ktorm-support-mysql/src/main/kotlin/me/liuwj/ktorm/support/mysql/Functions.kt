@@ -16,7 +16,10 @@
 
 package me.liuwj.ktorm.support.mysql
 
+import me.liuwj.ktorm.expression.AggregateExpression
+import me.liuwj.ktorm.expression.AggregateType
 import me.liuwj.ktorm.expression.ArgumentExpression
+import me.liuwj.ktorm.expression.BinaryExpression
 import me.liuwj.ktorm.expression.FunctionExpression
 import me.liuwj.ktorm.schema.*
 import java.time.LocalDate
@@ -165,6 +168,30 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpr
  */
 fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
     return this.ifNull(wrapArgument(right))
+}
+
+/**
+ * MySQL sum & if combination, translated to `sum( if(column condition, ifTrue, ifFalse) )`.
+ */
+fun sumIf(condition: BinaryExpression<*>, ifTrue: Int, ifFalse: Int): AggregateExpression<Int> {
+
+    val ifExpr = FunctionExpression(
+            functionName = "if",
+            arguments = listOf(
+                    condition,
+                    ArgumentExpression(ifTrue, IntSqlType),
+                    ArgumentExpression(ifFalse, IntSqlType)
+            ),
+            sqlType = IntSqlType)
+
+    return AggregateExpression(AggregateType.SUM, ifExpr, false, IntSqlType)
+}
+
+/**
+ * MySQL sum with condition, translated to `sum( column condition )`.
+ */
+fun sum(condition: BinaryExpression<*>): AggregateExpression<Int> {
+    return AggregateExpression(AggregateType.SUM, condition.asExpression(), false, IntSqlType)
 }
 
 /**

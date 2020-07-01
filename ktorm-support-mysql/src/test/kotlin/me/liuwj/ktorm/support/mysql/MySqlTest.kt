@@ -232,4 +232,22 @@ class MySqlTest : BaseTest() {
 
         assert(name == "VINCE")
     }
+
+    @Test
+    fun testSumIf() {
+        val countRich = database.from(Employees)
+                .select(sumIf(Employees.salary greaterEq 100L, 1, 0))
+                .map { row -> row.getInt(1) }
+        assert(countRich.size == 1)
+        assert(countRich.first() == 3)
+    }
+
+    @Test
+    fun testSum() {
+        val countRich = database.from(Employees)
+                .select(sum(Employees.salary greaterEq 100L))
+                .map { row -> row.getInt(1) }
+        assert(countRich.size == 1)
+        assert(countRich.first() == 3)
+    }
 }
