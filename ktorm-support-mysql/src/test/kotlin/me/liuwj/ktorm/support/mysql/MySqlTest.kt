@@ -4,8 +4,11 @@ import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
+import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
+import me.liuwj.ktorm.schema.BooleanSqlType
+import me.liuwj.ktorm.schema.IntSqlType
 import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.MySQLContainer
@@ -236,7 +239,11 @@ class MySqlTest : BaseTest() {
     @Test
     fun testSumIf() {
         val countRich = database.from(Employees)
-                .select(sumIf(Employees.salary greaterEq 100L, 1, 0))
+                .select(
+                        sum(IF((Employees.salary greaterEq 100L).cast(BooleanSqlType),
+                                then = ArgumentExpression(1, IntSqlType),
+                                otherwise = ArgumentExpression(0, IntSqlType)))
+                )
                 .map { row -> row.getInt(1) }
         assert(countRich.size == 1)
         assert(countRich.first() == 3)
@@ -245,7 +252,9 @@ class MySqlTest : BaseTest() {
     @Test
     fun testSum() {
         val countRich = database.from(Employees)
-                .select(sum(Employees.salary greaterEq 100L))
+                .select(
+                        sum(Employees.salary.greaterEq(100L).cast(IntSqlType))
+                )
                 .map { row -> row.getInt(1) }
         assert(countRich.size == 1)
         assert(countRich.first() == 3)
