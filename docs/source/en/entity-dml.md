@@ -6,10 +6,11 @@ related_path: zh-cn/entity-dml.html
 
 # Entity Manipulation
 
-In addition to querying, sequence APIs also support the manipulation of entity objects. We need to get a sequence object firstly via `sequenceOf`: 
+In addition to querying, sequence APIs also support the manipulation of entity objects. We need to define some extension properties first, creating sequence objects via `sequenceOf`: 
 
 ```kotlin
-val sequence = database.sequenceOf(Employees)
+val Database.departments get() = this.sequenceOf(Departments)
+val Database.employees get() = this.sequenceOf(Employees)
 ```
 
 ## Insert
@@ -28,10 +29,10 @@ val employee = Employee {
     job = "trainee"
     hireDate = LocalDate.now()
     salary = 50
-    department = database.sequenceOf(Departments).find { it.name eq "tech" }
+    department = database.departments.find { it.name eq "tech" }
 }
 
-sequence.add(employee)
+database.employees.add(employee)
 ```
 
 In this example, we create an employee object and fill its properties with some initial values. Please note the property  `department`, whose value is an entity object just obtained from the database via sequence APIs. When we call the `add` function, the ID of the referenced entity will be saved into `Employees` table. The generated SQL is as follows: 
@@ -69,7 +70,7 @@ interface Entity<E : Entity<E>> : Serializable {
 It can be seen that there is a `flushChanges` function in the `Entity` interface. This function updates all the changes of the current entity into the database and returns the affected record number after the update completes. Typical usage is to obtain entity objects via sequence APIs first, then modify their property values according to our requirements, finally call the `flushChanges` function to save the modifications. 
 
 ```kotlin
-val employee = sequence.find { it.id eq 5 } ?: return
+val employee = database.employees.find { it.id eq 5 } ?: return
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()
@@ -97,7 +98,7 @@ Using `flushChanges`, we also need to note that:
 `Entity` interface also provides a `delete` function, which deletes the entity object in the database, and returns the affected record number after the deletion completes. Typical usage is to obtain entity objects via sequence APIs first, then call the `delete` function to delete them according to our requirements.
 
 ```kotlin
-val employee = sequence.find { it.id eq 5 } ?: return
+val employee = database.employees.find { it.id eq 5 } ?: return
 employee.delete()
 ```
 
@@ -115,7 +116,7 @@ Similar to `flushChanges`, we also need to note that:
 There are also some other functions that can delete entities, they are `removeIf` and `clear`. While `removeIf` deletes records in the table that matches a given condition, and `clear` deletes all records in a table. Here, we use `removeIf` to delete all the employees in department 1: 
 
 ```kotlin
-sequence.removeIf { it.departmentId eq 1 }
+database.employees.removeIf { it.departmentId eq 1 }
 ```
 
 Generated SQL: 
