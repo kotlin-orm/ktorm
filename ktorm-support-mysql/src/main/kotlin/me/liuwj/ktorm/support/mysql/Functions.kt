@@ -170,10 +170,10 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
 /**
  * if function, translated to `if(condition, then, otherwise)`.
  */
-fun <T : Any> IF(
-        condition: ColumnDeclaring<Boolean>,
-        then: ColumnDeclaring<T>,
-        otherwise: ColumnDeclaring<T>
+fun <T : Any> `if`(
+    condition: ColumnDeclaring<Boolean>,
+    then: ColumnDeclaring<T>,
+    otherwise: ColumnDeclaring<T>
 ): FunctionExpression<T> {
     // if(condition, then, otherwise)
     return FunctionExpression(

@@ -240,7 +240,7 @@ class MySqlTest : BaseTest() {
     fun testSumIf() {
         val countRich = database.from(Employees)
                 .select(
-                        sum(IF((Employees.salary greaterEq 100L).cast(BooleanSqlType),
+                        sum(`if`((Employees.salary greaterEq 100L).cast(BooleanSqlType),
                                 then = ArgumentExpression(1, IntSqlType),
                                 otherwise = ArgumentExpression(0, IntSqlType)))
                 )
@@ -253,7 +253,7 @@ class MySqlTest : BaseTest() {
     fun testSum() {
         val countRich = database.from(Employees)
                 .select(
-                        sum(Employees.salary.greaterEq(100L).cast(IntSqlType))
+                        sum(Employees.salary.greaterEq(100L).toInt())
                 )
                 .map { row -> row.getInt(1) }
         assert(countRich.size == 1)
