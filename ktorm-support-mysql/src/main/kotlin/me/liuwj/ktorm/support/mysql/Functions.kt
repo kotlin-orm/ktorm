@@ -19,6 +19,7 @@ package me.liuwj.ktorm.support.mysql
 import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.FunctionExpression
 import me.liuwj.ktorm.schema.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -181,6 +182,42 @@ fun <T : Any> `if`(
             arguments = listOf(condition, then, otherwise).map { it.asExpression() },
             sqlType = then.sqlType
     )
+}
+
+/**
+ * if function, translated to `if(condition, then, otherwise)`.
+ */
+fun <T : Any> `if`(
+    condition: ColumnDeclaring<Boolean>,
+    then: T,
+    otherwise: T
+): FunctionExpression<*> {
+    val thenArgs = wrapArguments(then)
+    val otherArgs = wrapArguments(otherwise)
+
+    // if(condition, then, otherwise)
+    return FunctionExpression(
+            functionName = "if",
+            arguments = listOf(
+                    condition.asExpression(),
+                    thenArgs.asExpression(),
+                    otherArgs.asExpression()
+            ),
+            sqlType = thenArgs.sqlType
+    )
+}
+
+private fun wrapArguments(argument: Any): ArgumentExpression<*> {
+    return when (argument) {
+        is Boolean -> ArgumentExpression(argument, BooleanSqlType)
+        is Int -> ArgumentExpression(argument, IntSqlType)
+        is Long -> ArgumentExpression(argument, LongSqlType)
+        is Float -> ArgumentExpression(argument, FloatSqlType)
+        is Double -> ArgumentExpression(argument, DoubleSqlType)
+        is BigDecimal -> ArgumentExpression(argument, DecimalSqlType)
+        is String -> ArgumentExpression(argument, VarcharSqlType)
+        else -> throw IllegalStateException("")
+    }
 }
 
 /**
