@@ -21,8 +21,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateCo
 这是一个终止操作，它接收一个闭包作为参数，在闭包中，我们需要返回一个聚合表达式。Ktorm 会使用我们返回的聚合表达式，根据当前序列的查询条件创建一个聚合查询， 然后执行这个查询，获取聚合的结果。下面的代码获取部门 1 中工资的最大值：
 
 ```kotlin
-val max = database
-    .sequenceOf(Employees, withReferences = false)
+val max = database.employees
     .filter { it.departmentId eq 1 }
     .aggregateColumns { max(it.salary) }
 ```
@@ -30,8 +29,7 @@ val max = database
 如果你希望同时获取多个聚合结果，可以改用 `aggregateColumns2` 或 `aggregateColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些聚合表达式，函数的返回值也相应变成了 `Pair<C1?, C2?>` 或 `Triple<C1?, C2?, C3?>`。下面的例子获取部门 1 中工资的平均值和极差：
 
 ```kotlin
-val (avg, diff) = database
-    .sequenceOf(Employees, withReferences = false)
+val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
@@ -74,14 +72,13 @@ inline fun <E : Any, K> EntitySequence<E, *>.groupBy(
 很明显，这是一个终止操作，它会马上执行查询，迭代所有返回的实体对象，通过闭包传入的 `keySelector` 获取实体对象的分组 key，按照这个 key 对它们进行分组，将每个元素添加到所属组的集合中。下面的代码获取所有员工对象，并按部门进行分组：
 
 ```kotlin
-val employees = database.sequenceOf(Employees).groupBy { it.department.id }
+val employees = database.employees.groupBy { it.department.id }
 ```
 
 在这里，`employees` 的类型是 `Map<Int, List<Employee>>`，其中，key 是部门 ID，value 是在这个部门下的所有员工的列表。现在我们已经有了所有部门下的员工列表，然后就可以使用这些数据进行一些聚合计算。比如下面的代码可以计算出所有部门的平均工资：
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees)
+val averageSalaries = database.employees
     .groupBy { it.department.id }
     .mapValues { (_, employees) -> employees.map { it.salary }.average() }
 ```
@@ -91,7 +88,6 @@ val averageSalaries = database
 ````sql
 select * 
 from t_employee 
-left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ````
 
 如果仅仅需要计算平均工资，却不得不获取数据库中的所有员工数据，这个性能开销在大多数时候都是不可忍受的。那么我们能不能利用 SQL 中自带的 group by 和聚合功能，生成恰当的 SQL，让数据库来帮我们进行聚合计算呢？这时我们应该使用下面将要介绍的 `groupingBy` 函数。
@@ -130,8 +126,7 @@ inline fun <E : Any, T : BaseTable<E>, K : Any, C : Any> EntityGrouping<E, T, K>
 与 `EntitySequence` 的 `aggregateColumns` 函数类似，这是一个终止操作，它接收一个闭包作为参数，在闭包中，我们需要返回一个聚合表达式。Ktorm 会使用我们返回的聚合表达式，根据当前序列的查询条件和分组条件创建一个聚合查询，然后执行这个查询，获取聚合的结果。它的返回值是 `Map<K?, C?>`，其中，key 是我们的分组列的值，value 是该组中的聚合结果。下面的代码可以获取所有部门的平均工资：
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees, withReferences = false)
+val averageSalaries = database.employees
     .groupingBy { it.departmentId }
     .aggregateColumns { avg(it.salary) }
 ```
@@ -147,8 +142,7 @@ group by t_employee.department_id
 如果你希望同时获取多个聚合结果，可以改用 `aggregateColumns2` 或 `aggregateColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些聚合表达式，函数的返回值也相应变成了 `Map<K?, Pair<C1?, C2?>>` 或 `Map<K?, Triple<C1?, C2?, C3?>>`。下面的例子会打印出所有部门工资的平均值和极差：
 
 ```kotlin
-database
-    .sequenceOf(Employees, withReferences = false)
+database.employees
     .groupingBy { it.departmentId }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
     .forEach { departmentId, (avg, diff) ->
@@ -177,8 +171,7 @@ group by t_employee.department_id
 有了这些辅助函数，上面获取所有部门平均工资的代码就可以改写成：
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees)
+val averageSalaries = database.employees
     .groupingBy { it.departmentId }
     .eachAverageBy { it.salary }
 ```
@@ -186,8 +179,7 @@ val averageSalaries = database
 除此之外，Ktorm 还提供了 `aggregate`、`fold`、`reduce` 等函数，它们与 `kotlin.collections.Grouping` 的相应函数同名，功能也完全一样。下面的代码使用 `fold` 函数计算每个部门工资的总和：
 
 ```kotlin
-val totalSalaries = database
-    .sequenceOf(Employees)
+val totalSalaries = database.employees
     .groupingBy { it.departmentId }
     .fold(0L) { acc, employee -> 
         acc + employee.salary 
@@ -197,8 +189,7 @@ val totalSalaries = database
 当然，如果仅仅为了获得工资总和，我们没必要这样做。这是性能低下的写法，它会查询出所有员工的数据，然后对它们进行迭代，这里仅用作示范，更好的写法是使用 `eachSumBy` 函数：
 
 ```kotlin
-val totalSalaries = database
-    .sequenceOf(Employees)
+val totalSalaries = database.employees
     .groupingBy { it.departmentId }
     .eachSumBy { it.salary }
 ```

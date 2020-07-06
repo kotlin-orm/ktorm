@@ -54,6 +54,8 @@ object Staffs : BaseTable<Staff>("t_employee") {
         sectionId = row[sectionId] ?: 0
     )
 }
+
+val Database.staffs get() = this.sequenceOf(Staffs)
 ```
 
 As you can see, the `Staff` here is just a simple data class. Ktorm doesn't have any special requirements for this class. It is no longer necessary to define it as an interface, which minimizes the intrusion of the framework to user code. The table object `Staffs` is also defined as a subclass of `BaseTable` and implements the `doCreateEntity` function, in which we get columns' values via square brackets `[]` and fill them into the data object. 
@@ -73,8 +75,7 @@ val staffs = database
 Obtain entity objects via sequence APIs, and sorting them by the specific column: 
 
 ```kotlin
-val staffs = database
-    .sequenceOf(Staffs)
+val staffs = database.staffs
     .filter { it.sectionId eq 1 }
     .sortedBy { it.id }
     .toList()
@@ -83,8 +84,7 @@ val staffs = database
 Get the number of staffs with a salary of less than 100 thousand in each department: 
 
 ```kotlin
-val counts = database
-    .sequenceOf(Staffs)
+val counts = database.staffs
     .filter { it.salary less 100000L }
     .groupingBy { it.sectionId }
     .eachCount()
@@ -97,6 +97,6 @@ For more usages, see the documentation of [SQL DSL](./query.html) and [Entity Se
 However, data classes are not perfect, and that's why Ktorm decided to use `Entity` interfaces when it was originally designed. In fact, even after Ktorm 2.5 released, defining entities as interfaces is still our first choice because there are currently two limitations to using data classes: 
 
 - **Column bindings are not available:** Since `BaseTable` is directly used as the parent class, we cannot configure the bindings between database columns and entity properties via `bindTo` and `references` while defining our table objects. Therefore, each table object must implement the `doCreateEntity` function, in which we should create our entity objects manually. 
-- **Entity manipulation APIs are not available:** Since we define entities as data classes, Ktorm cannot proxy them and cannot detect the status changes of entity objects, which makes it impossible for us to use entity manipulation APIs such as `database.sequenceOf(..).add(..)`, `entity.flushChanges()`, etc. But SQL DSL is not affected. We can still use DSL function such as `database.insert(..) {..}` and `database.update(..) {..}` to perform our data modifications. 
+- **Entity manipulation APIs are not available:** Since we define entities as data classes, Ktorm cannot proxy them and cannot detect the status changes of entity objects, which makes it impossible for us to use entity manipulation APIs such as `sequence.add(..)`, `entity.flushChanges()`, etc. But SQL DSL is not affected. We can still use DSL function such as `database.insert(..) {..}` and `database.update(..) {..}` to perform our data modifications. 
 
 Because of these limitations, you should think carefully before you decide to define your entities as data classes. You might be benefited from using data classes and you would lose other things at the same time. Remember: **Defining entities as interfaces is still our first choice.** 

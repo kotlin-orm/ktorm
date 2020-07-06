@@ -6,10 +6,11 @@ related_path: en/entity-dml.html
 
 # 实体增删改
 
-除了查询以外，序列 API 还支持实体对象的增删改操作。当然，我们首先要调用 `sequenceOf` 获得一个序列对象：
+除了查询以外，序列 API 还支持实体对象的增删改操作。当然，我们首先要定义一些扩展属性，它们使用 `sequenceOf` 函数创建序列对象：
 
 ```kotlin
-val sequence = database.sequenceOf(Employees)
+val Database.departments get() = this.sequenceOf(Departments)
+val Database.employees get() = this.sequenceOf(Employees)
 ```
 
 ## 插入
@@ -28,10 +29,10 @@ val employee = Employee {
     job = "trainee"
     hireDate = LocalDate.now()
     salary = 50
-    department = database.sequenceOf(Departments).find { it.name eq "tech" }
+    department = database.departments.find { it.name eq "tech" }
 }
 
-sequence.add(employee)
+database.employees.add(employee)
 ```
 
 在上面的例子中，我们创建了一个员工对象，并为它的各个属性设置了初始值。值得注意的是 `department` 这个属性，它是员工所属的部门，它的值是通过序列 API 从数据库中查询获得的实体对象，在调用 `add` 函数的时候，它的 ID 会被保存在 `Employees` 表中。生成的 SQL 如下：
@@ -69,7 +70,7 @@ interface Entity<E : Entity<E>> : Serializable {
 可以看到里面有一个 `flushChanges` 函数，它的功能正是将实体对象的修改更新到数据库，执行后返回受影响的记录数。典型用法是先使用序列 API 从数据库中获取实体对象，然后按需修改它们的属性值，最后再调用 `flushChanges` 保存这些修改。
 
 ```kotlin
-val employee = sequence.find { it.id eq 5 } ?: return
+val employee = database.employees.find { it.id eq 5 } ?: return
 employee.job = "engineer"
 employee.salary = 100
 employee.flushChanges()
@@ -97,7 +98,7 @@ update t_employee set job = ?, salary = ? where id = ?
 `Entity` 接口中还有一个 `delete` 函数，它的功能是从数据库中删除该实体对象，执行后返回受影响的记录数。典型用法是先使用序列 API 从数据库中获取实体对象，然后根据条件按需调用 `delete` 函数将其删除：
 
 ````kotlin
-val employee = sequence.find { it.id eq 5 } ?: return
+val employee = database.employees.find { it.id eq 5 } ?: return
 employee.delete()
 ````
 
@@ -115,7 +116,7 @@ delete from t_employee where id = ?
 最后，序列 API 还提供了 `removeIf` 和 `clear` 两个函数，`removeIf` 可以删除表中符合条件的记录，`clear` 可以删除表中的所有记录。下面使用 `removeIf` 删除部门 1 中的所有员工：
 
 ```kotlin
-sequence.removeIf { it.departmentId eq 1 }
+database.employees.removeIf { it.departmentId eq 1 }
 ```
 
 生成 SQL：

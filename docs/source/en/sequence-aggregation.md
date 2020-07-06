@@ -21,8 +21,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateCo
 It's a terminal operation, and it accepts a closure as its parameter, in which we need to return an aggregate expression. Ktorm will create an aggregate query, using the current filter condition and selecting the aggregate expression specified by us, then execute the query and obtain the aggregate result. The following code obtains the max salary in department 1: 
 
 ```kotlin
-val max = database
-    .sequenceOf(Employees, withReferences = false)
+val max = database.employees
     .filter { it.departmentId eq 1 }
     .aggregateColumns { max(it.salary) }
 ```
@@ -30,8 +29,7 @@ val max = database
 If we want to aggregate two or more columns, we can change to `aggregateColumns2` or `aggregateColumns3`, then we need to wrap our aggregate expressions by `Pair` or `Triple` in the closure, and the function's return type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`. The example below obtains the average and the range of salaries in department 1: 
 
 ```kotlin
-val (avg, diff) = database
-    .sequenceOf(Employees, withReferences = false)
+val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
@@ -74,14 +72,13 @@ inline fun <E : Any, K> EntitySequence<E, *>.groupBy(
 Obviously, `groupBy` is a terminal operation, it will execute the internal query and iterate the query results right now, then extract a grouping key by the `keySelector` closure for each element, finally collect them into the groups they are belonging to. The following code obtains all the employees and groups them by their departments: 
 
 ```kotlin
-val employees = database.sequenceOf(Employees).groupBy { it.department.id }
+val employees = database.employees.groupBy { it.department.id }
 ```
 
 Here, the type of `employees` is `Map<Int, List<Employee>>`, in which the keys are departments' IDs, and the values are the lists of employees belonging to the departments. Now we have the employees' data for every department, we are able to do some aggregate calculations over the data. The following code calculates the average salaries for each department: 
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees)
+val averageSalaries = database.employees
     .groupBy { it.department.id }
     .mapValues { (_, employees) -> employees.map { it.salary }.average() }
 ```
@@ -91,7 +88,6 @@ But, unfortunately, the aggregate calculation here is performed inside the JVM, 
 ```sql
 select * 
 from t_employee 
-left join t_department _ref0 on t_employee.department_id = _ref0.id 
 ```
 
 Here, the only thing we need is the average salaries, but we still have to obtain all the employees' data from the database. The performance issue may be intolerable in most cases. It'll be better for us to generate proper SQLs using *group by* clauses and aggregate functions, and move the aggregate calculations back to the database. To solve this problem, we need to use the `groupingBy` function. 
@@ -130,8 +126,7 @@ inline fun <E : Any, T : BaseTable<E>, K : Any, C : Any> EntityGrouping<E, T, K>
 Similar to the `aggregateColumns` of `EntitySequence`, it's a terminal operation, and it accepts a closure as its parameter, in which we should return an aggregate expression. Ktorm will create an aggregate query, using the current filter condition and the grouping key, selecting the aggregate expression specified by us, then execute the query and obtain the aggregate results. Its return type is `Map<K?, C?>`, in which the keys are our grouping keys, and the values are the aggregate results for the groups. The following code obtains the average salaries for each department: 
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees, withReferences = false)
+val averageSalaries = database.employees
     .groupingBy { it.departmentId }
     .aggregateColumns { avg(it.salary) }
 ```
@@ -147,8 +142,7 @@ group by t_employee.department_id
 If we want to aggregate two or more columns, we can change to `aggregateColumns2` or `aggregateColumns3`, then we need to wrap our aggregate expressions by `Pair` or `Triple` in the closure, and the function’s return type becomes `Map<K?, Pair<C1?, C2?>>` or `Map<K?, Triple<C1?, C2?, C3?>>`. The following code prints the averages and the ranges of salaries for each department: 
 
 ```kotlin
-database
-    .sequenceOf(Employees, withReferences = false)
+database.employees
     .groupingBy { it.departmentId }
     .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
     .forEach { departmentId, (avg, diff) ->
@@ -177,8 +171,7 @@ Additionally, Ktorm also provides many convenient helper functions, they are all
 With these functions, we can write the code below to obtain average salaries for each department: 
 
 ```kotlin
-val averageSalaries = database
-    .sequenceOf(Employees)
+val averageSalaries = database.employees
     .groupingBy { it.departmentId }
     .eachAverageBy { it.salary }
 ```
@@ -186,8 +179,7 @@ val averageSalaries = database
 Besides, Ktorm also provides `aggregate`, `fold`, `reduce`, they have the same names as the extension functions of `kotlin.collections.Grouping`, and the usages are totally the same. The following code calculates the total salaries for each department: 
 
 ```kotlin
-val totalSalaries = database
-    .sequenceOf(Employees)
+val totalSalaries = database.employees
     .groupingBy { it.departmentId }
     .fold(0L) { acc, employee -> 
         acc + employee.salary 
@@ -197,8 +189,7 @@ val totalSalaries = database
 Of course, if only the total salaries are needed, we don’t have to write codes in that way. Because the performance is really poor, as all employees are obtained from the database. Here we just show you the usage of the `fold` function. It’s better to use `eachSumBy`:
 
 ```kotlin
-val totalSalaries = database
-    .sequenceOf(Employees)
+val totalSalaries = database.employees
     .groupingBy { it.departmentId }
     .eachSumBy { it.salary }
 ```

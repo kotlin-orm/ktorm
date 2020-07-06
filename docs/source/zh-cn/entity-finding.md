@@ -10,16 +10,17 @@ Ktorm 提供了一套名为”实体序列”的 API，用来从数据库中获�
 
 ## 使用序列 API 获取实体
 
-要使用序列 API，我们首先要通过 `sequenceOf` 函数得到一个实体序列：
+要使用序列 API，首先要创建实体序列的对象。一般来说，我们会给 `Database` 定义一些扩展属性，它们使用 `sequenceOf` 函数创建序列对象并返回。这些属性可以帮助我们提高代码的可读性：
 
 ```kotlin
-val sequence = database.sequenceOf(Employees)
+val Database.departments get() = this.sequenceOf(Departments)
+val Database.employees get() = this.sequenceOf(Employees)
 ```
 
-返回的 `sequence` 对象可以视为保存了 `Employees` 表中所有记录的一个序列。要从这个序列中获取实体对象，可以使用 `find` 函数：
+下面的代码使用 `find` 函数从序列中根据名字获取一个 Employee 对象：
 
 ```kotlin
-val employee = sequence.find { it.id eq 1 }
+val employee = database.employees.find { it.name eq "vince" }
 ```
 
 这种写法十分自然，就像使用 Kotlin 标准库中的函数从一个集合中筛选符合条件的元素一样，不同的仅仅是在 lambda 表达式中的等号 `==` 被这里的 `eq` 函数代替了而已。
@@ -44,7 +45,7 @@ where t_employee.id = ?
 既然 Ktorm 会自动 left join 关联表，我们当然也能在筛选条件中使用关联表中的列。下面的代码可以获取一个在广州工作的员工对象，这里我们通过列的 `referenceTable` 属性获取 `departmentId` 所引用的表对象：
 
 ```kotlin
-val employee = sequence.find {
+val employee = database.employees.find {
     val dept = it.departmentId.referenceTable as Departments
     dept.location eq "Guangzhou"
 }
@@ -58,7 +59,7 @@ open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {
     val department get() = departmentId.referenceTable as Departments
 }
 
-val employee = sequence.find { it.department.location eq "Guangzhou" }
+val employee = database.employees.find { it.department.location eq "Guangzhou" }
 ```
 
 生成的 SQL 如下：
