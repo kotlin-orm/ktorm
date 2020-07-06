@@ -512,7 +512,16 @@ fun ColumnDeclaring<out Number>.toFloat(): CastingExpression<Float> {
 /**
  * Cast the current column or expression's type to [Int].
  */
-fun ColumnDeclaring<out Number>.toInt(): CastingExpression<Int> {
+@JvmName("toIntWithColumnDeclaringNumber")
+fun ColumnDeclaring<Number>.toInt(): CastingExpression<Int> {
+    return this.cast(IntSqlType)
+}
+
+/**
+ * Cast the current column or expression's type to [Int].
+ */
+@JvmName("toIntWithColumnDeclaringBoolean")
+fun ColumnDeclaring<Boolean>.toInt(): CastingExpression<Int> {
     return this.cast(IntSqlType)
 }
 
