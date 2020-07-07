@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://ktorm.liuwj.me/images/logo-full.png" alt="Ktorm" width="300" />
+    <img src="https://raw.githubusercontent.com/kotlin-orm/ktorm-docs/master/source/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
     <a href="https://www.travis-ci.org/vincentlauvlwj/Ktorm">
@@ -37,7 +37,7 @@ Ktormは純粋なJDBCをベースにしたKotlin用の軽量で効率的なORM�
  - 拡張性のある設計。独自の拡張機能を書いて、より多くの演算子、データ型、SQL関数、データベースの方言などをサポートすることができます。
 
 <p align="center">
-    <img src="docs/source/images/ktorm-example.png">
+    <img src="https://raw.githubusercontent.com/kotlin-orm/ktorm-docs/master/source/images/ktorm-example.png">
 </p>
 
 # クイックスタート
