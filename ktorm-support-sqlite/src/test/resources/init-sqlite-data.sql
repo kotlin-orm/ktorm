@@ -2,7 +2,8 @@
 create table t_department(
   id integer primary key autoincrement,
   name text not null,
-  location text not null
+  location text not null,
+  mixedCase text
 );
 
 create table t_employee(
