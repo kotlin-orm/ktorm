@@ -131,6 +131,11 @@ subprojects { project ->
                             name = "Sylvain Corsini"
                             email = "sylvain.corsini@protonmail.com"
                         }
+                        developer {
+                            id = "lyndsysimon"
+                            name = "Lyndsy Simon"
+                            email = "lyndsy@lyndsysimon.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/vincentlauvlwj/Ktorm.git"

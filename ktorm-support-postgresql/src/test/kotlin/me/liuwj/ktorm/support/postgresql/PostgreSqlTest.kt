@@ -138,6 +138,7 @@ class PostgreSqlTest : BaseTest() {
             return database.insert(Departments) {
                 it.name to "dept name"
                 it.location to LocationWrapper("dept location")
+                it.mixedCase to "value for mixed case"
             }
         }
     }
