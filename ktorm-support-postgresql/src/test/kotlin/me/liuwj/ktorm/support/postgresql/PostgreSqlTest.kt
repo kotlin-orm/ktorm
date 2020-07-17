@@ -158,6 +158,17 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
+    fun testHStoreIsNull() {
+        database.update(Metadatas) {
+            it.attributes to null
+            where { it.id eq 1 }
+        }
+
+        val attributes = get { it.attributes }
+        assertThat(attributes, nullValue())
+    }
+
+    @Test
     fun testHStoreGetValue() {
         assert(get { it.attributes["a"] } == "1")
         assert(get { it.attributes["b"] } == "2")
@@ -278,5 +289,16 @@ class PostgreSqlTest : BaseTest() {
 
         val numbers = get { it.numbers } ?: error("Cannot get the numbers!")
         assertThat(numbers, equalTo(arrayOf<String?>("a", "b")))
+    }
+
+    @Test
+    fun testTextArrayIsNull() {
+        database.update(Metadatas) {
+            it.numbers to null
+            where { it.id eq 1 }
+        }
+
+        val numbers = get { it.numbers }
+        assertThat(numbers, nullValue())
     }
 }
