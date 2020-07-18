@@ -22,6 +22,8 @@
 
 # What's Ktorm?
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/72c1185f408b4cc0974c735fa5c419bc)](https://app.codacy.com/gh/kotlin-orm/ktorm?utm_source=github.com&utm_medium=referral&utm_content=kotlin-orm/ktorm&utm_campaign=Badge_Grade_Dashboard)
+
 Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong-typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQL statements, of course, are generated automatically. Ktorm is open source and available under the Apache 2.0 license. Please leave a star if you've found this library helpful! 
 
 For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
