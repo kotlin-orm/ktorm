@@ -19,8 +19,8 @@ create table t_employee(
 
 create table t_metadata(
   id serial primary key,
-  attrs hstore not null,
-  numbers text[] not null
+  attrs hstore,
+  numbers text[]
 );
 
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
