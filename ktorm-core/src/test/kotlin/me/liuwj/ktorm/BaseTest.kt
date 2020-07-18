@@ -58,6 +58,7 @@ open class BaseTest {
         val id: Int
         var name: String
         var location: LocationWrapper
+        var mixedCase: String?
     }
 
     interface Employee : Entity<Employee> {
@@ -78,6 +79,7 @@ open class BaseTest {
         val id = int("id").primaryKey().bindTo { it.id }
         val name = varchar("name").bindTo { it.name }
         val location = varchar("location").transform({ LocationWrapper(it) }, { it.underlying }).bindTo { it.location }
+        val mixedCase = varchar("mixedCase").bindTo { it.mixedCase }
     }
 
     open class Employees(alias: String?) : Table<Employee>("t_employee", alias) {

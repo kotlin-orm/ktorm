@@ -3,7 +3,8 @@ create extension if not exists hstore;
 create table t_department(
   id serial primary key,
   name varchar(128) not null,
-  location varchar(128) not null
+  location varchar(128) not null,
+  "mixedCase" varchar(123)
 );
 
 create table t_employee(
@@ -18,12 +19,12 @@ create table t_employee(
 
 create table t_metadata(
   id serial primary key,
-  attrs hstore not null,
-  numbers text[] not null
+  attrs hstore,
+  numbers text[]
 );
 
-insert into t_department(name, location) values ('tech', 'Guangzhou');
-insert into t_department(name, location) values ('finance', 'Beijing');
+insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
+insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');
 
 insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
 values ('vince', 'engineer', null, '2018-01-01', 100, 1);

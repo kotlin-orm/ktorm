@@ -73,7 +73,7 @@ open class SqlFormatter(
         }
     }
 
-    protected val String.quoted: String get() {
+    open protected val String.quoted: String get() {
         if (this.toUpperCase() in database.keywords || !this.isIdentifier) {
             return "${database.identifierQuoteString}${this}${database.identifierQuoteString}".trim()
         } else {

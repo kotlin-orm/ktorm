@@ -126,6 +126,16 @@ subprojects { project ->
                             name = "afezeria"
                             email = "zodal@outlook.com"
                         }
+                        developer {
+                            id = "scorsi"
+                            name = "Sylvain Corsini"
+                            email = "sylvain.corsini@protonmail.com"
+                        }
+                        developer {
+                            id = "lyndsysimon"
+                            name = "Lyndsy Simon"
+                            email = "lyndsy@lyndsysimon.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/kotlin-orm/ktorm.git"

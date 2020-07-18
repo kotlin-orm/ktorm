@@ -138,6 +138,7 @@ class PostgreSqlTest : BaseTest() {
             return database.insert(Departments) {
                 it.name to "dept name"
                 it.location to LocationWrapper("dept location")
+                it.mixedCase to "value for mixed case"
             }
         }
     }
@@ -155,6 +156,17 @@ class PostgreSqlTest : BaseTest() {
         assertThat(attributes["a"], equalTo("1"))
         assertThat(attributes["b"], equalTo("2"))
         assertThat(attributes["c"], nullValue())
+    }
+
+    @Test
+    fun testHStoreIsNull() {
+        database.update(Metadatas) {
+            it.attributes to null
+            where { it.id eq 1 }
+        }
+
+        val attributes = get { it.attributes }
+        assertThat(attributes, nullValue())
     }
 
     @Test
@@ -278,5 +290,16 @@ class PostgreSqlTest : BaseTest() {
 
         val numbers = get { it.numbers } ?: error("Cannot get the numbers!")
         assertThat(numbers, equalTo(arrayOf<String?>("a", "b")))
+    }
+
+    @Test
+    fun testTextArrayIsNull() {
+        database.update(Metadatas) {
+            it.numbers to null
+            where { it.id eq 1 }
+        }
+
+        val numbers = get { it.numbers }
+        assertThat(numbers, nullValue())
     }
 }
