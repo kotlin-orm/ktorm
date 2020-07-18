@@ -78,7 +78,7 @@ subprojects { project ->
                 pom {
                     name = project.name
                     description = "A lightweight ORM Framework for Kotlin with strong typed SQL DSL and sequence APIs."
-                    url = "https://github.com/vincentlauvlwj/Ktorm"
+                    url = "https://github.com/kotlin-orm/ktorm"
                     licenses {
                         license {
                             name = "The Apache Software License, Version 2.0"
@@ -128,7 +128,7 @@ subprojects { project ->
                         }
                     }
                     scm {
-                        url = "https://github.com/vincentlauvlwj/Ktorm.git"
+                        url = "https://github.com/kotlin-orm/ktorm.git"
                     }
                 }
             }
@@ -145,7 +145,7 @@ subprojects { project ->
             repo = "maven"
             name = project.name
             licenses = ["Apache-2.0"]
-            vcsUrl = "https://github.com/vincentlauvlwj/Ktorm.git"
+            vcsUrl = "https://github.com/kotlin-orm/ktorm.git"
             labels = ["Kotlin", "ORM", "SQL"]
 
             version {
