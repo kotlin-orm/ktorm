@@ -143,6 +143,62 @@ class Database(
      */
     lateinit var extraNameCharacters: String private set
 
+    /**
+     * Whether this database threats mixed case unquoted SQL identifiers as case sensitive and as a result
+     * stores them in mixed case.
+     */
+    var supportsMixedCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * stores them in mixed case.
+     */
+    var storesMixedCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * stores them in upper case.
+     */
+    var storesUpperCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * stores them in lower case.
+     */
+    var storesLowerCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case sensitive and as a result
+     * stores them in mixed case.
+     */
+    var supportsMixedCaseQuotedIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * stores them in mixed case.
+     */
+    var storesMixedCaseQuotedIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * stores them in upper case.
+     */
+    var storesUpperCaseQuotedIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * stores them in lower case.
+     */
+    var storesLowerCaseQuotedIdentifiers: Boolean = false
+        private set
+
     init {
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
 
@@ -155,6 +211,14 @@ class Database(
             keywords = ANSI_SQL_2003_KEYWORDS + metadata.runCatching { sqlKeywords }.orEmpty().toUpperCase().split(',')
             identifierQuoteString = metadata.runCatching { identifierQuoteString }.orEmpty().trim()
             extraNameCharacters = metadata.runCatching { extraNameCharacters }.orEmpty()
+            supportsMixedCaseIdentifiers = metadata.runCatching { supportsMixedCaseIdentifiers() }.getOrDefault(false)
+            storesMixedCaseIdentifiers = metadata.runCatching { storesMixedCaseIdentifiers() }.getOrDefault(false)
+            storesUpperCaseIdentifiers = metadata.runCatching { storesUpperCaseIdentifiers() }.getOrDefault(false)
+            storesLowerCaseIdentifiers = metadata.runCatching { storesLowerCaseIdentifiers() }.getOrDefault(false)
+            supportsMixedCaseQuotedIdentifiers = metadata.runCatching { supportsMixedCaseQuotedIdentifiers() }.getOrDefault(false)
+            storesMixedCaseQuotedIdentifiers = metadata.runCatching { storesMixedCaseQuotedIdentifiers() }.getOrDefault(false)
+            storesUpperCaseQuotedIdentifiers = metadata.runCatching { storesUpperCaseQuotedIdentifiers() }.getOrDefault(false)
+            storesLowerCaseQuotedIdentifiers = metadata.runCatching { storesLowerCaseQuotedIdentifiers() }.getOrDefault(false)
         }
 
         if (logger.isInfoEnabled()) {
