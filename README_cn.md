@@ -11,8 +11,8 @@
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
     </a>
-    <a href="https://app.codacy.com/app/vincentlauvlwj/Ktorm?utm_source=github.com&utm_medium=referral&utm_content=vincentlauvlwj/Ktorm&utm_campaign=Badge_Grade_Dashboard">
-        <img src="https://api.codacy.com/project/badge/Grade/65d4931bfbe14fe986e1267b572bed53" alt="Codacy Badge" />
+    <a href="https://app.codacy.com/gh/kotlin-orm/ktorm?utm_source=github.com&utm_medium=referral&utm_content=kotlin-orm/ktorm&utm_campaign=Badge_Grade_Dashboard">
+        <img src="https://api.codacy.com/project/badge/Grade/72c1185f408b4cc0974c735fa5c419bc" alt="Codacy Badge" />
     </a>
     <a href="https://github.com/KotlinBy/awesome-kotlin">
         <img src="https://kotlin.link/awesome-kotlin.svg" alt="Awesome Kotlin Badge" />
