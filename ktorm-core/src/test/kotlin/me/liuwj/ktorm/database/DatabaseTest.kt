@@ -29,14 +29,14 @@ class DatabaseTest : BaseTest() {
 
     @Test
     fun testKeywordWrapping() {
-        val configs = object : Table<Nothing>("t_config") {
-            val key = varchar("key").primaryKey()
-            val value = varchar("value")
+        val configs = object : Table<Nothing>("T_CONFIG") {
+            val key = varchar("KEY").primaryKey()
+            val value = varchar("VALUE")
         }
 
         database.useConnection { conn ->
             conn.createStatement().use { statement ->
-                val sql = """create table t_config(`key` varchar(128) primary key, "value" varchar(128))"""
+                val sql = """CREATE TABLE T_CONFIG(KEY VARCHAR(128) PRIMARY KEY, VALUE VARCHAR(128))"""
                 statement.executeUpdate(sql)
             }
         }

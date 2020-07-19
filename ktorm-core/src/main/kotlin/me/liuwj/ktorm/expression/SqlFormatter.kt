@@ -77,12 +77,32 @@ open class SqlFormatter(
         val shouldQuote = database.alwaysQuoteIdentifiers
             || !this.isIdentifier
             || this.toUpperCase() in database.keywords
-            || this.isMixedCase && !database.supportsMixedCaseIdentifiers
+            || this.isMixedCase && !database.supportsMixedCaseIdentifiers && database.supportsMixedCaseQuotedIdentifiers
 
         if (shouldQuote) {
-            return "${database.identifierQuoteString}${this}${database.identifierQuoteString}".trim()
+            if (database.supportsMixedCaseQuotedIdentifiers) {
+                return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
+            } else {
+                if (database.storesUpperCaseQuotedIdentifiers) {
+                    return "${database.identifierQuoteString}${this.toUpperCase()}${database.identifierQuoteString}"
+                }
+                if (database.storesLowerCaseQuotedIdentifiers) {
+                    return "${database.identifierQuoteString}${this.toLowerCase()}${database.identifierQuoteString}"
+                }
+                return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
+            }
         } else {
-            return this
+            if (database.supportsMixedCaseIdentifiers) {
+                return this
+            } else {
+                if (database.storesUpperCaseIdentifiers) {
+                    return this.toUpperCase()
+                }
+                if (database.storesLowerCaseIdentifiers) {
+                    return this.toLowerCase()
+                }
+                return this
+            }
         }
     }
 

@@ -2,13 +2,15 @@ package me.liuwj.ktorm.support.mysql
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.BooleanSqlType
 import me.liuwj.ktorm.schema.IntSqlType
+import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.MySQLContainer
@@ -37,6 +39,30 @@ class MySqlTest : BaseTest() {
         )
 
         execSqlScript("init-mysql-data.sql")
+    }
+
+    @Test
+    fun testKeywordWrapping() {
+        val configs = object : Table<Nothing>("t_config") {
+            val key = varchar("key").primaryKey()
+            val value = varchar("value")
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_config(`key` varchar(128) primary key, `value` varchar(128))"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(configs) {
+            it.key to "test"
+            it.value to "test value"
+        }
+
+        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+
+        database.delete(configs) { it.key eq "test" }
     }
 
     @Test
