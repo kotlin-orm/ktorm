@@ -73,12 +73,21 @@ open class SqlFormatter(
         }
     }
 
-    open protected val String.quoted: String get() {
-        if (this.toUpperCase() in database.keywords || !this.isIdentifier) {
+    protected val String.quoted: String get() {
+        val shouldQuote = database.alwaysQuoteIdentifiers
+            || !this.isIdentifier
+            || this.toUpperCase() in database.keywords
+            || this.isMixedCase && !database.supportsMixedCaseIdentifiers
+
+        if (shouldQuote) {
             return "${database.identifierQuoteString}${this}${database.identifierQuoteString}".trim()
         } else {
             return this
         }
+    }
+
+    protected val String.isMixedCase: Boolean get() {
+        return any { it.isUpperCase() } && any { it.isLowerCase() }
     }
 
     protected val String.isIdentifier: Boolean get() {

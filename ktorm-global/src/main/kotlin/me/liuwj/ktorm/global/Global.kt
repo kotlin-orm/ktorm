@@ -20,8 +20,10 @@ import me.liuwj.ktorm.database.*
 import me.liuwj.ktorm.logging.Logger
 import me.liuwj.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.transaction.annotation.Transactional
 import java.sql.Connection
+import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -56,15 +58,25 @@ val Database.Companion.global: Database get() {
  *
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @param connector the connector function used to obtain SQL connections.
  * @return the new-created database object.
  */
 fun Database.Companion.connectGlobally(
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
+    alwaysQuoteIdentifiers: Boolean = false,
     connector: () -> Connection
 ): Database {
-    return connect(dialect, logger, connector).also { lastConnected.set(it) }
+    val database = Database(
+        transactionManager = JdbcTransactionManager(connector),
+        dialect = dialect,
+        logger = logger,
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+    )
+
+    lastConnected.set(database)
+    return database
 }
 
 /**
@@ -73,14 +85,24 @@ fun Database.Companion.connectGlobally(
  * @param dataSource the data source used to obtain SQL connections.
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @return the new-created database object.
  */
 fun Database.Companion.connectGlobally(
     dataSource: DataSource,
     dialect: SqlDialect = detectDialectImplementation(),
-    logger: Logger = detectLoggerImplementation()
+    logger: Logger = detectLoggerImplementation(),
+    alwaysQuoteIdentifiers: Boolean = false
 ): Database {
-    return connect(dataSource, dialect, logger).also { lastConnected.set(it) }
+    val database = Database(
+        transactionManager = JdbcTransactionManager { dataSource.connection },
+        dialect = dialect,
+        logger = logger,
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+    )
+
+    lastConnected.set(database)
+    return database
 }
 
 /**
@@ -93,6 +115,7 @@ fun Database.Companion.connectGlobally(
  * @param password the password of the database.
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @return the new-created database object.
  */
 fun Database.Companion.connectGlobally(
@@ -101,9 +124,22 @@ fun Database.Companion.connectGlobally(
     user: String? = null,
     password: String? = null,
     dialect: SqlDialect = detectDialectImplementation(),
-    logger: Logger = detectLoggerImplementation()
+    logger: Logger = detectLoggerImplementation(),
+    alwaysQuoteIdentifiers: Boolean = false
 ): Database {
-    return connect(url, driver, user, password, dialect, logger).also { lastConnected.set(it) }
+    if (driver != null && driver.isNotBlank()) {
+        Class.forName(driver)
+    }
+
+    val database = Database(
+        transactionManager = JdbcTransactionManager { DriverManager.getConnection(url, user, password) },
+        dialect = dialect,
+        logger = logger,
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+    )
+
+    lastConnected.set(database)
+    return database
 }
 
 /**
@@ -120,14 +156,27 @@ fun Database.Companion.connectGlobally(
  * @param dataSource the data source used to obtain SQL connections.
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @return the new-created database object.
  */
 fun Database.Companion.connectWithSpringSupportGlobally(
     dataSource: DataSource,
     dialect: SqlDialect = detectDialectImplementation(),
-    logger: Logger = detectLoggerImplementation()
+    logger: Logger = detectLoggerImplementation(),
+    alwaysQuoteIdentifiers: Boolean = false
 ): Database {
-    return connectWithSpringSupport(dataSource, dialect, logger).also { lastConnected.set(it) }
+    val translator = SQLErrorCodeSQLExceptionTranslator(dataSource)
+
+    val database = Database(
+        transactionManager = SpringManagedTransactionManager(dataSource),
+        dialect = dialect,
+        logger = logger,
+        exceptionTranslator = { ex -> translator.translate("Ktorm", null, ex) },
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+    )
+
+    lastConnected.set(database)
+    return database
 }
 
 /**
