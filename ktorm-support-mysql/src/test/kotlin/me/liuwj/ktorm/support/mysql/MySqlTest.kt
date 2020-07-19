@@ -41,6 +41,10 @@ class MySqlTest : BaseTest() {
         execSqlScript("init-mysql-data.sql")
     }
 
+    override fun destroy() {
+        execSqlScript("drop-mysql-data.sql")
+    }
+
     @Test
     fun testKeywordWrapping() {
         val configs = object : Table<Nothing>("t_config") {

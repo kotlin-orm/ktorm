@@ -76,9 +76,9 @@ class DatabaseTest : BaseTest() {
     fun testRawSql() {
         val names = database.useConnection { conn ->
             val sql = """
-                select name from t_employee
-                where department_id = ?
-                order by id
+                select "name" from "t_employee"
+                where "department_id" = ?
+                order by "id"
             """
 
             conn.prepareStatement(sql).use { statement ->
