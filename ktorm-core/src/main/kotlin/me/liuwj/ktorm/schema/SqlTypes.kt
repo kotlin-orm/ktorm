@@ -68,6 +68,26 @@ object IntSqlType : SqlType<Int>(Types.INTEGER, "int") {
 }
 
 /**
+ * Define a column typed of [ShortSqlType].
+ */
+fun BaseTable<*>.short(name: String): Column<Short> {
+    return registerColumn(name, ShortSqlType)
+}
+
+/**
+ * [SqlType] implementation represents `smallint` SQL type.
+ */
+object ShortSqlType : SqlType<Short>(Types.SMALLINT, "smallint") {
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Short) {
+        ps.setShort(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Short? {
+        return rs.getShort(index)
+    }
+}
+
+/**
  * Define a column typed of [LongSqlType].
  */
 fun BaseTable<*>.long(name: String): Column<Long> {
@@ -144,26 +164,6 @@ object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
 
     override fun doGetResult(rs: ResultSet, index: Int): BigDecimal? {
         return rs.getBigDecimal(index)
-    }
-}
-
-/**
- * Define a column typed of [ShortSqlType].
- */
-fun BaseTable<*>.short(name: String): Column<Short> {
-    return registerColumn(name, ShortSqlType)
-}
-
-/**
- * [SqlType] implementation represents `smallint` SQL type.
- */
-object ShortSqlType : SqlType<Short>(Types.SMALLINT, typeName = "smallint") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Short) {
-        ps.setShort(index, parameter)
-    }
-
-    override fun doGetResult(rs: ResultSet, index: Int): Short? {
-        return rs.getShort(index)
     }
 }
 

@@ -20,12 +20,20 @@ import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.expression.FunctionExpression
 import me.liuwj.ktorm.schema.*
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.sql.Date
+import java.sql.Time
+import java.sql.Timestamp
+import java.time.*
+import java.util.*
+import kotlin.reflect.KClass
 
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): FunctionExpression<Boolean> {
+inline fun <reified T : Any> Column<List<T>>.jsonContains(
+    item: T,
+    sqlType: SqlType<T> = T::class.toSqlType() ?: error("Cannot detect the item's SqlType, please specify manually.")
+): FunctionExpression<Boolean> {
     val listSqlType = this.sqlType
 
     // json_contains(column, json_array(item))
@@ -35,7 +43,7 @@ fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): Fu
             asExpression(),
             FunctionExpression(
                 functionName = "json_array",
-                arguments = listOf(ArgumentExpression(item, itemSqlType)),
+                arguments = listOf(ArgumentExpression(item, sqlType)),
                 sqlType = listSqlType
             )
         ),
@@ -43,45 +51,43 @@ fun <T : Any> Column<List<T>>.jsonContains(item: T, itemSqlType: SqlType<T>): Fu
     )
 }
 
-/**
- * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
- */
-fun Column<List<Int>>.jsonContains(item: Int): FunctionExpression<Boolean> {
-    return this.jsonContains(item, IntSqlType)
-}
+@PublishedApi
+internal fun <T : Any> KClass<T>.toSqlType(): SqlType<T>? {
+    val sqlType = when (this) {
+        Boolean::class -> BooleanSqlType
+        Int::class -> IntSqlType
+        Short::class -> ShortSqlType
+        Long::class -> LongSqlType
+        Float::class -> FloatSqlType
+        Double::class -> DoubleSqlType
+        BigDecimal::class -> DecimalSqlType
+        String::class -> VarcharSqlType
+        ByteArray::class -> BytesSqlType
+        Timestamp::class -> TimestampSqlType
+        Date::class -> DateSqlType
+        Time::class -> TimeSqlType
+        Instant::class -> InstantSqlType
+        LocalDateTime::class -> LocalDateTimeSqlType
+        LocalDate::class -> LocalDateSqlType
+        LocalTime::class -> LocalTimeSqlType
+        MonthDay::class -> MonthDaySqlType
+        YearMonth::class -> YearMonthSqlType
+        Year::class -> YearSqlType
+        UUID::class -> UuidSqlType
+        else -> null
+    }
 
-/**
- * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
- */
-fun Column<List<Long>>.jsonContains(item: Long): FunctionExpression<Boolean> {
-    return this.jsonContains(item, LongSqlType)
-}
-
-/**
- * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
- */
-fun Column<List<Double>>.jsonContains(item: Double): FunctionExpression<Boolean> {
-    return this.jsonContains(item, DoubleSqlType)
-}
-
-/**
- * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
- */
-fun Column<List<Float>>.jsonContains(item: Float): FunctionExpression<Boolean> {
-    return this.jsonContains(item, FloatSqlType)
-}
-
-/**
- * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
- */
-fun Column<List<String>>.jsonContains(item: String): FunctionExpression<Boolean> {
-    return this.jsonContains(item, VarcharSqlType)
+    @Suppress("UNCHECKED_CAST")
+    return sqlType as SqlType<T>?
 }
 
 /**
  * MySQL json_extract function, translated to `json_extract(column, path)`.
  */
-fun <T : Any> Column<*>.jsonExtract(path: String, sqlType: SqlType<T>): FunctionExpression<T> {
+inline fun <reified T : Any> Column<*>.jsonExtract(
+    path: String,
+    sqlType: SqlType<T> = T::class.toSqlType() ?: error("Cannot detect the result's SqlType, please specify manually.")
+): FunctionExpression<T> {
     // json_extract(column, path)
     return FunctionExpression(
         functionName = "json_extract",
@@ -169,55 +175,40 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
 }
 
 /**
- * if function, translated to `if(condition, then, otherwise)`.
+ * MySQL if function, translated to `if(condition, then, otherwise)`.
  */
-fun <T : Any> `if`(
+fun <T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: ColumnDeclaring<T>,
     otherwise: ColumnDeclaring<T>
 ): FunctionExpression<T> {
     // if(condition, then, otherwise)
     return FunctionExpression(
-            functionName = "if",
-            arguments = listOf(condition, then, otherwise).map { it.asExpression() },
-            sqlType = then.sqlType
+        functionName = "if",
+        arguments = listOf(condition, then, otherwise).map { it.asExpression() },
+        sqlType = then.sqlType
     )
 }
 
 /**
- * if function, translated to `if(condition, then, otherwise)`.
+ * MySQL if function, translated to `if(condition, then, otherwise)`.
  */
-fun <T : Any> `if`(
+inline fun <reified T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: T,
-    otherwise: T
-): FunctionExpression<*> {
-    val thenArgs = wrapArguments(then)
-    val otherArgs = wrapArguments(otherwise)
-
+    otherwise: T,
+    sqlType: SqlType<T> = T::class.toSqlType() ?: error("Cannot detect the param's SqlType, please specify manually.")
+): FunctionExpression<T> {
     // if(condition, then, otherwise)
     return FunctionExpression(
-            functionName = "if",
-            arguments = listOf(
-                    condition.asExpression(),
-                    thenArgs.asExpression(),
-                    otherArgs.asExpression()
-            ),
-            sqlType = thenArgs.sqlType
+        functionName = "if",
+        arguments = listOf(
+            condition.asExpression(),
+            ArgumentExpression(then, sqlType),
+            ArgumentExpression(otherwise, sqlType)
+        ),
+        sqlType = sqlType
     )
-}
-
-private fun wrapArguments(argument: Any): ArgumentExpression<*> {
-    return when (argument) {
-        is Boolean -> ArgumentExpression(argument, BooleanSqlType)
-        is Int -> ArgumentExpression(argument, IntSqlType)
-        is Long -> ArgumentExpression(argument, LongSqlType)
-        is Float -> ArgumentExpression(argument, FloatSqlType)
-        is Double -> ArgumentExpression(argument, DoubleSqlType)
-        is BigDecimal -> ArgumentExpression(argument, DecimalSqlType)
-        is String -> ArgumentExpression(argument, VarcharSqlType)
-        else -> throw IllegalStateException("")
-    }
 }
 
 /**

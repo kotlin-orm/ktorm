@@ -7,8 +7,6 @@ import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
-import me.liuwj.ktorm.schema.BooleanSqlType
-import me.liuwj.ktorm.schema.IntSqlType
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
@@ -268,24 +266,22 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testIf() {
-        val countRich = database.from(Employees)
-                .select(
-                        sum(`if`(
-                                (Employees.salary greaterEq 100L)
-                                        .cast(BooleanSqlType), 1, 0).cast(IntSqlType))
-                )
-                .map { row -> row.getInt(1) }
+        val countRich = database
+            .from(Employees)
+            .select(sum(IF(Employees.salary greaterEq 100L, 1, 0)))
+            .map { row -> row.getInt(1) }
+
         assert(countRich.size == 1)
         assert(countRich.first() == 3)
     }
 
     @Test
     fun testSum() {
-        val countRich = database.from(Employees)
-                .select(
-                        sum(Employees.salary.greaterEq(100L).toInt())
-                )
-                .map { row -> row.getInt(1) }
+        val countRich = database
+            .from(Employees)
+            .select(sum(Employees.salary.greaterEq(100L).toInt()))
+            .map { row -> row.getInt(1) }
+
         assert(countRich.size == 1)
         assert(countRich.first() == 3)
     }
