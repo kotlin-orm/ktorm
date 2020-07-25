@@ -2,11 +2,15 @@ package me.liuwj.ktorm.support.sqlite
 
 import me.liuwj.ktorm.BaseTest
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.count
 import me.liuwj.ktorm.entity.find
+import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
+import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.varchar
 import org.junit.Test
 import java.sql.Connection
 import java.sql.DriverManager
@@ -36,6 +40,30 @@ class SQLiteTest : BaseTest() {
     override fun destroy() {
         super.destroy()
         connection.close()
+    }
+
+    @Test
+    fun testKeywordWrapping() {
+        val configs = object : Table<Nothing>("t_config") {
+            val key = varchar("key").primaryKey()
+            val value = varchar("value")
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_config(key varchar(128) primary key, value varchar(128))"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(configs) {
+            it.key to "test"
+            it.value to "test value"
+        }
+
+        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+
+        database.delete(configs) { it.key eq "test" }
     }
 
     @Test

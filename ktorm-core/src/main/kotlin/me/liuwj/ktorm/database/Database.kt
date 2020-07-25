@@ -96,17 +96,35 @@ import javax.sql.DataSource
  *     }
  * ```
  * More details about SQL DSL, see [Query], about sequence APIs, see [EntitySequence].
- *
- * @property transactionManager the transaction manager used to manage connections and transactions.
- * @property dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
- * @property logger the logger used to output logs, auto detects an implementation by default.
- * @property exceptionTranslator function used to translate SQL exceptions so as to rethrow them to users.
  */
 class Database(
+
+    /**
+     * The transaction manager used to manage connections and transactions.
+     */
     val transactionManager: TransactionManager,
+
+    /**
+     * The dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
+     */
     val dialect: SqlDialect = detectDialectImplementation(),
+
+    /**
+     * The logger used to output logs, auto detects an implementation by default.
+     */
     val logger: Logger = detectLoggerImplementation(),
-    val exceptionTranslator: ((SQLException) -> Throwable)? = null
+
+    /**
+     * Function used to translate SQL exceptions so as to rethrow them to users.
+     */
+    val exceptionTranslator: ((SQLException) -> Throwable)? = null,
+
+    /**
+     * Whether we need to always quote SQL identifiers in the generated SQLs.
+     *
+     * @since 3.1.0
+     */
+    val alwaysQuoteIdentifiers: Boolean = false
 ) {
     /**
      * The URL of the connected database.
@@ -143,8 +161,65 @@ class Database(
      */
     lateinit var extraNameCharacters: String private set
 
+    /**
+     * Whether this database threats mixed case unquoted SQL identifiers as case sensitive and as a result
+     * stores them in mixed case.
+     */
+    var supportsMixedCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * stores them in mixed case.
+     */
+    var storesMixedCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * stores them in upper case.
+     */
+    var storesUpperCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * stores them in lower case.
+     */
+    var storesLowerCaseIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case sensitive and as a result
+     * stores them in mixed case.
+     */
+    var supportsMixedCaseQuotedIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * stores them in mixed case.
+     */
+    var storesMixedCaseQuotedIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * stores them in upper case.
+     */
+    var storesUpperCaseQuotedIdentifiers: Boolean = false
+        private set
+
+    /**
+     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * stores them in lower case.
+     */
+    var storesLowerCaseQuotedIdentifiers: Boolean = false
+        private set
+
     init {
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
+        fun Result<Boolean>.orFalse() = getOrDefault(false)
 
         useConnection { conn ->
             val metadata = conn.metaData
@@ -155,6 +230,14 @@ class Database(
             keywords = ANSI_SQL_2003_KEYWORDS + metadata.runCatching { sqlKeywords }.orEmpty().toUpperCase().split(',')
             identifierQuoteString = metadata.runCatching { identifierQuoteString }.orEmpty().trim()
             extraNameCharacters = metadata.runCatching { extraNameCharacters }.orEmpty()
+            supportsMixedCaseIdentifiers = metadata.runCatching { supportsMixedCaseIdentifiers() }.orFalse()
+            storesMixedCaseIdentifiers = metadata.runCatching { storesMixedCaseIdentifiers() }.orFalse()
+            storesUpperCaseIdentifiers = metadata.runCatching { storesUpperCaseIdentifiers() }.orFalse()
+            storesLowerCaseIdentifiers = metadata.runCatching { storesLowerCaseIdentifiers() }.orFalse()
+            supportsMixedCaseQuotedIdentifiers = metadata.runCatching { supportsMixedCaseQuotedIdentifiers() }.orFalse()
+            storesMixedCaseQuotedIdentifiers = metadata.runCatching { storesMixedCaseQuotedIdentifiers() }.orFalse()
+            storesUpperCaseQuotedIdentifiers = metadata.runCatching { storesUpperCaseQuotedIdentifiers() }.orFalse()
+            storesLowerCaseQuotedIdentifiers = metadata.runCatching { storesLowerCaseQuotedIdentifiers() }.orFalse()
         }
 
         if (logger.isInfoEnabled()) {
@@ -415,15 +498,22 @@ class Database(
          *
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @param connector the connector function used to obtain SQL connections.
          * @return the new-created database object.
          */
         fun connect(
             dialect: SqlDialect = detectDialectImplementation(),
             logger: Logger = detectLoggerImplementation(),
+            alwaysQuoteIdentifiers: Boolean = false,
             connector: () -> Connection
         ): Database {
-            return Database(JdbcTransactionManager(connector), dialect, logger)
+            return Database(
+                transactionManager = JdbcTransactionManager(connector),
+                dialect = dialect,
+                logger = logger,
+                alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+            )
         }
 
         /**
@@ -432,14 +522,21 @@ class Database(
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @return the new-created database object.
          */
         fun connect(
             dataSource: DataSource,
             dialect: SqlDialect = detectDialectImplementation(),
-            logger: Logger = detectLoggerImplementation()
+            logger: Logger = detectLoggerImplementation(),
+            alwaysQuoteIdentifiers: Boolean = false
         ): Database {
-            return connect(dialect, logger) { dataSource.connection }
+            return Database(
+                transactionManager = JdbcTransactionManager { dataSource.connection },
+                dialect = dialect,
+                logger = logger,
+                alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+            )
         }
 
         /**
@@ -451,6 +548,7 @@ class Database(
          * @param password the password of the database.
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @return the new-created database object.
          */
         fun connect(
@@ -459,13 +557,19 @@ class Database(
             user: String? = null,
             password: String? = null,
             dialect: SqlDialect = detectDialectImplementation(),
-            logger: Logger = detectLoggerImplementation()
+            logger: Logger = detectLoggerImplementation(),
+            alwaysQuoteIdentifiers: Boolean = false
         ): Database {
             if (driver != null && driver.isNotBlank()) {
                 Class.forName(driver)
             }
 
-            return connect(dialect, logger) { DriverManager.getConnection(url, user, password) }
+            return Database(
+                transactionManager = JdbcTransactionManager { DriverManager.getConnection(url, user, password) },
+                dialect = dialect,
+                logger = logger,
+                alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+            )
         }
 
         /**
@@ -481,16 +585,23 @@ class Database(
          * @param dataSource the data source used to obtain SQL connections.
          * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
          * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @return the new-created database object.
          */
         fun connectWithSpringSupport(
             dataSource: DataSource,
             dialect: SqlDialect = detectDialectImplementation(),
-            logger: Logger = detectLoggerImplementation()
+            logger: Logger = detectLoggerImplementation(),
+            alwaysQuoteIdentifiers: Boolean = false
         ): Database {
-            val transactionManager = SpringManagedTransactionManager(dataSource)
-            val exceptionTranslator = SQLErrorCodeSQLExceptionTranslator(dataSource)
-            return Database(transactionManager, dialect, logger) { exceptionTranslator.translate("Ktorm", null, it) }
+            val translator = SQLErrorCodeSQLExceptionTranslator(dataSource)
+            return Database(
+                transactionManager = SpringManagedTransactionManager(dataSource),
+                dialect = dialect,
+                logger = logger,
+                exceptionTranslator = { ex -> translator.translate("Ktorm", null, ex) },
+                alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+            )
         }
     }
 }

@@ -47,10 +47,6 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         return result
     }
 
-    override val String.quoted: String get() {
-        return "${database.identifierQuoteString}${this}${database.identifierQuoteString}".trim()
-    }
-
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
             is ILikeExpression -> visitILike(expr)

@@ -23,7 +23,8 @@ open class BaseTest {
         database = Database.connect(
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
+            logger = ConsoleLogger(threshold = LogLevel.TRACE),
+            alwaysQuoteIdentifiers = true
         )
 
         execSqlScript("init-data.sql")
