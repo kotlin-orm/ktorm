@@ -25,14 +25,13 @@ import java.sql.Time
 import java.sql.Timestamp
 import java.time.*
 import java.util.*
-import kotlin.reflect.KClass
 
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
 inline fun <reified T : Any> Column<List<T>>.jsonContains(
     item: T,
-    sqlType: SqlType<T> = T::class.toSqlType() ?: error("Cannot detect the item's SqlType, please specify manually.")
+    sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the item's SqlType, please specify manually.")
 ): FunctionExpression<Boolean> {
     val listSqlType = this.sqlType
 
@@ -52,8 +51,8 @@ inline fun <reified T : Any> Column<List<T>>.jsonContains(
 }
 
 @PublishedApi
-internal fun <T : Any> KClass<T>.toSqlType(): SqlType<T>? {
-    val sqlType = when (this) {
+internal inline fun <reified T : Any> sqlTypeOf(): SqlType<T>? {
+    val sqlType = when (T::class) {
         Boolean::class -> BooleanSqlType
         Int::class -> IntSqlType
         Short::class -> ShortSqlType
@@ -86,7 +85,7 @@ internal fun <T : Any> KClass<T>.toSqlType(): SqlType<T>? {
  */
 inline fun <reified T : Any> Column<*>.jsonExtract(
     path: String,
-    sqlType: SqlType<T> = T::class.toSqlType() ?: error("Cannot detect the result's SqlType, please specify manually.")
+    sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the result's SqlType, please specify manually.")
 ): FunctionExpression<T> {
     // json_extract(column, path)
     return FunctionExpression(
@@ -177,6 +176,7 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
 /**
  * MySQL if function, translated to `if(condition, then, otherwise)`.
  */
+@Suppress("FunctionNaming")
 fun <T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: ColumnDeclaring<T>,
@@ -193,11 +193,12 @@ fun <T : Any> IF(
 /**
  * MySQL if function, translated to `if(condition, then, otherwise)`.
  */
+@Suppress("FunctionNaming")
 inline fun <reified T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: T,
     otherwise: T,
-    sqlType: SqlType<T> = T::class.toSqlType() ?: error("Cannot detect the param's SqlType, please specify manually.")
+    sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the param's SqlType, please specify manually.")
 ): FunctionExpression<T> {
     // if(condition, then, otherwise)
     return FunctionExpression(

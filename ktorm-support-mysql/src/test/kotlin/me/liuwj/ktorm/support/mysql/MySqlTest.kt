@@ -5,9 +5,11 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.*
+import me.liuwj.ktorm.jackson.json
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.typeRef
 import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
 import org.junit.Test
@@ -284,5 +286,39 @@ class MySqlTest : BaseTest() {
 
         assert(countRich.size == 1)
         assert(countRich.first() == 3)
+    }
+
+    @Test
+    fun testJson() {
+        val t = object : Table<Nothing>("t_json") {
+            val obj = json("obj", typeRef<Employee>())
+            val arr = json("arr", typeRef<List<Int>>())
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_json (obj text, arr text)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(t) {
+            it.obj to Employee { name = "vince"; salary = 100 }
+            it.arr to listOf(1, 2, 3)
+        }
+
+        database
+            .from(t)
+            .select(t.obj, t.arr)
+            .forEach { row ->
+                println("${row.getString(1)}:${row.getString(2)}")
+            }
+
+        database
+            .from(t)
+            .select(t.obj.jsonExtract<Long>("$.salary"), t.arr.jsonContains(0))
+            .forEach { row ->
+                println("${row.getLong(1)}:${row.getBoolean(2)}")
+            }
     }
 }

@@ -3,6 +3,7 @@ dependencies {
     compile project(":ktorm-core")
 
     testCompile project(path: ":ktorm-core", configuration: "testOutput")
+    testCompile project(":ktorm-jackson")
     testCompile "mysql:mysql-connector-java:8.0.13"
     testCompile "org.testcontainers:mysql:1.11.3"
 }
