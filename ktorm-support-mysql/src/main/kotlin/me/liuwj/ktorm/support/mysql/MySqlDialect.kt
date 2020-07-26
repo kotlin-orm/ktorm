@@ -68,22 +68,23 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
 
     override fun writePagination(expr: QueryExpression) {
         newLine(Indentation.SAME)
-        write("limit ?, ? ")
+        writeKeyword("limit ?, ? ")
         _parameters += ArgumentExpression(expr.offset ?: 0, IntSqlType)
         _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
     }
 
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-        write("insert into ${expr.table.name.quoted} (")
+        writeKeyword("insert into ")
+        write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             write(assignment.column.name.quoted)
         }
-        write(") values ")
+        writeKeyword(") values ")
         writeValues(expr.assignments)
 
         if (expr.updateAssignments.isNotEmpty()) {
-            write("on duplicate key update ")
+            writeKeyword("on duplicate key update ")
             visitColumnAssignments(expr.updateAssignments)
         }
 
@@ -91,12 +92,13 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
     }
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        write("insert into ${expr.table.name.quoted} (")
+        writeKeyword("insert into ")
+        write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments[0].withIndex()) {
             if (i > 0) write(", ")
             write(assignment.column.name.quoted)
         }
-        write(") values ")
+        writeKeyword(") values ")
 
         for ((i, assignments) in expr.assignments.withIndex()) {
             if (i > 0) {
@@ -107,7 +109,7 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         }
 
         if (expr.updateAssignments.isNotEmpty()) {
-            write("on duplicate key update ")
+            writeKeyword("on duplicate key update ")
             visitColumnAssignments(expr.updateAssignments)
         }
 
@@ -124,18 +126,18 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
     protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
         visitQuerySource(expr.left)
         newLine(Indentation.SAME)
-        write("natural join ")
+        writeKeyword("natural join ")
         visitQuerySource(expr.right)
         return expr
     }
 
     protected open fun visitMatchAgainst(expr: MatchAgainstExpression): MatchAgainstExpression {
-        write("match (")
+        writeKeyword("match (")
         visitExpressionList(expr.matchColumns)
         removeLastBlank()
-        write(") against (?")
+        writeKeyword(") against (?")
         _parameters += ArgumentExpression(expr.searchString, VarcharSqlType)
-        expr.searchModifier?.let { write(" $it") }
+        expr.searchModifier?.let { writeKeyword(" $it") }
         write(") ")
         return expr
     }

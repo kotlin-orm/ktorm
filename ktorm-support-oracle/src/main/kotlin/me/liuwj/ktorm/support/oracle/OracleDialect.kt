@@ -46,18 +46,22 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         val minRowNum = offset + 1
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-        write("select * ")
+        val tempTableName = "_t"
+
+        writeKeyword("select * ")
         newLine(Indentation.SAME)
-        write("from (")
+        writeKeyword("from (")
         newLine(Indentation.INNER)
-        write("select _t.*, rownum _rn ")
+        writeKeyword("select ")
+        write("${tempTableName.quoted}.*, ")
+        writeKeyword("rownum _rn ")
         newLine(Indentation.SAME)
-        write("from ")
+        writeKeyword("from ")
 
         visitQuerySource(
             when (expr) {
-                is SelectExpression -> expr.copy(tableAlias = "_t", offset = null, limit = null)
-                is UnionExpression -> expr.copy(tableAlias = "_t", offset = null, limit = null)
+                is SelectExpression -> expr.copy(tableAlias = tempTableName, offset = null, limit = null)
+                is UnionExpression -> expr.copy(tableAlias = tempTableName, offset = null, limit = null)
             }
         )
 

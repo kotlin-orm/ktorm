@@ -62,11 +62,11 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         newLine(Indentation.SAME)
 
         if (expr.limit != null) {
-            write("limit ? ")
+            writeKeyword("limit ? ")
             _parameters += ArgumentExpression(expr.limit, IntSqlType)
         }
         if (expr.offset != null) {
-            write("offset ? ")
+            writeKeyword("offset ? ")
             _parameters += ArgumentExpression(expr.offset, IntSqlType)
         }
     }
@@ -81,7 +81,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
             write(") ")
         }
 
-        write("ilike ")
+        writeKeyword("ilike ")
 
         if (expr.right.removeBrackets) {
             visit(expr.right)
@@ -105,7 +105,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
             write(") ")
         }
 
-        write("${expr.type} ")
+        writeKeyword("${expr.type} ")
 
         if (expr.right.removeBrackets) {
             visit(expr.right)
@@ -120,20 +120,21 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
     }
 
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-        write("insert into ${expr.table.name.quoted} (")
+        writeKeyword("insert into ")
+        write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             write(assignment.column.name.quoted)
         }
-        write(") values (")
+        writeKeyword(") values (")
         visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
         removeLastBlank()
-        write(") on conflict (")
+        writeKeyword(") on conflict (")
         for ((i, column) in expr.conflictTarget.withIndex()) {
             if (i > 0) write(", ")
             write(column.name.quoted)
         }
-        write(") do update set ")
+        writeKeyword(") do update set ")
         for ((i, assignment) in expr.updateAssignments.withIndex()) {
             if (i > 0) {
                 removeLastBlank()

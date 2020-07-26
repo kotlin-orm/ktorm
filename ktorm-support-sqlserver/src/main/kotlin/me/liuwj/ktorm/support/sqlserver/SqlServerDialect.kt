@@ -55,17 +55,17 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         val minRowNum = offset + 1
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-        write("select * ")
+        writeKeyword("select * ")
         newLine(Indentation.SAME)
-        write("from (")
+        writeKeyword("from (")
         newLine(Indentation.INNER)
-        write("select top $maxRowNum *, row_number() over(order by _order_by) _rownum ")
+        writeKeyword("select top $maxRowNum *, row_number() over(order by _order_by) _rownum ")
         newLine(Indentation.SAME)
-        write("from (")
+        writeKeyword("from (")
         newLine(Indentation.INNER)
-        write("select *, _order_by = 0 ")
+        writeKeyword("select *, _order_by = 0 ")
         newLine(Indentation.SAME)
-        write("from ")
+        writeKeyword("from ")
 
         visitQuerySource(
             when (expr) {
@@ -75,11 +75,11 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         )
 
         newLine(Indentation.OUTER)
-        write(") _t2 ")
+        write(") ${"_t2".quoted} ")
         newLine(Indentation.OUTER)
-        write(") _t3 ")
+        write(") ${"_t3".quoted} ")
         newLine(Indentation.SAME)
-        write("where _rownum >= $minRowNum ")
+        writeKeyword("where _rownum >= $minRowNum ")
     }
 
     private fun writePagingQueryWithOrderBy(expr: QueryExpression) {
@@ -95,16 +95,16 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
             }
         }
 
-        write("select * ")
+        writeKeyword("select * ")
         newLine(Indentation.SAME)
-        write("from (")
+        writeKeyword("from (")
         newLine(Indentation.INNER)
-        write("select top $maxRowNum *, row_number() over(order by ")
+        writeKeyword("select top $maxRowNum *, row_number() over(order by ")
         visitOrderByList(expr.orderBy.map { visitor.visit(it) as OrderByExpression })
         removeLastBlank()
-        write(") _rownum ")
+        writeKeyword(") _rownum ")
         newLine(Indentation.SAME)
-        write("from ")
+        writeKeyword("from ")
 
         visitQuerySource(
             when (expr) {
@@ -118,8 +118,8 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         )
 
         newLine(Indentation.OUTER)
-        write(") _t2 ")
+        write(") ${"_t2".quoted} ")
         newLine(Indentation.SAME)
-        write("where _rownum >= $minRowNum ")
+        writeKeyword("where _rownum >= $minRowNum ")
     }
 }

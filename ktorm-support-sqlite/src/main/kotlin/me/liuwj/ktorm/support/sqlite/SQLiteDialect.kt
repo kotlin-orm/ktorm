@@ -64,7 +64,7 @@ open class SQLiteFormatter(database: Database, beautifySql: Boolean, indentSize:
 
     override fun writePagination(expr: QueryExpression) {
         newLine(Indentation.SAME)
-        write("limit ?, ? ")
+        writeKeyword("limit ?, ? ")
         _parameters += ArgumentExpression(expr.offset ?: 0, IntSqlType)
         _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
     }

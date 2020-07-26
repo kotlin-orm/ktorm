@@ -47,10 +47,6 @@ open class SqlFormatter(
         INNER, OUTER, SAME
     }
 
-    protected fun write(value: String) {
-        _builder.append(value)
-    }
-
     protected fun removeLastBlank() {
         val lastIndex = _builder.lastIndex
         if (_builder[lastIndex] == ' ') {
@@ -70,6 +66,28 @@ open class SqlFormatter(
         if (beautifySql) {
             _builder.appendln()
             _builder.append(" ".repeat(_depth * indentSize))
+        }
+    }
+
+    protected fun write(value: String) {
+        _builder.append(value)
+    }
+
+    protected fun writeKeyword(keyword: String) {
+        when (database.generateSqlInUpperCase) {
+            true -> {
+                _builder.append(keyword.toUpperCase())
+            }
+            false -> {
+                _builder.append(keyword.toLowerCase())
+            }
+            null -> {
+                if (database.supportsMixedCaseIdentifiers || !database.storesLowerCaseIdentifiers) {
+                    _builder.append(keyword.toUpperCase())
+                } else {
+                    _builder.append(keyword.toLowerCase())
+                }
+            }
         }
     }
 
@@ -176,9 +194,9 @@ open class SqlFormatter(
                 write(") ")
             }
 
-            write("${expr.type} ")
+            writeKeyword("${expr.type} ")
         } else {
-            write("${expr.type} ")
+            writeKeyword("${expr.type} ")
 
             if (expr.operand.removeBrackets) {
                 visit(expr.operand)
@@ -203,7 +221,7 @@ open class SqlFormatter(
             write(") ")
         }
 
-        write("${expr.type} ")
+        writeKeyword("${expr.type} ")
 
         if (expr.right.removeBrackets) {
             visit(expr.right)
@@ -224,9 +242,9 @@ open class SqlFormatter(
     }
 
     override fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
-        write("${expr.type}(")
+        writeKeyword("${expr.type}(")
         if (expr.isDistinct) {
-            write("distinct ")
+            writeKeyword("distinct ")
         }
         expr.argument?.let { visit(it) } ?: write("*")
         removeLastBlank()
@@ -264,7 +282,8 @@ open class SqlFormatter(
         val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
 
         if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
-            write("as ${expr.declaredName!!.quoted} ")
+            writeKeyword("as ")
+            write("${expr.declaredName!!.quoted} ")
         }
 
         return expr
@@ -273,15 +292,15 @@ open class SqlFormatter(
     override fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
         visit(expr.expression)
         if (expr.orderType == OrderType.DESCENDING) {
-            write("desc ")
+            writeKeyword("desc ")
         }
         return expr
     }
 
     override fun visitSelect(expr: SelectExpression): SelectExpression {
-        write("select ")
+        writeKeyword("select ")
         if (expr.isDistinct) {
-            write("distinct ")
+            writeKeyword("distinct ")
         }
 
         if (expr.columns.isNotEmpty()) {
@@ -291,27 +310,27 @@ open class SqlFormatter(
         }
 
         newLine(Indentation.SAME)
-        write("from ")
+        writeKeyword("from ")
         visitQuerySource(expr.from)
 
         if (expr.where != null) {
             newLine(Indentation.SAME)
-            write("where ")
+            writeKeyword("where ")
             visit(expr.where)
         }
         if (expr.groupBy.isNotEmpty()) {
             newLine(Indentation.SAME)
-            write("group by ")
+            writeKeyword("group by ")
             visitGroupByList(expr.groupBy)
         }
         if (expr.having != null) {
             newLine(Indentation.SAME)
-            write("having ")
+            writeKeyword("having ")
             visit(expr.having)
         }
         if (expr.orderBy.isNotEmpty()) {
             newLine(Indentation.SAME)
-            write("order by ")
+            writeKeyword("order by ")
             visitOrderByList(expr.orderBy)
         }
         if (expr.offset != null || expr.limit != null) {
@@ -352,9 +371,9 @@ open class SqlFormatter(
         }
 
         if (expr.isUnionAll) {
-            write("union all ")
+            writeKeyword("union all ")
         } else {
-            write("union ")
+            writeKeyword("union ")
         }
 
         when (expr.right) {
@@ -364,7 +383,7 @@ open class SqlFormatter(
 
         if (expr.orderBy.isNotEmpty()) {
             newLine(Indentation.SAME)
-            write("order by ")
+            writeKeyword("order by ")
             visitOrderByList(expr.orderBy)
         }
         if (expr.offset != null || expr.limit != null) {
@@ -380,11 +399,11 @@ open class SqlFormatter(
     override fun visitJoin(expr: JoinExpression): JoinExpression {
         visitQuerySource(expr.left)
         newLine(Indentation.SAME)
-        write("${expr.type} ")
+        writeKeyword("${expr.type} ")
         visitQuerySource(expr.right)
 
         if (expr.condition != null) {
-            write("on ")
+            writeKeyword("on ")
             visit(expr.condition)
         }
 
@@ -395,9 +414,9 @@ open class SqlFormatter(
         visit(expr.left)
 
         if (expr.notInList) {
-            write("not in ")
+            writeKeyword("not in ")
         } else {
-            write("in ")
+            writeKeyword("in ")
         }
 
         if (expr.query != null) {
@@ -414,9 +433,9 @@ open class SqlFormatter(
 
     override fun visitExists(expr: ExistsExpression): ExistsExpression {
         if (expr.notExists) {
-            write("not exists ")
+            writeKeyword("not exists ")
         } else {
-            write("exists ")
+            writeKeyword("exists ")
         }
 
         visitQuerySource(expr.query)
@@ -428,19 +447,19 @@ open class SqlFormatter(
         visit(expr.expression)
 
         if (expr.notBetween) {
-            write("not between ")
+            writeKeyword("not between ")
         } else {
-            write("between ")
+            writeKeyword("between ")
         }
 
         visit(expr.lower)
-        write("and ")
+        writeKeyword("and ")
         visit(expr.upper)
         return expr
     }
 
     override fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
-        write("${expr.functionName}(")
+        writeKeyword("${expr.functionName}(")
         visitExpressionList(expr.arguments)
         removeLastBlank()
         write(") ")
@@ -464,12 +483,13 @@ open class SqlFormatter(
     }
 
     override fun visitInsert(expr: InsertExpression): InsertExpression {
-        write("insert into ${expr.table.name.quoted} (")
+        writeKeyword("insert into ")
+        write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             write(assignment.column.name.quoted)
         }
-        write(") values (")
+        writeKeyword(") values (")
         visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
         removeLastBlank()
         write(") ")
@@ -477,7 +497,8 @@ open class SqlFormatter(
     }
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
-        write("insert into ${expr.table.name.quoted} (")
+        writeKeyword("insert into ")
+        write("${expr.table.name.quoted} (")
         for ((i, column) in expr.columns.withIndex()) {
             if (i > 0) write(", ")
             write(column.name.quoted)
@@ -490,14 +511,14 @@ open class SqlFormatter(
     }
 
     override fun visitUpdate(expr: UpdateExpression): UpdateExpression {
-        write("update ")
+        writeKeyword("update ")
         visitTable(expr.table)
-        write("set ")
+        writeKeyword("set ")
 
         visitColumnAssignments(expr.assignments)
 
         if (expr.where != null) {
-            write("where ")
+            writeKeyword("where ")
             visit(expr.where)
         }
 
@@ -505,11 +526,11 @@ open class SqlFormatter(
     }
 
     override fun visitDelete(expr: DeleteExpression): DeleteExpression {
-        write("delete from ")
+        writeKeyword("delete from ")
         visit(expr.table)
 
         if (expr.where != null) {
-            write("where ")
+            writeKeyword("where ")
             visit(expr.where)
         }
 
