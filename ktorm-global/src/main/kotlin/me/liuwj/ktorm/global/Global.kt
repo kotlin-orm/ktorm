@@ -59,6 +59,7 @@ val Database.Companion.global: Database get() {
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
+ * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @param connector the connector function used to obtain SQL connections.
  * @return the new-created database object.
  */
@@ -66,13 +67,15 @@ fun Database.Companion.connectGlobally(
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
     alwaysQuoteIdentifiers: Boolean = false,
+    generateSqlInUpperCase: Boolean? = null,
     connector: () -> Connection
 ): Database {
     val database = Database(
         transactionManager = JdbcTransactionManager(connector),
         dialect = dialect,
         logger = logger,
-        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers,
+        generateSqlInUpperCase = generateSqlInUpperCase
     )
 
     lastConnected.set(database)
@@ -86,19 +89,22 @@ fun Database.Companion.connectGlobally(
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
+ * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
  */
 fun Database.Companion.connectGlobally(
     dataSource: DataSource,
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
-    alwaysQuoteIdentifiers: Boolean = false
+    alwaysQuoteIdentifiers: Boolean = false,
+    generateSqlInUpperCase: Boolean? = null
 ): Database {
     val database = Database(
         transactionManager = JdbcTransactionManager { dataSource.connection },
         dialect = dialect,
         logger = logger,
-        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers,
+        generateSqlInUpperCase = generateSqlInUpperCase
     )
 
     lastConnected.set(database)
@@ -116,6 +122,7 @@ fun Database.Companion.connectGlobally(
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
+ * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
  */
 fun Database.Companion.connectGlobally(
@@ -125,7 +132,8 @@ fun Database.Companion.connectGlobally(
     password: String? = null,
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
-    alwaysQuoteIdentifiers: Boolean = false
+    alwaysQuoteIdentifiers: Boolean = false,
+    generateSqlInUpperCase: Boolean? = null
 ): Database {
     if (driver != null && driver.isNotBlank()) {
         Class.forName(driver)
@@ -135,7 +143,8 @@ fun Database.Companion.connectGlobally(
         transactionManager = JdbcTransactionManager { DriverManager.getConnection(url, user, password) },
         dialect = dialect,
         logger = logger,
-        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers,
+        generateSqlInUpperCase = generateSqlInUpperCase
     )
 
     lastConnected.set(database)
@@ -157,13 +166,15 @@ fun Database.Companion.connectGlobally(
  * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
  * @param logger logger used to output logs, auto detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
+ * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
  */
 fun Database.Companion.connectWithSpringSupportGlobally(
     dataSource: DataSource,
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
-    alwaysQuoteIdentifiers: Boolean = false
+    alwaysQuoteIdentifiers: Boolean = false,
+    generateSqlInUpperCase: Boolean? = null
 ): Database {
     val translator = SQLErrorCodeSQLExceptionTranslator(dataSource)
 
@@ -172,7 +183,8 @@ fun Database.Companion.connectWithSpringSupportGlobally(
         dialect = dialect,
         logger = logger,
         exceptionTranslator = { ex -> translator.translate("Ktorm", null, ex) },
-        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers
+        alwaysQuoteIdentifiers = alwaysQuoteIdentifiers,
+        generateSqlInUpperCase = generateSqlInUpperCase
     )
 
     lastConnected.set(database)
