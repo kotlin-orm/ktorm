@@ -107,7 +107,10 @@ open class SqlFormatter(
                 if (database.storesLowerCaseQuotedIdentifiers) {
                     return "${database.identifierQuoteString}${this.toLowerCase()}${database.identifierQuoteString}"
                 }
-                return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
+                if (database.storesMixedCaseQuotedIdentifiers) {
+                    return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
+                }
+                throw AssertionError("Never happen.")
             }
         } else {
             if (database.supportsMixedCaseIdentifiers) {
@@ -119,7 +122,10 @@ open class SqlFormatter(
                 if (database.storesLowerCaseIdentifiers) {
                     return this.toLowerCase()
                 }
-                return this
+                if (database.storesMixedCaseIdentifiers) {
+                    return this
+                }
+                throw AssertionError("Never happen.")
             }
         }
     }

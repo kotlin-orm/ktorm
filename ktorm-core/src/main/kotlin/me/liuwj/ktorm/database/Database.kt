@@ -171,7 +171,7 @@ class Database(
     lateinit var extraNameCharacters: String private set
 
     /**
-     * Whether this database threats mixed case unquoted SQL identifiers as case sensitive and as a result
+     * Whether this database treats mixed case unquoted SQL identifiers as case sensitive and as a result
      * stores them in mixed case.
      */
     var supportsMixedCaseIdentifiers: Boolean = false
