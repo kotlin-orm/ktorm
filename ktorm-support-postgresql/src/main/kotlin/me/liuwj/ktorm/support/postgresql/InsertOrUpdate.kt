@@ -24,6 +24,7 @@ import me.liuwj.ktorm.expression.ColumnExpression
 import me.liuwj.ktorm.expression.SqlExpression
 import me.liuwj.ktorm.expression.TableExpression
 import me.liuwj.ktorm.schema.BaseTable
+import me.liuwj.ktorm.schema.Column
 
 /**
  * Insert or update expression, represents an insert statement with an
@@ -87,7 +88,8 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = assignments,
-        conflictTarget = primaryKeys.map { it.asExpression() },
+        conflictTarget = builder.conflictColumns.map { it.asExpression() }.takeIf { it.isNotEmpty() }
+            ?: primaryKeys.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
 
@@ -103,11 +105,13 @@ class InsertOrUpdateStatementBuilder(
 ) : AssignmentsBuilder(assignments) {
 
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal val conflictColumns = ArrayList<Column<*>>()
 
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
+    fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
+        conflictColumns += columns
         val assignments = ArrayList<ColumnAssignmentExpression<*>>()
         AssignmentsBuilder(assignments).apply(block)
         updateAssignments += assignments
