@@ -91,13 +91,25 @@ open class SqlFormatter(
         }
     }
 
-    protected val String.quoted: String get() {
-        val shouldQuote = database.alwaysQuoteIdentifiers
-            || !this.isIdentifier
-            || this.toUpperCase() in database.keywords
-            || this.isMixedCase && !database.supportsMixedCaseIdentifiers && database.supportsMixedCaseQuotedIdentifiers
+    protected open fun shouldQuote(identifier: String): Boolean {
+        if (database.alwaysQuoteIdentifiers) {
+            return true
+        }
+        if (!identifier.isIdentifier) {
+            return true
+        }
+        if (identifier.toUpperCase() in database.keywords) {
+            return true
+        }
+        if (identifier.isMixedCase
+            && !database.supportsMixedCaseIdentifiers && database.supportsMixedCaseQuotedIdentifiers) {
+            return true
+        }
+        return false
+    }
 
-        if (shouldQuote) {
+    protected val String.quoted: String get() {
+        if (shouldQuote(this)) {
             if (database.supportsMixedCaseQuotedIdentifiers) {
                 return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
             } else {
@@ -158,7 +170,7 @@ open class SqlFormatter(
         return false
     }
 
-    protected open val SqlExpression.removeBrackets: Boolean get() {
+    protected val SqlExpression.removeBrackets: Boolean get() {
         return isLeafNode
             || this is FunctionExpression<*>
             || this is AggregateExpression<*>

@@ -37,6 +37,11 @@ open class OracleDialect : SqlDialect {
 open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
     : SqlFormatter(database, beautifySql, indentSize) {
 
+    override fun shouldQuote(identifier: String): Boolean {
+        // Oracle doesn't support underscores as the first character for unquoted identifiers.
+        return identifier.startsWith('_') || super.shouldQuote(identifier)
+    }
+
     override fun visitQuery(expr: QueryExpression): QueryExpression {
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
@@ -54,7 +59,8 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         newLine(Indentation.INNER)
         writeKeyword("select ")
         write("${tempTableName.quoted}.*, ")
-        writeKeyword("rownum _rn ")
+        writeKeyword("rownum ")
+        write("${"_rn".quoted} ")
         newLine(Indentation.SAME)
         writeKeyword("from ")
 
@@ -66,11 +72,12 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         )
 
         newLine(Indentation.SAME)
-        write("where rownum <= ?")
+        writeKeyword("where rownum <= ?")
         newLine(Indentation.OUTER)
         write(") ")
         newLine(Indentation.SAME)
-        write("where _rn >= ? ")
+        writeKeyword("where ")
+        write("${"_rn".quoted} >= ? ")
 
         _parameters += ArgumentExpression(maxRowNum, IntSqlType)
         _parameters += ArgumentExpression(minRowNum, IntSqlType)
