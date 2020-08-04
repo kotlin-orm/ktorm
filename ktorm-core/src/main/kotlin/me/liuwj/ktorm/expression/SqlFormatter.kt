@@ -122,7 +122,8 @@ open class SqlFormatter(
                 if (database.storesMixedCaseQuotedIdentifiers) {
                     return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
                 }
-                throw AssertionError("Never happen.")
+                // Should never happen, but it's still needed as some database drivers are not implemented corectlly.
+                return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
             }
         } else {
             if (database.supportsMixedCaseIdentifiers) {
@@ -137,7 +138,8 @@ open class SqlFormatter(
                 if (database.storesMixedCaseIdentifiers) {
                     return this
                 }
-                throw AssertionError("Never happen.")
+                // Should never happen, but it's still needed as some database drivers are not implemented corectlly.
+                return this
             }
         }
     }
