@@ -128,7 +128,7 @@ class PostgreSqlTest : BaseTest() {
             it.hireDate to LocalDate.now()
             it.departmentId to 1
 
-            onDuplicateKey {
+            onDuplicateKey(it.id) {
                 it.salary to it.salary + 900
             }
         }

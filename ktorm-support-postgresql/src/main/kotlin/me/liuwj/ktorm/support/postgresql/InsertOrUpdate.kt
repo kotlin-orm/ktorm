@@ -88,8 +88,7 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = assignments,
-        conflictTarget = builder.conflictColumns.map { it.asExpression() }.takeIf { it.isNotEmpty() }
-            ?: primaryKeys.map { it.asExpression() },
+        conflictTarget = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
 
@@ -111,9 +110,9 @@ class InsertOrUpdateStatementBuilder(
      * Specify the update assignments while any key conflict exists.
      */
     fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        conflictColumns += columns
         val assignments = ArrayList<ColumnAssignmentExpression<*>>()
         AssignmentsBuilder(assignments).apply(block)
         updateAssignments += assignments
+        conflictColumns += columns
     }
 }
