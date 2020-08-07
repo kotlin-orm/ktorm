@@ -54,20 +54,20 @@ internal val Database.Companion.global: Database get() {
  * ```kotlin
  * Employees.bulkInsert {
  *     item {
- *         it.name to "jerry"
- *         it.job to "trainee"
- *         it.managerId to 1
- *         it.hireDate to LocalDate.now()
- *         it.salary to 50
- *         it.departmentId to 1
+ *         set(it.name, "jerry")
+ *         set(it.job, "trainee")
+ *         set(it.managerId, 1)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 50)
+ *         set(it.departmentId, 1)
  *     }
  *     item {
- *         it.name to "linda"
- *         it.job to "assistant"
- *         it.managerId to 3
- *         it.hireDate to LocalDate.now()
- *         it.salary to 100
- *         it.departmentId to 2
+ *         set(it.name, "linda")
+ *         set(it.job, "assistant")
+ *         set(it.managerId, 3)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 100)
+ *         set(it.departmentId, 2)
  *     }
  * }
  * ```
@@ -88,12 +88,12 @@ fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> U
  *
  * ```kotlin
  * Employees.insertOrUpdate {
- *     it.id to 1
- *     it.name to "vince"
- *     it.job to "engineer"
- *     it.salary to 1000
- *     it.hireDate to LocalDate.now()
- *     it.departmentId to 1
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
  *     onDuplicateKey {
  *         it.salary to it.salary + 900
  *     }

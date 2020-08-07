@@ -52,12 +52,12 @@ data class InsertOrUpdateExpression(
  *
  * ```kotlin
  * database.insertOrUpdate(Employees) {
- *     it.id to 1
- *     it.name to "vince"
- *     it.job to "engineer"
- *     it.salary to 1000
- *     it.hireDate to LocalDate.now()
- *     it.departmentId to 1
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
  *     onDuplicateKey {
  *         it.salary to it.salary + 900
  *     }
@@ -77,17 +77,19 @@ data class InsertOrUpdateExpression(
  * @return the effected row count.
  */
 fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(table) }
+    val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
     val primaryKeys = table.primaryKeys
-    if (primaryKeys.isEmpty()) {
-        error("Table ${table.tableName} doesn't have a primary key.")
+    if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
+        val msg =
+            "Table ${table.tableName} doesn't have a primary key, " +
+            "or you must specify the conflict columns on onDuplicateKey(id) { .. }"
+        throw IllegalStateException(msg)
     }
 
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
-        assignments = assignments,
+        assignments = builder.assignments,
         conflictTarget = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
@@ -96,13 +98,22 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
 }
 
 /**
+ * Base class of PostgreSQL DSL builders, provide basic functions used to build assignments for insert or update DSL.
+ */
+@KtormDsl
+open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
+
+    /**
+     * A getter that returns the readonly view of the built assignments list.
+     */
+    internal val assignments: List<ColumnAssignmentExpression<*>> get() = _assignments
+}
+
+/**
  * DSL builder for insert or update statements.
  */
 @KtormDsl
-class InsertOrUpdateStatementBuilder(
-    assignments: MutableList<ColumnAssignmentExpression<*>>
-) : AssignmentsBuilder(assignments) {
-
+class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal val conflictColumns = ArrayList<Column<*>>()
 
@@ -110,9 +121,8 @@ class InsertOrUpdateStatementBuilder(
      * Specify the update assignments while any key conflict exists.
      */
     fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-        AssignmentsBuilder(assignments).apply(block)
-        updateAssignments += assignments
+        val builder = PostgreSqlAssignmentsBuilder().apply(block)
+        updateAssignments += builder.assignments
         conflictColumns += columns
     }
 }

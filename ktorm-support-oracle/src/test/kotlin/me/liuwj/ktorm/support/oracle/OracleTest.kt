@@ -58,8 +58,8 @@ class OracleTest : BaseTest() {
         }
 
         database.insert(configs) {
-            it.key to "test"
-            it.value to "test value"
+            set(it.key, "test")
+            set(it.value, "test value")
         }
 
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)

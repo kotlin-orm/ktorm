@@ -60,8 +60,8 @@ class MySqlTest : BaseTest() {
         }
 
         database.insert(configs) {
-            it.key to "test"
-            it.value to "test value"
+            set(it.key, "test")
+            set(it.value, "test value")
         }
 
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
@@ -83,24 +83,24 @@ class MySqlTest : BaseTest() {
     fun testBulkInsert() {
         database.bulkInsert(Employees) {
             item {
-                it.name to "jerry"
-                it.job to "trainee"
-                it.managerId to 1
-                it.hireDate to LocalDate.now()
-                it.salary to 50
-                it.departmentId to 1
+                set(it.name, "jerry")
+                set(it.job, "trainee")
+                set(it.managerId, 1)
+                set(it.hireDate, LocalDate.now())
+                set(it.salary, 50)
+                set(it.departmentId, 1)
             }
             item {
-                it.name to "linda"
-                it.job to "assistant"
-                it.managerId to 3
-                it.hireDate to LocalDate.now()
-                it.salary to 100
-                it.departmentId to 2
+                set(it.name, "linda")
+                set(it.job, "assistant")
+                set(it.managerId, 3)
+                set(it.hireDate, LocalDate.now())
+                set(it.salary, 100)
+                set(it.departmentId, 2)
             }
             onDuplicateKey {
-                it.name to it.name
-                it.job to values(it.job)
+                set(it.name, it.name)
+                set(it.job, values(it.job))
             }
         }
 
@@ -110,27 +110,27 @@ class MySqlTest : BaseTest() {
     @Test
     fun testInsertOrUpdate() {
         database.insertOrUpdate(Employees) {
-            it.id to 1
-            it.name to "vince"
-            it.job to "engineer"
-            it.salary to 1000
-            it.hireDate to LocalDate.now()
-            it.departmentId to 1
+            set(it.id, 1)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
 
             onDuplicateKey {
-                it.salary to it.salary + 900
+                set(it.salary, it.salary + 900)
             }
         }
         database.insertOrUpdate(Employees) {
-            it.id to 5
-            it.name to "vince"
-            it.job to "engineer"
-            it.salary to 1000
-            it.hireDate to LocalDate.now()
-            it.departmentId to 1
+            set(it.id, 5)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
 
             onDuplicateKey {
-                it.salary to it.salary + 900
+                set(it.salary, it.salary + 900)
             }
         }
 
@@ -243,12 +243,12 @@ class MySqlTest : BaseTest() {
     @Test
     fun testInsertAndGenerateKey() {
         val id = database.insertAndGenerateKey(Employees) {
-            it.name to "Joe Friend"
-            it.job to "Tester"
-            it.managerId to null
-            it.salary to 50
-            it.hireDate to LocalDate.of(2020, 1, 10)
-            it.departmentId to 1
+            set(it.name, "Joe Friend")
+            set(it.job, "Tester")
+            set(it.managerId, null)
+            set(it.salary, 50)
+            set(it.hireDate, LocalDate.of(2020, 1, 10))
+            set(it.departmentId, 1)
         } as Int
 
         assert(id > 4)
@@ -303,8 +303,8 @@ class MySqlTest : BaseTest() {
         }
 
         database.insert(t) {
-            it.obj to Employee { name = "vince"; salary = 100 }
-            it.arr to listOf(1, 2, 3)
+            set(it.obj, Employee { name = "vince"; salary = 100 })
+            set(it.arr, listOf(1, 2, 3))
         }
 
         database

@@ -35,9 +35,9 @@ import kotlin.collections.ArrayList
  *
  * ```kotlin
  * database.update(Employees) {
- *     it.job to "engineer"
- *     it.managerId to null
- *     it.salary to 100
+ *     set(it.job, "engineer")
+ *     set(it.managerId, null)
+ *     set(it.salary, 100)
  *     where {
  *         it.id eq 2
  *     }
@@ -50,11 +50,10 @@ import kotlin.collections.ArrayList
  * @return the effected row count.
  */
 fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    val builder = UpdateStatementBuilder(assignments).apply { block(table) }
+    val builder = UpdateStatementBuilder().apply { block(table) }
 
     val expression = AliasRemover.visit(
-        UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
+        UpdateExpression(table.asExpression(), builder.assignments, builder.where?.asExpression())
     )
 
     return executeUpdate(expression)
@@ -73,7 +72,7 @@ fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(
  * database.batchUpdate(Departments) {
  *     for (i in 1..2) {
  *         item {
- *             it.location to "Hong Kong"
+ *             set(it.location, "Hong Kong")
  *             where {
  *                 it.id eq i
  *             }
@@ -88,7 +87,7 @@ fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(
  * @return the effected row counts for each sub-operation.
  */
 fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
-    val builder = BatchUpdateStatementBuilder(this, table).apply(block)
+    val builder = BatchUpdateStatementBuilder(table).apply(block)
     val expressions = builder.expressions.map { AliasRemover.visit(it) }
 
     if (expressions.isEmpty()) {
@@ -105,12 +104,12 @@ fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatemen
  *
  * ```kotlin
  * database.insert(Employees) {
- *     it.name to "jerry"
- *     it.job to "trainee"
- *     it.managerId to 1
- *     it.hireDate to LocalDate.now()
- *     it.salary to 50
- *     it.departmentId to 1
+ *     set(it.name, "jerry")
+ *     set(it.job, "trainee")
+ *     set(it.managerId, 1)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.salary, 50)
+ *     set(it.departmentId, 1)
  * }
  * ```
  *
@@ -120,10 +119,8 @@ fun <T : BaseTable<*>> Database.batchUpdate(table: T, block: BatchUpdateStatemen
  * @return the effected row count.
  */
 fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    AssignmentsBuilder(assignments).block(table)
-
-    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
+    val builder = AssignmentsBuilder().apply { block(table) }
+    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
     return executeUpdate(expression)
 }
 
@@ -139,20 +136,20 @@ fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -
  * ```kotlin
  * database.batchInsert(Employees) {
  *     item {
- *         it.name to "jerry"
- *         it.job to "trainee"
- *         it.managerId to 1
- *         it.hireDate to LocalDate.now()
- *         it.salary to 50
- *         it.departmentId to 1
+ *         set(it.name, "jerry")
+ *         set(it.job, "trainee")
+ *         set(it.managerId, 1)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 50)
+ *         set(it.departmentId, 1)
  *     }
  *     item {
- *         it.name to "linda"
- *         it.job to "assistant"
- *         it.managerId to 3
- *         it.hireDate to LocalDate.now()
- *         it.salary to 100
- *         it.departmentId to 2
+ *         set(it.name, "linda")
+ *         set(it.job, "assistant")
+ *         set(it.managerId, 3)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 100)
+ *         set(it.departmentId, 2)
  *     }
  * }
  * ```
@@ -163,7 +160,7 @@ fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -
  * @return the effected row counts for each sub-operation.
  */
 fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
-    val builder = BatchInsertStatementBuilder(this, table).apply(block)
+    val builder = BatchInsertStatementBuilder(table).apply(block)
     val expressions = builder.expressions.map { AliasRemover.visit(it) }
 
     if (expressions.isEmpty()) {
@@ -183,12 +180,12 @@ fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatemen
  *
  * ```kotlin
  * val id = database.insertAndGenerateKey(Employees) {
- *     it.name to "jerry"
- *     it.job to "trainee"
- *     it.managerId to 1
- *     it.hireDate to LocalDate.now()
- *     it.salary to 50
- *     it.departmentId to 1
+ *     set(it.name, "jerry")
+ *     set(it.job, "trainee")
+ *     set(it.managerId, 1)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.salary, 50)
+ *     set(it.departmentId, 1)
  * }
  * ```
  *
@@ -198,10 +195,8 @@ fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatemen
  * @return the first auto-generated key.
  */
 fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    AssignmentsBuilder(assignments).block(table)
-
-    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), assignments))
+    val builder = AssignmentsBuilder().apply { block(table) }
+    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
     if (rowSet.next()) {
@@ -261,20 +256,59 @@ annotation class KtormDsl
  * Base class of DSL builders, provide basic functions used to build assignments for insert or update DSL.
  */
 @KtormDsl
-open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignmentExpression<*>>) {
+open class AssignmentsBuilder {
+    @Suppress("VariableNaming")
+    protected val _assignments = ArrayList<ColumnAssignmentExpression<*>>()
+
+    /**
+     * A getter that returns the readonly view of the built assignments list.
+     */
+    internal val assignments: List<ColumnAssignmentExpression<*>> get() = _assignments
+
+    /**
+     * Assign the specific column's value to another column or an expression's result.
+     */
+    fun <C : Any> set(column: Column<C>, expr: ColumnDeclaring<C>) {
+        _assignments += ColumnAssignmentExpression(column.asExpression(), expr.asExpression())
+    }
+
+    /**
+     * Assign the specific column to a value.
+     */
+    fun <C : Any> set(column: Column<C>, value: C?) {
+        _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
+    }
+
+    /**
+     * Assign the specific column to a value.
+     */
+    @Suppress("UNCHECKED_CAST")
+    @JvmName("setAny")
+    fun set(column: Column<*>, value: Any?) {
+        (column as Column<Any>).checkAssignableFrom(value)
+        _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
+    }
 
     /**
      * Assign the current column to another column or an expression's result.
      */
+    @Deprecated(
+        message = "This function will be removed in the future. Please use set(column, expr) instead.",
+        replaceWith = ReplaceWith("set(this, expr)")
+    )
     infix fun <C : Any> Column<C>.to(expr: ColumnDeclaring<C>) {
-        assignments += ColumnAssignmentExpression(asExpression(), expr.asExpression())
+        _assignments += ColumnAssignmentExpression(asExpression(), expr.asExpression())
     }
 
     /**
      * Assign the current column to a specific value.
      */
-    infix fun <C : Any> Column<C>.to(argument: C?) {
-        this to wrapArgument(argument)
+    @Deprecated(
+        message = "This function will be removed in the future. Please use set(column, value) instead.",
+        replaceWith = ReplaceWith("set(this, value)")
+    )
+    infix fun <C : Any> Column<C>.to(value: C?) {
+        _assignments += ColumnAssignmentExpression(asExpression(), wrapArgument(value))
     }
 
     /**
@@ -286,14 +320,18 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
      */
     @Suppress("UNCHECKED_CAST")
     @JvmName("toAny")
-    infix fun Column<*>.to(argument: Any?) {
+    @Deprecated(
+        message = "This function will be removed in the future. Please use set(column, value) instead.",
+        replaceWith = ReplaceWith("set(this, value)")
+    )
+    infix fun Column<*>.to(value: Any?) {
         this as Column<Any>
-        checkAssignableFrom(argument)
-        this to argument
+        checkAssignableFrom(value)
+        _assignments += ColumnAssignmentExpression(asExpression(), wrapArgument(value))
     }
 
-    private fun Column<Any>.checkAssignableFrom(argument: Any?) {
-        if (argument == null) return
+    private fun Column<Any>.checkAssignableFrom(value: Any?) {
+        if (value == null) return
 
         val handler = InvocationHandler { _, method, _ ->
             // Do nothing...
@@ -308,7 +346,7 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
         val proxy = Proxy.newProxyInstance(javaClass.classLoader, arrayOf(PreparedStatement::class.java), handler)
 
         try {
-            sqlType.setParameter(proxy as PreparedStatement, 1, argument)
+            sqlType.setParameter(proxy as PreparedStatement, 1, value)
         } catch (e: ClassCastException) {
             throw IllegalArgumentException("Argument type doesn't match the column's type, column: $this", e)
         }
@@ -319,10 +357,7 @@ open class AssignmentsBuilder(private val assignments: MutableList<ColumnAssignm
  * DSL builder for update statements.
  */
 @KtormDsl
-class UpdateStatementBuilder(
-    assignments: MutableList<ColumnAssignmentExpression<*>>
-) : AssignmentsBuilder(assignments) {
-
+class UpdateStatementBuilder : AssignmentsBuilder() {
     internal var where: ColumnDeclaring<Boolean>? = null
 
     /**
@@ -337,18 +372,17 @@ class UpdateStatementBuilder(
  * DSL builder for batch update statements.
  */
 @KtormDsl
-class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val database: Database, internal val table: T) {
+class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
 
     /**
      * Add an update statement to the current batch operation.
      */
     fun item(block: UpdateStatementBuilder.(T) -> Unit) {
-        val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = UpdateStatementBuilder(assignments)
+        val builder = UpdateStatementBuilder()
         builder.block(table)
 
-        expressions += UpdateExpression(table.asExpression(), assignments, builder.where?.asExpression())
+        expressions += UpdateExpression(table.asExpression(), builder.assignments, builder.where?.asExpression())
     }
 }
 
@@ -356,18 +390,17 @@ class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val database: Datab
  * DSL builder for batch insert statements.
  */
 @KtormDsl
-class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val database: Database, internal val table: T) {
+class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val expressions = ArrayList<SqlExpression>()
 
     /**
      * Add an insert statement to the current batch operation.
      */
     fun item(block: AssignmentsBuilder.(T) -> Unit) {
-        val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = AssignmentsBuilder(assignments)
+        val builder = AssignmentsBuilder()
         builder.block(table)
 
-        expressions += InsertExpression(table.asExpression(), assignments)
+        expressions += InsertExpression(table.asExpression(), builder.assignments)
     }
 }
 

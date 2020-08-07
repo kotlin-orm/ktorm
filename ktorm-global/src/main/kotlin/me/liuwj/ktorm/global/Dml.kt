@@ -29,9 +29,9 @@ import java.sql.Statement
  *
  * ```kotlin
  * Employees.update {
- *     it.job to "engineer"
- *     it.managerId to null
- *     it.salary to 100
+ *     set(it.job, "engineer")
+ *     set(it.managerId, null)
+ *     set(it.salary, 100)
  *     where {
  *         it.id eq 2
  *     }
@@ -58,7 +58,7 @@ fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int 
  * Departments.batchUpdate {
  *     for (i in 1..2) {
  *         item {
- *             it.location to "Hong Kong"
+ *             set(it.location, "Hong Kong")
  *             where {
  *                 it.id eq i
  *             }
@@ -81,12 +81,12 @@ fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() ->
  *
  * ```kotlin
  * Employees.insert {
- *     it.name to "jerry"
- *     it.job to "trainee"
- *     it.managerId to 1
- *     it.hireDate to LocalDate.now()
- *     it.salary to 50
- *     it.departmentId to 1
+ *     set(it.name, "jerry")
+ *     set(it.job, "trainee")
+ *     set(it.managerId, 1)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.salary, 50)
+ *     set(it.departmentId, 1)
  * }
  * ```
  *
@@ -109,20 +109,20 @@ fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * ```kotlin
  * Employees.batchInsert {
  *     item {
- *         it.name to "jerry"
- *         it.job to "trainee"
- *         it.managerId to 1
- *         it.hireDate to LocalDate.now()
- *         it.salary to 50
- *         it.departmentId to 1
+ *         set(it.name, "jerry")
+ *         set(it.job, "trainee")
+ *         set(it.managerId, 1)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 50)
+ *         set(it.departmentId, 1)
  *     }
  *     item {
- *         it.name to "linda"
- *         it.job to "assistant"
- *         it.managerId to 3
- *         it.hireDate to LocalDate.now()
- *         it.salary to 100
- *         it.departmentId to 2
+ *         set(it.name, "linda")
+ *         set(it.job, "assistant")
+ *         set(it.managerId, 3)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 100)
+ *         set(it.departmentId, 2)
  *     }
  * }
  * ```
@@ -144,12 +144,12 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
  *
  * ```kotlin
  * val id = Employees.insertAndGenerateKey {
- *     it.name to "jerry"
- *     it.job to "trainee"
- *     it.managerId to 1
- *     it.hireDate to LocalDate.now()
- *     it.salary to 50
- *     it.departmentId to 1
+ *     set(it.name, "jerry")
+ *     set(it.job, "trainee")
+ *     set(it.managerId, 1)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.salary, 50)
+ *     set(it.departmentId, 1)
  * }
  * ```
  *

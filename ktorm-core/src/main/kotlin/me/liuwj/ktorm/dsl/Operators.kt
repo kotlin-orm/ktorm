@@ -68,8 +68,8 @@ infix operator fun <T : Number> ColumnDeclaring<T>.plus(expr: ColumnDeclaring<T>
 /**
  * Plus operator, translated to `+` in SQL.
  */
-infix operator fun <T : Number> ColumnDeclaring<T>.plus(argument: T): BinaryExpression<T> {
-    return this + wrapArgument(argument)
+infix operator fun <T : Number> ColumnDeclaring<T>.plus(value: T): BinaryExpression<T> {
+    return this + wrapArgument(value)
 }
 
 /**
@@ -91,8 +91,8 @@ infix operator fun <T : Number> ColumnDeclaring<T>.minus(expr: ColumnDeclaring<T
 /**
  * Minus operator, translated to `-` in SQL.
  */
-infix operator fun <T : Number> ColumnDeclaring<T>.minus(argument: T): BinaryExpression<T> {
-    return this - wrapArgument(argument)
+infix operator fun <T : Number> ColumnDeclaring<T>.minus(value: T): BinaryExpression<T> {
+    return this - wrapArgument(value)
 }
 
 /**
@@ -114,8 +114,8 @@ infix operator fun <T : Number> ColumnDeclaring<T>.times(expr: ColumnDeclaring<T
 /**
  * Multiply operator, translated to `*` in SQL.
  */
-infix operator fun <T : Number> ColumnDeclaring<T>.times(argument: T): BinaryExpression<T> {
-    return this * wrapArgument(argument)
+infix operator fun <T : Number> ColumnDeclaring<T>.times(value: T): BinaryExpression<T> {
+    return this * wrapArgument(value)
 }
 
 /**
@@ -137,8 +137,8 @@ infix operator fun <T : Number> ColumnDeclaring<T>.div(expr: ColumnDeclaring<T>)
 /**
  * Divide operator, translated to `/` in SQL.
  */
-infix operator fun <T : Number> ColumnDeclaring<T>.div(argument: T): BinaryExpression<T> {
-    return this / wrapArgument(argument)
+infix operator fun <T : Number> ColumnDeclaring<T>.div(value: T): BinaryExpression<T> {
+    return this / wrapArgument(value)
 }
 
 /**
@@ -160,8 +160,8 @@ infix operator fun <T : Number> ColumnDeclaring<T>.rem(expr: ColumnDeclaring<T>)
 /**
  * Mod operator, translated to `%` in SQL.
  */
-infix operator fun <T : Number> ColumnDeclaring<T>.rem(argument: T): BinaryExpression<T> {
-    return this % wrapArgument(argument)
+infix operator fun <T : Number> ColumnDeclaring<T>.rem(value: T): BinaryExpression<T> {
+    return this % wrapArgument(value)
 }
 
 /**
@@ -183,8 +183,8 @@ infix fun ColumnDeclaring<*>.like(expr: ColumnDeclaring<String>): BinaryExpressi
 /**
  * Like operator, translated to the `like` keyword in SQL.
  */
-infix fun ColumnDeclaring<*>.like(argument: String): BinaryExpression<Boolean> {
-    return this like ArgumentExpression(argument, VarcharSqlType)
+infix fun ColumnDeclaring<*>.like(value: String): BinaryExpression<Boolean> {
+    return this like ArgumentExpression(value, VarcharSqlType)
 }
 
 /**
@@ -197,8 +197,8 @@ infix fun ColumnDeclaring<*>.notLike(expr: ColumnDeclaring<String>): BinaryExpre
 /**
  * Not like operator, translated to the `not like` keyword in SQL.
  */
-infix fun ColumnDeclaring<*>.notLike(argument: String): BinaryExpression<Boolean> {
-    return this notLike ArgumentExpression(argument, VarcharSqlType)
+infix fun ColumnDeclaring<*>.notLike(value: String): BinaryExpression<Boolean> {
+    return this notLike ArgumentExpression(value, VarcharSqlType)
 }
 
 // --------- And ------------
@@ -213,8 +213,8 @@ infix fun ColumnDeclaring<Boolean>.and(expr: ColumnDeclaring<Boolean>): BinaryEx
 /**
  * And operator, translated to the `and` keyword in SQL.
  */
-infix fun ColumnDeclaring<Boolean>.and(argument: Boolean): BinaryExpression<Boolean> {
-    return this and wrapArgument(argument)
+infix fun ColumnDeclaring<Boolean>.and(value: Boolean): BinaryExpression<Boolean> {
+    return this and wrapArgument(value)
 }
 
 /**
@@ -236,8 +236,8 @@ infix fun ColumnDeclaring<Boolean>.or(expr: ColumnDeclaring<Boolean>): BinaryExp
 /**
  * Or operator, translated to the `or` keyword in SQL.
  */
-infix fun ColumnDeclaring<Boolean>.or(argument: Boolean): BinaryExpression<Boolean> {
-    return this or wrapArgument(argument)
+infix fun ColumnDeclaring<Boolean>.or(value: Boolean): BinaryExpression<Boolean> {
+    return this or wrapArgument(value)
 }
 
 /**
@@ -259,8 +259,8 @@ infix fun ColumnDeclaring<Boolean>.xor(expr: ColumnDeclaring<Boolean>): BinaryEx
 /**
  * Xor operator, translated to the `xor` keyword in SQL.
  */
-infix fun ColumnDeclaring<Boolean>.xor(argument: Boolean): BinaryExpression<Boolean> {
-    return this xor wrapArgument(argument)
+infix fun ColumnDeclaring<Boolean>.xor(value: Boolean): BinaryExpression<Boolean> {
+    return this xor wrapArgument(value)
 }
 
 /**
@@ -282,8 +282,8 @@ infix fun <T : Comparable<T>> ColumnDeclaring<T>.less(expr: ColumnDeclaring<T>):
 /**
  * Less operator, translated to `<` in SQL.
  */
-infix fun <T : Comparable<T>> ColumnDeclaring<T>.less(argument: T): BinaryExpression<Boolean> {
-    return this less wrapArgument(argument)
+infix fun <T : Comparable<T>> ColumnDeclaring<T>.less(value: T): BinaryExpression<Boolean> {
+    return this less wrapArgument(value)
 }
 
 /**
@@ -310,8 +310,8 @@ infix fun <T : Comparable<T>> ColumnDeclaring<T>.lessEq(expr: ColumnDeclaring<T>
 /**
  * Less-eq operator, translated to `<=` in SQL.
  */
-infix fun <T : Comparable<T>> ColumnDeclaring<T>.lessEq(argument: T): BinaryExpression<Boolean> {
-    return this lessEq wrapArgument(argument)
+infix fun <T : Comparable<T>> ColumnDeclaring<T>.lessEq(value: T): BinaryExpression<Boolean> {
+    return this lessEq wrapArgument(value)
 }
 
 /**
@@ -333,8 +333,8 @@ infix fun <T : Comparable<T>> ColumnDeclaring<T>.greater(expr: ColumnDeclaring<T
 /**
  * Greater operator, translated to `>` in SQL.
  */
-infix fun <T : Comparable<T>> ColumnDeclaring<T>.greater(argument: T): BinaryExpression<Boolean> {
-    return this greater wrapArgument(argument)
+infix fun <T : Comparable<T>> ColumnDeclaring<T>.greater(value: T): BinaryExpression<Boolean> {
+    return this greater wrapArgument(value)
 }
 
 /**
@@ -361,8 +361,8 @@ infix fun <T : Comparable<T>> ColumnDeclaring<T>.greaterEq(expr: ColumnDeclaring
 /**
  * Greater-eq operator, translated to `>=` in SQL.
  */
-infix fun <T : Comparable<T>> ColumnDeclaring<T>.greaterEq(argument: T): BinaryExpression<Boolean> {
-    return this greaterEq wrapArgument(argument)
+infix fun <T : Comparable<T>> ColumnDeclaring<T>.greaterEq(value: T): BinaryExpression<Boolean> {
+    return this greaterEq wrapArgument(value)
 }
 
 /**
@@ -384,8 +384,8 @@ infix fun <T : Any> ColumnDeclaring<T>.eq(expr: ColumnDeclaring<T>): BinaryExpre
 /**
  * Equal operator, translated to `=` in SQL.
  */
-infix fun <T : Any> ColumnDeclaring<T>.eq(argument: T): BinaryExpression<Boolean> {
-    return this eq wrapArgument(argument)
+infix fun <T : Any> ColumnDeclaring<T>.eq(value: T): BinaryExpression<Boolean> {
+    return this eq wrapArgument(value)
 }
 
 // infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
@@ -404,8 +404,8 @@ infix fun <T : Any> ColumnDeclaring<T>.notEq(expr: ColumnDeclaring<T>): BinaryEx
 /**
  * Not-equal operator, translated to `<>` in SQL.
  */
-infix fun <T : Any> ColumnDeclaring<T>.notEq(argument: T): BinaryExpression<Boolean> {
-    return this notEq wrapArgument(argument)
+infix fun <T : Any> ColumnDeclaring<T>.notEq(value: T): BinaryExpression<Boolean> {
+    return this notEq wrapArgument(value)
 }
 
 // infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {

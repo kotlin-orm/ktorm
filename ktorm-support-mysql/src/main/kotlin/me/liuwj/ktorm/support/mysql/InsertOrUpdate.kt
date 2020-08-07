@@ -48,12 +48,12 @@ data class InsertOrUpdateExpression(
  *
  * ```kotlin
  * database.insertOrUpdate(Employees) {
- *     it.id to 1
- *     it.name to "vince"
- *     it.job to "engineer"
- *     it.salary to 1000
- *     it.hireDate to LocalDate.now()
- *     it.departmentId to 1
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
  *     onDuplicateKey {
  *         it.salary to it.salary + 900
  *     }
@@ -73,33 +73,40 @@ data class InsertOrUpdateExpression(
  * @return the effected row count.
  */
 fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
-    val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-    val builder = InsertOrUpdateStatementBuilder(assignments).apply { block(table) }
+    val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
     val expr = AliasRemover.visit(
-        InsertOrUpdateExpression(table.asExpression(), assignments, builder.updateAssignments)
+        InsertOrUpdateExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     )
 
     return executeUpdate(expr)
 }
 
 /**
+ * Base class of MySQL DSL builders, provide basic functions used to build assignments for insert or update DSL.
+ */
+@KtormDsl
+open class MySqlAssignmentsBuilder : AssignmentsBuilder() {
+
+    /**
+     * A getter that returns the readonly view of the built assignments list.
+     */
+    internal val assignments: List<ColumnAssignmentExpression<*>> get() = _assignments
+}
+
+/**
  * DSL builder for insert or update statements.
  */
 @KtormDsl
-class InsertOrUpdateStatementBuilder(
-    assignments: MutableList<ColumnAssignmentExpression<*>>
-) : AssignmentsBuilder(assignments) {
-
+class InsertOrUpdateStatementBuilder : MySqlAssignmentsBuilder() {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     /**
      * Specify the update assignments while any key conflict exists.
      */
     fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
-        val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-        AssignmentsBuilder(assignments).apply(block)
-        updateAssignments += assignments
+        val builder = MySqlAssignmentsBuilder().apply(block)
+        updateAssignments += builder.assignments
     }
 }
 

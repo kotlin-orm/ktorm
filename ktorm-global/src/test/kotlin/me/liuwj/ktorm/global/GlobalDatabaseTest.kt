@@ -41,8 +41,8 @@ class GlobalDatabaseTest : BaseGlobalTest() {
         }
 
         configs.insert {
-            it.key to "test"
-            it.value to "test value"
+            set(it.key, "test")
+            set(it.value, "test value")
         }
 
         assert(configs.count { it.key eq "test" } == 1)
@@ -57,8 +57,8 @@ class GlobalDatabaseTest : BaseGlobalTest() {
         try {
             useTransaction {
                 Departments.insert {
-                    it.name to "administration"
-                    it.location to LocationWrapper("Hong Kong")
+                    set(it.name, "administration")
+                    set(it.location, LocationWrapper("Hong Kong"))
                 }
 
                 assert(Departments.count() == 3)

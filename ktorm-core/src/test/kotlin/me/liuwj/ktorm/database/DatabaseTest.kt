@@ -42,8 +42,8 @@ class DatabaseTest : BaseTest() {
         }
 
         database.insert(configs) {
-            it.key to "test"
-            it.value to "test value"
+            set(it.key, "test")
+            set(it.value, "test value")
         }
 
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
@@ -58,8 +58,8 @@ class DatabaseTest : BaseTest() {
         try {
             database.useTransaction {
                 database.insert(Departments) {
-                    it.name to "administration"
-                    it.location to LocationWrapper("Hong Kong")
+                    set(it.name, "administration")
+                    set(it.location, LocationWrapper("Hong Kong"))
                 }
 
                 assert(database.departments.count() == 3)

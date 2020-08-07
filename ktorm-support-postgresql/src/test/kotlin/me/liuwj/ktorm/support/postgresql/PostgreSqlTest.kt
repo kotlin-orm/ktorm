@@ -63,8 +63,8 @@ class PostgreSqlTest : BaseTest() {
         }
 
         database.insert(configs) {
-            it.key to "test"
-            it.value to "test value"
+            set(it.key, "test")
+            set(it.value, "test value")
         }
 
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
@@ -90,9 +90,9 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testUpdate() {
         database.update(Employees) {
-            it.job to "engineer"
-            it.managerId to null
-            it.salary to 100
+            set(it.job, "engineer")
+            set(it.managerId, null)
+            set(it.salary, 100)
 
             where {
                 it.id eq 2
@@ -109,27 +109,27 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testInsertOrUpdate() {
         database.insertOrUpdate(Employees) {
-            it.id to 1
-            it.name to "vince"
-            it.job to "engineer"
-            it.salary to 1000
-            it.hireDate to LocalDate.now()
-            it.departmentId to 1
+            set(it.id, 1)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
 
             onDuplicateKey {
-                it.salary to it.salary + 900
+                set(it.salary, it.salary + 900)
             }
         }
         database.insertOrUpdate(Employees) {
-            it.id to 5
-            it.name to "vince"
-            it.job to "engineer"
-            it.salary to 1000
-            it.hireDate to LocalDate.now()
-            it.departmentId to 1
+            set(it.id, 5)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
 
             onDuplicateKey(it.id) {
-                it.salary to it.salary + 900
+                set(it.salary, it.salary + 900)
             }
         }
 
@@ -140,12 +140,12 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testInsertAndGenerateKey() {
         val id = database.insertAndGenerateKey(Employees) {
-            it.name to "Joe Friend"
-            it.job to "Tester"
-            it.managerId to null
-            it.salary to 50
-            it.hireDate to LocalDate.of(2020, 1, 10)
-            it.departmentId to 1
+            set(it.name, "Joe Friend")
+            set(it.job, "Tester")
+            set(it.managerId, null)
+            set(it.salary, 50)
+            set(it.hireDate, LocalDate.of(2020, 1, 10))
+            set(it.departmentId, 1)
         } as Int
 
         assert(id > 4)
@@ -162,9 +162,9 @@ class PostgreSqlTest : BaseTest() {
     private fun insertTransactional(): Int {
         database.useTransaction {
             return database.insert(Departments) {
-                it.name to "dept name"
-                it.location to LocationWrapper("dept location")
-                it.mixedCase to "value for mixed case"
+                set(it.name, "dept name")
+                set(it.location, LocationWrapper("dept location"))
+                set(it.mixedCase, "value for mixed case")
             }
         }
     }
@@ -187,7 +187,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHStoreIsNull() {
         database.update(Metadatas) {
-            it.attributes to null
+            set(it.attributes, null)
             where { it.id eq 1 }
         }
 
@@ -218,7 +218,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHStoreConcat() {
         database.update(Metadatas) {
-            it.attributes to (it.attributes + mapOf("d" to "4", "e" to null))
+            set(it.attributes, it.attributes + mapOf("d" to "4", "e" to null))
             where { it.id eq 1 }
         }
 
@@ -277,7 +277,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHStoreDeleteKey() {
         database.update(Metadatas) {
-            it.attributes to (it.attributes - "b")
+            set(it.attributes, it.attributes - "b")
             where { it.id eq 1 }
         }
 
@@ -288,7 +288,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHStoreDeleteKeys() {
         database.update(Metadatas) {
-            it.attributes to (it.attributes - arrayOf<String?>("b", "c"))
+            set(it.attributes, it.attributes - arrayOf<String?>("b", "c"))
             where { it.id eq 1 }
         }
 
@@ -299,7 +299,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHStoreDeleteMatching() {
         database.update(Metadatas) {
-            it.attributes to (it.attributes - mapOf("a" to "1", "b" to "2", "c" to null))
+            set(it.attributes, it.attributes - mapOf("a" to "1", "b" to "2", "c" to null))
             where { it.id eq 1 }
         }
 
@@ -310,7 +310,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testTextArray() {
         database.update(Metadatas) {
-            it.numbers to arrayOf("a", "b")
+            set(it.numbers, arrayOf("a", "b"))
             where { it.id eq 1 }
         }
 
@@ -321,7 +321,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testTextArrayIsNull() {
         database.update(Metadatas) {
-            it.numbers to null
+            set(it.numbers, null)
             where { it.id eq 1 }
         }
 

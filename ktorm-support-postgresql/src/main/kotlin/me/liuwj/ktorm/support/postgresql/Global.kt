@@ -45,12 +45,12 @@ internal val Database.Companion.global: Database get() {
  *
  * ```kotlin
  * Employees.insertOrUpdate {
- *     it.id to 1
- *     it.name to "vince"
- *     it.job to "engineer"
- *     it.salary to 1000
- *     it.hireDate to LocalDate.now()
- *     it.departmentId to 1
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
  *     onDuplicateKey {
  *         it.salary to it.salary + 900
  *     }

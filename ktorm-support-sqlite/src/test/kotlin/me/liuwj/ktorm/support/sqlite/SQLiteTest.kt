@@ -57,8 +57,8 @@ class SQLiteTest : BaseTest() {
         }
 
         database.insert(configs) {
-            it.key to "test"
-            it.value to "test value"
+            set(it.key, "test")
+            set(it.value, "test value")
         }
 
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
@@ -128,12 +128,12 @@ class SQLiteTest : BaseTest() {
     @Test
     fun testInsertAndGenerateKey() {
         val id = database.insertAndGenerateKey(Employees) {
-            it.name to "Joe Friend"
-            it.job to "Tester"
-            it.managerId to null
-            it.salary to 50
-            it.hireDate to LocalDate.of(2020, 1, 10)
-            it.departmentId to 1
+            set(it.name, "Joe Friend")
+            set(it.job, "Tester")
+            set(it.managerId, null)
+            set(it.salary, 50)
+            set(it.hireDate, LocalDate.of(2020, 1, 10))
+            set(it.departmentId, 1)
         } as Int
 
         assert(id > 4)

@@ -58,20 +58,20 @@ data class BulkInsertExpression(
  * ```kotlin
  * database.bulkInsert(Employees) {
  *     item {
- *         it.name to "jerry"
- *         it.job to "trainee"
- *         it.managerId to 1
- *         it.hireDate to LocalDate.now()
- *         it.salary to 50
- *         it.departmentId to 1
+ *         set(it.name, "jerry")
+ *         set(it.job, "trainee")
+ *         set(it.managerId, 1)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 50)
+ *         set(it.departmentId, 1)
  *     }
  *     item {
- *         it.name to "linda"
- *         it.job to "assistant"
- *         it.managerId to 3
- *         it.hireDate to LocalDate.now()
- *         it.salary to 100
- *         it.departmentId to 2
+ *         set(it.name, "linda")
+ *         set(it.job, "assistant")
+ *         set(it.managerId, 3)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 100)
+ *         set(it.departmentId, 2)
  *     }
  * }
  * ```
@@ -100,12 +100,13 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
      * Add the assignments of a new row to the bulk insert.
      */
     fun item(block: AssignmentsBuilder.(T) -> Unit) {
-        val itemAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = AssignmentsBuilder(itemAssignments)
+        val builder = MySqlAssignmentsBuilder()
         builder.block(table)
 
-        if (assignments.isEmpty() || assignments[0].map { it.column.name } == itemAssignments.map { it.column.name }) {
-            assignments += itemAssignments
+        if (assignments.isEmpty()
+            || assignments[0].map { it.column.name } == builder.assignments.map { it.column.name }
+        ) {
+            assignments += builder.assignments
         } else {
             throw IllegalArgumentException("Every item in a batch operation must be the same.")
         }
@@ -115,10 +116,9 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
      * Specify the update assignments while any key conflict exists.
      */
     fun onDuplicateKey(block: BulkInsertOnDuplicateKeyClauseBuilder.(T) -> Unit) {
-        val assignments = ArrayList<ColumnAssignmentExpression<*>>()
-        val builder = BulkInsertOnDuplicateKeyClauseBuilder(assignments)
+        val builder = BulkInsertOnDuplicateKeyClauseBuilder()
         builder.block(table)
-        updateAssignments += assignments
+        updateAssignments += builder.assignments
     }
 }
 
@@ -126,9 +126,7 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
  * DSL builder for bulk insert assignments.
  */
 @KtormDsl
-class BulkInsertOnDuplicateKeyClauseBuilder(
-    assignments: MutableList<ColumnAssignmentExpression<*>>
-) : AssignmentsBuilder(assignments) {
+class BulkInsertOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
 
     /**
      * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
