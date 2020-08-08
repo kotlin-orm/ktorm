@@ -189,12 +189,12 @@ Insert:
 
 ```kotlin
 database.insert(Employees) {
-    it.name to "jerry"
-    it.job to "trainee"
-    it.managerId to 1
-    it.hireDate to LocalDate.now()
-    it.salary to 50
-    it.departmentId to 1
+    set(it.name, "jerry")
+    set(it.job, "trainee")
+    set(it.managerId, 1)
+    set(it.hireDate, LocalDate.now())
+    set(it.salary, 50)
+    set(it.departmentId, 1)
 }
 ```
 
@@ -202,9 +202,9 @@ Update:
 
 ```kotlin
 database.update(Employees) {
-    it.job to "engineer"
-    it.managerId to null
-    it.salary to 100
+    set(it.job, "engineer")
+    set(it.managerId, null)
+    set(it.salary, 100)
     where {
         it.id eq 2
     }
