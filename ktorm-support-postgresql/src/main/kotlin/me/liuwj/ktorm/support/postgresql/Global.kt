@@ -52,7 +52,7 @@ internal val Database.Companion.global: Database get() {
  *     set(it.hireDate, LocalDate.now())
  *     set(it.departmentId, 1)
  *     onDuplicateKey {
- *         it.salary to it.salary + 900
+ *         set(it.salary, it.salary + 900)
  *     }
  * }
  * ```
