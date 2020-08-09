@@ -63,6 +63,8 @@ import kotlin.reflect.jvm.jvmErasure
 abstract class BaseTable<E : Any>(
     tableName: String,
     alias: String? = null,
+    catalog: String? = null,
+    schema: String? = null,
     entityClass: KClass<E>? = null
 ) : TypeReference<E>() {
 
@@ -81,6 +83,18 @@ abstract class BaseTable<E : Any>(
      */
     @Suppress("CanBePrimaryConstructorProperty")
     val alias: String? = alias
+
+    /**
+     * The table's catalog.
+     */
+    @Suppress("CanBePrimaryConstructorProperty")
+    val catalog: String? = catalog
+
+    /**
+     * The table's schema.
+     */
+    @Suppress("CanBePrimaryConstructorProperty")
+    val schema: String? = schema
 
     /**
      * The entity class this table is bound to.
@@ -105,7 +119,7 @@ abstract class BaseTable<E : Any>(
     internal inline fun singlePrimaryKey(errMsg: () -> String): Column<*> {
         val primaryKeys = primaryKeys
         if (primaryKeys.isEmpty()) {
-            error("Table $tableName doesn't have a primary key.")
+            error("Table '$this' doesn't have a primary key.")
         }
         if (primaryKeys.size > 1) {
             error(errMsg())
@@ -148,7 +162,7 @@ abstract class BaseTable<E : Any>(
 
     private fun <C : Any> Column<C>.checkRegistered() {
         if (name !in _columns) {
-            throw IllegalStateException("The column $name was not registered to table $tableName.")
+            throw IllegalStateException("The column $name was not registered to table '$this'.")
         }
     }
 
@@ -222,6 +236,8 @@ abstract class BaseTable<E : Any>(
                 is ReferenceBinding -> column.allBindings
                     .filterIsInstance<ReferenceBinding>()
                     .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
+                    .filter { it.referenceTable.catalog == binding.referenceTable.catalog }
+                    .filter { it.referenceTable.schema == binding.referenceTable.schema }
                     .filter { it.onProperty == binding.onProperty }
                     .any()
             }
@@ -238,22 +254,22 @@ abstract class BaseTable<E : Any>(
         val primaryKeys = refTable.primaryKeys
         if (primaryKeys.isEmpty()) {
             throw IllegalStateException(
-                "Cannot reference the table ${refTable.tableName} because it doesn't have a primary key."
+                "Cannot reference the table '$refTable' because it doesn't have a primary key."
             )
         }
         if (primaryKeys.size > 1) {
             throw IllegalStateException(
-                "Cannot reference the table ${refTable.tableName} because it has compound primary keys."
+                "Cannot reference the table '$refTable' because it has compound primary keys."
             )
         }
     }
 
     private fun checkCircularReference(root: BaseTable<*>, stack: LinkedList<String> = LinkedList()) {
-        stack.push(root.tableName)
+        stack.push(root.toString(withAlias = false))
 
-        if (tableName == root.tableName) {
+        if (tableName == root.tableName && catalog == root.catalog && schema == root.catalog) {
             throw IllegalStateException(
-                "Circular reference detected, current table: $tableName, reference route: ${stack.asReversed()}"
+                "Circular reference detected, current table: '$this', reference route: ${stack.asReversed()}"
             )
         }
 
@@ -350,17 +366,28 @@ abstract class BaseTable<E : Any>(
      * Convert this table to a [TableExpression].
      */
     fun asExpression(): TableExpression {
-        return TableExpression(tableName, alias)
+        return TableExpression(tableName, alias, catalog, schema)
     }
 
     /**
      * Return a string representation of this table.
      */
     override fun toString(): String {
-        if (alias == null) {
-            return "table $tableName"
-        } else {
-            return "table $tableName $alias"
+        return toString(withAlias = true)
+    }
+
+    private fun toString(withAlias: Boolean) = buildString {
+        if (catalog != null && catalog.isNotBlank()) {
+            append("$catalog.")
+        }
+        if (schema != null && schema.isNotBlank()) {
+            append("$schema.")
+        }
+
+        append(tableName)
+
+        if (withAlias && alias != null && alias.isNotBlank()) {
+            append(" $alias")
         }
     }
 

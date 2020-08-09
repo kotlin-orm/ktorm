@@ -296,7 +296,7 @@ private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {
         } else {
             return OrderByExpression(
                 expression = ColumnExpression(
-                    tableAlias = null,
+                    table = null,
                     name = declaring.declaredName!!,
                     sqlType = declaring.expression.sqlType
                 ),

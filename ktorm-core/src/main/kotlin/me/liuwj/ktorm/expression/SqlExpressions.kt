@@ -310,10 +310,14 @@ data class BinaryExpression<T : Any>(
  *
  * @property name the table's name.
  * @property tableAlias the table's alias.
+ * @property catalog the table's catalog.
+ * @property schema the table's schema.
  */
 data class TableExpression(
     val name: String,
-    val tableAlias: String?,
+    val tableAlias: String? = null,
+    val catalog: String? = null,
+    val schema: String? = null,
     override val isLeafNode: Boolean = true,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : QuerySourceExpression()
@@ -321,11 +325,11 @@ data class TableExpression(
 /**
  * Column expression.
  *
- * @property tableAlias the owner table's alias.
+ * @property table the owner table.
  * @property name the column's name.
  */
 data class ColumnExpression<T : Any>(
-    val tableAlias: String?,
+    val table: TableExpression?,
     val name: String,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = true,

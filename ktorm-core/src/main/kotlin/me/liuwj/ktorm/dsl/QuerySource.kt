@@ -123,7 +123,7 @@ private fun BaseTable<*>.joinReferences(
             if (binding is ReferenceBinding) {
                 val refTable = binding.referenceTable
                 val pk = refTable.singlePrimaryKey {
-                    "Cannot reference the table ${refTable.tableName} as there is compound primary keys."
+                    "Cannot reference the table '$refTable' as there is compound primary keys."
                 }
 
                 curr = curr.leftJoin(refTable, on = column eq pk)

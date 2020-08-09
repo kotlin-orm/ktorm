@@ -21,7 +21,7 @@ import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 
 internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? {
-    val pk = fromTable.singlePrimaryKey { "Table ${fromTable.tableName} has compound primary keys." }
+    val pk = fromTable.singlePrimaryKey { "Table '$fromTable' has compound primary keys." }
     if (pk.binding == null) {
         error("Primary column $pk has no bindings to any entity field.")
     } else {
@@ -54,7 +54,7 @@ internal fun EntityImplementation.setPrimaryKeyValue(
     forceSet: Boolean = false,
     useExtraBindings: Boolean = false
 ) {
-    val pk = fromTable.singlePrimaryKey { "Table ${fromTable.tableName} has compound primary keys." }
+    val pk = fromTable.singlePrimaryKey { "Table '$fromTable' has compound primary keys." }
     if (pk.binding == null) {
         error("Primary column $pk has no bindings to any entity field.")
     } else {

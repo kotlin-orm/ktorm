@@ -50,8 +50,10 @@ import kotlin.reflect.jvm.jvmErasure
 open class Table<E : Entity<E>>(
     tableName: String,
     alias: String? = null,
+    catalog: String? = null,
+    schema: String? = null,
     entityClass: KClass<E>? = null
-) : BaseTable<E>(tableName, alias, entityClass) {
+) : BaseTable<E>(tableName, alias, catalog, schema, entityClass) {
 
     /**
      * Bind the column to nested properties, eg. `employee.manager.department.id`.
@@ -99,7 +101,7 @@ open class Table<E : Entity<E>>(
 
     @PublishedApi
     internal inline fun detectBindingProperties(selector: (E) -> Any?): List<KProperty1<*, *>> {
-        val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
+        val entityClass = this.entityClass ?: error("No entity class configured for table: '$this'")
         val properties = ArrayList<KProperty1<*, *>>()
 
         val proxy = ColumnBindingHandler.createProxy(entityClass, properties)
@@ -113,13 +115,13 @@ open class Table<E : Entity<E>>(
     }
 
     override fun aliased(alias: String): Table<E> {
-        val result = Table(tableName, alias, entityClass)
+        val result = Table(tableName, alias, catalog, schema, entityClass)
         result.copyDefinitionsFrom(this)
         return result
     }
 
     final override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean): E {
-        val entityClass = this.entityClass ?: error("No entity class configured for table: $tableName")
+        val entityClass = this.entityClass ?: error("No entity class configured for table: '$this'")
         val entity = Entity.create(entityClass, fromDatabase = row.query.database, fromTable = this) as E
 
         for (column in columns) {
@@ -137,7 +139,7 @@ open class Table<E : Entity<E>>(
                 is ReferenceBinding -> {
                     val refTable = binding.referenceTable as Table<*>
                     val pk = refTable.singlePrimaryKey {
-                        "Cannot reference the table ${refTable.tableName} as there is compound primary keys."
+                        "Cannot reference the table '$refTable' as there is compound primary keys."
                     }
 
                     if (withReferences) {

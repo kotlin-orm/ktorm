@@ -118,7 +118,7 @@ data class Column<T : Any>(
      *
      * @see ColumnDeclaringExpression
      */
-    val label: String get() = "${table.alias ?: table.tableName}_$name"
+    val label get() = toString(separator = "_")
 
     /**
      * Return all the bindings of this column, including the primary [binding] and [extraBindings].
@@ -130,13 +130,13 @@ data class Column<T : Any>(
      *
      * Shortcut for `(binding as? ReferenceBinding)?.referenceTable`.
      */
-    val referenceTable: BaseTable<*>? get() = (binding as? ReferenceBinding)?.referenceTable
+    val referenceTable get() = (binding as? ReferenceBinding)?.referenceTable
 
     /**
      * Convert this column to a [ColumnExpression].
      */
     override fun asExpression(): ColumnExpression<T> {
-        return ColumnExpression(table.alias ?: table.tableName, name, sqlType)
+        return ColumnExpression(table.asExpression(), name, sqlType)
     }
 
     /**
@@ -157,7 +157,24 @@ data class Column<T : Any>(
      * Return a string representation of this column.
      */
     override fun toString(): String {
-        return "${table.alias ?: table.tableName}.$name"
+        return toString(separator = ".")
+    }
+
+    private fun toString(separator: String) = buildString {
+        if (table.alias != null && table.alias.isNotBlank()) {
+            append("${table.alias}$separator")
+        } else {
+            if (table.catalog != null && table.catalog.isNotBlank()) {
+                append("${table.catalog}$separator")
+            }
+            if (table.schema != null && table.schema.isNotBlank()) {
+                append("${table.schema}$separator")
+            }
+
+            append("${table.tableName}$separator")
+        }
+
+        append(name)
     }
 
     /**

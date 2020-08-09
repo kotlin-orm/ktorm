@@ -147,7 +147,13 @@ open class SqlExpressionVisitor {
     }
 
     protected open fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        return expr
+        val table = expr.table?.let { visitTable(it) }
+
+        if (table === expr.table) {
+            return expr
+        } else {
+            return expr.copy(table = table)
+        }
     }
 
     protected open fun <T : Any> visitColumnDeclaring(

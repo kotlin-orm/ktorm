@@ -124,10 +124,10 @@ internal object AliasRemover : MySqlExpressionVisitor() {
     }
 
     override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.tableAlias == null) {
+        if (expr.table == null) {
             return expr
         } else {
-            return expr.copy(tableAlias = null)
+            return expr.copy(table = null)
         }
     }
 }

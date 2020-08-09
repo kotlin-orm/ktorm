@@ -82,8 +82,8 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
     val primaryKeys = table.primaryKeys
     if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
         val msg =
-            "Table ${table.tableName} doesn't have a primary key, " +
-            "or you must specify the conflict columns on onDuplicateKey(id) { .. }"
+            "Table '$table' doesn't have a primary key, " +
+            "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
         throw IllegalStateException(msg)
     }
 

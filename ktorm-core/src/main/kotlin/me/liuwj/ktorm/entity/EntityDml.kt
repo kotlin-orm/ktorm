@@ -167,7 +167,7 @@ private fun EntityImplementation.constructIdentityCondition(): ScalarExpression<
 
     val primaryKeys = fromTable.primaryKeys
     if (primaryKeys.isEmpty()) {
-        error("Table ${fromTable.tableName} doesn't have a primary key.")
+        error("Table '$fromTable' doesn't have a primary key.")
     }
 
     val conditions = primaryKeys.map { pk ->

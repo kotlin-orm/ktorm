@@ -256,8 +256,19 @@ open class SqlFormatter(
     }
 
     override fun visitTable(expr: TableExpression): TableExpression {
+        if (expr.catalog != null && expr.catalog.isNotBlank()) {
+            write("${expr.catalog.quoted}.")
+        }
+        if (expr.schema != null && expr.schema.isNotBlank()) {
+            write("${expr.schema.quoted}.")
+        }
+
         write("${expr.name.quoted} ")
-        expr.tableAlias?.let { write("${it.quoted} ") }
+
+        if (expr.tableAlias != null && expr.tableAlias.isNotBlank()) {
+            write("${expr.tableAlias.quoted} ")
+        }
+
         return expr
     }
 
@@ -273,7 +284,21 @@ open class SqlFormatter(
     }
 
     override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        expr.tableAlias?.let { write("${it.quoted}.") }
+        if (expr.table != null) {
+            if (expr.table.tableAlias != null && expr.table.tableAlias.isNotBlank()) {
+                write("${expr.table.tableAlias.quoted}.")
+            } else {
+                if (expr.table.catalog != null && expr.table.catalog.isNotBlank()) {
+                    write("${expr.table.catalog.quoted}.")
+                }
+                if (expr.table.schema != null && expr.table.schema.isNotBlank()) {
+                    write("${expr.table.schema.quoted}.")
+                }
+
+                write("${expr.table.name.quoted}.")
+            }
+        }
+
         write("${expr.name.quoted} ")
         return expr
     }

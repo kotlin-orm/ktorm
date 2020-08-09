@@ -94,7 +94,7 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         val visitor = object : SqlExpressionVisitor() {
             override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
                 val alias = (expr as? SelectExpression)?.columns?.find { it.expression == column }?.declaredName
-                return column.copy(tableAlias = "_t1", name = alias ?: column.name)
+                return column.copy(table = TableExpression(name = "", tableAlias = "_t1"), name = alias ?: column.name)
             }
         }
 

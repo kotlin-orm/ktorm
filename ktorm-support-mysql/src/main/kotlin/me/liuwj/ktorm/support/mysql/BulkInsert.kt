@@ -84,8 +84,12 @@ data class BulkInsertExpression(
  */
 fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
-    val expression = BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
-    return executeUpdate(expression)
+
+    val expr = AliasRemover.visit(
+        BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
+    )
+
+    return executeUpdate(expr)
 }
 
 /**
