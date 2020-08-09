@@ -1,8 +1,16 @@
 package me.liuwj.ktorm.dsl
 
 import me.liuwj.ktorm.BaseTest
+import me.liuwj.ktorm.entity.filter
+import me.liuwj.ktorm.entity.first
+import me.liuwj.ktorm.entity.forUpdate
+import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.expression.ScalarExpression
 import org.junit.Test
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Created by vince on Dec 07, 2018.
@@ -249,5 +257,32 @@ class QueryTest : BaseTest() {
         val query = database.from(Employees).select().where { Employees.id % 2 eq 1 }
         assert(query.rowSet.size() == 2)
         println(query.sql)
+    }
+
+    @Test
+    fun testSelctForUpdate() {
+        database.useTransaction {
+            val employee = database
+                .sequenceOf(Employees, withReferences = false)
+                .filter { it.id eq 1 }
+                .forUpdate()
+                .first()
+
+            val future = Executors.newSingleThreadExecutor().submit {
+                employee.name = "vince"
+                employee.flushChanges()
+            }
+
+            try {
+                future.get(5, TimeUnit.SECONDS)
+                throw AssertionError()
+            } catch (e: ExecutionException) {
+                // Expected, the record is locked.
+                e.printStackTrace()
+            } catch (e: TimeoutException) {
+                // Expected, the record is locked.
+                e.printStackTrace()
+            }
+        }
     }
 }

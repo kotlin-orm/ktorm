@@ -1297,3 +1297,10 @@ fun <E : Any> EntitySequence<E, *>.joinToString(
 ): String {
     return asKotlinSequence().joinToString(separator, prefix, postfix, limit, truncated, transform)
 }
+
+/**
+ * Indicate that this query should aquire the record-lock, the generated SQL would be `select ... for update`.
+ */
+fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
+    return this.copy(expression = expression.copy(forUpdate = true))
+}

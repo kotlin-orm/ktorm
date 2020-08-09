@@ -40,6 +40,9 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
+        if (expr is SelectExpression && expr.forUpdate) {
+            throw IllegalStateException("SELECT FOR UPDATE is not supported while using offset & limit params.")
+        }
 
         if (expr.orderBy.isEmpty()) {
             writePagingQuery(expr)

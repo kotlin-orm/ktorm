@@ -18,6 +18,10 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Created by vince on Feb 13, 2019.
@@ -327,5 +331,32 @@ class PostgreSqlTest : BaseTest() {
 
         val numbers = get { it.numbers }
         assertThat(numbers, nullValue())
+    }
+
+    @Test
+    fun testSelctForUpdate() {
+        database.useTransaction {
+            val employee = database
+                .sequenceOf(Employees, withReferences = false)
+                .filter { it.id eq 1 }
+                .forUpdate()
+                .first()
+
+            val future = Executors.newSingleThreadExecutor().submit {
+                employee.name = "vince"
+                employee.flushChanges()
+            }
+
+            try {
+                future.get(5, TimeUnit.SECONDS)
+                throw AssertionError()
+            } catch (e: ExecutionException) {
+                // Expected, the record is locked.
+                e.printStackTrace()
+            } catch (e: TimeoutException) {
+                // Expected, the record is locked.
+                e.printStackTrace()
+            }
+        }
     }
 }

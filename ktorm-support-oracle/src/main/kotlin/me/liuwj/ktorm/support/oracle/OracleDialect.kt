@@ -46,6 +46,9 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
+        if (expr is SelectExpression && expr.forUpdate) {
+            throw IllegalStateException("SELECT FOR UPDATE is not supported while using offset & limit params.")
+        }
 
         val offset = expr.offset ?: 0
         val minRowNum = offset + 1

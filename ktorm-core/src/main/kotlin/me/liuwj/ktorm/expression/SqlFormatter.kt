@@ -356,6 +356,9 @@ open class SqlFormatter(
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
         }
+        if (expr.forUpdate) {
+            writeKeyword("for update ")
+        }
         return expr
     }
 
