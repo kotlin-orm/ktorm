@@ -9,6 +9,7 @@ import me.liuwj.ktorm.entity.*
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.int
 import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
 import org.junit.Test
@@ -113,5 +114,23 @@ class OracleTest : BaseTest() {
                 e.printStackTrace()
             }
         }
+    }
+
+    @Test
+    fun testSchema() {
+        val t = object : Table<Department>("t_department", schema = oracle.username.toUpperCase()) {
+            val id = int("id").primaryKey().bindTo { it.id }
+            val name = varchar("name").bindTo { it.name }
+        }
+
+        database.update(t) {
+            set(it.name, "test")
+            where {
+                it.id eq 1
+            }
+        }
+
+        assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
+        assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance"))
     }
 }

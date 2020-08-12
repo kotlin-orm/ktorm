@@ -9,6 +9,7 @@ import me.liuwj.ktorm.jackson.json
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
+import me.liuwj.ktorm.schema.int
 import me.liuwj.ktorm.schema.typeRef
 import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
@@ -351,5 +352,23 @@ class MySqlTest : BaseTest() {
                 e.printStackTrace()
             }
         }
+    }
+
+    @Test
+    fun testSchema() {
+        val t = object : Table<Department>("t_department", schema = mysql.databaseName) {
+            val id = int("id").primaryKey().bindTo { it.id }
+            val name = varchar("name").bindTo { it.name }
+        }
+
+        database.update(t) {
+            set(it.name, "test")
+            where {
+                it.id eq 1
+            }
+        }
+
+        assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
+        assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance"))
     }
 }

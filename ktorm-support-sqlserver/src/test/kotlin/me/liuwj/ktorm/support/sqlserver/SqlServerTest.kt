@@ -5,11 +5,14 @@ import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.database.use
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.count
+import me.liuwj.ktorm.entity.filter
+import me.liuwj.ktorm.entity.mapTo
 import me.liuwj.ktorm.entity.sequenceOf
 import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.datetime
+import me.liuwj.ktorm.schema.int
 import me.liuwj.ktorm.schema.varchar
 import microsoft.sql.DateTimeOffset
 import org.junit.ClassRule
@@ -128,5 +131,23 @@ class SqlServerTest : BaseTest() {
         assert(id > 4)
 
         assert(database.employees.count() == 5)
+    }
+
+    @Test
+    fun testSchema() {
+        val t = object : Table<Department>("t_department", schema = "dbo") {
+            val id = int("id").primaryKey().bindTo { it.id }
+            val name = varchar("name").bindTo { it.name }
+        }
+
+        database.update(t) {
+            set(it.name, "test")
+            where {
+                it.id eq 1
+            }
+        }
+
+        assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
+        assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance"))
     }
 }
