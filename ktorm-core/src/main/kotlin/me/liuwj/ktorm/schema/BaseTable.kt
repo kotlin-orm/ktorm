@@ -86,12 +86,16 @@ abstract class BaseTable<E : Any>(
 
     /**
      * The table's catalog.
+     *
+     * @since 3.1.0
      */
     @Suppress("CanBePrimaryConstructorProperty")
     val catalog: String? = catalog
 
     /**
      * The table's schema.
+     *
+     * @since 3.1.0
      */
     @Suppress("CanBePrimaryConstructorProperty")
     val schema: String? = schema

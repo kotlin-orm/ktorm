@@ -328,6 +328,8 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
  * to each element in the original sequence.
  *
  * The operation is terminal.
+ *
+ * @since 3.0.0
  */
 inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform)
@@ -338,6 +340,8 @@ inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> 
  * and append only the non-null results to the given [destination].
  *
  * The operation is terminal.
+ *
+ * @since 3.0.0
  */
 inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapNotNullTo(
     destination: C,
@@ -385,6 +389,8 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapInd
  * returns the result of the transform applied to the element.
  *
  * The operation is terminal.
+ *
+ * @since 3.0.0
  */
 inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: (index: Int, E) -> R?): List<R> {
     return mapIndexedNotNullTo(ArrayList(), transform)
@@ -398,6 +404,8 @@ inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: 
  * returns the result of the transform applied to the element.
  *
  * The operation is terminal.
+ *
+ * @since 3.0.0
  */
 inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedNotNullTo(
     destination: C,
@@ -412,6 +420,8 @@ inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.
  * on each element of original sequence.
  *
  * The operation is terminal.
+ *
+ * @since 3.0.0
  */
 inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList(), transform)
@@ -422,6 +432,8 @@ inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<
  * of original sequence, to the given [destination].
  *
  * The operation is terminal.
+ *
+ * @since 3.0.0
  */
 inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapTo(
     destination: C,
@@ -667,6 +679,8 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(
  * Return `true` if the sequence has no elements.
  *
  * The operation is terminal.
+ *
+ * @since 2.7
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
     return count() == 0
@@ -676,6 +690,8 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
  * Return `true` if the sequence has at lease one element.
  *
  * The operation is terminal.
+ *
+ * @since 2.7
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
     return count() > 0
@@ -1183,6 +1199,8 @@ inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E)
 /**
  * Return a lazy [Sequence] that wraps each element of the original sequence into an [IndexedValue] containing
  * the index of that element and the element itself.
+ *
+ * @since 3.0.0
  */
 fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
     return asKotlinSequence().withIndex()
@@ -1300,6 +1318,8 @@ fun <E : Any> EntitySequence<E, *>.joinToString(
 
 /**
  * Indicate that this query should aquire the record-lock, the generated SQL would be `select ... for update`.
+ *
+ * @since 3.1.0
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
     return this.copy(expression = expression.copy(forUpdate = true))

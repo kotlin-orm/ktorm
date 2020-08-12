@@ -33,6 +33,8 @@ def generateTupleOf(Writer writer, int tupleNumber) {
     writer.write("""
         /**
          * Create a tuple of $tupleNumber values. 
+         *
+         * @since 2.7
          */
         fun <$typeParams> tupleOf(
             $params
@@ -49,6 +51,8 @@ def generateToList(Writer writer, int tupleNumber) {
     writer.write("""
         /**
          * Convert this tuple into a list. 
+         *
+         * @since 2.7
          */
         fun <E> Tuple$tupleNumber<$typeParams>.toList(): List<E> {
             return listOf($elements)

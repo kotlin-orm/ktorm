@@ -119,6 +119,8 @@ private fun EntitySequence<*, *>.checkIfSequenceModified() {
 
 /**
  * Remove all of the elements of this sequence that satisfy the given [predicate].
+ *
+ * @since 2.7
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
     predicate: (T) -> ColumnDeclaring<Boolean>
@@ -129,6 +131,8 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
 
 /**
  * Remove all of the elements of this sequence. The sequence will be empty after this function returns.
+ *
+ * @since 2.7
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
     checkIfSequenceModified()

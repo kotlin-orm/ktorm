@@ -173,6 +173,8 @@ class Database(
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case sensitive and as a result
      * stores them in mixed case.
+     *
+     * @since 3.1.0
      */
     var supportsMixedCaseIdentifiers: Boolean = false
         private set
@@ -180,6 +182,8 @@ class Database(
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
      * stores them in mixed case.
+     *
+     * @since 3.1.0
      */
     var storesMixedCaseIdentifiers: Boolean = false
         private set
@@ -187,6 +191,8 @@ class Database(
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
      * stores them in upper case.
+     *
+     * @since 3.1.0
      */
     var storesUpperCaseIdentifiers: Boolean = false
         private set
@@ -194,6 +200,8 @@ class Database(
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
      * stores them in lower case.
+     *
+     * @since 3.1.0
      */
     var storesLowerCaseIdentifiers: Boolean = false
         private set
@@ -201,6 +209,8 @@ class Database(
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case sensitive and as a result
      * stores them in mixed case.
+     *
+     * @since 3.1.0
      */
     var supportsMixedCaseQuotedIdentifiers: Boolean = false
         private set
@@ -208,6 +218,8 @@ class Database(
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
      * stores them in mixed case.
+     *
+     * @since 3.1.0
      */
     var storesMixedCaseQuotedIdentifiers: Boolean = false
         private set
@@ -215,6 +227,8 @@ class Database(
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
      * stores them in upper case.
+     *
+     * @since 3.1.0
      */
     var storesUpperCaseQuotedIdentifiers: Boolean = false
         private set
@@ -222,6 +236,8 @@ class Database(
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
      * stores them in lower case.
+     *
+     * @since 3.1.0
      */
     var storesLowerCaseQuotedIdentifiers: Boolean = false
         private set

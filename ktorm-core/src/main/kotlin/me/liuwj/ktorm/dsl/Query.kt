@@ -364,6 +364,8 @@ fun Query.unionAll(right: Query): Query {
 
 /**
  * Wrap this query as [Iterable].
+ *
+ * @since 3.0.0
  */
 fun Query.asIterable(): Iterable<QueryRowSet> {
     return Iterable { iterator() }
@@ -371,6 +373,8 @@ fun Query.asIterable(): Iterable<QueryRowSet> {
 
 /**
  * Perform the given [action] on each row of the query.
+ *
+ * @since 3.0.0
  */
 inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
     for (row in this) action(row)
@@ -380,6 +384,8 @@ inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
  * Perform the given [action] on each row of the query, providing sequential index with the row.
  *
  * The [action] function takes the index of a row and the row itself and performs the desired action on the row.
+ *
+ * @since 3.0.0
  */
 inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
     var index = 0
@@ -389,6 +395,8 @@ inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) 
 /**
  * Return a lazy [Iterable] that wraps each row of the query into an [IndexedValue] containing the index of
  * that row and the row itself.
+ *
+ * @since 3.0.0
  */
 fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
     return Iterable { IndexingIterator(iterator()) }
@@ -412,6 +420,8 @@ internal class IndexingIterator<out T>(private val iterator: Iterator<T>) : Iter
 
 /**
  * Return a list containing the results of applying the given [transform] function to each row of the query.
+ *
+ * @since 3.0.0
  */
 inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
     return mapTo(ArrayList(), transform)
@@ -419,6 +429,8 @@ inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
 
 /**
  * Apply the given [transform] function to each row of the query and append the results to the given [destination].
+ *
+ * @since 3.0.0
  */
 inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transform: (row: QueryRowSet) -> R): C {
     for (row in this) destination += transform(row)
@@ -428,6 +440,8 @@ inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transfor
 /**
  * Return a list containing only the non-null results of applying the given [transform] function to each row of
  * the query.
+ *
+ * @since 3.0.0
  */
 inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform)
@@ -436,6 +450,8 @@ inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List
 /**
  * Apply the given [transform] function to each row of the query and append only the non-null results to
  * the given [destination].
+ *
+ * @since 3.0.0
  */
 inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
     destination: C,
@@ -450,6 +466,8 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
  *
  * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
+ *
+ * @since 3.0.0
  */
 inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
     return mapIndexedTo(ArrayList(), transform)
@@ -460,6 +478,8 @@ inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R):
  *
  * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
+ *
+ * @since 3.0.0
  */
 inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
     destination: C,
@@ -475,6 +495,8 @@ inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
  *
  * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
+ *
+ * @since 3.0.0
  */
 inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
     return mapIndexedNotNullTo(ArrayList(), transform)
@@ -486,6 +508,8 @@ inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryR
  *
  * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
+ *
+ * @since 3.0.0
  */
 inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     destination: C,
@@ -498,6 +522,8 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
 /**
  * Return a single list of all elements yielded from results of [transform] function being invoked on each row
  * of the query.
+ *
+ * @since 3.0.0
  */
 inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList(), transform)
@@ -506,6 +532,8 @@ inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List
 /**
  * Append all elements yielded from results of [transform] function being invoked on each row of the query,
  * to the given [destination].
+ *
+ * @since 3.0.0
  */
 inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
     destination: C,
@@ -521,6 +549,8 @@ inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
  * If any of two pairs would have the same key the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original query results.
+ *
+ * @since 3.0.0
  */
 inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
     return associateTo(LinkedHashMap(), transform)
@@ -533,6 +563,8 @@ inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): 
  * If any two rows would have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original query results.
+ *
+ * @since 3.0.0
  */
 inline fun <K, V> Query.associateBy(
     keySelector: (row: QueryRowSet) -> K,
@@ -546,6 +578,8 @@ inline fun <K, V> Query.associateBy(
  * each row of the query.
  *
  * If any of two pairs would have the same key the last one gets added to the map.
+ *
+ * @since 3.0.0
  */
 inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
     destination: M,
@@ -560,6 +594,8 @@ inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
  * function and value is provided by the [valueTransform] function applied to rows of the query.
  *
  * If any two rows would have the same key returned by [keySelector] the last one gets added to the map.
+ *
+ * @since 3.0.0
  */
 inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
     destination: M,
@@ -572,6 +608,8 @@ inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
 
 /**
  * Accumulate value starting with [initial] value and applying [operation] to current accumulator value and each row.
+ *
+ * @since 3.0.0
  */
 inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
     var accumulator = initial
@@ -585,6 +623,8 @@ inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R
  *
  * The [operation] function takes the index of a row, current accumulator value and the row itself,
  * and calculates the next accumulator value.
+ *
+ * @since 3.0.0
  */
 inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
     var index = 0
@@ -598,6 +638,8 @@ inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row
  *
  * If the query result could be huge, you can specify a non-negative value of [limit], in which case only the first
  * [limit] rows will be appended, followed by the [truncated] string (which defaults to "...").
+ *
+ * @since 3.0.0
  */
 fun <A : Appendable> Query.joinTo(
     buffer: A,
@@ -628,6 +670,8 @@ fun <A : Appendable> Query.joinTo(
  *
  * If the query result could be huge, you can specify a non-negative value of [limit], in which case only the first
  * [limit] rows will be appended, followed by the [truncated] string (which defaults to "...").
+ *
+ * @since 3.0.0
  */
 fun Query.joinToString(
     separator: CharSequence = ", ",
@@ -642,6 +686,8 @@ fun Query.joinToString(
 
 /**
  * Indicate that this query should aquire the record-lock, the generated SQL would be `select ... for update`.
+ *
+ * @since 3.1.0
  */
 fun Query.forUpdate(): Query {
     val expr = when (expression) {

@@ -125,6 +125,49 @@ fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -
 }
 
 /**
+ * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
+ *
+ * This function assumes that at least one auto-generated key will be returned, and that the first key in
+ * the result set will be the primary key for the row.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val id = database.insertAndGenerateKey(Employees) {
+ *     set(it.name, "jerry")
+ *     set(it.job, "trainee")
+ *     set(it.managerId, 1)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.salary, 50)
+ *     set(it.departmentId, 1)
+ * }
+ * ```
+ *
+ * @since 2.7
+ * @param table the table to be inserted.
+ * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
+ * @return the first auto-generated key.
+ */
+fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
+    val builder = AssignmentsBuilder().apply { block(table) }
+    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+
+    if (rowSet.next()) {
+        val pk = table.singlePrimaryKey { "Key retrieval is not supported for compound primary keys." }
+        val generatedKey = pk.sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Generated Key: $generatedKey")
+        }
+
+        return generatedKey
+    } else {
+        error("No generated key returns by database.")
+    }
+}
+
+/**
  * Construct insert expressions in the given closure, then batch execute them and return the effected
  * row counts for each expression.
  *
@@ -167,49 +210,6 @@ fun <T : BaseTable<*>> Database.batchInsert(table: T, block: BatchInsertStatemen
         return IntArray(0)
     } else {
         return executeBatch(expressions)
-    }
-}
-
-/**
- * Construct an insert expression in the given closure, then execute it and return the auto-generated key.
- *
- * This function assumes that at least one auto-generated key will be returned, and that the first key in
- * the result set will be the primary key for the row.
- *
- * Usage:
- *
- * ```kotlin
- * val id = database.insertAndGenerateKey(Employees) {
- *     set(it.name, "jerry")
- *     set(it.job, "trainee")
- *     set(it.managerId, 1)
- *     set(it.hireDate, LocalDate.now())
- *     set(it.salary, 50)
- *     set(it.departmentId, 1)
- * }
- * ```
- *
- * @since 2.7
- * @param table the table to be inserted.
- * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
- * @return the first auto-generated key.
- */
-fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
-    val builder = AssignmentsBuilder().apply { block(table) }
-    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-
-    if (rowSet.next()) {
-        val pk = table.singlePrimaryKey { "Key retrieval is not supported for compound primary keys." }
-        val generatedKey = pk.sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Generated Key: $generatedKey")
-        }
-
-        return generatedKey
-    } else {
-        error("No generated key returns by database.")
     }
 }
 
@@ -267,6 +267,8 @@ open class AssignmentsBuilder {
 
     /**
      * Assign the specific column's value to another column or an expression's result.
+     *
+     * @since 3.1.0
      */
     fun <C : Any> set(column: Column<C>, expr: ColumnDeclaring<C>) {
         _assignments += ColumnAssignmentExpression(column.asExpression(), expr.asExpression())
@@ -274,6 +276,8 @@ open class AssignmentsBuilder {
 
     /**
      * Assign the specific column to a value.
+     *
+     * @since 3.1.0
      */
     fun <C : Any> set(column: Column<C>, value: C?) {
         _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
@@ -281,6 +285,8 @@ open class AssignmentsBuilder {
 
     /**
      * Assign the specific column to a value.
+     *
+     * @since 3.1.0
      */
     @Suppress("UNCHECKED_CAST")
     @JvmName("setAny")

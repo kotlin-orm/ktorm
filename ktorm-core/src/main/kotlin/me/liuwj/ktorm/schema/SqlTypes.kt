@@ -69,6 +69,8 @@ object IntSqlType : SqlType<Int>(Types.INTEGER, "int") {
 
 /**
  * Define a column typed of [ShortSqlType].
+ *
+ * @since 3.1.0
  */
 fun BaseTable<*>.short(name: String): Column<Short> {
     return registerColumn(name, ShortSqlType)
@@ -76,6 +78,8 @@ fun BaseTable<*>.short(name: String): Column<Short> {
 
 /**
  * [SqlType] implementation represents `smallint` SQL type.
+ *
+ * @since 3.1.0
  */
 object ShortSqlType : SqlType<Short>(Types.SMALLINT, "smallint") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Short) {
