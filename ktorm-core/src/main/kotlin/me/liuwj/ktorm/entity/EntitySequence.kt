@@ -28,6 +28,9 @@ import java.sql.ResultSet
 import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
+import kotlin.collections.LinkedHashMap
+import kotlin.collections.LinkedHashSet
 import kotlin.math.min
 
 /**
@@ -159,7 +162,8 @@ fun <E : Any, T : BaseTable<E>> Database.sequenceOf(table: T, withReferences: Bo
  * The operation is terminal.
  */
 fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C {
-    return asKotlinSequence().toCollection(destination)
+    for (element in this) destination += element
+    return destination
 }
 
 /**
@@ -168,7 +172,7 @@ fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(des
  * The operation is terminal.
  */
 fun <E : Any> EntitySequence<E, *>.toList(): List<E> {
-    return asKotlinSequence().toList()
+    return toCollection(ArrayList())
 }
 
 /**
@@ -177,7 +181,7 @@ fun <E : Any> EntitySequence<E, *>.toList(): List<E> {
  * The operation is terminal.
  */
 fun <E : Any> EntitySequence<E, *>.toMutableList(): MutableList<E> {
-    return asKotlinSequence().toMutableList()
+    return toCollection(ArrayList())
 }
 
 /**
@@ -188,7 +192,7 @@ fun <E : Any> EntitySequence<E, *>.toMutableList(): MutableList<E> {
  * The operation is terminal.
  */
 fun <E : Any> EntitySequence<E, *>.toSet(): Set<E> {
-    return asKotlinSequence().toSet()
+    return toCollection(LinkedHashSet())
 }
 
 /**
@@ -199,7 +203,7 @@ fun <E : Any> EntitySequence<E, *>.toSet(): Set<E> {
  * The operation is terminal.
  */
 fun <E : Any> EntitySequence<E, *>.toMutableSet(): MutableSet<E> {
-    return asKotlinSequence().toMutableSet()
+    return toCollection(LinkedHashSet())
 }
 
 /**
@@ -208,7 +212,7 @@ fun <E : Any> EntitySequence<E, *>.toMutableSet(): MutableSet<E> {
  * The operation is terminal.
  */
 fun <E : Any> EntitySequence<E, *>.toHashSet(): HashSet<E> {
-    return asKotlinSequence().toHashSet()
+    return toCollection(HashSet())
 }
 
 /**
@@ -217,7 +221,7 @@ fun <E : Any> EntitySequence<E, *>.toHashSet(): HashSet<E> {
  * The operation is terminal.
  */
 fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Any, E : Comparable<E> {
-    return asKotlinSequence().toSortedSet()
+    return toCollection(TreeSet())
 }
 
 /**
@@ -227,10 +231,8 @@ fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Any, E : Comp
  *
  * The operation is terminal.
  */
-fun <E> EntitySequence<E, *>.toSortedSet(
-    comparator: Comparator<in E>
-): SortedSet<E> where E : Any, E : Comparable<E> {
-    return asKotlinSequence().toSortedSet(comparator)
+fun <E> EntitySequence<E, *>.toSortedSet(comparator: Comparator<in E>): SortedSet<E> where E : Any, E : Comparable<E> {
+    return toCollection(TreeSet(comparator))
 }
 
 /**
@@ -439,10 +441,7 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMa
     destination: C,
     transform: (E) -> Iterable<R>
 ): C {
-    for (element in this) {
-        val list = transform(element)
-        destination.addAll(list)
-    }
+    for (element in this) destination += transform(element)
     return destination
 }
 
@@ -801,10 +800,8 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.averageBy(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V> EntitySequence<E, *>.associate(
-    transform: (E) -> Pair<K, V>
-): Map<K, V> {
-    return asKotlinSequence().associate(transform)
+inline fun <E : Any, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair<K, V>): Map<K, V> {
+    return associateTo(LinkedHashMap(), transform)
 }
 
 /**
@@ -817,10 +814,8 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.associate(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K> EntitySequence<E, *>.associateBy(
-    keySelector: (E) -> K
-): Map<K, E> {
-    return asKotlinSequence().associateBy(keySelector)
+inline fun <E : Any, K> EntitySequence<E, *>.associateBy(keySelector: (E) -> K): Map<K, E> {
+    return associateByTo(LinkedHashMap(), keySelector)
 }
 
 /**
@@ -837,7 +832,7 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.associateBy(
     keySelector: (E) -> K,
     valueTransform: (E) -> V
 ): Map<K, V> {
-    return asKotlinSequence().associateBy(keySelector, valueTransform)
+    return associateByTo(LinkedHashMap(), keySelector, valueTransform)
 }
 
 /**
@@ -850,10 +845,8 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.associateBy(
  *
  * The operation is terminal.
  */
-inline fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(
-    valueSelector: (K) -> V
-): Map<K, V> {
-    return asKotlinSequence().associateWith(valueSelector)
+inline fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(valueSelector: (K) -> V): Map<K, V> {
+    return associateWithTo(LinkedHashMap(), valueSelector)
 }
 
 /**
@@ -868,7 +861,8 @@ inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.asso
     destination: M,
     transform: (E) -> Pair<K, V>
 ): M {
-    return asKotlinSequence().associateTo(destination, transform)
+    for (element in this) destination += transform(element)
+    return destination
 }
 
 /**
@@ -883,7 +877,8 @@ inline fun <E : Any, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associa
     destination: M,
     keySelector: (E) -> K
 ): M {
-    return asKotlinSequence().associateByTo(destination, keySelector)
+    for (element in this) destination.put(keySelector(element), element)
+    return destination
 }
 
 /**
@@ -899,7 +894,8 @@ inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.asso
     keySelector: (E) -> K,
     valueTransform: (E) -> V
 ): M {
-    return asKotlinSequence().associateByTo(destination, keySelector, valueTransform)
+    for (element in this) destination.put(keySelector(element), valueTransform(element))
+    return destination
 }
 
 /**
@@ -914,7 +910,8 @@ inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.a
     destination: M,
     valueSelector: (K) -> V
 ): M {
-    return asKotlinSequence().associateWithTo(destination, valueSelector)
+    for (element in this) destination.put(element, valueSelector(element))
+    return destination
 }
 
 /**
@@ -929,13 +926,20 @@ inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.a
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
     try {
-        return drop(index).take(1).asKotlinSequence().firstOrNull()
+        @Suppress("UnconditionalJumpStatementInLoop")
+        for (element in this.drop(index).take(1)) return element
+        return null
     } catch (e: DialectFeatureNotSupportedException) {
         if (database.logger.isTraceEnabled()) {
             database.logger.trace("Pagination is not supported, retrieving all records instead: ", e)
         }
 
-        return asKotlinSequence().elementAtOrNull(index)
+        var count = 0
+        for (element in this) {
+            if (index == count++) return element
+        }
+
+        return null
     }
 }
 
@@ -1034,7 +1038,9 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(predicate: (T)
  * The operation is terminal.
  */
 fun <E : Any> EntitySequence<E, *>.lastOrNull(): E? {
-    return asKotlinSequence().lastOrNull()
+    var last: E? = null
+    for (element in this) last = element
+    return last
 }
 
 /**
@@ -1095,7 +1101,11 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.findLast(predicate: 
  * The operation is terminal.
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(): E? {
-    return asKotlinSequence().singleOrNull()
+    val iterator = iterator()
+    if (!iterator.hasNext()) return null
+
+    val single = iterator.next()
+    return if (iterator.hasNext()) null else single
 }
 
 /**
@@ -1116,7 +1126,12 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(
  * The operation is terminal.
  */
 fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(): E {
-    return asKotlinSequence().single()
+    val iterator = iterator()
+    if (!iterator.hasNext()) throw NoSuchElementException("Sequence is empty.")
+
+    val single = iterator.next()
+    if (iterator.hasNext()) throw IllegalArgumentException("Sequence has more than one element.")
+    return single
 }
 
 /**
@@ -1136,7 +1151,9 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(predicate: (T
  * The operation is terminal.
  */
 inline fun <E : Any, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
-    return asKotlinSequence().fold(initial, operation)
+    var accumulator = initial
+    for (element in this) accumulator = operation(accumulator, element)
+    return accumulator
 }
 
 /**
@@ -1149,7 +1166,10 @@ inline fun <E : Any, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R
  * The operation is terminal.
  */
 inline fun <E : Any, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: (index: Int, acc: R, E) -> R): R {
-    return asKotlinSequence().foldIndexed(initial, operation)
+    var index = 0
+    var accumulator = initial
+    for (element in this) accumulator = operation(index++, accumulator, element)
+    return accumulator
 }
 
 /**
@@ -1159,7 +1179,15 @@ inline fun <E : Any, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: 
  * The operation is terminal.
  */
 inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
-    return asKotlinSequence().reduce(operation)
+    val iterator = iterator()
+    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty sequence can't be reduced.")
+
+    var accumulator = iterator.next()
+    while (iterator.hasNext()) {
+        accumulator = operation(accumulator, iterator.next())
+    }
+
+    return accumulator
 }
 
 /**
@@ -1172,7 +1200,16 @@ inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E
  * The operation is terminal.
  */
 inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
-    return asKotlinSequence().reduceIndexed(operation)
+    val iterator = iterator()
+    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty sequence can't be reduced.")
+
+    var index = 1
+    var accumulator = iterator.next()
+    while (iterator.hasNext()) {
+        accumulator = operation(index++, accumulator, iterator.next())
+    }
+
+    return accumulator
 }
 
 /**
@@ -1203,7 +1240,7 @@ inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E)
  * @since 3.0.0
  */
 fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
-    return asKotlinSequence().withIndex()
+    return Sequence { IndexingIterator(iterator()) }
 }
 
 /**
@@ -1214,10 +1251,8 @@ fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K> EntitySequence<E, *>.groupBy(
-    keySelector: (E) -> K
-): Map<K, List<E>> {
-    return asKotlinSequence().groupBy(keySelector)
+inline fun <E : Any, K> EntitySequence<E, *>.groupBy(keySelector: (E) -> K): Map<K, List<E>> {
+    return groupByTo(LinkedHashMap(), keySelector)
 }
 
 /**
@@ -1233,7 +1268,7 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.groupBy(
     keySelector: (E) -> K,
     valueTransform: (E) -> V
 ): Map<K, List<V>> {
-    return asKotlinSequence().groupBy(keySelector, valueTransform)
+    return groupByTo(LinkedHashMap(), keySelector, valueTransform)
 }
 
 /**
@@ -1246,7 +1281,13 @@ inline fun <E : Any, K, M : MutableMap<in K, MutableList<E>>> EntitySequence<E, 
     destination: M,
     keySelector: (E) -> K
 ): M {
-    return asKotlinSequence().groupByTo(destination, keySelector)
+    for (element in this) {
+        val key = keySelector(element)
+        val list = destination.getOrPut(key) { ArrayList() }
+        list += element
+    }
+
+    return destination
 }
 
 /**
@@ -1261,7 +1302,13 @@ inline fun <E : Any, K, V, M : MutableMap<in K, MutableList<V>>> EntitySequence<
     keySelector: (E) -> K,
     valueTransform: (E) -> V
 ): M {
-    return asKotlinSequence().groupByTo(destination, keySelector, valueTransform)
+    for (element in this) {
+        val key = keySelector(element)
+        val list = destination.getOrPut(key) { ArrayList() }
+        list += valueTransform(element)
+    }
+
+    return destination
 }
 
 /**
@@ -1294,7 +1341,19 @@ fun <E : Any, A : Appendable> EntitySequence<E, *>.joinTo(
     truncated: CharSequence = "...",
     transform: ((E) -> CharSequence)? = null
 ): A {
-    return asKotlinSequence().joinTo(buffer, separator, prefix, postfix, limit, truncated, transform)
+    buffer.append(prefix)
+    var count = 0
+    for (element in this) {
+        if (++count > 1) buffer.append(separator)
+        if (limit < 0 || count <= limit) {
+            if (transform != null) buffer.append(transform(element))else buffer.append(element.toString())
+        } else {
+            buffer.append(truncated)
+            break
+        }
+    }
+    buffer.append(postfix)
+    return buffer
 }
 
 /**
@@ -1313,7 +1372,7 @@ fun <E : Any> EntitySequence<E, *>.joinToString(
     truncated: CharSequence = "...",
     transform: ((E) -> CharSequence)? = null
 ): String {
-    return asKotlinSequence().joinToString(separator, prefix, postfix, limit, truncated, transform)
+    return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
 
 /**
