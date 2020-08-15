@@ -17,6 +17,7 @@
 package me.liuwj.ktorm.support.sqlserver
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
 import me.liuwj.ktorm.database.SqlDialect
 import me.liuwj.ktorm.expression.*
 
@@ -36,12 +37,19 @@ open class SqlServerDialect : SqlDialect {
 open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
     : SqlFormatter(database, beautifySql, indentSize) {
 
+    override fun checkColumnName(name: String) {
+        val maxLength = database.maxColumnNameLength
+        if (maxLength > 0 && name.length > maxLength) {
+            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
+        }
+    }
+
     override fun visitQuery(expr: QueryExpression): QueryExpression {
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
         if (expr is SelectExpression && expr.forUpdate) {
-            throw IllegalStateException("SELECT FOR UPDATE is not supported while using offset & limit params.")
+            throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
         }
 
         if (expr.orderBy.isEmpty()) {
@@ -124,5 +132,9 @@ open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSi
         write(") ${"_t2".quoted} ")
         newLine(Indentation.SAME)
         writeKeyword("where _rownum >= $minRowNum ")
+    }
+
+    override fun writePagination(expr: QueryExpression) {
+        throw AssertionError("Never happen.")
     }
 }

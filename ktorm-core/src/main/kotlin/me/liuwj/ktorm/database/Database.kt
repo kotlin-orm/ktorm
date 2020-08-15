@@ -242,6 +242,15 @@ class Database(
     var storesLowerCaseQuotedIdentifiers: Boolean = false
         private set
 
+    /**
+     * The maximum number of characters this database allows for a column name. Zero means that there is no limit
+     * or the limit is not known.
+     *
+     * @since 3.1.0
+     */
+    var maxColumnNameLength: Int = 0
+        private set
+
     init {
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
         fun Result<Boolean>.orFalse() = getOrDefault(false)
@@ -263,6 +272,7 @@ class Database(
             storesMixedCaseQuotedIdentifiers = metadata.runCatching { storesMixedCaseQuotedIdentifiers() }.orFalse()
             storesUpperCaseQuotedIdentifiers = metadata.runCatching { storesUpperCaseQuotedIdentifiers() }.orFalse()
             storesLowerCaseQuotedIdentifiers = metadata.runCatching { storesLowerCaseQuotedIdentifiers() }.orFalse()
+            maxColumnNameLength = metadata.runCatching { maxColumnNameLength }.getOrDefault(0)
         }
 
         if (logger.isInfoEnabled()) {

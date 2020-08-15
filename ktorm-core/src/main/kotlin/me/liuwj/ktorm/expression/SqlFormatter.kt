@@ -30,7 +30,7 @@ import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
  * @property parameters return the SQL's execution parameters after the visit completes.
  */
 @Suppress("VariableNaming")
-open class SqlFormatter(
+abstract class SqlFormatter(
     val database: Database,
     val beautifySql: Boolean,
     val indentSize: Int
@@ -90,6 +90,8 @@ open class SqlFormatter(
             }
         }
     }
+
+    protected open fun checkColumnName(name: String) { }
 
     protected open fun shouldQuote(identifier: String): Boolean {
         if (database.alwaysQuoteIdentifiers) {
@@ -299,12 +301,14 @@ open class SqlFormatter(
             }
         }
 
+        checkColumnName(expr.name)
         write("${expr.name.quoted} ")
         return expr
     }
 
     override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
         if (expr.declaredName != null && expr.declaredName.isNotBlank()) {
+            checkColumnName(expr.declaredName)
             write("${expr.declaredName.quoted} ")
         } else if (expr.expression.removeBrackets) {
             visit(expr.expression)
@@ -327,8 +331,9 @@ open class SqlFormatter(
         val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
 
         if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
+            checkColumnName(expr.declaredName!!)
             writeKeyword("as ")
-            write("${expr.declaredName!!.quoted} ")
+            write("${expr.declaredName.quoted} ")
         }
 
         return expr
@@ -440,9 +445,7 @@ open class SqlFormatter(
         return expr
     }
 
-    protected open fun writePagination(expr: QueryExpression) {
-        throw DialectFeatureNotSupportedException("Pagination is not supported in Standard SQL.")
-    }
+    protected abstract fun writePagination(expr: QueryExpression)
 
     override fun visitJoin(expr: JoinExpression): JoinExpression {
         visitQuerySource(expr.left)
@@ -535,6 +538,7 @@ open class SqlFormatter(
         write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
+            checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
         writeKeyword(") values (")
@@ -549,6 +553,7 @@ open class SqlFormatter(
         write("${expr.table.name.quoted} (")
         for ((i, column) in expr.columns.withIndex()) {
             if (i > 0) write(", ")
+            checkColumnName(column.name)
             write(column.name.quoted)
         }
         write(") ")

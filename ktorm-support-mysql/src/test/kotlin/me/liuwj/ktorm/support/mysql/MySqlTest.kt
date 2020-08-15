@@ -371,4 +371,25 @@ class MySqlTest : BaseTest() {
         assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
         assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance"))
     }
+
+    @Test
+    fun testMaxColumnNameLength() {
+        val t = object : Table<Nothing>("t_long_name") {
+            val col = varchar("a".repeat(database.maxColumnNameLength))
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_long_name(${t.col.name} varchar(128))"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(t) {
+            set(it.col, "test")
+        }
+
+        val name = database.from(t).select(t.col).map { it[t.col] }.first()
+        assert(name == "test")
+    }
 }

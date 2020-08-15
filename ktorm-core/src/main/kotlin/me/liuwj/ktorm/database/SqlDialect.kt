@@ -17,6 +17,7 @@
 package me.liuwj.ktorm.database
 
 import me.liuwj.ktorm.expression.ArgumentExpression
+import me.liuwj.ktorm.expression.QueryExpression
 import me.liuwj.ktorm.expression.SqlFormatter
 import java.sql.Statement
 import java.util.ServiceLoader
@@ -48,7 +49,11 @@ interface SqlDialect {
      * @return a [SqlFormatter] object, generally typed of subclasses to support dialect-specific sql expressions.
      */
     fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
-        return SqlFormatter(database, beautifySql, indentSize)
+        return object : SqlFormatter(database, beautifySql, indentSize) {
+            override fun writePagination(expr: QueryExpression) {
+                throw DialectFeatureNotSupportedException("Pagination is not supported in Standard SQL.")
+            }
+        }
     }
 
     /**

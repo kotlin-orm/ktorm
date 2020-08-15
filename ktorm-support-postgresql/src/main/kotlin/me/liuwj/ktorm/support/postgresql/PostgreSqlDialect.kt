@@ -37,6 +37,13 @@ open class PostgreSqlDialect : SqlDialect {
 open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
     : SqlFormatter(database, beautifySql, indentSize) {
 
+    override fun checkColumnName(name: String) {
+        val maxLength = database.maxColumnNameLength
+        if (maxLength > 0 && name.length > maxLength) {
+            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
+        }
+    }
+
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
@@ -124,6 +131,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
+            checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
         writeKeyword(") values (")
@@ -132,6 +140,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
         writeKeyword(") on conflict (")
         for ((i, column) in expr.conflictTarget.withIndex()) {
             if (i > 0) write(", ")
+            checkColumnName(column.name)
             write(column.name.quoted)
         }
         writeKeyword(") do update set ")
@@ -140,6 +149,7 @@ open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentS
                 removeLastBlank()
                 write(", ")
             }
+            checkColumnName(assignment.column.name)
             write("${assignment.column.name.quoted} ")
             write("= ")
             visit(assignment.expression)

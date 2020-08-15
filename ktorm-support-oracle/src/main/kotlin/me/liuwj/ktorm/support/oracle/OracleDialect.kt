@@ -17,6 +17,7 @@
 package me.liuwj.ktorm.support.oracle
 
 import me.liuwj.ktorm.database.Database
+import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
 import me.liuwj.ktorm.database.SqlDialect
 import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.IntSqlType
@@ -37,6 +38,13 @@ open class OracleDialect : SqlDialect {
 open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
     : SqlFormatter(database, beautifySql, indentSize) {
 
+    override fun checkColumnName(name: String) {
+        val maxLength = database.maxColumnNameLength
+        if (maxLength > 0 && name.length > maxLength) {
+            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
+        }
+    }
+
     override fun shouldQuote(identifier: String): Boolean {
         // Oracle doesn't support underscores as the first character for unquoted identifiers.
         return identifier.startsWith('_') || super.shouldQuote(identifier)
@@ -47,7 +55,7 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
             return super.visitQuery(expr)
         }
         if (expr is SelectExpression && expr.forUpdate) {
-            throw IllegalStateException("SELECT FOR UPDATE is not supported while using offset & limit params.")
+            throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
         }
 
         val offset = expr.offset ?: 0
@@ -86,5 +94,9 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         _parameters += ArgumentExpression(minRowNum, IntSqlType)
 
         return expr
+    }
+
+    override fun writePagination(expr: QueryExpression) {
+        throw AssertionError("Never happen.")
     }
 }

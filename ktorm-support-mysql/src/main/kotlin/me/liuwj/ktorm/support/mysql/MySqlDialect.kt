@@ -78,6 +78,7 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
+            checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
         writeKeyword(") values ")
@@ -96,6 +97,7 @@ open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: 
         write("${expr.table.name.quoted} (")
         for ((i, assignment) in expr.assignments[0].withIndex()) {
             if (i > 0) write(", ")
+            checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
         writeKeyword(") values ")
