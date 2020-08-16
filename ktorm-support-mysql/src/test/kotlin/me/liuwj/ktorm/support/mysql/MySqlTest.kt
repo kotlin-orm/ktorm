@@ -10,7 +10,6 @@ import me.liuwj.ktorm.logging.ConsoleLogger
 import me.liuwj.ktorm.logging.LogLevel
 import me.liuwj.ktorm.schema.Table
 import me.liuwj.ktorm.schema.int
-import me.liuwj.ktorm.schema.typeRef
 import me.liuwj.ktorm.schema.varchar
 import org.junit.ClassRule
 import org.junit.Test
@@ -296,8 +295,8 @@ class MySqlTest : BaseTest() {
     @Test
     fun testJson() {
         val t = object : Table<Nothing>("t_json") {
-            val obj = json("obj", typeRef<Employee>())
-            val arr = json("arr", typeRef<List<Int>>())
+            val obj = json<Employee>("obj")
+            val arr = json<List<Int>>("arr")
         }
 
         database.useConnection { conn ->

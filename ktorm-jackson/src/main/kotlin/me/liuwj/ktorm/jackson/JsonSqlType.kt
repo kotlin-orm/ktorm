@@ -20,10 +20,7 @@ import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.SqlType
-import me.liuwj.ktorm.schema.TypeReference
+import me.liuwj.ktorm.schema.*
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
@@ -41,6 +38,10 @@ val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModules(KtormModul
  * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
  * @return the registered column.
  */
+@Deprecated(
+    message = "This function will be removed in the future. Please use json<C>(name, mapper) instead.",
+    replaceWith = ReplaceWith("json<C>(name, mapper)")
+)
 fun <C : Any> BaseTable<*>.json(
     name: String,
     typeRef: TypeReference<C>,
@@ -50,10 +51,22 @@ fun <C : Any> BaseTable<*>.json(
 }
 
 /**
+ * Define a column typed of [JsonSqlType].
+ *
+ * @param name the column's name.
+ * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
+ * @return the registered column.
+ */
+inline fun <reified C : Any> BaseTable<*>.json(name: String, mapper: ObjectMapper = sharedObjectMapper): Column<C> {
+    val typeRef = typeRef<C>()
+    return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeRef.referencedType)))
+}
+
+/**
  * [SqlType] implementation that provides JSON data type support via Jackson framework.
  *
  * @property objectMapper the object mapper used to serialize column values to JSON strings and deserialize them.
- * @property javaType the generic type infomation represented as Jackson's [JavaType].
+ * @property javaType the generic type information represented as Jackson's [JavaType].
  */
 class JsonSqlType<T : Any>(
     val objectMapper: ObjectMapper,

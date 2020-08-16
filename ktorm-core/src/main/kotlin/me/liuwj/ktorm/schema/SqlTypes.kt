@@ -478,8 +478,22 @@ object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
  * @return the registered column.
  */
 @Suppress("UNCHECKED_CAST")
+@Deprecated(
+    message = "This function will be removed in the future. Please use enum<C>(name) instead.",
+    replaceWith = ReplaceWith("enum<C>(name)")
+)
 fun <C : Enum<C>> BaseTable<*>.enum(name: String, typeRef: TypeReference<C>): Column<C> {
     return registerColumn(name, EnumSqlType(typeRef.referencedType as Class<C>))
+}
+
+/**
+ * Define a column typed of [EnumSqlType].
+ *
+ * @param name the column's name.
+ * @return the registered column.
+ */
+inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<C> {
+    return registerColumn(name, EnumSqlType(C::class.java))
 }
 
 /**
