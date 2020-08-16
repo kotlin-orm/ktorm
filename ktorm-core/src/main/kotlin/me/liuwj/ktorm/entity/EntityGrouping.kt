@@ -19,6 +19,9 @@ package me.liuwj.ktorm.entity
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.schema.BaseTable
 import me.liuwj.ktorm.schema.ColumnDeclaring
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.LinkedHashMap
 
 /**
  * Wraps an [EntitySequence] with a [keySelector] function, which can be applied to each record to get its key,
@@ -44,7 +47,8 @@ data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
      * elements in the source sequence when being iterated.
      */
     fun asKotlinGrouping() = object : Grouping<E, K?> {
-        private val allEntities = LinkedHashMap<E, K?>()
+        private val allEntities = ArrayList<E>()
+        private val allEntitiesWithKeys = IdentityHashMap<E, K?>()
 
         init {
             val keyColumn = keySelector(sequence.sourceTable)
@@ -55,16 +59,17 @@ data class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
             for (row in Query(sequence.database, expr)) {
                 val entity = sequence.sourceTable.createEntity(row)
                 val groupKey = keyColumn.sqlType.getResult(row, expr.columns.size)
-                allEntities[entity] = groupKey
+                allEntities += entity
+                allEntitiesWithKeys[entity] = groupKey
             }
         }
 
         override fun sourceIterator(): Iterator<E> {
-            return allEntities.keys.iterator()
+            return allEntities.iterator()
         }
 
         override fun keyOf(element: E): K? {
-            return allEntities[element]
+            return allEntitiesWithKeys[element]
         }
     }
 }
@@ -299,7 +304,7 @@ inline fun <E : Any, T : BaseTable<E>, K, M> EntityGrouping<E, T, K>.eachAverage
 inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.aggregate(
     operation: (key: K?, accumulator: R?, element: E, first: Boolean) -> R
 ): Map<K?, R> {
-    return asKotlinGrouping().aggregate(operation)
+    return aggregateTo(LinkedHashMap(), operation)
 }
 
 /**
@@ -313,7 +318,15 @@ inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, 
     destination: M,
     operation: (key: K?, accumulator: R?, element: E, first: Boolean) -> R
 ): M {
-    return asKotlinGrouping().aggregateTo(destination, operation)
+    val grouping = asKotlinGrouping()
+
+    for (element in grouping.sourceIterator()) {
+        val key = grouping.keyOf(element)
+        val accumulator = destination[key]
+        destination[key] = operation(key, accumulator, element, accumulator == null && !destination.containsKey(key))
+    }
+
+    return destination
 }
 
 /**
@@ -327,7 +340,7 @@ inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.fold(
     initialValueSelector: (key: K?, element: E) -> R,
     operation: (key: K?, accumulator: R, element: E) -> R
 ): Map<K?, R> {
-    return asKotlinGrouping().fold(initialValueSelector, operation)
+    return foldTo(LinkedHashMap(), initialValueSelector, operation)
 }
 
 /**
@@ -337,12 +350,16 @@ inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.fold(
  *
  * This function is delegated to [Grouping.foldTo], more details can be found in its documentation.
  */
+@Suppress("UNCHECKED_CAST")
 inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.foldTo(
     destination: M,
     initialValueSelector: (key: K?, element: E) -> R,
     operation: (key: K?, accumulator: R, element: E) -> R
 ): M {
-    return asKotlinGrouping().foldTo(destination, initialValueSelector, operation)
+    return aggregateTo(destination) { key, accumulator, element, first ->
+        val acc = if (first) initialValueSelector(key, element) else accumulator as R
+        operation(key, acc, element)
+    }
 }
 
 /**
@@ -356,7 +373,7 @@ inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.fold(
     initialValue: R,
     operation: (accumulator: R, element: E) -> R
 ): Map<K?, R> {
-    return asKotlinGrouping().fold(initialValue, operation)
+    return foldTo(LinkedHashMap(), initialValue, operation)
 }
 
 /**
@@ -366,12 +383,16 @@ inline fun <E : Any, K : Any, R> EntityGrouping<E, *, K>.fold(
  *
  * This function is delegated to [Grouping.foldTo], more details can be found in its documentation.
  */
+@Suppress("UNCHECKED_CAST")
 inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, K>.foldTo(
     destination: M,
     initialValue: R,
     operation: (accumulator: R, element: E) -> R
 ): M {
-    return asKotlinGrouping().foldTo(destination, initialValue, operation)
+    return aggregateTo(destination) { _, accumulator, element, first ->
+        val acc = if (first) initialValue else accumulator as R
+        operation(acc, element)
+    }
 }
 
 /**
@@ -385,7 +406,7 @@ inline fun <E : Any, K : Any, R, M : MutableMap<in K?, R>> EntityGrouping<E, *, 
 inline fun <E : Any, K : Any> EntityGrouping<E, *, K>.reduce(
     operation: (key: K?, accumulator: E, element: E) -> E
 ): Map<K?, E> {
-    return asKotlinGrouping().reduce(operation)
+    return reduceTo(LinkedHashMap(), operation)
 }
 
 /**
@@ -400,5 +421,7 @@ inline fun <E : Any, K : Any, M : MutableMap<in K?, E>> EntityGrouping<E, *, K>.
     destination: M,
     operation: (key: K?, accumulator: E, element: E) -> E
 ): M {
-    return asKotlinGrouping().reduceTo(destination, operation)
+    return aggregateTo(destination) { key, accumulator, element, first ->
+        if (first) element else operation(key, accumulator as E, element)
+    }
 }
