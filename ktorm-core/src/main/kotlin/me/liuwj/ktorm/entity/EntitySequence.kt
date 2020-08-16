@@ -1346,7 +1346,7 @@ fun <E : Any, A : Appendable> EntitySequence<E, *>.joinTo(
     for (element in this) {
         if (++count > 1) buffer.append(separator)
         if (limit < 0 || count <= limit) {
-            if (transform != null) buffer.append(transform(element))else buffer.append(element.toString())
+            if (transform != null) buffer.append(transform(element)) else buffer.append(element.toString())
         } else {
             buffer.append(truncated)
             break
