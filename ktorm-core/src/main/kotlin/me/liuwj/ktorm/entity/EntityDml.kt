@@ -22,7 +22,8 @@ import me.liuwj.ktorm.expression.*
 import me.liuwj.ktorm.schema.*
 
 /**
- * Insert the given entity into this sequence and return the affected record number.
+ * Insert the given entity into this sequence and return the affected record number. Only non-null properties
+ * are inserted.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
  * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
@@ -30,6 +31,10 @@ import me.liuwj.ktorm.schema.*
  * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
  * into the database, and no keys generated.
  *
+ * Note that after calling this function, the [entity] will **be associated with the current table**.
+ *
+ * @see Entity.flushChanges
+ * @see Entity.delete
  * @since 2.7
  */
 @Suppress("UNCHECKED_CAST")
@@ -37,7 +42,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
     checkIfSequenceModified()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
-    val assignments = sourceTable.findInsertColumns(entity).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = entity.findInsertColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
 
     val expression = AliasRemover.visit(
         expr = InsertExpression(
@@ -84,37 +89,40 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
     }
 }
 
-private fun Table<*>.findInsertColumns(entity: Entity<*>): Map<Column<*>, Any?> {
-    val implementation = entity.implementation
-    val assignments = LinkedHashMap<Column<*>, Any?>()
+/**
+ * Update the non-null properties of the given entity to the database and return the affected record number.
+ *
+ * Note that after calling this function, the [entity] will **be associated with the current table**.
+ *
+ * @see Entity.flushChanges
+ * @see Entity.delete
+ * @since 3.1.0
+ */
+@Suppress("UNCHECKED_CAST")
+fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E): Int {
+    checkIfSequenceModified()
+    entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
-    for (column in columns) {
-        if (column.binding != null) {
-            val value = implementation.getColumnValue(column.binding)
-            if (value != null) {
-                assignments[column] = value
-            }
-        }
-    }
+    val assignments = entity.findUpdateColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
 
-    return assignments
-}
-
-private fun EntitySequence<*, *>.checkIfSequenceModified() {
-    val isModified = expression.where != null
-        || expression.groupBy.isNotEmpty()
-        || expression.having != null
-        || expression.isDistinct
-        || expression.orderBy.isNotEmpty()
-        || expression.offset != null
-        || expression.limit != null
-
-    if (isModified) {
-        throw UnsupportedOperationException(
-            "Entity manipulation functions are not supported by this sequence object. " +
-            "Please call on the origin sequence returned from database.sequenceOf(table)"
+    val expression = AliasRemover.visit(
+        expr = UpdateExpression(
+            table = sourceTable.asExpression(),
+            assignments = assignments.map { (col, argument) ->
+                ColumnAssignmentExpression(
+                    column = col.asExpression() as ColumnExpression<Any>,
+                    expression = ArgumentExpression(argument, col.sqlType as SqlType<Any>)
+                )
+            },
+            where = entity.implementation.constructIdentityCondition(sourceTable)
         )
-    }
+    )
+
+    val effects = database.executeUpdate(expression)
+    entity.implementation.fromDatabase = database
+    entity.implementation.fromTable = sourceTable
+    entity.implementation.doDiscardChanges()
+    return effects
 }
 
 /**
@@ -158,7 +166,7 @@ internal fun EntityImplementation.doFlushChanges(): Int {
                     expression = ArgumentExpression(argument, col.sqlType as SqlType<Any>)
                 )
             },
-            where = constructIdentityCondition()
+            where = constructIdentityCondition(fromTable)
         )
     )
 
@@ -166,28 +174,67 @@ internal fun EntityImplementation.doFlushChanges(): Int {
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun EntityImplementation.constructIdentityCondition(): ScalarExpression<Boolean> {
+internal fun EntityImplementation.doDelete(): Int {
+    check(parent == null) { "The entity is not associated with any database yet." }
+
+    val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
     val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
 
-    val primaryKeys = fromTable.primaryKeys
-    if (primaryKeys.isEmpty()) {
-        error("Table '$fromTable' doesn't have a primary key.")
-    }
+    val expression = AliasRemover.visit(
+        expr = DeleteExpression(
+            table = fromTable.asExpression(),
+            where = constructIdentityCondition(fromTable)
+        )
+    )
 
-    val conditions = primaryKeys.map { pk ->
-        if (pk.binding == null) {
-            error("Primary column $pk has no bindings to any entity field.")
-        }
+    return fromDatabase.executeUpdate(expression)
+}
 
-        BinaryExpression(
-            type = BinaryExpressionType.EQUAL,
-            left = pk.asExpression(),
-            right = ArgumentExpression(getColumnValue(pk.binding), pk.sqlType as SqlType<Any>),
-            sqlType = BooleanSqlType
+private fun EntitySequence<*, *>.checkIfSequenceModified() {
+    val isModified = expression.where != null
+        || expression.groupBy.isNotEmpty()
+        || expression.having != null
+        || expression.isDistinct
+        || expression.orderBy.isNotEmpty()
+        || expression.offset != null
+        || expression.limit != null
+
+    if (isModified) {
+        throw UnsupportedOperationException(
+            "Entity manipulation functions are not supported by this sequence object. " +
+                "Please call on the origin sequence returned from database.sequenceOf(table)"
         )
     }
+}
 
-    return conditions.combineConditions().asExpression()
+private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
+    val assignments = LinkedHashMap<Column<*>, Any?>()
+
+    for (column in table.columns) {
+        if (column.binding != null) {
+            val value = implementation.getColumnValue(column.binding)
+            if (value != null) {
+                assignments[column] = value
+            }
+        }
+    }
+
+    return assignments
+}
+
+private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
+    val assignments = LinkedHashMap<Column<*>, Any?>()
+
+    for (column in table.columns - table.primaryKeys) {
+        if (column.binding != null) {
+            val value = implementation.getColumnValue(column.binding)
+            if (value != null) {
+                assignments[column] = value
+            }
+        }
+    }
+
+    return assignments
 }
 
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
@@ -312,18 +359,26 @@ internal fun Entity<*>.clearChangesRecursively() {
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun EntityImplementation.doDelete(): Int {
-    check(parent == null) { "The entity is not associated with any database yet." }
+private fun EntityImplementation.constructIdentityCondition(fromTable: Table<*>): ScalarExpression<Boolean> {
+    val primaryKeys = fromTable.primaryKeys
+    if (primaryKeys.isEmpty()) {
+        error("Table '$fromTable' doesn't have a primary key.")
+    }
 
-    val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
-    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
+    val conditions = primaryKeys.map { pk ->
+        if (pk.binding == null) {
+            error("Primary column $pk has no bindings to any entity field.")
+        }
 
-    val expression = AliasRemover.visit(
-        expr = DeleteExpression(
-            table = fromTable.asExpression(),
-            where = constructIdentityCondition()
+        val pkValue = getColumnValue(pk.binding) ?: error("The value of primary key column $pk is null.")
+
+        BinaryExpression(
+            type = BinaryExpressionType.EQUAL,
+            left = pk.asExpression(),
+            right = ArgumentExpression(pkValue, pk.sqlType as SqlType<Any>),
+            sqlType = BooleanSqlType
         )
-    )
+    }
 
-    return fromDatabase.executeUpdate(expression)
+    return conditions.combineConditions().asExpression()
 }

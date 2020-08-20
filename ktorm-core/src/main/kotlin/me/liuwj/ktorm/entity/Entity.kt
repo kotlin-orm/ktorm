@@ -55,7 +55,7 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * ### Getting and Setting Properties
  *
- * Entity objects in Ktorm are proxies, that's why Ktorm can intercepts all the invocations on entities and listen
+ * Entity objects in Ktorm are proxies, that's why Ktorm can intercept all the invocations on entities and listen
  * the status changes of them. Behind those entity objects, there is a value table that holds all the values of the
  * properties for each entity. Any operation of getting or setting a property is actually operating the underlying
  * value table. However, what if the value doesn't exist while we are getting a property? Ktorm defines a set of
@@ -153,12 +153,15 @@ interface Entity<E : Entity<E>> : Serializable {
      * otherwise Ktorm doesn’t know how to identify entity objects, then throws an exception.
      *
      * 2. The entity object calling this function must **be associated with a table** first. In Ktorm’s implementation,
-     * every entity object holds a reference `fromTable`, that means this object is associated with the table or
+     * every entity object holds a reference `fromTable`, that means this object is associated with the table or was
      * obtained from it. For entity objects obtained by sequence APIs, their `fromTable` references point to the current
      * table object they are obtained from. But for entity objects created by [Entity.create] or [Entity.Factory], their
-     * `fromTable` references are `null` initially, so we can not call this function on them. But after we insert them
-     * into the database via the [add] function, Ktorm will modify their `fromTable` to the current table object, so we
-     * can call this function on them after the insertion.
+     * `fromTable` references are `null` initially, so we can not call [flushChanges] on them. But once we use them with
+     * [add] or [update] function of entity sequences, Ktorm will modify their `fromTable` to the current table object,
+     * then we can call [flushChanges] on them afterwards.
+     *
+     * @see add
+     * @see update
      */
     @Throws(SQLException::class)
     fun flushChanges(): Int
@@ -180,6 +183,10 @@ interface Entity<E : Entity<E>> : Serializable {
      * otherwise, Ktorm doesn’t know how to identify entity objects.
      *
      * 2. The entity object calling this function must **be associated with a table** first.
+     *
+     * @see add
+     * @see update
+     * @see flushChanges
      */
     @Throws(SQLException::class)
     fun delete(): Int

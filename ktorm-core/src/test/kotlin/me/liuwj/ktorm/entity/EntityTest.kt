@@ -148,16 +148,33 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testUpdate() {
+        var employee = Employee()
+        employee.id = 2
+        employee.job = "engineer"
+        employee.salary = 100
+        employee.manager = null
+        database.employees.update(employee)
+
+        employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
+        assert(employee.job == "engineer")
+        assert(employee.salary == 100L)
+        assert(employee.manager?.id == 1)
+    }
+
+    @Test
     fun testFlushChanges() {
         var employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         employee.job = "engineer"
         employee.salary = 100
+        employee.manager = null
         employee.flushChanges()
         employee.flushChanges()
 
         employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
         assert(employee.job == "engineer")
         assert(employee.salary == 100L)
+        assert(employee.manager == null)
     }
 
     @Test
