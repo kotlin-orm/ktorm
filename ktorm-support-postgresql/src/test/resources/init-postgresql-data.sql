@@ -23,6 +23,12 @@ create table t_metadata(
   numbers text[]
 );
 
+create type mood as enum ('SAD', 'HAPPY');
+create table t_enum(
+   id serial primary key,
+   current_mood mood
+);
+
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
 insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');
 
@@ -38,3 +44,6 @@ values ('penny', 'assistant', 3, '2019-01-01', 100, 2);
 
 insert into t_metadata(attrs, numbers)
 values ('a=>1, b=>2, c=>NULL'::hstore, array['a', 'b', 'c']);
+
+insert into t_enum(current_mood)
+values ('HAPPY')

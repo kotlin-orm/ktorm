@@ -403,5 +403,34 @@ class PostgreSqlTest : BaseTest() {
             println(e.message)
             assert("too long" in e.message!!)
         }
+
+    }
+
+    enum class Mood {
+        HAPPY,
+        SAD
+    }
+
+    object TableWithEnum : Table<Nothing>("t_enum") {
+        val id = int("id").primaryKey()
+        val current_mood = pgEnum<Mood>("current_mood")
+    }
+
+    @Test
+    fun testCanParseEnum() {
+        val currentMood = database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+
+        assertThat(currentMood, equalTo(Mood.HAPPY))
+    }
+
+    @Test
+    fun testCanSetEnum() {
+        database.insert(TableWithEnum) {
+            set(it.current_mood,Mood.SAD)
+        }
+
+        val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
+
+        assertThat(count, equalTo(1))
     }
 }
