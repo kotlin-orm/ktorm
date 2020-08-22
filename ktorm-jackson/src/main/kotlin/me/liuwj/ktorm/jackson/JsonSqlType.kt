@@ -58,8 +58,7 @@ fun <C : Any> BaseTable<*>.json(
  * @return the registered column.
  */
 inline fun <reified C : Any> BaseTable<*>.json(name: String, mapper: ObjectMapper = sharedObjectMapper): Column<C> {
-    val typeRef = typeRef<C>()
-    return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeRef.referencedType)))
+    return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeOf<C>())))
 }
 
 /**
