@@ -34,8 +34,11 @@ open class PostgreSqlDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
  */
-open class PostgreSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-    : SqlFormatter(database, beautifySql, indentSize) {
+open class PostgreSqlFormatter(
+    database: Database,
+    beautifySql: Boolean,
+    indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun checkColumnName(name: String) {
         val maxLength = database.maxColumnNameLength

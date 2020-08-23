@@ -1,8 +1,8 @@
 
 dependencies {
-    compile project(":ktorm-core")
+    api project(":ktorm-core")
 
-    testCompile project(path: ":ktorm-core", configuration: "testOutput")
-    testCompile "org.postgresql:postgresql:42.2.5"
-    testCompile "org.testcontainers:postgresql:1.11.3"
+    testImplementation project(path: ":ktorm-core", configuration: "testOutput")
+    testImplementation "org.postgresql:postgresql:42.2.5"
+    testImplementation "org.testcontainers:postgresql:1.11.3"
 }

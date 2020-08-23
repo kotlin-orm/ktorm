@@ -52,6 +52,7 @@ internal class CachedRowSetMetadata(metadata: ResultSetMetaData) : ResultSetMeta
         )
     }
 
+    @Suppress("UnusedPrivateMember")
     private operator fun get(col: Int): ColumnInfo {
         if (col <= 0 || col > columns.size) {
             throw SQLException("Invalid column index: $col")

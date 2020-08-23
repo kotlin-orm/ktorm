@@ -59,8 +59,11 @@ open class SQLiteDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for SQLite, formatting SQL expressions as strings with their execution arguments.
  */
-open class SQLiteFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-    : SqlFormatter(database, beautifySql, indentSize) {
+open class SQLiteFormatter(
+    database: Database,
+    beautifySql: Boolean,
+    indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun writePagination(expr: QueryExpression) {
         newLine(Indentation.SAME)

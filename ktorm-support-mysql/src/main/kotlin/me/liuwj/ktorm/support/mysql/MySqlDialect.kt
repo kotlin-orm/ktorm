@@ -35,8 +35,11 @@ open class MySqlDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for MySQL, formatting SQL expressions as strings with their execution arguments.
  */
-open class MySqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-    : SqlFormatter(database, beautifySql, indentSize) {
+open class MySqlFormatter(
+    database: Database,
+    beautifySql: Boolean,
+    indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {

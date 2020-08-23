@@ -2,11 +2,11 @@
 buildscript {
     ext {
         kotlinVersion = "1.3.72"
-        detektVersion = "1.0.0-RC14"
+        detektVersion = "1.11.2"
     }
     repositories {
         jcenter()
-        maven { url "https://plugins.gradle.org/m2/" }
+        gradlePluginPortal()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
@@ -17,7 +17,7 @@ buildscript {
 
 allprojects {
     group = "me.liuwj.ktorm"
-    version = "3.0.0"
+    version = "3.1.0-SNAPSHOT"
 }
 
 subprojects { project ->
@@ -32,9 +32,9 @@ subprojects { project ->
     }
 
     dependencies {
-        compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
-        compile "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
-        testCompile "junit:junit:4.12"
+        api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+        api "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
+        testImplementation "junit:junit:4.12"
         detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
 
@@ -47,12 +47,12 @@ subprojects { project ->
     }
 
     task generateSourcesJar(type: Jar) {
-        classifier = "sources"
+        archiveClassifier = "sources"
         from sourceSets.main.allSource
     }
 
     task generateJavadoc(type: Jar) {
-        classifier = "javadoc"
+        archiveClassifier = "javadoc"
     }
 
     detekt {

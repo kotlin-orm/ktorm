@@ -35,8 +35,11 @@ open class OracleDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for Oracle, formatting SQL expressions as strings with their execution arguments.
  */
-open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-    : SqlFormatter(database, beautifySql, indentSize) {
+open class OracleFormatter(
+    database: Database,
+    beautifySql: Boolean,
+    indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun checkColumnName(name: String) {
         val maxLength = database.maxColumnNameLength

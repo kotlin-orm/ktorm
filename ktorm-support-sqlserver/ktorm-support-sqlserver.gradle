@@ -1,8 +1,8 @@
 
 dependencies {
-    compile project(":ktorm-core")
-    compile "com.microsoft.sqlserver:mssql-jdbc:7.2.2.jre8"
+    api project(":ktorm-core")
+    api "com.microsoft.sqlserver:mssql-jdbc:7.2.2.jre8"
 
-    testCompile project(path: ":ktorm-core", configuration: "testOutput")
-    testCompile "org.testcontainers:mssqlserver:1.11.3"
+    testImplementation project(path: ":ktorm-core", configuration: "testOutput")
+    testImplementation "org.testcontainers:mssqlserver:1.11.3"
 }

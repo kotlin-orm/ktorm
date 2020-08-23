@@ -34,8 +34,11 @@ open class SqlServerDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for SqlServer, formatting SQL expressions as strings with their execution arguments.
  */
-open class SqlServerFormatter(database: Database, beautifySql: Boolean, indentSize: Int)
-    : SqlFormatter(database, beautifySql, indentSize) {
+open class SqlServerFormatter(
+    database: Database,
+    beautifySql: Boolean,
+    indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun checkColumnName(name: String) {
         val maxLength = database.maxColumnNameLength
