@@ -11,7 +11,7 @@ dependencies {
 }
 
 configurations {
-    testOutput.extendsFrom(testCompile)
+    testOutput.extendsFrom(testImplementation)
 }
 
 task testJar(type: Jar, dependsOn: testClasses) {
