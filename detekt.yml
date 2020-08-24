@@ -242,7 +242,8 @@ formatting:
     active: true
     autoCorrect: false
   ParameterListWrapping:
-    active: true
+    # Temporarily disable this rule as it doesn't work after upgrading detekt. https://github.com/detekt/detekt/issues/2970
+    active: false
     autoCorrect: false
     indentSize: 4
   SpacingAroundColon:

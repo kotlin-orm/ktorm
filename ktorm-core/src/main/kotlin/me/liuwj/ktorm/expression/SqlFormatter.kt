@@ -64,7 +64,7 @@ abstract class SqlFormatter(
         check(_depth >= 0) { "Incorrect indent depth: $_depth" }
 
         if (beautifySql) {
-            _builder.appendln()
+            _builder.appendLine()
             _builder.append(" ".repeat(_depth * indentSize))
         }
     }
