@@ -50,23 +50,23 @@ open class OracleFormatter(database: Database, beautifySql: Boolean, indentSize:
         newLine(Indentation.SAME)
         write("from (")
         newLine(Indentation.INNER)
-        write("select _t.*, rownum _rn ")
+        write("select \"_t\".*, rownum \"_rn\" ")
         newLine(Indentation.SAME)
         write("from ")
 
         visitQuerySource(
             when (expr) {
-                is SelectExpression -> expr.copy(tableAlias = "_t", offset = null, limit = null)
-                is UnionExpression -> expr.copy(tableAlias = "_t", offset = null, limit = null)
+                is SelectExpression -> expr.copy(tableAlias = null, offset = null, limit = null)
+                is UnionExpression -> expr.copy(tableAlias = null, offset = null, limit = null)
             }
         )
-
+        write("\"_t\" ")
         newLine(Indentation.SAME)
         write("where rownum <= ?")
         newLine(Indentation.OUTER)
         write(") ")
         newLine(Indentation.SAME)
-        write("where _rn >= ? ")
+        write("where \"_rn\" >= ? ")
 
         _parameters += ArgumentExpression(maxRowNum, IntSqlType)
         _parameters += ArgumentExpression(minRowNum, IntSqlType)
