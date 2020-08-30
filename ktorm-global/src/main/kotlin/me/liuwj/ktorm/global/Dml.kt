@@ -41,7 +41,7 @@ import java.sql.Statement
  * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
  * @return the effected row count.
  */
-fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
+public fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.update(this, block)
 }
 
@@ -70,7 +70,7 @@ fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int 
  * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
-fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
+public fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
     return Database.global.batchUpdate(this, block)
 }
 
@@ -93,7 +93,7 @@ fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() ->
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the effected row count.
  */
-fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
+public fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
     return Database.global.insert(this, block)
 }
 
@@ -130,7 +130,7 @@ fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
  * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
-fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
+public fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
     return Database.global.batchInsert(this, block)
 }
 
@@ -156,20 +156,20 @@ fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() ->
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the first auto-generated key.
  */
-fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
+public fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     return Database.global.insertAndGenerateKey(this, block)
 }
 
 /**
  * Delete the records in the table that matches the given [predicate].
  */
-fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
+public fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return Database.global.delete(this, predicate)
 }
 
 /**
  * Delete all the records in the table.
  */
-fun BaseTable<*>.deleteAll(): Int {
+public fun BaseTable<*>.deleteAll(): Int {
     return Database.global.deleteAll(this)
 }

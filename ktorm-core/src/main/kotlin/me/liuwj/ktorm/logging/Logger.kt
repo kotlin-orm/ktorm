@@ -42,64 +42,64 @@ import me.liuwj.ktorm.logging.LogLevel.*
  * - Besides, start-up messages are printed at [INFO] level, warnings are printed at [WARN] level, and exceptions are
  * printed at [ERROR] level. These levels should be enabled by default.
  */
-interface Logger {
+public interface Logger {
 
     /**
      * Check if the logger instance enabled for the [TRACE] level.
      */
-    fun isTraceEnabled(): Boolean
+    public fun isTraceEnabled(): Boolean
 
     /**
      * Log a message at the [TRACE] level.
      */
-    fun trace(msg: String, e: Throwable? = null)
+    public fun trace(msg: String, e: Throwable? = null)
 
     /**
      * Check if the logger instance enabled for the [DEBUG] level.
      */
-    fun isDebugEnabled(): Boolean
+    public fun isDebugEnabled(): Boolean
 
     /**
      * Log a message at the [DEBUG] level.
      */
-    fun debug(msg: String, e: Throwable? = null)
+    public fun debug(msg: String, e: Throwable? = null)
 
     /**
      * Check if the logger instance enabled for the [INFO] level.
      */
-    fun isInfoEnabled(): Boolean
+    public fun isInfoEnabled(): Boolean
 
     /**
      * Log a message at the [INFO] level.
      */
-    fun info(msg: String, e: Throwable? = null)
+    public fun info(msg: String, e: Throwable? = null)
 
     /**
      * Check if the logger instance enabled for the [WARN] level.
      */
-    fun isWarnEnabled(): Boolean
+    public fun isWarnEnabled(): Boolean
 
     /**
      * Log a message at the [WARN] level.
      */
-    fun warn(msg: String, e: Throwable? = null)
+    public fun warn(msg: String, e: Throwable? = null)
 
     /**
      * Check if the logger instance enabled for the [ERROR] level.
      */
-    fun isErrorEnabled(): Boolean
+    public fun isErrorEnabled(): Boolean
 
     /**
      * Log a message at the [ERROR] level.
      */
-    fun error(msg: String, e: Throwable? = null)
+    public fun error(msg: String, e: Throwable? = null)
 }
 
 /**
  * Enum class defining logging levels in a certain order. While [TRACE] is the least serious
  * and [ERROR] is the most serials.
  */
-enum class LogLevel {
+public enum class LogLevel {
 
     /**
      * TRACE is a log level providing the most detailed tracing information.
@@ -130,7 +130,7 @@ enum class LogLevel {
 /**
  * Auto detect a logger implementation.
  */
-fun detectLoggerImplementation(): Logger {
+public fun detectLoggerImplementation(): Logger {
     val loggerName = "me.liuwj.ktorm.database"
     var result: Logger? = null
 

@@ -27,17 +27,17 @@ import java.sql.Connection
  * Typically, transactions are used by calling the [Database.useTransaction] function or
  * Spring's [Transactional] annotation if the Spring support is enabled.
  */
-interface TransactionManager {
+public interface TransactionManager {
 
     /**
      * The default transaction isolation.
      */
-    val defaultIsolation: TransactionIsolation
+    public val defaultIsolation: TransactionIsolation
 
     /**
      * The opened transaction of the current thread, null if there is no transaction opened.
      */
-    val currentTransaction: Transaction?
+    public val currentTransaction: Transaction?
 
     /**
      * Open a new transaction for the current thread using the specific isolation if there is no transaction opened.
@@ -46,12 +46,12 @@ interface TransactionManager {
      * @return the new-created transaction.
      * @throws [IllegalStateException] if there is already a transaction opened.
      */
-    fun newTransaction(isolation: TransactionIsolation = defaultIsolation): Transaction
+    public fun newTransaction(isolation: TransactionIsolation = defaultIsolation): Transaction
 
     /**
      * Create a native JDBC connection to the database.
      */
-    fun newConnection(): Connection
+    public fun newConnection(): Connection
 }
 
 /**
@@ -61,22 +61,22 @@ interface TransactionManager {
  * to programmatically trigger a commit or rollback (instead of implicit commits and rollbacks
  * of using [Database.useTransaction]).
  */
-interface Transaction : Closeable {
+public interface Transaction : Closeable {
 
     /**
      * The backend JDBC connection of this transaction.
      */
-    val connection: Connection
+    public val connection: Connection
 
     /**
      * Commit the transaction.
      */
-    fun commit()
+    public fun commit()
 
     /**
      * Rollback the transaction.
      */
-    fun rollback()
+    public fun rollback()
 
     /**
      * Close the transaction and release its underlying resources (eg. the backend connection).
@@ -90,19 +90,19 @@ interface Transaction : Closeable {
  *
  * @property level the `TRANSACTION_XXX` constant values defined in the [Connection] interface.
  */
-enum class TransactionIsolation(val level: Int) {
+public enum class TransactionIsolation(public val level: Int) {
     NONE(Connection.TRANSACTION_NONE),
     READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED),
     READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),
     REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ),
     SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE);
 
-    companion object {
+    public companion object {
 
         /**
          * Find an enum value by the specific isolation level.
          */
-        fun valueOf(level: Int): TransactionIsolation {
+        public fun valueOf(level: Int): TransactionIsolation {
             return values().first { it.level == level }
         }
     }

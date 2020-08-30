@@ -23,69 +23,69 @@ import me.liuwj.ktorm.schema.*
 /**
  * The min function, translated to `min(column)` in SQL.
  */
-fun <C : Comparable<C>> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
+public fun <C : Comparable<C>> min(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MIN, column.asExpression(), false, column.sqlType)
 }
 
 /**
  * The min function with distinct, translated to `min(distinct column)` in SQL.
  */
-fun <C : Comparable<C>> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+public fun <C : Comparable<C>> minDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MIN, column.asExpression(), true, column.sqlType)
 }
 
 /**
  * The max function, translated to `max(column)` in SQL.
  */
-fun <C : Comparable<C>> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
+public fun <C : Comparable<C>> max(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MAX, column.asExpression(), false, column.sqlType)
 }
 
 /**
  * The max function with distinct, translated to `max(distinct column)` in SQL.
  */
-fun <C : Comparable<C>> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+public fun <C : Comparable<C>> maxDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.MAX, column.asExpression(), true, column.sqlType)
 }
 
 /**
  * The avg function, translated to `avg(column)` in SQL.
  */
-fun <C : Number> avg(column: ColumnDeclaring<C>): AggregateExpression<Double> {
+public fun <C : Number> avg(column: ColumnDeclaring<C>): AggregateExpression<Double> {
     return AggregateExpression(AggregateType.AVG, column.asExpression(), false, DoubleSqlType)
 }
 
 /**
  * The avg function with distinct, translated to `avg(distinct column)` in SQL.
  */
-fun <C : Number> avgDistinct(column: ColumnDeclaring<C>): AggregateExpression<Double> {
+public fun <C : Number> avgDistinct(column: ColumnDeclaring<C>): AggregateExpression<Double> {
     return AggregateExpression(AggregateType.AVG, column.asExpression(), true, DoubleSqlType)
 }
 
 /**
  * The sum function, translated to `sum(column)` in SQL.
  */
-fun <C : Number> sum(column: ColumnDeclaring<C>): AggregateExpression<C> {
+public fun <C : Number> sum(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.SUM, column.asExpression(), false, column.sqlType)
 }
 
 /**
  * The sum function with distinct, translated to `sum(distinct column)` in SQL.
  */
-fun <C : Number> sumDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
+public fun <C : Number> sumDistinct(column: ColumnDeclaring<C>): AggregateExpression<C> {
     return AggregateExpression(AggregateType.SUM, column.asExpression(), true, column.sqlType)
 }
 
 /**
  * The count function, translated to `count(column)` in SQL.
  */
-fun count(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> {
+public fun count(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> {
     return AggregateExpression(AggregateType.COUNT, column?.asExpression(), false, IntSqlType)
 }
 
 /**
  * The count function with distinct, translated to `count(distinct column)` in SQL.
  */
-fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> {
+public fun countDistinct(column: ColumnDeclaring<*>? = null): AggregateExpression<Int> {
     return AggregateExpression(AggregateType.COUNT, column?.asExpression(), true, IntSqlType)
 }

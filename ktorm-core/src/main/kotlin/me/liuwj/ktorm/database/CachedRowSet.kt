@@ -50,7 +50,7 @@ import javax.sql.rowset.serial.*
  * @since 2.7
  */
 @Suppress("LargeClass", "MethodOverloading")
-open class CachedRowSet(rs: ResultSet) : ResultSet {
+public open class CachedRowSet(rs: ResultSet) : ResultSet {
     private val _typeMap = readTypeMap(rs)
     private val _metadata = readMetadata(rs)
     private val _values = readValues(rs)
@@ -62,7 +62,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
     /**
      * Return the number of rows in this row set.
      */
-    fun size(): Int {
+    public fun size(): Int {
         return _values.size
     }
 
@@ -70,7 +70,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.LocalDate] object in the Java programming language.
      */
-    fun getLocalDate(columnIndex: Int): LocalDate? {
+    public fun getLocalDate(columnIndex: Int): LocalDate? {
         return getDate(columnIndex)?.toLocalDate()
     }
 
@@ -78,7 +78,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.LocalDate] object in the Java programming language.
      */
-    fun getLocalDate(columnLabel: String): LocalDate? {
+    public fun getLocalDate(columnLabel: String): LocalDate? {
         return getLocalDate(findColumn(columnLabel))
     }
 
@@ -86,7 +86,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.LocalTime] object in the Java programming language.
      */
-    fun getLocalTime(columnIndex: Int): LocalTime? {
+    public fun getLocalTime(columnIndex: Int): LocalTime? {
         return getTime(columnIndex)?.toLocalTime()
     }
 
@@ -94,7 +94,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.LocalTime] object in the Java programming language.
      */
-    fun getLocalTime(columnLabel: String): LocalTime? {
+    public fun getLocalTime(columnLabel: String): LocalTime? {
         return getLocalTime(findColumn(columnLabel))
     }
 
@@ -102,7 +102,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.LocalDateTime] object in the Java programming language.
      */
-    fun getLocalDateTime(columnIndex: Int): LocalDateTime? {
+    public fun getLocalDateTime(columnIndex: Int): LocalDateTime? {
         return getTimestamp(columnIndex)?.toLocalDateTime()
     }
 
@@ -110,7 +110,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.LocalDateTime] object in the Java programming language.
      */
-    fun getLocalDateTime(columnLabel: String): LocalDateTime? {
+    public fun getLocalDateTime(columnLabel: String): LocalDateTime? {
         return getLocalDateTime(findColumn(columnLabel))
     }
 
@@ -118,7 +118,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.Instant] object in the Java programming language.
      */
-    fun getInstant(columnIndex: Int): Instant? {
+    public fun getInstant(columnIndex: Int): Instant? {
         return getTimestamp(columnIndex)?.toInstant()
     }
 
@@ -126,7 +126,7 @@ open class CachedRowSet(rs: ResultSet) : ResultSet {
      * Retrieve the value of the designated column in the current row of this row set object
      * as a [java.time.Instant] object in the Java programming language.
      */
-    fun getInstant(columnLabel: String): Instant? {
+    public fun getInstant(columnLabel: String): Instant? {
         return getInstant(findColumn(columnLabel))
     }
 

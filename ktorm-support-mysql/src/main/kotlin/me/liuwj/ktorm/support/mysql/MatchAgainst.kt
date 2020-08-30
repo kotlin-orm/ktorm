@@ -26,7 +26,7 @@ import me.liuwj.ktorm.schema.SqlType
  * Enum class represents search modifiers in MySQL `match ... against ...` expressions.
  * See https://dev.mysql.com/doc/refman/5.5/en/fulltext-search.html
  */
-enum class SearchModifier(private val value: String) {
+public enum class SearchModifier(private val value: String) {
 
     /**
      * Search modifier `in natural language mode`.
@@ -61,7 +61,7 @@ enum class SearchModifier(private val value: String) {
  * @property searchString the search string.
  * @property searchModifier optional modifier that indicates what type of search to perform.
  */
-data class MatchAgainstExpression(
+public data class MatchAgainstExpression(
     val matchColumns: List<ColumnExpression<*>>,
     val searchString: String,
     val searchModifier: SearchModifier? = null,
@@ -73,13 +73,13 @@ data class MatchAgainstExpression(
 /**
  * Intermediate class that wraps the search columns of a [MatchAgainstExpression].
  */
-class MatchColumns(columns: List<ColumnExpression<*>>) : List<ColumnExpression<*>> by columns
+public class MatchColumns(columns: List<ColumnExpression<*>>) : List<ColumnExpression<*>> by columns
 
 /**
  * Return an intermediate object that wraps the columns to be searched. We can continue to call [against] on the
  * returned object to create a [MatchAgainstExpression] that searches the wrapped columns.
  */
-fun match(vararg columns: Column<*>): MatchColumns {
+public fun match(vararg columns: Column<*>): MatchColumns {
     return MatchColumns(columns.map { it.asExpression() })
 }
 
@@ -87,6 +87,6 @@ fun match(vararg columns: Column<*>): MatchColumns {
  * Create a [MatchAgainstExpression] that searches on the current [MatchColumns].
  * Translated to `match (col1, col2) against (searchString modifier)` in SQL.
  */
-fun MatchColumns.against(searchString: String, modifier: SearchModifier? = null): MatchAgainstExpression {
+public fun MatchColumns.against(searchString: String, modifier: SearchModifier? = null): MatchAgainstExpression {
     return MatchAgainstExpression(this, searchString, modifier)
 }

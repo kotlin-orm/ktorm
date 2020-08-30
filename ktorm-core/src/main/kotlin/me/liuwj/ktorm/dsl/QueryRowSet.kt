@@ -42,7 +42,7 @@ import java.sql.ResultSet
  * }
  * ```
  */
-class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : CachedRowSet(rs) {
+public class QueryRowSet internal constructor(public val query: Query, rs: ResultSet) : CachedRowSet(rs) {
 
     /**
      * Obtain the value of the specific [Column] instance.
@@ -50,7 +50,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Cached
      * Note that if the column doesn't exist in the result set, this function will return null rather than
      * throwing an exception.
      */
-    operator fun <C : Any> get(column: Column<C>): C? {
+    public operator fun <C : Any> get(column: Column<C>): C? {
         if (query.expression.findDeclaringColumns().isNotEmpty()) {
             // Try to find the column by label.
             for (index in 1..metaData.columnCount) {
@@ -85,7 +85,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Cached
      * Note that if the column doesn't exist in the result set, this function will return null rather than
      * throwing an exception.
      */
-    operator fun <C : Any> get(column: ColumnDeclaringExpression<C>): C? {
+    public operator fun <C : Any> get(column: ColumnDeclaringExpression<C>): C? {
         if (column.declaredName.isNullOrBlank()) {
             throw IllegalArgumentException("Label of the specified column cannot be null or blank.")
         }
@@ -105,7 +105,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Cached
      *
      * Note that if the column exists but its value is null, this function still returns `true`.
      */
-    fun hasColumn(column: Column<*>): Boolean {
+    public fun hasColumn(column: Column<*>): Boolean {
         if (query.expression.findDeclaringColumns().isNotEmpty()) {
             // Try to find the column by label.
             for (index in 1..metaData.columnCount) {
@@ -141,7 +141,7 @@ class QueryRowSet internal constructor(val query: Query, rs: ResultSet) : Cached
      *
      * Note that if the column exists but its value is null, this function still returns `true`.
      */
-    fun hasColumn(column: ColumnDeclaringExpression<*>): Boolean {
+    public fun hasColumn(column: ColumnDeclaringExpression<*>): Boolean {
         if (column.declaredName.isNullOrBlank()) {
             throw IllegalArgumentException("Label of the specified column cannot be null or blank.")
         }

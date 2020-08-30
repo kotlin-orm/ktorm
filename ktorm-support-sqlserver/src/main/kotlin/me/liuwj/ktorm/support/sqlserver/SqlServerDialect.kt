@@ -24,7 +24,7 @@ import me.liuwj.ktorm.expression.*
 /**
  * [SqlDialect] implementation for Microsoft SqlServer database.
  */
-open class SqlServerDialect : SqlDialect {
+public open class SqlServerDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return SqlServerFormatter(database, beautifySql, indentSize)
@@ -34,7 +34,7 @@ open class SqlServerDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for SqlServer, formatting SQL expressions as strings with their execution arguments.
  */
-open class SqlServerFormatter(
+public open class SqlServerFormatter(
     database: Database,
     beautifySql: Boolean,
     indentSize: Int

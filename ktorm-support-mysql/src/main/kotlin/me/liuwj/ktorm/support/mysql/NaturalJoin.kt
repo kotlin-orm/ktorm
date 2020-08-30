@@ -28,7 +28,7 @@ import me.liuwj.ktorm.schema.BaseTable
  * @property left the left table.
  * @property right the right table.
  */
-data class NaturalJoinExpression(
+public data class NaturalJoinExpression(
     val left: QuerySourceExpression,
     val right: QuerySourceExpression,
     override val isLeafNode: Boolean = false,
@@ -40,6 +40,6 @@ data class NaturalJoinExpression(
  *
  * @since 2.7
  */
-fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
+public fun QuerySource.naturalJoin(right: BaseTable<*>): QuerySource {
     return this.copy(expression = NaturalJoinExpression(left = expression, right = right.asExpression()))
 }

@@ -73,39 +73,39 @@ import kotlin.math.min
  *
  * For the list of sequence operations available, see the extension functions below.
  */
-data class EntitySequence<E : Any, T : BaseTable<E>>(
+public class EntitySequence<E : Any, T : BaseTable<E>>(
 
     /**
      * The [Database] instance that the internal query is running on.
      */
-    val database: Database,
+    public val database: Database,
 
     /**
      * The source table from which elements are obtained.
      */
-    val sourceTable: T,
+    public val sourceTable: T,
 
     /**
      * The SQL expression to be executed by this sequence when obtaining elements.
      */
-    val expression: SelectExpression,
+    public val expression: SelectExpression,
 
     /**
      * The function used to extract entity objects for each result row.
      */
-    val entityExtractor: (row: QueryRowSet) -> E
+    public val entityExtractor: (row: QueryRowSet) -> E
 ) {
     /**
      * The internal query of this sequence to be executed, created by [database] and [expression].
      */
-    val query = Query(database, expression)
+    public val query: Query = Query(database, expression)
 
     /**
      * The executable SQL string of the internal query.
      *
      * This property is delegated to [Query.sql], more details can be found in its documentation.
      */
-    val sql get() = query.sql
+    public val sql: String get() = query.sql
 
     /**
      * The [ResultSet] object of the internal query, lazy initialized after first access, obtained from the database by
@@ -113,26 +113,35 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
      *
      * This property is delegated to [Query.rowSet], more details can be found in its documentation.
      */
-    val rowSet get() = query.rowSet
+    public val rowSet: QueryRowSet get() = query.rowSet
 
     /**
      * The total records count of this query ignoring the pagination params.
      *
      * This property is delegated to [Query.totalRecords], more details can be found in its documentation.
      */
-    val totalRecords get() = query.totalRecords
+    public val totalRecords: Int get() = query.totalRecords
+
+    /**
+     * Return a copy of this [EntitySequence] with the [expression] modified.
+     */
+    public fun withExpression(expression: SelectExpression): EntitySequence<E, T> {
+        return EntitySequence(database, sourceTable, expression, entityExtractor)
+    }
 
     /**
      * Create a [kotlin.sequences.Sequence] instance that wraps this original entity sequence returning all the
      * elements when being iterated.
      */
-    fun asKotlinSequence() = Sequence { iterator() }
+    public fun asKotlinSequence(): Sequence<E> {
+        return Sequence { iterator() }
+    }
 
     /**
      * Return an iterator over the elements of this sequence.
      */
     @Suppress("IteratorNotThrowingNoSuchElementException")
-    operator fun iterator() = object : Iterator<E> {
+    public operator fun iterator(): Iterator<E> = object : Iterator<E> {
         private val queryIterator = query.iterator()
 
         override fun hasNext(): Boolean {
@@ -150,7 +159,10 @@ data class EntitySequence<E : Any, T : BaseTable<E>>(
  *
  * @since 2.7
  */
-fun <E : Any, T : BaseTable<E>> Database.sequenceOf(table: T, withReferences: Boolean = true): EntitySequence<E, T> {
+public fun <E : Any, T : BaseTable<E>> Database.sequenceOf(
+    table: T,
+    withReferences: Boolean = true
+): EntitySequence<E, T> {
     val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
     val entityExtractor = { row: QueryRowSet -> table.createEntity(row, withReferences) }
     return EntitySequence(this, table, query.expression as SelectExpression, entityExtractor)
@@ -161,7 +173,7 @@ fun <E : Any, T : BaseTable<E>> Database.sequenceOf(table: T, withReferences: Bo
  *
  * The operation is terminal.
  */
-fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C {
+public fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(destination: C): C {
     for (element in this) destination += element
     return destination
 }
@@ -171,7 +183,7 @@ fun <E : Any, C : MutableCollection<in E>> EntitySequence<E, *>.toCollection(des
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.toList(): List<E> {
+public fun <E : Any> EntitySequence<E, *>.toList(): List<E> {
     return toCollection(ArrayList())
 }
 
@@ -180,7 +192,7 @@ fun <E : Any> EntitySequence<E, *>.toList(): List<E> {
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.toMutableList(): MutableList<E> {
+public fun <E : Any> EntitySequence<E, *>.toMutableList(): MutableList<E> {
     return toCollection(ArrayList())
 }
 
@@ -191,7 +203,7 @@ fun <E : Any> EntitySequence<E, *>.toMutableList(): MutableList<E> {
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.toSet(): Set<E> {
+public fun <E : Any> EntitySequence<E, *>.toSet(): Set<E> {
     return toCollection(LinkedHashSet())
 }
 
@@ -202,7 +214,7 @@ fun <E : Any> EntitySequence<E, *>.toSet(): Set<E> {
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.toMutableSet(): MutableSet<E> {
+public fun <E : Any> EntitySequence<E, *>.toMutableSet(): MutableSet<E> {
     return toCollection(LinkedHashSet())
 }
 
@@ -211,7 +223,7 @@ fun <E : Any> EntitySequence<E, *>.toMutableSet(): MutableSet<E> {
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.toHashSet(): HashSet<E> {
+public fun <E : Any> EntitySequence<E, *>.toHashSet(): HashSet<E> {
     return toCollection(HashSet())
 }
 
@@ -220,7 +232,7 @@ fun <E : Any> EntitySequence<E, *>.toHashSet(): HashSet<E> {
  *
  * The operation is terminal.
  */
-fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Any, E : Comparable<E> {
+public fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Any, E : Comparable<E> {
     return toCollection(TreeSet())
 }
 
@@ -231,7 +243,9 @@ fun <E> EntitySequence<E, *>.toSortedSet(): SortedSet<E> where E : Any, E : Comp
  *
  * The operation is terminal.
  */
-fun <E> EntitySequence<E, *>.toSortedSet(comparator: Comparator<in E>): SortedSet<E> where E : Any, E : Comparable<E> {
+public fun <E> EntitySequence<E, *>.toSortedSet(
+    comparator: Comparator<in E>
+): SortedSet<E> where E : Any, E : Comparable<E> {
     return toCollection(TreeSet(comparator))
 }
 
@@ -240,14 +254,14 @@ fun <E> EntitySequence<E, *>.toSortedSet(comparator: Comparator<in E>): SortedSe
  *
  * The operation is intermediate.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
     selector: (T) -> List<Column<*>>
 ): EntitySequence<E, T> {
     val columns = selector(sourceTable)
     if (columns.isEmpty()) {
         return this
     } else {
-        return this.copy(expression = expression.copy(columns = columns.map { it.aliased(it.label) }))
+        return this.withExpression(expression.copy(columns = columns.map { it.aliased(it.label) }))
     }
 }
 
@@ -256,13 +270,13 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterColumns(
  *
  * The operation is intermediate.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): EntitySequence<E, T> {
     if (expression.where == null) {
-        return this.copy(expression = expression.copy(where = predicate(sourceTable).asExpression()))
+        return this.withExpression(expression.copy(where = predicate(sourceTable).asExpression()))
     } else {
-        return this.copy(expression = expression.copy(where = expression.where and predicate(sourceTable)))
+        return this.withExpression(expression.copy(where = expression.where and predicate(sourceTable)))
     }
 }
 
@@ -271,7 +285,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
  *
  * The operation is intermediate.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterNot(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterNot(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): EntitySequence<E, T> {
     return filter { !predicate(it) }
@@ -282,7 +296,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filterNot(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(
+public inline fun <E : Any, T : BaseTable<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterTo(
     destination: C,
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): C {
@@ -294,7 +308,7 @@ inline fun <E : Any, T : BaseTable<E>, C : MutableCollection<in E>> EntitySequen
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(
+public inline fun <E : Any, T : BaseTable<E>, C : MutableCollection<in E>> EntitySequence<E, T>.filterNotTo(
     destination: C,
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): C {
@@ -307,7 +321,7 @@ inline fun <E : Any, T : BaseTable<E>, C : MutableCollection<in E>> EntitySequen
  *
  * The operation is terminal.
  */
-inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R> {
+public inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R> {
     return mapTo(ArrayList(), transform)
 }
 
@@ -317,7 +331,7 @@ inline fun <E : Any, R> EntitySequence<E, *>.map(transform: (E) -> R): List<R> {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
+public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
     destination: C,
     transform: (E) -> R
 ): C {
@@ -333,7 +347,7 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapTo(
  *
  * @since 3.0.0
  */
-inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> R?): List<R> {
+public inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform)
 }
 
@@ -345,7 +359,7 @@ inline fun <E : Any, R : Any> EntitySequence<E, *>.mapNotNull(transform: (E) -> 
  *
  * @since 3.0.0
  */
-inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapNotNullTo(
+public inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapNotNullTo(
     destination: C,
     transform: (E) -> R?
 ): C {
@@ -362,7 +376,7 @@ inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.
  *
  * The operation is terminal.
  */
-inline fun <E : Any, R> EntitySequence<E, *>.mapIndexed(transform: (index: Int, E) -> R): List<R> {
+public inline fun <E : Any, R> EntitySequence<E, *>.mapIndexed(transform: (index: Int, E) -> R): List<R> {
     return mapIndexedTo(ArrayList(), transform)
 }
 
@@ -375,7 +389,7 @@ inline fun <E : Any, R> EntitySequence<E, *>.mapIndexed(transform: (index: Int, 
  *
  * The operation is terminal.
  */
-inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedTo(
+public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedTo(
     destination: C,
     transform: (index: Int, E) -> R
 ): C {
@@ -394,7 +408,7 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.mapInd
  *
  * @since 3.0.0
  */
-inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: (index: Int, E) -> R?): List<R> {
+public inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: (index: Int, E) -> R?): List<R> {
     return mapIndexedNotNullTo(ArrayList(), transform)
 }
 
@@ -409,7 +423,7 @@ inline fun <E : Any, R : Any> EntitySequence<E, *>.mapIndexedNotNull(transform: 
  *
  * @since 3.0.0
  */
-inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedNotNullTo(
+public inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.mapIndexedNotNullTo(
     destination: C,
     transform: (index: Int, E) -> R?
 ): C {
@@ -425,7 +439,7 @@ inline fun <E : Any, R : Any, C : MutableCollection<in R>> EntitySequence<E, *>.
  *
  * @since 3.0.0
  */
-inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R> {
+public inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList(), transform)
 }
 
@@ -437,7 +451,7 @@ inline fun <E : Any, R> EntitySequence<E, *>.flatMap(transform: (E) -> Iterable<
  *
  * @since 3.0.0
  */
-inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapTo(
+public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapTo(
     destination: C,
     transform: (E) -> Iterable<R>
 ): C {
@@ -464,7 +478,7 @@ inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMa
  * @param columnSelector a function in which we should return a column or expression to be selected.
  * @return a list of the query results.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
+public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): List<C?> {
@@ -491,11 +505,11 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
  * @param columnSelector a function in which we should return a column or expression to be selected.
  * @return the [destination] collection of the query results.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C?>> EntitySequence<E, T>.mapColumnsTo(
+public inline fun <E : Any, T : BaseTable<E>, C, R> EntitySequence<E, T>.mapColumnsTo(
     destination: R,
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>
-): R {
+): R where C : Any, R : MutableCollection<in C?> {
     val column = columnSelector(sourceTable)
 
     val expr = expression.copy(
@@ -518,7 +532,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C?>> En
  * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
  * @param columnSelector a function in which we should return a column or expression to be selected.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumnsNotNull(
+public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumnsNotNull(
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>
 ): List<C> {
@@ -538,11 +552,11 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumnsN
  * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
  * @param columnSelector a function in which we should return a column or expression to be selected.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C>> EntitySequence<E, T>.mapColumnsNotNullTo(
+public inline fun <E : Any, T : BaseTable<E>, C, R> EntitySequence<E, T>.mapColumnsNotNullTo(
     destination: R,
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>
-): R {
+): R where C : Any, R : MutableCollection<in C> {
     val column = columnSelector(sourceTable)
 
     val expr = expression.copy(
@@ -558,10 +572,10 @@ inline fun <E : Any, T : BaseTable<E>, C : Any, R : MutableCollection<in C>> Ent
  *
  * The operation is intermediate.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
     selector: (T) -> List<OrderByExpression>
 ): EntitySequence<E, T> {
-    return this.copy(expression = expression.copy(orderBy = selector(sourceTable)))
+    return this.withExpression(expression.copy(orderBy = selector(sourceTable)))
 }
 
 /**
@@ -569,7 +583,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
  *
  * The operation is intermediate.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T> {
     return sorted { listOf(selector(it).asc()) }
@@ -580,7 +594,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
  *
  * The operation is intermediate.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDescending(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDescending(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T> {
     return sorted { listOf(selector(it).desc()) }
@@ -596,12 +610,12 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDescending(
  *
  * The operation is intermediate.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): EntitySequence<E, T> {
     if (n == 0) {
         return this
     } else {
         val offset = expression.offset ?: 0
-        return this.copy(expression = expression.copy(offset = offset + n))
+        return this.withExpression(expression.copy(offset = offset + n))
     }
 }
 
@@ -615,9 +629,9 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): EntitySequenc
  *
  * The operation is intermediate.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T> {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): EntitySequence<E, T> {
     val limit = expression.limit ?: Int.MAX_VALUE
-    return this.copy(expression = expression.copy(limit = min(limit, n)))
+    return this.withExpression(expression.copy(limit = min(limit, n)))
 }
 
 /**
@@ -633,7 +647,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): EntitySequenc
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return the aggregate result.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
+public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): C? {
     val aggregation = aggregationSelector(sourceTable)
@@ -658,7 +672,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateCo
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(): Int {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(): Int {
     val count = aggregateColumns { me.liuwj.ktorm.dsl.count() }
     return count ?: error("Count expression returns null, which should never happens.")
 }
@@ -668,7 +682,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(): Int {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Int {
     return filter(predicate).count()
@@ -681,7 +695,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(
  *
  * @since 2.7
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
     return count() == 0
 }
 
@@ -692,7 +706,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isEmpty(): Boolean {
  *
  * @since 2.7
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
     return count() > 0
 }
 
@@ -701,7 +715,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.isNotEmpty(): Boolean {
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(): Boolean {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(): Boolean {
     return count() == 0
 }
 
@@ -710,7 +724,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(): Boolean {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
     return count(predicate) == 0
@@ -721,7 +735,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.none(
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.any(): Boolean {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.any(): Boolean {
     return count() > 0
 }
 
@@ -730,7 +744,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.any(): Boolean {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.any(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.any(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
     return count(predicate) > 0
@@ -741,7 +755,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.any(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.all(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.all(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Boolean {
     return none { !predicate(it) }
@@ -752,7 +766,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.all(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.sumBy(
+public inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.sumBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
     return aggregateColumns { sum(selector(it)) }
@@ -763,7 +777,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Number> EntitySequence<E, T>.sumBy(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.maxBy(
+public inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.maxBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
     return aggregateColumns { max(selector(it)) }
@@ -774,7 +788,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.m
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.minBy(
+public inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.minBy(
     selector: (T) -> ColumnDeclaring<C>
 ): C? {
     return aggregateColumns { min(selector(it)) }
@@ -785,7 +799,7 @@ inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> EntitySequence<E, T>.m
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.averageBy(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.averageBy(
     selector: (T) -> ColumnDeclaring<out Number>
 ): Double? {
     return aggregateColumns { avg(selector(it)) }
@@ -800,7 +814,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.averageBy(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair<K, V>): Map<K, V> {
+public inline fun <E : Any, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair<K, V>): Map<K, V> {
     return associateTo(LinkedHashMap(), transform)
 }
 
@@ -814,7 +828,7 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.associate(transform: (E) -> Pair
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K> EntitySequence<E, *>.associateBy(keySelector: (E) -> K): Map<K, E> {
+public inline fun <E : Any, K> EntitySequence<E, *>.associateBy(keySelector: (E) -> K): Map<K, E> {
     return associateByTo(LinkedHashMap(), keySelector)
 }
 
@@ -828,7 +842,7 @@ inline fun <E : Any, K> EntitySequence<E, *>.associateBy(keySelector: (E) -> K):
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V> EntitySequence<E, *>.associateBy(
+public inline fun <E : Any, K, V> EntitySequence<E, *>.associateBy(
     keySelector: (E) -> K,
     valueTransform: (E) -> V
 ): Map<K, V> {
@@ -845,7 +859,7 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.associateBy(
  *
  * The operation is terminal.
  */
-inline fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(valueSelector: (K) -> V): Map<K, V> {
+public inline fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(valueSelector: (K) -> V): Map<K, V> {
     return associateWithTo(LinkedHashMap(), valueSelector)
 }
 
@@ -857,7 +871,7 @@ inline fun <K : Entity<K>, V> EntitySequence<K, *>.associateWith(valueSelector: 
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateTo(
+public inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateTo(
     destination: M,
     transform: (E) -> Pair<K, V>
 ): M {
@@ -873,7 +887,7 @@ inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.asso
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associateByTo(
+public inline fun <E : Any, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associateByTo(
     destination: M,
     keySelector: (E) -> K
 ): M {
@@ -889,7 +903,7 @@ inline fun <E : Any, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.associa
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateByTo(
+public inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.associateByTo(
     destination: M,
     keySelector: (E) -> K,
     valueTransform: (E) -> V
@@ -906,7 +920,7 @@ inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, *>.asso
  *
  * The operation is terminal.
  */
-inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associateWithTo(
+public inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.associateWithTo(
     destination: M,
     valueSelector: (K) -> V
 ): M {
@@ -924,7 +938,7 @@ inline fun <K : Entity<K>, V, M : MutableMap<in K, in V>> EntitySequence<K, *>.a
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(index: Int): E? {
     try {
         @Suppress("UnconditionalJumpStatementInLoop")
         for (element in this.drop(index).take(1)) return element
@@ -954,7 +968,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(index: Int)
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrElse(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrElse(
     index: Int,
     defaultValue: (Int) -> E
 ): E {
@@ -972,7 +986,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrElse(
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAt(index: Int): E {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAt(index: Int): E {
     val result = elementAtOrNull(index)
     return result ?: throw IndexOutOfBoundsException("Sequence doesn't contain element at index $index.")
 }
@@ -986,7 +1000,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAt(index: Int): E {
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(): E? {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(): E? {
     return elementAtOrNull(0)
 }
 
@@ -999,7 +1013,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(): E? {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): E? {
     return filter(predicate).elementAtOrNull(0)
@@ -1014,7 +1028,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.firstOrNull(
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(): E {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(): E {
     return firstOrNull() ?: throw NoSuchElementException("Sequence is empty.")
 }
 
@@ -1027,7 +1041,9 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(): E {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(predicate: (T) -> ColumnDeclaring<Boolean>): E {
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E {
     val result = firstOrNull(predicate)
     return result ?: throw NoSuchElementException("Sequence contains no elements matching the predicate")
 }
@@ -1037,7 +1053,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.first(predicate: (T)
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.lastOrNull(): E? {
+public fun <E : Any> EntitySequence<E, *>.lastOrNull(): E? {
     var last: E? = null
     for (element in this) last = element
     return last
@@ -1048,7 +1064,7 @@ fun <E : Any> EntitySequence<E, *>.lastOrNull(): E? {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.lastOrNull(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.lastOrNull(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): E? {
     return filter(predicate).lastOrNull()
@@ -1059,7 +1075,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.lastOrNull(
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.last(): E {
+public fun <E : Any> EntitySequence<E, *>.last(): E {
     return lastOrNull() ?: throw NoSuchElementException("Sequence is empty.")
 }
 
@@ -1068,7 +1084,9 @@ fun <E : Any> EntitySequence<E, *>.last(): E {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.last(predicate: (T) -> ColumnDeclaring<Boolean>): E {
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.last(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E {
     val result = lastOrNull(predicate)
     return result ?: throw NoSuchElementException("Sequence contains no elements matching the predicate")
 }
@@ -1082,7 +1100,9 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.last(predicate: (T) 
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.find(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.find(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E? {
     return firstOrNull(predicate)
 }
 
@@ -1091,7 +1111,9 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.find(predicate: (T) 
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.findLast(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.findLast(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E? {
     return lastOrNull(predicate)
 }
 
@@ -1100,7 +1122,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.findLast(predicate: 
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(): E? {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(): E? {
     val iterator = iterator()
     if (!iterator.hasNext()) return null
 
@@ -1114,7 +1136,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(): E? {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): E? {
     return filter(predicate).singleOrNull()
@@ -1125,7 +1147,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.singleOrNull(
  *
  * The operation is terminal.
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(): E {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(): E {
     val iterator = iterator()
     if (!iterator.hasNext()) throw NoSuchElementException("Sequence is empty.")
 
@@ -1140,7 +1162,9 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(): E {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(predicate: (T) -> ColumnDeclaring<Boolean>): E {
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(
+    predicate: (T) -> ColumnDeclaring<Boolean>
+): E {
     return filter(predicate).single()
 }
 
@@ -1150,7 +1174,7 @@ inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.single(predicate: (T
  *
  * The operation is terminal.
  */
-inline fun <E : Any, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
+public inline fun <E : Any, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R, E) -> R): R {
     var accumulator = initial
     for (element in this) accumulator = operation(accumulator, element)
     return accumulator
@@ -1165,7 +1189,10 @@ inline fun <E : Any, R> EntitySequence<E, *>.fold(initial: R, operation: (acc: R
  *
  * The operation is terminal.
  */
-inline fun <E : Any, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: (index: Int, acc: R, E) -> R): R {
+public inline fun <E : Any, R> EntitySequence<E, *>.foldIndexed(
+    initial: R,
+    operation: (index: Int, acc: R, E) -> R
+): R {
     var index = 0
     var accumulator = initial
     for (element in this) accumulator = operation(index++, accumulator, element)
@@ -1178,7 +1205,7 @@ inline fun <E : Any, R> EntitySequence<E, *>.foldIndexed(initial: R, operation: 
  *
  * The operation is terminal.
  */
-inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
+public inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
     val iterator = iterator()
     if (!iterator.hasNext()) throw UnsupportedOperationException("Empty sequence can't be reduced.")
 
@@ -1199,7 +1226,7 @@ inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E
  *
  * The operation is terminal.
  */
-inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
+public inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
     val iterator = iterator()
     if (!iterator.hasNext()) throw UnsupportedOperationException("Empty sequence can't be reduced.")
 
@@ -1217,7 +1244,7 @@ inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, 
  *
  * The operation is terminal.
  */
-inline fun <E : Any> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
+public inline fun <E : Any> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
     for (element in this) action(element)
 }
 
@@ -1228,7 +1255,7 @@ inline fun <E : Any> EntitySequence<E, *>.forEach(action: (E) -> Unit) {
  *
  * The operation is terminal.
  */
-inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
+public inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E) -> Unit) {
     var index = 0
     for (element in this) action(index++, element)
 }
@@ -1239,7 +1266,7 @@ inline fun <E : Any> EntitySequence<E, *>.forEachIndexed(action: (index: Int, E)
  *
  * @since 3.0.0
  */
-fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
+public fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
     return Sequence { IndexingIterator(iterator()) }
 }
 
@@ -1251,7 +1278,7 @@ fun <E : Any> EntitySequence<E, *>.withIndex(): Sequence<IndexedValue<E>> {
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K> EntitySequence<E, *>.groupBy(keySelector: (E) -> K): Map<K, List<E>> {
+public inline fun <E : Any, K> EntitySequence<E, *>.groupBy(keySelector: (E) -> K): Map<K, List<E>> {
     return groupByTo(LinkedHashMap(), keySelector)
 }
 
@@ -1264,7 +1291,7 @@ inline fun <E : Any, K> EntitySequence<E, *>.groupBy(keySelector: (E) -> K): Map
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V> EntitySequence<E, *>.groupBy(
+public inline fun <E : Any, K, V> EntitySequence<E, *>.groupBy(
     keySelector: (E) -> K,
     valueTransform: (E) -> V
 ): Map<K, List<V>> {
@@ -1277,7 +1304,7 @@ inline fun <E : Any, K, V> EntitySequence<E, *>.groupBy(
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, M : MutableMap<in K, MutableList<E>>> EntitySequence<E, *>.groupByTo(
+public inline fun <E : Any, K, M : MutableMap<in K, MutableList<E>>> EntitySequence<E, *>.groupByTo(
     destination: M,
     keySelector: (E) -> K
 ): M {
@@ -1297,7 +1324,7 @@ inline fun <E : Any, K, M : MutableMap<in K, MutableList<E>>> EntitySequence<E, 
  *
  * The operation is terminal.
  */
-inline fun <E : Any, K, V, M : MutableMap<in K, MutableList<V>>> EntitySequence<E, *>.groupByTo(
+public inline fun <E : Any, K, V, M : MutableMap<in K, MutableList<V>>> EntitySequence<E, *>.groupByTo(
     destination: M,
     keySelector: (E) -> K,
     valueTransform: (E) -> V
@@ -1318,7 +1345,7 @@ inline fun <E : Any, K, V, M : MutableMap<in K, MutableList<V>>> EntitySequence<
  *
  * The operation is intermediate.
  */
-fun <E : Any, T : BaseTable<E>, K : Any> EntitySequence<E, T>.groupingBy(
+public fun <E : Any, T : BaseTable<E>, K : Any> EntitySequence<E, T>.groupingBy(
     keySelector: (T) -> ColumnDeclaring<K>
 ): EntityGrouping<E, T, K> {
     return EntityGrouping(this, keySelector)
@@ -1332,7 +1359,7 @@ fun <E : Any, T : BaseTable<E>, K : Any> EntitySequence<E, T>.groupingBy(
  *
  * The operation is terminal.
  */
-fun <E : Any, A : Appendable> EntitySequence<E, *>.joinTo(
+public fun <E : Any, A : Appendable> EntitySequence<E, *>.joinTo(
     buffer: A,
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
@@ -1364,7 +1391,7 @@ fun <E : Any, A : Appendable> EntitySequence<E, *>.joinTo(
  *
  * The operation is terminal.
  */
-fun <E : Any> EntitySequence<E, *>.joinToString(
+public fun <E : Any> EntitySequence<E, *>.joinToString(
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
     postfix: CharSequence = "",
@@ -1380,6 +1407,6 @@ fun <E : Any> EntitySequence<E, *>.joinToString(
  *
  * @since 3.1.0
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
-    return this.copy(expression = expression.copy(forUpdate = true))
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
+    return this.withExpression(expression.copy(forUpdate = true))
 }

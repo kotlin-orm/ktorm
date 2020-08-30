@@ -29,7 +29,7 @@ import java.util.*
 /**
  * MySQL json_contains function, translated to `json_contains(column, json_array(item))`.
  */
-inline fun <reified T : Any> Column<List<T>>.jsonContains(
+public inline fun <reified T : Any> Column<List<T>>.jsonContains(
     item: T,
     sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the item's SqlType, please specify manually.")
 ): FunctionExpression<Boolean> {
@@ -83,7 +83,7 @@ internal inline fun <reified T : Any> sqlTypeOf(): SqlType<T>? {
 /**
  * MySQL json_extract function, translated to `json_extract(column, path)`.
  */
-inline fun <reified T : Any> Column<*>.jsonExtract(
+public inline fun <reified T : Any> Column<*>.jsonExtract(
     path: String,
     sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the result's SqlType, please specify manually.")
 ): FunctionExpression<T> {
@@ -98,14 +98,14 @@ inline fun <reified T : Any> Column<*>.jsonExtract(
 /**
  * MySQL rand function, translated to `rand()`.
  */
-fun rand(): FunctionExpression<Double> {
+public fun rand(): FunctionExpression<Double> {
     return FunctionExpression(functionName = "rand", arguments = emptyList(), sqlType = DoubleSqlType)
 }
 
 /**
  * MySQL greatest function, translated to `greatest(column1, column2, ...)`.
  */
-fun <T : Comparable<T>> greatest(vararg columns: ColumnDeclaring<T>): FunctionExpression<T> {
+public fun <T : Comparable<T>> greatest(vararg columns: ColumnDeclaring<T>): FunctionExpression<T> {
     // greatest(left, right)
     return FunctionExpression(
         functionName = "greatest",
@@ -117,21 +117,21 @@ fun <T : Comparable<T>> greatest(vararg columns: ColumnDeclaring<T>): FunctionEx
 /**
  * MySQL greatest function, translated to `greatest(left, right)`.
  */
-fun <T : Comparable<T>> greatest(left: ColumnDeclaring<T>, right: T): FunctionExpression<T> {
+public fun <T : Comparable<T>> greatest(left: ColumnDeclaring<T>, right: T): FunctionExpression<T> {
     return greatest(left, left.wrapArgument(right))
 }
 
 /**
  * MySQL greatest function, translated to `greatest(left, right)`.
  */
-fun <T : Comparable<T>> greatest(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
+public fun <T : Comparable<T>> greatest(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
     return greatest(right.wrapArgument(left), right)
 }
 
 /**
  * MySQL least function, translated to `least(column1, column2, ...)`.
  */
-fun <T : Comparable<T>> least(vararg columns: ColumnDeclaring<T>): FunctionExpression<T> {
+public fun <T : Comparable<T>> least(vararg columns: ColumnDeclaring<T>): FunctionExpression<T> {
     // least(left, right)
     return FunctionExpression(
         functionName = "least",
@@ -143,21 +143,21 @@ fun <T : Comparable<T>> least(vararg columns: ColumnDeclaring<T>): FunctionExpre
 /**
  * MySQL least function, translated to `least(left, right)`.
  */
-fun <T : Comparable<T>> least(left: ColumnDeclaring<T>, right: T): FunctionExpression<T> {
+public fun <T : Comparable<T>> least(left: ColumnDeclaring<T>, right: T): FunctionExpression<T> {
     return least(left, left.wrapArgument(right))
 }
 
 /**
  * MySQL least function, translated to `least(left, right)`.
  */
-fun <T : Comparable<T>> least(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
+public fun <T : Comparable<T>> least(left: T, right: ColumnDeclaring<T>): FunctionExpression<T> {
     return least(right.wrapArgument(left), right)
 }
 
 /**
  * MySQL ifnull function, translated to `ifnull(left, right)`.
  */
-fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpression<T> {
+public fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpression<T> {
     // ifnull(left, right)
     return FunctionExpression(
         functionName = "ifnull",
@@ -169,7 +169,7 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: ColumnDeclaring<T>): FunctionExpr
 /**
  * MySQL ifnull function, translated to `ifnull(left, right)`.
  */
-fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
+public fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
     return this.ifNull(wrapArgument(right))
 }
 
@@ -179,7 +179,7 @@ fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T> {
  * @since 3.1.0
  */
 @Suppress("FunctionNaming")
-fun <T : Any> IF(
+public fun <T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: ColumnDeclaring<T>,
     otherwise: ColumnDeclaring<T>
@@ -198,7 +198,7 @@ fun <T : Any> IF(
  * @since 3.1.0
  */
 @Suppress("FunctionNaming")
-inline fun <reified T : Any> IF(
+public inline fun <reified T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: T,
     otherwise: T,
@@ -219,7 +219,7 @@ inline fun <reified T : Any> IF(
 /**
  * MySQL datediff function, translated to `datediff(left, right)`.
  */
-fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
+public fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
     // datediff(left, right)
     return FunctionExpression(
         functionName = "datediff",
@@ -231,21 +231,21 @@ fun dateDiff(left: ColumnDeclaring<LocalDate>, right: ColumnDeclaring<LocalDate>
 /**
  * MySQL datediff function, translated to `datediff(left, right)`.
  */
-fun dateDiff(left: ColumnDeclaring<LocalDate>, right: LocalDate): FunctionExpression<Int> {
+public fun dateDiff(left: ColumnDeclaring<LocalDate>, right: LocalDate): FunctionExpression<Int> {
     return dateDiff(left, left.wrapArgument(right))
 }
 
 /**
  * MySQL datediff function, translated to `datediff(left, right)`.
  */
-fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
+public fun dateDiff(left: LocalDate, right: ColumnDeclaring<LocalDate>): FunctionExpression<Int> {
     return dateDiff(right.wrapArgument(left), right)
 }
 
 /**
  * MySQL replace function, translated to `replace(str, oldValue, newValue)`.
  */
-fun ColumnDeclaring<String>.replace(oldValue: String, newValue: String): FunctionExpression<String> {
+public fun ColumnDeclaring<String>.replace(oldValue: String, newValue: String): FunctionExpression<String> {
     // replace(str, oldValue, newValue)
     return FunctionExpression(
         functionName = "replace",
@@ -261,7 +261,7 @@ fun ColumnDeclaring<String>.replace(oldValue: String, newValue: String): Functio
 /**
  * MySQL lower function, translated to `lower(str). `
  */
-fun ColumnDeclaring<String>.toLowerCase(): FunctionExpression<String> {
+public fun ColumnDeclaring<String>.toLowerCase(): FunctionExpression<String> {
     // lower(str)
     return FunctionExpression(
         functionName = "lower",
@@ -273,7 +273,7 @@ fun ColumnDeclaring<String>.toLowerCase(): FunctionExpression<String> {
 /**
  * MySQL upper function, translated to `upper(str). `
  */
-fun ColumnDeclaring<String>.toUpperCase(): FunctionExpression<String> {
+public fun ColumnDeclaring<String>.toUpperCase(): FunctionExpression<String> {
     // upper(str)
     return FunctionExpression(
         functionName = "upper",

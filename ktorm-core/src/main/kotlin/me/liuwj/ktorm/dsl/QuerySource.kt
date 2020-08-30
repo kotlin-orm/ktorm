@@ -31,21 +31,25 @@ import me.liuwj.ktorm.schema.ReferenceBinding
  * @property sourceTable the origin source table.
  * @property expression the underlying SQL expression.
  */
-data class QuerySource(val database: Database, val sourceTable: BaseTable<*>, val expression: QuerySourceExpression)
+public data class QuerySource(
+    val database: Database,
+    val sourceTable: BaseTable<*>,
+    val expression: QuerySourceExpression
+)
 
 /**
  * Wrap the specific table as a [QuerySource].
  *
  * @since 2.7
  */
-fun Database.from(table: BaseTable<*>): QuerySource {
+public fun Database.from(table: BaseTable<*>): QuerySource {
     return QuerySource(this, table, table.asExpression())
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `cross join` in SQL.
  */
-fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.CROSS_JOIN,
@@ -59,7 +63,7 @@ fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = n
 /**
  * Join the right table and return a new [QuerySource], translated to `inner join` in SQL.
  */
-fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.INNER_JOIN,
@@ -73,7 +77,7 @@ fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = n
 /**
  * Join the right table and return a new [QuerySource], translated to `left join` in SQL.
  */
-fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.LEFT_JOIN,
@@ -87,7 +91,7 @@ fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = nu
 /**
  * Join the right table and return a new [QuerySource], translated to `right join` in SQL.
  */
-fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.RIGHT_JOIN,
@@ -101,7 +105,7 @@ fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = n
 /**
  * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
-fun QuerySource.joinReferencesAndSelect(): Query {
+public fun QuerySource.joinReferencesAndSelect(): Query {
     val joinedTables = ArrayList<BaseTable<*>>()
 
     return sourceTable

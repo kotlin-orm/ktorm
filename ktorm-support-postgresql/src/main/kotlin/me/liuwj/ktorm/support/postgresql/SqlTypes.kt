@@ -26,24 +26,24 @@ import java.sql.Types
 /**
  * Represent values of PostgreSQL `hstore` SQL type.
  */
-typealias HStore = Map<String, String?>
+public typealias HStore = Map<String, String?>
 
 /**
  * Represent values of PostgreSQL `text[]` SQL type.
  */
-typealias TextArray = Array<String?>
+public typealias TextArray = Array<String?>
 
 /**
  * Define a column typed [HStoreSqlType].
  */
-fun <E : Any> BaseTable<E>.hstore(name: String): Column<HStore> {
+public fun <E : Any> BaseTable<E>.hstore(name: String): Column<HStore> {
     return registerColumn(name, HStoreSqlType)
 }
 
 /**
  * [SqlType] implementation represents PostgreSQL `hstore` type.
  */
-object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
+public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
         ps.setObject(index, parameter)
     }
@@ -57,14 +57,14 @@ object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
 /**
  * Define a column typed [TextArraySqlType].
  */
-fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
+public fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
     return registerColumn(name, TextArraySqlType)
 }
 
 /**
  * [SqlType] implementation represents PostgreSQL `text[]` type.
  */
-object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
+public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: TextArray) {
         ps.setObject(index, parameter)
     }
@@ -89,7 +89,7 @@ object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
  * @param name the column's name.
  * @return the registered column.
  */
-inline fun <reified C : Enum<C>> BaseTable<*>.pgEnum(name: String): Column<C> {
+public inline fun <reified C : Enum<C>> BaseTable<*>.pgEnum(name: String): Column<C> {
     return registerColumn(name, PgEnumType(C::class.java))
 }
 
@@ -97,7 +97,7 @@ inline fun <reified C : Enum<C>> BaseTable<*>.pgEnum(name: String): Column<C> {
  * [SqlType] implementation represents PostgreSQL `enum` type.
  * @see <a href="https://www.postgresql.org/docs/current/datatype-enum.html">datatype-enum</a>
  */
-class PgEnumType<C : Enum<C>>(private val enumClass: Class<C>) : SqlType<C>(Types.OTHER, enumClass.name) {
+public class PgEnumType<C : Enum<C>>(private val enumClass: Class<C>) : SqlType<C>(Types.OTHER, enumClass.name) {
     private val valueOf = enumClass.getDeclaredMethod("valueOf", String::class.java)
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {

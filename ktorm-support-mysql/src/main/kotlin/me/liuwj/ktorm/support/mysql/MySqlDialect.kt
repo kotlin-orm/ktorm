@@ -25,7 +25,7 @@ import me.liuwj.ktorm.schema.VarcharSqlType
 /**
  * [SqlDialect] implementation for MySQL database.
  */
-open class MySqlDialect : SqlDialect {
+public open class MySqlDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return MySqlFormatter(database, beautifySql, indentSize)
@@ -35,7 +35,7 @@ open class MySqlDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for MySQL, formatting SQL expressions as strings with their execution arguments.
  */
-open class MySqlFormatter(
+public open class MySqlFormatter(
     database: Database,
     beautifySql: Boolean,
     indentSize: Int
@@ -153,7 +153,7 @@ open class MySqlFormatter(
  *
  * For detailed documents, see [SqlExpressionVisitor].
  */
-open class MySqlExpressionVisitor : SqlExpressionVisitor() {
+public open class MySqlExpressionVisitor : SqlExpressionVisitor() {
 
     override fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {

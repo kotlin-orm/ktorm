@@ -38,17 +38,17 @@ import me.liuwj.ktorm.schema.SqlType
  * @see SqlFormatter
  */
 @Suppress("UnnecessaryAbstractClass")
-abstract class SqlExpression {
+public abstract class SqlExpression {
 
     /**
      * Check if this expression is a leaf node in expression trees.
      */
-    abstract val isLeafNode: Boolean
+    public abstract val isLeafNode: Boolean
 
     /**
      * Extra properties of this expression, maybe useful in [SqlFormatter] to generate some special SQLs.
      */
-    abstract val extraProperties: Map<String, Any>
+    public abstract val extraProperties: Map<String, Any>
 }
 
 /**
@@ -56,7 +56,7 @@ abstract class SqlExpression {
  *
  * @param T the return value's type of this scalar expression.
  */
-abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
+public abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
 
     abstract override val sqlType: SqlType<T>
 
@@ -78,7 +78,7 @@ abstract class ScalarExpression<T : Any> : SqlExpression(), ColumnDeclaring<T> {
  *
  * @property expression the wrapped expression.
  */
-data class CastingExpression<T : Any>(
+public data class CastingExpression<T : Any>(
     val expression: SqlExpression,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
@@ -88,7 +88,7 @@ data class CastingExpression<T : Any>(
 /**
  * Query source expression, used in the `from` clause of a [SelectExpression].
  */
-abstract class QuerySourceExpression : SqlExpression()
+public abstract class QuerySourceExpression : SqlExpression()
 
 /**
  * Base class of query expressions, provide common properties for [SelectExpression] and [UnionExpression].
@@ -98,11 +98,11 @@ abstract class QuerySourceExpression : SqlExpression()
  * @property limit max record numbers returned by the query.
  * @property tableAlias the alias when this query is nested in another query's source, eg. `select * from (...) alias`.
  */
-sealed class QueryExpression : QuerySourceExpression() {
-    abstract val orderBy: List<OrderByExpression>
-    abstract val offset: Int?
-    abstract val limit: Int?
-    abstract val tableAlias: String?
+public sealed class QueryExpression : QuerySourceExpression() {
+    public abstract val orderBy: List<OrderByExpression>
+    public abstract val offset: Int?
+    public abstract val limit: Int?
+    public abstract val tableAlias: String?
     final override val isLeafNode: Boolean = false
 }
 
@@ -117,7 +117,7 @@ sealed class QueryExpression : QuerySourceExpression() {
  * @property isDistinct mark if this query is distinct, true means the SQL is `select distinct ...`.
  * @property forUpdate mark if this query should aquire the record-lock, true means the SQL is `select ... for update`.
  */
-data class SelectExpression(
+public data class SelectExpression(
     val columns: List<ColumnDeclaringExpression<*>> = emptyList(),
     val from: QuerySourceExpression,
     val where: ScalarExpression<Boolean>? = null,
@@ -139,7 +139,7 @@ data class SelectExpression(
  * @property right the right query of this union expression.
  * @property isUnionAll mark if this union statement is `union all`.
  */
-data class UnionExpression(
+public data class UnionExpression(
     val left: QueryExpression,
     val right: QueryExpression,
     val isUnionAll: Boolean,
@@ -153,7 +153,7 @@ data class UnionExpression(
 /**
  * Enum for unary expressions.
  */
-enum class UnaryExpressionType(private val value: String) {
+public enum class UnaryExpressionType(private val value: String) {
 
     /**
      * Check if a column or expression is null.
@@ -191,7 +191,7 @@ enum class UnaryExpressionType(private val value: String) {
  * @property type the expression's type.
  * @property operand the expression's operand.
  */
-data class UnaryExpression<T : Any>(
+public data class UnaryExpression<T : Any>(
     val type: UnaryExpressionType,
     val operand: ScalarExpression<*>,
     override val sqlType: SqlType<T>,
@@ -202,7 +202,7 @@ data class UnaryExpression<T : Any>(
 /**
  * Enum for binary expressions.
  */
-enum class BinaryExpressionType(private val value: String) {
+public enum class BinaryExpressionType(private val value: String) {
 
     /**
      * Plus operator, translated to `+` in SQL.
@@ -296,7 +296,7 @@ enum class BinaryExpressionType(private val value: String) {
  * @property left the expression's left operand.
  * @property right the expression's right operand.
  */
-data class BinaryExpression<T : Any>(
+public data class BinaryExpression<T : Any>(
     val type: BinaryExpressionType,
     val left: ScalarExpression<*>,
     val right: ScalarExpression<*>,
@@ -313,7 +313,7 @@ data class BinaryExpression<T : Any>(
  * @property catalog the table's catalog.
  * @property schema the table's schema.
  */
-data class TableExpression(
+public data class TableExpression(
     val name: String,
     val tableAlias: String? = null,
     val catalog: String? = null,
@@ -328,7 +328,7 @@ data class TableExpression(
  * @property table the owner table.
  * @property name the column's name.
  */
-data class ColumnExpression<T : Any>(
+public data class ColumnExpression<T : Any>(
     val table: TableExpression?,
     val name: String,
     override val sqlType: SqlType<T>,
@@ -344,7 +344,7 @@ data class ColumnExpression<T : Any>(
  * @property expression the source expression, might be a [ColumnExpression] or other scalar expression types.
  * @property declaredName the declaring label.
  */
-data class ColumnDeclaringExpression<T : Any>(
+public data class ColumnDeclaringExpression<T : Any>(
     val expression: ScalarExpression<T>,
     val declaredName: String? = null,
     override val sqlType: SqlType<T> = expression.sqlType,
@@ -360,7 +360,7 @@ data class ColumnDeclaringExpression<T : Any>(
 /**
  * The enum of order directions in a [OrderByExpression].
  */
-enum class OrderType(private val value: String) {
+public enum class OrderType(private val value: String) {
 
     /**
      * The ascending order direction.
@@ -383,7 +383,7 @@ enum class OrderType(private val value: String) {
  * @property expression the sorting column, might be a [ColumnExpression] or other scalar expression types.
  * @property orderType the sorting direction.
  */
-data class OrderByExpression(
+public data class OrderByExpression(
     val expression: ScalarExpression<*>,
     val orderType: OrderType,
     override val isLeafNode: Boolean = false,
@@ -393,7 +393,7 @@ data class OrderByExpression(
 /**
  * The enum of joining types in a [JoinExpression].
  */
-enum class JoinType(private val value: String) {
+public enum class JoinType(private val value: String) {
 
     /**
      * Cross join, translated to the `cross join` keyword in SQL.
@@ -428,7 +428,7 @@ enum class JoinType(private val value: String) {
  * @property right the right table.
  * @property condition the joining condition.
  */
-data class JoinExpression(
+public data class JoinExpression(
     val type: JoinType,
     val left: QuerySourceExpression,
     val right: QuerySourceExpression,
@@ -445,7 +445,7 @@ data class JoinExpression(
  * @property values the expression's right operand collection, cannot be used along with the [query] property.
  * @property notInList mark if this expression is translated to `not in`.
  */
-data class InListExpression<T : Any>(
+public data class InListExpression<T : Any>(
     val left: ScalarExpression<T>,
     val query: QueryExpression? = null,
     val values: List<ScalarExpression<T>>? = null,
@@ -461,7 +461,7 @@ data class InListExpression<T : Any>(
  * @property query the query expression.
  * @property notExists mark if this expression is translated to `not exists`.
  */
-data class ExistsExpression(
+public data class ExistsExpression(
     val query: QueryExpression,
     val notExists: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
@@ -472,7 +472,7 @@ data class ExistsExpression(
 /**
  * The enum of aggregate functions in a [AggregateExpression].
  */
-enum class AggregateType(private val value: String) {
+public enum class AggregateType(private val value: String) {
 
     /**
      * The min function, translated to `min(column)` in SQL.
@@ -511,7 +511,7 @@ enum class AggregateType(private val value: String) {
  * @property argument the aggregated column, might be a [ColumnExpression] or other scalar expression types.
  * @property isDistinct mark if this aggregation is distinct.
  */
-data class AggregateExpression<T : Any>(
+public data class AggregateExpression<T : Any>(
     val type: AggregateType,
     val argument: ScalarExpression<*>?,
     val isDistinct: Boolean,
@@ -528,7 +528,7 @@ data class AggregateExpression<T : Any>(
  * @property upper the upper bound of the range.
  * @property notBetween mark if this expression is translated to `not between`.
  */
-data class BetweenExpression<T : Any>(
+public data class BetweenExpression<T : Any>(
     val expression: ScalarExpression<T>,
     val lower: ScalarExpression<T>,
     val upper: ScalarExpression<T>,
@@ -544,7 +544,7 @@ data class BetweenExpression<T : Any>(
  * @property value the argument value.
  * @property sqlType the argument's [SqlType].
  */
-data class ArgumentExpression<T : Any>(
+public data class ArgumentExpression<T : Any>(
     val value: T?,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = true,
@@ -557,7 +557,7 @@ data class ArgumentExpression<T : Any>(
  * @property functionName the name of the SQL function.
  * @property arguments arguments passed to the function.
  */
-data class FunctionExpression<T : Any>(
+public data class FunctionExpression<T : Any>(
     val functionName: String,
     val arguments: List<ScalarExpression<*>>,
     override val sqlType: SqlType<T>,
@@ -571,7 +571,7 @@ data class FunctionExpression<T : Any>(
  * @property column the left value of the assignment.
  * @property expression the right value of the assignment, might be an [ArgumentExpression] or other scalar expressions.
  */
-data class ColumnAssignmentExpression<T : Any>(
+public data class ColumnAssignmentExpression<T : Any>(
     val column: ColumnExpression<T>,
     val expression: ScalarExpression<T>,
     override val isLeafNode: Boolean = false,
@@ -584,7 +584,7 @@ data class ColumnAssignmentExpression<T : Any>(
  * @property table the table to be inserted.
  * @property assignments column assignments of the insert statement.
  */
-data class InsertExpression(
+public data class InsertExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
     override val isLeafNode: Boolean = false,
@@ -598,7 +598,7 @@ data class InsertExpression(
  * @property columns the columns to be inserted.
  * @property query the query expression.
  */
-data class InsertFromQueryExpression(
+public data class InsertFromQueryExpression(
     val table: TableExpression,
     val columns: List<ColumnExpression<*>>,
     val query: QueryExpression,
@@ -613,7 +613,7 @@ data class InsertFromQueryExpression(
  * @property assignments column assignments of the update statement.
  * @property where the update condition.
  */
-data class UpdateExpression(
+public data class UpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
     val where: ScalarExpression<Boolean>? = null,
@@ -627,7 +627,7 @@ data class UpdateExpression(
  * @property table the table to be deleted.
  * @property where the delete condition.
  */
-data class DeleteExpression(
+public data class DeleteExpression(
     val table: TableExpression,
     val where: ScalarExpression<Boolean>?,
     override val isLeafNode: Boolean = false,

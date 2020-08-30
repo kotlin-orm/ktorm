@@ -31,7 +31,7 @@ import me.liuwj.ktorm.schema.VarcharSqlType
  * @property left the expression's left operand.
  * @property right the expression's right operand.
  */
-data class ILikeExpression(
+public data class ILikeExpression(
     val left: ScalarExpression<*>,
     val right: ScalarExpression<*>,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
@@ -42,13 +42,13 @@ data class ILikeExpression(
 /**
  * ILike operator, translated to the `ilike` keyword in PostgreSQL.
  */
-infix fun ColumnDeclaring<*>.ilike(expr: ColumnDeclaring<String>): ILikeExpression {
+public infix fun ColumnDeclaring<*>.ilike(expr: ColumnDeclaring<String>): ILikeExpression {
     return ILikeExpression(asExpression(), expr.asExpression())
 }
 
 /**
  * ILike operator, translated to the `ilike` keyword in PostgreSQL.
  */
-infix fun ColumnDeclaring<*>.ilike(argument: String): ILikeExpression {
+public infix fun ColumnDeclaring<*>.ilike(argument: String): ILikeExpression {
     return this ilike ArgumentExpression(argument, VarcharSqlType)
 }

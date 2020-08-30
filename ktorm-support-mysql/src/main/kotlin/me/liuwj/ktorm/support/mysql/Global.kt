@@ -76,7 +76,7 @@ internal val Database.Companion.global: Database get() {
  * @return the effected row count.
  * @see batchInsert
  */
-fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     return Database.global.bulkInsert(this, block)
 }
 
@@ -110,13 +110,13 @@ fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> U
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `natural join` in SQL.
  */
-fun BaseTable<*>.naturalJoin(right: BaseTable<*>): QuerySource {
+public fun BaseTable<*>.naturalJoin(right: BaseTable<*>): QuerySource {
     return Database.global.from(this).naturalJoin(right)
 }

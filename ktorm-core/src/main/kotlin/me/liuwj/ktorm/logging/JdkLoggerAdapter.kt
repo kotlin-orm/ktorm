@@ -23,7 +23,7 @@ import java.util.logging.Level
  *
  * @property logger a logger instance of JDK logging.
  */
-class JdkLoggerAdapter(val logger: java.util.logging.Logger) : Logger {
+public class JdkLoggerAdapter(public val logger: java.util.logging.Logger) : Logger {
 
     override fun isTraceEnabled(): Boolean {
         return logger.isLoggable(Level.FINEST)

@@ -36,7 +36,7 @@ import me.liuwj.ktorm.schema.ColumnDeclaring
  * @property assignments column assignments of the bulk insert statement.
  * @property updateAssignments the updated column assignments while key conflict exists.
  */
-data class BulkInsertExpression(
+public data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
@@ -82,7 +82,7 @@ data class BulkInsertExpression(
  * @return the effected row count.
  * @see batchInsert
  */
-fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+public fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
 
     val expr = AliasRemover.visit(
@@ -96,14 +96,14 @@ fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementB
  * DSL builder for bulk insert statements.
  */
 @KtormDsl
-class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+public class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     /**
      * Add the assignments of a new row to the bulk insert.
      */
-    fun item(block: AssignmentsBuilder.(T) -> Unit) {
+    public fun item(block: AssignmentsBuilder.(T) -> Unit) {
         val builder = MySqlAssignmentsBuilder()
         builder.block(table)
 
@@ -119,7 +119,7 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    fun onDuplicateKey(block: BulkInsertOnDuplicateKeyClauseBuilder.(T) -> Unit) {
+    public fun onDuplicateKey(block: BulkInsertOnDuplicateKeyClauseBuilder.(T) -> Unit) {
         val builder = BulkInsertOnDuplicateKeyClauseBuilder()
         builder.block(table)
         updateAssignments += builder.assignments
@@ -130,12 +130,12 @@ class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
  * DSL builder for bulk insert assignments.
  */
 @KtormDsl
-class BulkInsertOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
+public class BulkInsertOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
 
     /**
      * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
      */
-    fun <T : Any> values(expr: ColumnDeclaring<T>): FunctionExpression<T> {
+    public fun <T : Any> values(expr: ColumnDeclaring<T>): FunctionExpression<T> {
         // values(expr)
         return FunctionExpression(
             functionName = "values",

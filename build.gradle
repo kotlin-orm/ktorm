@@ -38,11 +38,12 @@ subprojects { project ->
         detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    compileKotlin {
         kotlinOptions.jvmTarget = "1.6"
         kotlinOptions.allWarningsAsErrors = true
         kotlinOptions.freeCompilerArgs = [
-            "-Xuse-experimental=kotlin.contracts.ExperimentalContracts"
+            "-Xexplicit-api=strict",
+            "-Xopt-in=kotlin.contracts.ExperimentalContracts"
         ]
     }
 

@@ -68,14 +68,14 @@ import java.sql.ResultSet
  * @property database the [Database] instance that this query is running on.
  * @property expression the underlying SQL expression of this query object.
  */
-data class Query(val database: Database, val expression: QueryExpression) {
+public class Query(public val database: Database, public val expression: QueryExpression) {
 
     /**
      * The executable SQL string of this query.
      *
      * Useful when we want to ensure if the generated SQL is expected while debugging.
      */
-    val sql: String by lazy(LazyThreadSafetyMode.NONE) {
+    public val sql: String by lazy(LazyThreadSafetyMode.NONE) {
         database.formatExpression(expression, beautifySql = true).first
     }
 
@@ -87,7 +87,7 @@ data class Query(val database: Database, val expression: QueryExpression) {
      * a special implementation provided by Ktorm, different from normal result sets, it is available offline and
      * overrides the indexed access operator. More details can be found in the documentation of [QueryRowSet].
      */
-    val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
+    public val rowSet: QueryRowSet by lazy(LazyThreadSafetyMode.NONE) {
         QueryRowSet(this, database.executeQuery(expression))
     }
 
@@ -98,7 +98,7 @@ data class Query(val database: Database, val expression: QueryExpression) {
      * it does, return the total record count of the query ignoring the offset and limit parameters. This property
      * is provided to support pagination, we can calculate the page count through dividing it by our page size.
      */
-    val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
+    public val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
@@ -119,6 +119,13 @@ data class Query(val database: Database, val expression: QueryExpression) {
     }
 
     /**
+     * Return a copy of this [Query] with the [expression] modified.
+     */
+    public fun withExpression(expression: QueryExpression): Query {
+        return Query(database, expression)
+    }
+
+    /**
      * Return an iterator over the rows of this query.
      *
      * Note that this function is simply implemented as `rowSet.iterator()`, so every element returned by the iterator
@@ -127,7 +134,7 @@ data class Query(val database: Database, val expression: QueryExpression) {
      * @see rowSet
      * @see ResultSet.iterator
      */
-    operator fun iterator(): Iterator<QueryRowSet> {
+    public operator fun iterator(): Iterator<QueryRowSet> {
         return rowSet.iterator()
     }
 }
@@ -139,7 +146,7 @@ data class Query(val database: Database, val expression: QueryExpression) {
  *
  * @since 2.7
  */
-fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
+public fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
     return Query(database, SelectExpression(columns = declarations, from = expression))
 }
@@ -151,7 +158,7 @@ fun QuerySource.select(columns: Collection<ColumnDeclaring<*>>): Query {
  *
  * @since 2.7
  */
-fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
+public fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
     return select(columns.asList())
 }
 
@@ -162,7 +169,7 @@ fun QuerySource.select(vararg columns: ColumnDeclaring<*>): Query {
  *
  * @since 2.7
  */
-fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
+public fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     val declarations = columns.map { it.asDeclaringExpression() }
     return Query(database, SelectExpression(columns = declarations, from = expression, isDistinct = true))
 }
@@ -174,7 +181,7 @@ fun QuerySource.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
  *
  * @since 2.7
  */
-fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
+public fun QuerySource.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return selectDistinct(columns.asList())
 }
 
@@ -192,9 +199,9 @@ internal fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclari
 /**
  * Specify the `where` clause of this query using the expression returned by the given callback function.
  */
-inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
-    return this.copy(
-        expression = when (expression) {
+public inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
+    return this.withExpression(
+        when (expression) {
             is SelectExpression -> expression.copy(where = block().asExpression())
             is UnionExpression -> throw IllegalStateException("Where clause is not supported in a union expression.")
         }
@@ -207,7 +214,7 @@ inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
  *
  * Note that if we don't add any conditions to the list, the `where` clause would not be set.
  */
-inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
+public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     val conditions = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
 
     if (conditions.isEmpty()) {
@@ -223,7 +230,7 @@ inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean
  *
  * Note that if we don't add any conditions to the list, the `where` clause would not be set.
  */
-inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
+public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     val conditions = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
 
     if (conditions.isEmpty()) {
@@ -238,7 +245,7 @@ inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boole
  *
  * If the iterable is empty, the param [ifEmpty] will be returned.
  */
-fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true): ColumnDeclaring<Boolean> {
+public fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true): ColumnDeclaring<Boolean> {
     if (this.any()) {
         return this.reduce { a, b -> a and b }
     } else {
@@ -249,9 +256,9 @@ fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true
 /**
  * Specify the `group by` clause of this query using the given columns or expressions.
  */
-fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
-    return this.copy(
-        expression = when (expression) {
+public fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
+    return this.withExpression(
+        when (expression) {
             is SelectExpression -> expression.copy(groupBy = columns.map { it.asExpression() })
             is UnionExpression -> throw IllegalStateException("Group by clause is not supported in a union expression.")
         }
@@ -261,9 +268,9 @@ fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
 /**
  * Specify the `having` clause of this query using the expression returned by the given callback function.
  */
-inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
-    return this.copy(
-        expression = when (expression) {
+public inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
+    return this.withExpression(
+        when (expression) {
             is SelectExpression -> expression.copy(having = block().asExpression())
             is UnionExpression -> throw IllegalStateException("Having clause is not supported in a union expression.")
         }
@@ -273,9 +280,9 @@ inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
 /**
  * Specify the `order by` clause of this query using the given order-by expressions.
  */
-fun Query.orderBy(vararg orders: OrderByExpression): Query {
-    return this.copy(
-        expression = when (expression) {
+public fun Query.orderBy(vararg orders: OrderByExpression): Query {
+    return this.withExpression(
+        when (expression) {
             is SelectExpression -> expression.copy(orderBy = orders.asList())
             is UnionExpression -> {
                 val replacer = OrderByReplacer(expression)
@@ -316,14 +323,14 @@ internal tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclarin
 /**
  * Order this column or expression in ascending order.
  */
-fun ColumnDeclaring<*>.asc(): OrderByExpression {
+public fun ColumnDeclaring<*>.asc(): OrderByExpression {
     return OrderByExpression(asExpression(), OrderType.ASCENDING)
 }
 
 /**
  * Order this column or expression in descending order, corresponding to the `desc` keyword in SQL.
  */
-fun ColumnDeclaring<*>.desc(): OrderByExpression {
+public fun ColumnDeclaring<*>.desc(): OrderByExpression {
     return OrderByExpression(asExpression(), OrderType.DESCENDING)
 }
 
@@ -335,13 +342,13 @@ fun ColumnDeclaring<*>.desc(): OrderByExpression {
  *
  * Note that if both [offset] and [limit] are zero, they will be ignored.
  */
-fun Query.limit(offset: Int, limit: Int): Query {
+public fun Query.limit(offset: Int, limit: Int): Query {
     if (offset == 0 && limit == 0) {
         return this
     }
 
-    return this.copy(
-        expression = when (expression) {
+    return this.withExpression(
+        when (expression) {
             is SelectExpression -> expression.copy(offset = offset, limit = limit)
             is UnionExpression -> expression.copy(offset = offset, limit = limit)
         }
@@ -351,15 +358,15 @@ fun Query.limit(offset: Int, limit: Int): Query {
 /**
  * Union this query with the given one, corresponding to the `union` keyword in SQL.
  */
-fun Query.union(right: Query): Query {
-    return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = false))
+public fun Query.union(right: Query): Query {
+    return this.withExpression(UnionExpression(left = expression, right = right.expression, isUnionAll = false))
 }
 
 /**
  * Union this query with the given one, corresponding to the `union all` keyword in SQL.
  */
-fun Query.unionAll(right: Query): Query {
-    return this.copy(expression = UnionExpression(left = expression, right = right.expression, isUnionAll = true))
+public fun Query.unionAll(right: Query): Query {
+    return this.withExpression(UnionExpression(left = expression, right = right.expression, isUnionAll = true))
 }
 
 /**
@@ -367,7 +374,7 @@ fun Query.unionAll(right: Query): Query {
  *
  * @since 3.0.0
  */
-fun Query.asIterable(): Iterable<QueryRowSet> {
+public fun Query.asIterable(): Iterable<QueryRowSet> {
     return Iterable { iterator() }
 }
 
@@ -376,7 +383,7 @@ fun Query.asIterable(): Iterable<QueryRowSet> {
  *
  * @since 3.0.0
  */
-inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
+public inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
     for (row in this) action(row)
 }
 
@@ -387,7 +394,7 @@ inline fun Query.forEach(action: (row: QueryRowSet) -> Unit) {
  *
  * @since 3.0.0
  */
-inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
+public inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) {
     var index = 0
     for (row in this) action(index++, row)
 }
@@ -398,7 +405,7 @@ inline fun Query.forEachIndexed(action: (index: Int, row: QueryRowSet) -> Unit) 
  *
  * @since 3.0.0
  */
-fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
+public fun Query.withIndex(): Iterable<IndexedValue<QueryRowSet>> {
     return Iterable { IndexingIterator(iterator()) }
 }
 
@@ -423,7 +430,7 @@ internal class IndexingIterator<out T>(private val iterator: Iterator<T>) : Iter
  *
  * @since 3.0.0
  */
-inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
+public inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
     return mapTo(ArrayList(), transform)
 }
 
@@ -432,7 +439,7 @@ inline fun <R> Query.map(transform: (row: QueryRowSet) -> R): List<R> {
  *
  * @since 3.0.0
  */
-inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transform: (row: QueryRowSet) -> R): C {
+public inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transform: (row: QueryRowSet) -> R): C {
     for (row in this) destination += transform(row)
     return destination
 }
@@ -443,7 +450,7 @@ inline fun <R, C : MutableCollection<in R>> Query.mapTo(destination: C, transfor
  *
  * @since 3.0.0
  */
-inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List<R> {
+public inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List<R> {
     return mapNotNullTo(ArrayList(), transform)
 }
 
@@ -453,7 +460,7 @@ inline fun <R : Any> Query.mapNotNull(transform: (row: QueryRowSet) -> R?): List
  *
  * @since 3.0.0
  */
-inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
+public inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
     destination: C,
     transform: (row: QueryRowSet) -> R?
 ): C {
@@ -469,7 +476,7 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapNotNullTo(
  *
  * @since 3.0.0
  */
-inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
+public inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R): List<R> {
     return mapIndexedTo(ArrayList(), transform)
 }
 
@@ -481,7 +488,7 @@ inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet) -> R):
  *
  * @since 3.0.0
  */
-inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
+public inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
     destination: C,
     transform: (index: Int, row: QueryRowSet) -> R
 ): C {
@@ -498,7 +505,7 @@ inline fun <R, C : MutableCollection<in R>> Query.mapIndexedTo(
  *
  * @since 3.0.0
  */
-inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
+public inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryRowSet) -> R?): List<R> {
     return mapIndexedNotNullTo(ArrayList(), transform)
 }
 
@@ -511,7 +518,7 @@ inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row: QueryR
  *
  * @since 3.0.0
  */
-inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
+public inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
     destination: C,
     transform: (index: Int, row: QueryRowSet) -> R?
 ): C {
@@ -525,7 +532,7 @@ inline fun <R : Any, C : MutableCollection<in R>> Query.mapIndexedNotNullTo(
  *
  * @since 3.0.0
  */
-inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List<R> {
+public inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List<R> {
     return flatMapTo(ArrayList(), transform)
 }
 
@@ -535,7 +542,7 @@ inline fun <R> Query.flatMap(transform: (row: QueryRowSet) -> Iterable<R>): List
  *
  * @since 3.0.0
  */
-inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
+public inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
     destination: C,
     transform: (row: QueryRowSet) -> Iterable<R>
 ): C {
@@ -552,7 +559,7 @@ inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
  *
  * @since 3.0.0
  */
-inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
+public inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): Map<K, V> {
     return associateTo(LinkedHashMap(), transform)
 }
 
@@ -566,7 +573,7 @@ inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K, V>): 
  *
  * @since 3.0.0
  */
-inline fun <K, V> Query.associateBy(
+public inline fun <K, V> Query.associateBy(
     keySelector: (row: QueryRowSet) -> K,
     valueTransform: (row: QueryRowSet) -> V
 ): Map<K, V> {
@@ -581,7 +588,7 @@ inline fun <K, V> Query.associateBy(
  *
  * @since 3.0.0
  */
-inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
+public inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
     destination: M,
     transform: (row: QueryRowSet) -> Pair<K, V>
 ): M {
@@ -597,7 +604,7 @@ inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
  *
  * @since 3.0.0
  */
-inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
+public inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
     destination: M,
     keySelector: (row: QueryRowSet) -> K,
     valueTransform: (row: QueryRowSet) -> V
@@ -611,7 +618,7 @@ inline fun <K, V, M : MutableMap<in K, in V>> Query.associateByTo(
  *
  * @since 3.0.0
  */
-inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
+public inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R): R {
     var accumulator = initial
     for (row in this) accumulator = operation(accumulator, row)
     return accumulator
@@ -626,7 +633,7 @@ inline fun <R> Query.fold(initial: R, operation: (acc: R, row: QueryRowSet) -> R
  *
  * @since 3.0.0
  */
-inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
+public inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row: QueryRowSet) -> R): R {
     var index = 0
     var accumulator = initial
     for (row in this) accumulator = operation(index++, accumulator, row)
@@ -641,7 +648,7 @@ inline fun <R> Query.foldIndexed(initial: R, operation: (index: Int, acc: R, row
  *
  * @since 3.0.0
  */
-fun <A : Appendable> Query.joinTo(
+public fun <A : Appendable> Query.joinTo(
     buffer: A,
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
@@ -673,7 +680,7 @@ fun <A : Appendable> Query.joinTo(
  *
  * @since 3.0.0
  */
-fun Query.joinToString(
+public fun Query.joinToString(
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
     postfix: CharSequence = "",
@@ -689,11 +696,11 @@ fun Query.joinToString(
  *
  * @since 3.1.0
  */
-fun Query.forUpdate(): Query {
+public fun Query.forUpdate(): Query {
     val expr = when (expression) {
         is SelectExpression -> expression.copy(forUpdate = true)
         is UnionExpression -> throw IllegalStateException("SELECT FOR UPDATE is not supported in a union expression.")
     }
 
-    return this.copy(expression = expr)
+    return this.withExpression(expr)
 }

@@ -32,7 +32,7 @@ import me.liuwj.ktorm.schema.BaseTable
  * @property assignments the inserted column assignments.
  * @property updateAssignments the updated column assignments while any key conflict exists.
  */
-data class InsertOrUpdateExpression(
+public data class InsertOrUpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
@@ -72,7 +72,10 @@ data class InsertOrUpdateExpression(
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+public fun <T : BaseTable<*>> Database.insertOrUpdate(
+    table: T,
+    block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
     val expr = AliasRemover.visit(
@@ -86,7 +89,7 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
  * Base class of MySQL DSL builders, provide basic functions used to build assignments for insert or update DSL.
  */
 @KtormDsl
-open class MySqlAssignmentsBuilder : AssignmentsBuilder() {
+public open class MySqlAssignmentsBuilder : AssignmentsBuilder() {
 
     /**
      * A getter that returns the readonly view of the built assignments list.
@@ -98,13 +101,13 @@ open class MySqlAssignmentsBuilder : AssignmentsBuilder() {
  * DSL builder for insert or update statements.
  */
 @KtormDsl
-class InsertOrUpdateStatementBuilder : MySqlAssignmentsBuilder() {
+public class InsertOrUpdateStatementBuilder : MySqlAssignmentsBuilder() {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
+    public fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
         val builder = MySqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
     }

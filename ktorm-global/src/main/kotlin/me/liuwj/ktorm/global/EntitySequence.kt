@@ -25,40 +25,82 @@ import me.liuwj.ktorm.schema.Table
 /**
  * Create an [EntitySequence] from this table.
  */
-fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = true): EntitySequence<E, T> {
+public fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = true): EntitySequence<E, T> {
     return Database.global.sequenceOf(this, withReferences)
 }
 
 /**
- * Insert the given entity into this table and return the affected record number.
+ * Insert the given entity into this table and return the affected record number. Only non-null properties
+ * are inserted.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
  * [Table.primaryKey] function while registering columns, then this function will obtain the generated key
  * from the database and fill it into the corresponding property after the insertion completes. But this
  * requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
  * will be inserted into the database, and no keys generated.
+ *
+ * Note that after calling this function, the [entity] will **be associated with the current table**.
+ *
+ * @see Entity.flushChanges
+ * @see Entity.delete
  */
-fun <E : Entity<E>> Table<E>.add(entity: E): Int {
+@Deprecated(
+    message = "This function will be removed in the future. Please use addEntity(entity) instead.",
+    replaceWith = ReplaceWith("addEntity(entity)")
+)
+public fun <E : Entity<E>> Table<E>.add(entity: E): Int {
     return Database.global.sequenceOf(this).add(entity)
+}
+
+/**
+ * Insert the given entity into this table and return the affected record number. Only non-null properties
+ * are inserted.
+ *
+ * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
+ * [Table.primaryKey] function while registering columns, then this function will obtain the generated key
+ * from the database and fill it into the corresponding property after the insertion completes. But this
+ * requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
+ * will be inserted into the database, and no keys generated.
+ *
+ * Note that after calling this function, the [entity] will **be associated with the current table**.
+ *
+ * @see Entity.flushChanges
+ * @see Entity.delete
+ */
+public fun <E : Entity<E>> Table<E>.addEntity(entity: E): Int {
+    return Database.global.sequenceOf(this).add(entity)
+}
+
+/**
+ * Update the non-null properties of the given entity to the database and return the affected record number.
+ *
+ * Note that after calling this function, the [entity] will **be associated with the current table**.
+ *
+ * @see Entity.flushChanges
+ * @see Entity.delete
+ * @since 3.1.0
+ */
+public fun <E : Entity<E>> Table<E>.updateEntity(entity: E): Int {
+    return Database.global.sequenceOf(this).update(entity)
 }
 
 /**
  * Obtain a entity object matching the given [predicate], auto left joining all the reference tables.
  */
-inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
+public inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return Database.global.sequenceOf(this).find(predicate)
 }
 
 /**
  * Obtain all the entity objects from this table, auto left joining all the reference tables.
  */
-fun <E : Any> BaseTable<E>.findAll(): List<E> {
+public fun <E : Any> BaseTable<E>.findAll(): List<E> {
     return Database.global.sequenceOf(this).toList()
 }
 
 /**
  * Obtain a list of entity objects matching the given [predicate], auto left joining all the reference tables.
  */
-inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
+public inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
     return Database.global.sequenceOf(this).filter(predicate).toList()
 }

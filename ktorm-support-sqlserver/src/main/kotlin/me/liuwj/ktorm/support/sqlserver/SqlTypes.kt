@@ -29,14 +29,14 @@ import java.sql.ResultSet
 /**
  * Define a column typed of [DateTimeOffsetSqlType].
  */
-fun BaseTable<*>.datetimeoffset(name: String): Column<DateTimeOffset> {
+public fun BaseTable<*>.datetimeoffset(name: String): Column<DateTimeOffset> {
     return registerColumn(name, DateTimeOffsetSqlType)
 }
 
 /**
  * [SqlType] implementation represents SQL Server `datetimeoffset` SQL type.
  */
-object DateTimeOffsetSqlType : SqlType<DateTimeOffset>(Types.DATETIMEOFFSET, "datetimeoffset") {
+public object DateTimeOffsetSqlType : SqlType<DateTimeOffset>(Types.DATETIMEOFFSET, "datetimeoffset") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: DateTimeOffset) {
         ps.setObject(index, parameter, typeCode)
     }

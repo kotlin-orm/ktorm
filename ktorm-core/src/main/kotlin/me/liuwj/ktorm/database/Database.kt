@@ -97,34 +97,34 @@ import javax.sql.DataSource
  * ```
  * More details about SQL DSL, see [Query], about sequence APIs, see [EntitySequence].
  */
-class Database(
+public class Database(
 
     /**
      * The transaction manager used to manage connections and transactions.
      */
-    val transactionManager: TransactionManager,
+    public val transactionManager: TransactionManager,
 
     /**
      * The dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
      */
-    val dialect: SqlDialect = detectDialectImplementation(),
+    public val dialect: SqlDialect = detectDialectImplementation(),
 
     /**
      * The logger used to output logs, auto detects an implementation by default.
      */
-    val logger: Logger = detectLoggerImplementation(),
+    public val logger: Logger = detectLoggerImplementation(),
 
     /**
      * Function used to translate SQL exceptions so as to rethrow them to users.
      */
-    val exceptionTranslator: ((SQLException) -> Throwable)? = null,
+    public val exceptionTranslator: ((SQLException) -> Throwable)? = null,
 
     /**
      * Whether we need to always quote SQL identifiers in the generated SQLs.
      *
      * @since 3.1.0
      */
-    val alwaysQuoteIdentifiers: Boolean = false,
+    public val alwaysQuoteIdentifiers: Boolean = false,
 
     /**
      * Whether we need to output the generated SQLs in upper case.
@@ -133,42 +133,42 @@ class Database(
      *
      * @since 3.1.0
      */
-    val generateSqlInUpperCase: Boolean? = null
+    public val generateSqlInUpperCase: Boolean? = null
 ) {
     /**
      * The URL of the connected database.
      */
-    lateinit var url: String private set
+    public lateinit var url: String private set
 
     /**
      * The name of the connected database.
      */
-    lateinit var name: String private set
+    public lateinit var name: String private set
 
     /**
      * The name of the connected database product, eg. MySQL, H2.
      */
-    lateinit var productName: String private set
+    public lateinit var productName: String private set
 
     /**
      * The version of the connected database product.
      */
-    lateinit var productVersion: String private set
+    public lateinit var productVersion: String private set
 
     /**
      * A set of all of this database's SQL keywords (including SQL:2003 keywords), all in uppercase.
      */
-    lateinit var keywords: Set<String> private set
+    public lateinit var keywords: Set<String> private set
 
     /**
      * The string used to quote SQL identifiers, returns an empty string if identifier quoting is not supported.
      */
-    lateinit var identifierQuoteString: String private set
+    public lateinit var identifierQuoteString: String private set
 
     /**
      * All the "extra" characters that can be used in unquoted identifier names (those beyond a-z, A-Z, 0-9 and _).
      */
-    lateinit var extraNameCharacters: String private set
+    public lateinit var extraNameCharacters: String private set
 
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case sensitive and as a result
@@ -176,7 +176,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var supportsMixedCaseIdentifiers: Boolean = false
+    public var supportsMixedCaseIdentifiers: Boolean = false
         private set
 
     /**
@@ -185,7 +185,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var storesMixedCaseIdentifiers: Boolean = false
+    public var storesMixedCaseIdentifiers: Boolean = false
         private set
 
     /**
@@ -194,7 +194,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var storesUpperCaseIdentifiers: Boolean = false
+    public var storesUpperCaseIdentifiers: Boolean = false
         private set
 
     /**
@@ -203,7 +203,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var storesLowerCaseIdentifiers: Boolean = false
+    public var storesLowerCaseIdentifiers: Boolean = false
         private set
 
     /**
@@ -212,7 +212,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var supportsMixedCaseQuotedIdentifiers: Boolean = false
+    public var supportsMixedCaseQuotedIdentifiers: Boolean = false
         private set
 
     /**
@@ -221,7 +221,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var storesMixedCaseQuotedIdentifiers: Boolean = false
+    public var storesMixedCaseQuotedIdentifiers: Boolean = false
         private set
 
     /**
@@ -230,7 +230,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var storesUpperCaseQuotedIdentifiers: Boolean = false
+    public var storesUpperCaseQuotedIdentifiers: Boolean = false
         private set
 
     /**
@@ -239,7 +239,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var storesLowerCaseQuotedIdentifiers: Boolean = false
+    public var storesLowerCaseQuotedIdentifiers: Boolean = false
         private set
 
     /**
@@ -248,7 +248,7 @@ class Database(
      *
      * @since 3.1.0
      */
-    var maxColumnNameLength: Int = 0
+    public var maxColumnNameLength: Int = 0
         private set
 
     init {
@@ -291,7 +291,7 @@ class Database(
      * @param func the executed callback function.
      * @return the result of the callback function.
      */
-    inline fun <T> useConnection(func: (Connection) -> T): T {
+    public inline fun <T> useConnection(func: (Connection) -> T): T {
         // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
         // contract {
         //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
@@ -325,7 +325,7 @@ class Database(
      * @param func the executed callback function.
      * @return the result of the callback function.
      */
-    inline fun <T> useTransaction(
+    public inline fun <T> useTransaction(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
         func: (Transaction) -> T
     ): T {
@@ -367,7 +367,7 @@ class Database(
      * @param indentSize the indent size, default to 2.
      * @return a [Pair] combines the SQL string and its execution arguments.
      */
-    fun formatExpression(
+    public fun formatExpression(
         expression: SqlExpression,
         beautifySql: Boolean = false,
         indentSize: Int = 2
@@ -389,7 +389,7 @@ class Database(
      * @param func the callback function.
      * @return the result of the callback function.
      */
-    inline fun <T> executeExpression(expression: SqlExpression, func: (PreparedStatement) -> T): T {
+    public inline fun <T> executeExpression(expression: SqlExpression, func: (PreparedStatement) -> T): T {
         // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
         // contract {
         //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
@@ -418,7 +418,7 @@ class Database(
      * @param expression the SQL expression to be executed.
      * @return the result [CachedRowSet].
      */
-    fun executeQuery(expression: SqlExpression): CachedRowSet {
+    public fun executeQuery(expression: SqlExpression): CachedRowSet {
         executeExpression(expression) { statement ->
             statement.executeQuery().use { rs ->
                 val rowSet = CachedRowSet(rs)
@@ -440,7 +440,7 @@ class Database(
      * @param expression the SQL expression to be executed.
      * @return the effected row count.
      */
-    fun executeUpdate(expression: SqlExpression): Int {
+    public fun executeUpdate(expression: SqlExpression): Int {
         executeExpression(expression) { statement ->
             val effects = statement.executeUpdate()
 
@@ -460,7 +460,7 @@ class Database(
      * @param expression the SQL expression to be executed.
      * @return a [Pair] combines the effected row count and the generated keys.
      */
-    fun executeUpdateAndRetrieveKeys(expression: SqlExpression): Pair<Int, CachedRowSet> {
+    public fun executeUpdateAndRetrieveKeys(expression: SqlExpression): Pair<Int, CachedRowSet> {
         val (sql, args) = formatExpression(expression)
 
         if (logger.isDebugEnabled()) {
@@ -487,7 +487,7 @@ class Database(
      * @param expressions the SQL expressions to be executed.
      * @return the effected row counts for each sub-operation.
      */
-    fun executeBatch(expressions: List<SqlExpression>): IntArray {
+    public fun executeBatch(expressions: List<SqlExpression>): IntArray {
         val (sql, _) = formatExpression(expressions[0])
 
         if (logger.isDebugEnabled()) {
@@ -526,7 +526,7 @@ class Database(
     /**
      * Companion object provides functions to connect to databases.
      */
-    companion object {
+    public companion object {
 
         /**
          * Connect to a database by a specific [connector] function.
@@ -538,7 +538,7 @@ class Database(
          * @param connector the connector function used to obtain SQL connections.
          * @return the new-created database object.
          */
-        fun connect(
+        public fun connect(
             dialect: SqlDialect = detectDialectImplementation(),
             logger: Logger = detectLoggerImplementation(),
             alwaysQuoteIdentifiers: Boolean = false,
@@ -564,7 +564,7 @@ class Database(
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @return the new-created database object.
          */
-        fun connect(
+        public fun connect(
             dataSource: DataSource,
             dialect: SqlDialect = detectDialectImplementation(),
             logger: Logger = detectLoggerImplementation(),
@@ -593,7 +593,7 @@ class Database(
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @return the new-created database object.
          */
-        fun connect(
+        public fun connect(
             url: String,
             driver: String? = null,
             user: String? = null,
@@ -633,7 +633,7 @@ class Database(
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @return the new-created database object.
          */
-        fun connectWithSpringSupport(
+        public fun connectWithSpringSupport(
             dataSource: DataSource,
             dialect: SqlDialect = detectDialectImplementation(),
             logger: Logger = detectLoggerImplementation(),

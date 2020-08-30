@@ -132,17 +132,17 @@ import kotlin.reflect.jvm.jvmErasure
  * module provides an extension for Jackson, the famous JSON framework in Java word. It supports serializing entity
  * objects into JSON format and parsing JSONs as entity objects. More details can be found in its documentation.
  */
-interface Entity<E : Entity<E>> : Serializable {
+public interface Entity<E : Entity<E>> : Serializable {
 
     /**
      * Return this entity's [KClass] instance, which must be an interface.
      */
-    val entityClass: KClass<E>
+    public val entityClass: KClass<E>
 
     /**
      * Return the immutable view of this entity's all properties.
      */
-    val properties: Map<String, Any?>
+    public val properties: Map<String, Any?>
 
     /**
      * Update the property changes of this entity into the database and return the affected record number.
@@ -164,7 +164,7 @@ interface Entity<E : Entity<E>> : Serializable {
      * @see update
      */
     @Throws(SQLException::class)
-    fun flushChanges(): Int
+    public fun flushChanges(): Int
 
     /**
      * Clear the tracked property changes of this entity.
@@ -172,7 +172,7 @@ interface Entity<E : Entity<E>> : Serializable {
      * After calling this function, the [flushChanges] doesn't do anything anymore because the property changes
      * are discarded.
      */
-    fun discardChanges()
+    public fun discardChanges()
 
     /**
      * Delete this entity in the database and return the affected record number.
@@ -189,7 +189,7 @@ interface Entity<E : Entity<E>> : Serializable {
      * @see flushChanges
      */
     @Throws(SQLException::class)
-    fun delete(): Int
+    public fun delete(): Int
 
     /**
      * Obtain a property's value by its name.
@@ -197,22 +197,22 @@ interface Entity<E : Entity<E>> : Serializable {
      * Note that this function doesn't follows the rules of default values discussed in the class level documentation.
      * If the value doesn't exist, we will return `null` simply.
      */
-    operator fun get(name: String): Any?
+    public operator fun get(name: String): Any?
 
     /**
      * Modify a property's value by its name.
      */
-    operator fun set(name: String, value: Any?)
+    public operator fun set(name: String, value: Any?)
 
     /**
      * Return a deep copy of this entity, which has the same property values and tracked statuses.
      */
-    fun copy(): E
+    public fun copy(): E
 
     /**
      * Companion object provides functions to create entity instances.
      */
-    companion object {
+    public companion object {
 
         /**
          * Create an entity object. This functions is used by Ktorm internal.
@@ -237,14 +237,14 @@ interface Entity<E : Entity<E>> : Serializable {
         /**
          * Create an entity object by JDK dynamic proxy.
          */
-        fun create(entityClass: KClass<*>): Entity<*> {
+        public fun create(entityClass: KClass<*>): Entity<*> {
             return create(entityClass, null, null, null)
         }
 
         /**
          * Create an entity object by JDK dynamic proxy.
          */
-        inline fun <reified E : Entity<E>> create(): E {
+        public inline fun <reified E : Entity<E>> create(): E {
             return create(E::class) as E
         }
     }
@@ -252,20 +252,20 @@ interface Entity<E : Entity<E>> : Serializable {
     /**
      * Abstract factory used to create entity objects, typically declared as companion objects of entity classes.
      */
-    abstract class Factory<E : Entity<E>> : TypeReference<E>() {
+    public abstract class Factory<E : Entity<E>> : TypeReference<E>() {
 
         /**
          * Overload the `invoke` operator, creating an entity object just like there is a constructor.
          */
         @Suppress("UNCHECKED_CAST")
-        operator fun invoke(): E {
+        public operator fun invoke(): E {
             return create(referencedKotlinType.jvmErasure) as E
         }
 
         /**
          * Overload the `invoke` operator, creating an entity object and call the [init] function.
          */
-        inline operator fun invoke(init: E.() -> Unit): E {
+        public inline operator fun invoke(init: E.() -> Unit): E {
             return invoke().apply(init)
         }
     }

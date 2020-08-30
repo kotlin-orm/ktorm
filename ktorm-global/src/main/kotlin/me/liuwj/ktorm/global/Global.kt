@@ -47,7 +47,7 @@ internal val threadLocal = ThreadLocal<Database>()
  *
  * @see Database.invoke
  */
-val Database.Companion.global: Database get() {
+public val Database.Companion.global: Database get() {
     val database = threadLocal.get() ?: lastConnected.get()
     return database ?: error("Not connected to any database yet, please connect to one via Database.connectGlobally")
 }
@@ -63,7 +63,7 @@ val Database.Companion.global: Database get() {
  * @param connector the connector function used to obtain SQL connections.
  * @return the new-created database object.
  */
-fun Database.Companion.connectGlobally(
+public fun Database.Companion.connectGlobally(
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
     alwaysQuoteIdentifiers: Boolean = false,
@@ -92,7 +92,7 @@ fun Database.Companion.connectGlobally(
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
  */
-fun Database.Companion.connectGlobally(
+public fun Database.Companion.connectGlobally(
     dataSource: DataSource,
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
@@ -125,7 +125,7 @@ fun Database.Companion.connectGlobally(
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
  */
-fun Database.Companion.connectGlobally(
+public fun Database.Companion.connectGlobally(
     url: String,
     driver: String? = null,
     user: String? = null,
@@ -169,7 +169,7 @@ fun Database.Companion.connectGlobally(
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
  */
-fun Database.Companion.connectWithSpringSupportGlobally(
+public fun Database.Companion.connectWithSpringSupportGlobally(
     dataSource: DataSource,
     dialect: SqlDialect = detectDialectImplementation(),
     logger: Logger = detectLoggerImplementation(),
@@ -201,7 +201,7 @@ fun Database.Companion.connectWithSpringSupportGlobally(
  *
  * @see Database.Companion.global
  */
-inline operator fun <T> Database.invoke(func: Database.() -> T): T {
+public inline operator fun <T> Database.invoke(func: Database.() -> T): T {
     // Contracts are not allowed for operator functions?
     // contract {
     //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
@@ -228,7 +228,7 @@ inline operator fun <T> Database.invoke(func: Database.() -> T): T {
  *
  * @see Database.useConnection
  */
-inline fun <T> useConnection(func: (Connection) -> T): T {
+public inline fun <T> useConnection(func: (Connection) -> T): T {
     contract {
         callsInPlace(func, InvocationKind.EXACTLY_ONCE)
     }
@@ -251,7 +251,7 @@ inline fun <T> useConnection(func: (Connection) -> T): T {
  * @return the result of the callback function.
  * @see Database.useTransaction
  */
-inline fun <T> useTransaction(
+public inline fun <T> useTransaction(
     isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
     func: (Transaction) -> T
 ): T {

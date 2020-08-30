@@ -24,7 +24,7 @@ import android.util.Log
  *
  * @property tag the tag for android logging.
  */
-class AndroidLoggerAdapter(val tag: String) : Logger {
+public class AndroidLoggerAdapter(public val tag: String) : Logger {
 
     override fun isTraceEnabled(): Boolean {
         return Log.isLoggable(tag, Log.VERBOSE)

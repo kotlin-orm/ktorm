@@ -24,7 +24,7 @@ import me.liuwj.ktorm.schema.IntSqlType
 /**
  * [SqlDialect] implementation for PostgreSQL database.
  */
-open class PostgreSqlDialect : SqlDialect {
+public open class PostgreSqlDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return PostgreSqlFormatter(database, beautifySql, indentSize)
@@ -34,7 +34,7 @@ open class PostgreSqlDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
  */
-open class PostgreSqlFormatter(
+public open class PostgreSqlFormatter(
     database: Database,
     beautifySql: Boolean,
     indentSize: Int
@@ -166,7 +166,7 @@ open class PostgreSqlFormatter(
  *
  * For detailed documents, see [SqlExpressionVisitor].
  */
-open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
+public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
 
     override fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {

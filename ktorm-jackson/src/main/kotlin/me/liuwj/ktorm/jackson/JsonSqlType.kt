@@ -28,7 +28,10 @@ import java.sql.Types
 /**
  * A shared [ObjectMapper] instance which is used as the default mapper of [json] SQL type.
  */
-val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModules(KtormModule(), KotlinModule(), JavaTimeModule())
+public val sharedObjectMapper: ObjectMapper = ObjectMapper()
+    .registerModule(KtormModule())
+    .registerModule(KotlinModule())
+    .registerModule(JavaTimeModule())
 
 /**
  * Define a column typed of [JsonSqlType].
@@ -42,7 +45,7 @@ val sharedObjectMapper: ObjectMapper = ObjectMapper().registerModules(KtormModul
     message = "This function will be removed in the future. Please use json<C>(name, mapper) instead.",
     replaceWith = ReplaceWith("json<C>(name, mapper)")
 )
-fun <C : Any> BaseTable<*>.json(
+public fun <C : Any> BaseTable<*>.json(
     name: String,
     typeRef: TypeReference<C>,
     mapper: ObjectMapper = sharedObjectMapper
@@ -57,7 +60,10 @@ fun <C : Any> BaseTable<*>.json(
  * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
  * @return the registered column.
  */
-inline fun <reified C : Any> BaseTable<*>.json(name: String, mapper: ObjectMapper = sharedObjectMapper): Column<C> {
+public inline fun <reified C : Any> BaseTable<*>.json(
+    name: String,
+    mapper: ObjectMapper = sharedObjectMapper
+): Column<C> {
     return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeOf<C>())))
 }
 
@@ -67,9 +73,9 @@ inline fun <reified C : Any> BaseTable<*>.json(name: String, mapper: ObjectMappe
  * @property objectMapper the object mapper used to serialize column values to JSON strings and deserialize them.
  * @property javaType the generic type information represented as Jackson's [JavaType].
  */
-class JsonSqlType<T : Any>(
-    val objectMapper: ObjectMapper,
-    val javaType: JavaType
+public class JsonSqlType<T : Any>(
+    public val objectMapper: ObjectMapper,
+    public val javaType: JavaType
 ) : SqlType<T>(Types.VARCHAR, "json") {
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {

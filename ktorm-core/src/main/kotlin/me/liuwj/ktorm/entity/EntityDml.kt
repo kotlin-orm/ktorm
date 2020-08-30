@@ -38,7 +38,7 @@ import me.liuwj.ktorm.schema.*
  * @since 2.7
  */
 @Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
+public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
     checkIfSequenceModified()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
@@ -99,7 +99,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
  * @since 3.1.0
  */
 @Suppress("UNCHECKED_CAST")
-fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E): Int {
+public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E): Int {
     checkIfSequenceModified()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
@@ -130,7 +130,7 @@ fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E): Int {
  *
  * @since 2.7
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Int {
     checkIfSequenceModified()
@@ -142,7 +142,7 @@ fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
  *
  * @since 2.7
  */
-fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
     checkIfSequenceModified()
     return database.deleteAll(sourceTable)
 }

@@ -60,7 +60,7 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * @since 2.5
  */
-abstract class BaseTable<E : Any>(
+public abstract class BaseTable<E : Any>(
     tableName: String,
     alias: String? = null,
     catalog: String? = null,
@@ -76,13 +76,13 @@ abstract class BaseTable<E : Any>(
      * The table's name.
      */
     @Suppress("CanBePrimaryConstructorProperty")
-    val tableName: String = tableName
+    public val tableName: String = tableName
 
     /**
      * The table's alias.
      */
     @Suppress("CanBePrimaryConstructorProperty")
-    val alias: String? = alias
+    public val alias: String? = alias
 
     /**
      * The table's catalog.
@@ -90,7 +90,7 @@ abstract class BaseTable<E : Any>(
      * @since 3.1.0
      */
     @Suppress("CanBePrimaryConstructorProperty")
-    val catalog: String? = catalog
+    public val catalog: String? = catalog
 
     /**
      * The table's schema.
@@ -98,24 +98,24 @@ abstract class BaseTable<E : Any>(
      * @since 3.1.0
      */
     @Suppress("CanBePrimaryConstructorProperty")
-    val schema: String? = schema
+    public val schema: String? = schema
 
     /**
      * The entity class this table is bound to.
      */
     @Suppress("UNCHECKED_CAST")
-    val entityClass: KClass<E>? =
+    public val entityClass: KClass<E>? =
         (entityClass ?: referencedKotlinType.jvmErasure as KClass<E>).takeIf { it != Nothing::class }
 
     /**
      * Return all columns of the table.
      */
-    val columns: List<Column<*>> get() = _columns.values.toList()
+    public val columns: List<Column<*>> get() = _columns.values.toList()
 
     /**
      * The primary key columns of this table.
      */
-    val primaryKeys: List<Column<*>> get() = _primaryKeyNames.map { this[it] }
+    public val primaryKeys: List<Column<*>> get() = _primaryKeyNames.map { this[it] }
 
     /**
      * Obtain the single primary key or throw an exception.
@@ -134,7 +134,7 @@ abstract class BaseTable<E : Any>(
     /**
      * Obtain a column from this table by the name.
      */
-    operator fun get(name: String): Column<*> {
+    public operator fun get(name: String): Column<*> {
         return _columns[name] ?: throw NoSuchElementException(name)
     }
 
@@ -145,7 +145,7 @@ abstract class BaseTable<E : Any>(
      * a binding, mark it as a primary key, and so on. But please note that [Column] is immutable, those modification
      * functions will create new [Column] instances and replace the origin registered ones.
      */
-    fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): Column<C> {
+    public fun <C : Any> registerColumn(name: String, sqlType: SqlType<C>): Column<C> {
         if (name in _columns) {
             throw IllegalStateException("Duplicate column name: $name")
         }
@@ -158,7 +158,7 @@ abstract class BaseTable<E : Any>(
     /**
      * Mark the registered column as a primary key.
      */
-    fun <C : Any> Column<C>.primaryKey(): Column<C> {
+    public fun <C : Any> Column<C>.primaryKey(): Column<C> {
         checkRegistered()
         _primaryKeyNames += name
         return this
@@ -195,7 +195,7 @@ abstract class BaseTable<E : Any>(
      * @return the new [Column] instance with its type changed to [R].
      * @see SqlType.transform
      */
-    fun <C : Any, R : Any> Column<C>.transform(
+    public fun <C : Any, R : Any> Column<C>.transform(
         fromUnderlyingValue: (C) -> R,
         toUnderlyingValue: (R) -> C
     ): Column<R> {
@@ -301,7 +301,7 @@ abstract class BaseTable<E : Any>(
      *
      * More details can be found on our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
      */
-    open fun aliased(alias: String): BaseTable<E> {
+    public open fun aliased(alias: String): BaseTable<E> {
         throw UnsupportedOperationException("The function 'aliased' is not supported by $javaClass")
     }
 
@@ -347,7 +347,7 @@ abstract class BaseTable<E : Any>(
      * it is equivalent to `c.bindTo { it.department.id }` in this case, that avoids unnecessary object creations
      * and some exceptions raised by conflict column names.
      */
-    fun createEntity(row: QueryRowSet, withReferences: Boolean = true): E {
+    public fun createEntity(row: QueryRowSet, withReferences: Boolean = true): E {
         val entity = doCreateEntity(row, withReferences)
 
         val logger = row.query.database.logger
@@ -369,7 +369,7 @@ abstract class BaseTable<E : Any>(
     /**
      * Convert this table to a [TableExpression].
      */
-    fun asExpression(): TableExpression {
+    public fun asExpression(): TableExpression {
         return TableExpression(tableName, alias, catalog, schema)
     }
 

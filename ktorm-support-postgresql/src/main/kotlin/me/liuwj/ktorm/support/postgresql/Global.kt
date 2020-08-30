@@ -67,6 +67,6 @@ internal val Database.Companion.global: Database get() {
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
 }

@@ -53,6 +53,21 @@ class GlobalEntityTest : BaseGlobalTest() {
     }
 
     @Test
+    fun testUpdate() {
+        var employee = Employee()
+        employee.id = 2
+        employee.job = "engineer"
+        employee.salary = 100
+        employee.manager = null
+        Employees.updateEntity(employee)
+
+        employee = Employees.findOne { it.id eq 2 } ?: throw AssertionError()
+        assert(employee.job == "engineer")
+        assert(employee.salary == 100L)
+        assert(employee.manager?.id == 1)
+    }
+
+    @Test
     fun testFlushChanges() {
         var employee = Employees.findOne { it.id eq 2 } ?: throw AssertionError()
         employee.job = "engineer"
@@ -84,7 +99,7 @@ class GlobalEntityTest : BaseGlobalTest() {
             department = Departments.findOne { it.name eq "tech" } ?: throw AssertionError()
         }
 
-        Employees.add(employee)
+        Employees.addEntity(employee)
         println(employee)
 
         employee = Employees.findOne { it.id eq 5 } ?: throw AssertionError()
@@ -224,7 +239,7 @@ class GlobalEntityTest : BaseGlobalTest() {
         employee.manager = Employees.findOne { it.name eq "vince" }
         employee.hireDate = LocalDate.now()
         employee.salary = 50
-        Employees.add(employee)
+        Employees.addEntity(employee)
 
         department.location = LocationWrapper("Guangzhou")
         department.flushChanges()
@@ -268,7 +283,7 @@ class GlobalEntityTest : BaseGlobalTest() {
         }
 
         try {
-            Emps.add(emp2)
+            Emps.addEntity(emp2)
             throw AssertionError("failed")
 
         } catch (e: IllegalStateException) {

@@ -25,7 +25,7 @@ import me.liuwj.ktorm.schema.IntSqlType
 /**
  * [SqlDialect] implementation for Oracle database.
  */
-open class OracleDialect : SqlDialect {
+public open class OracleDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return OracleFormatter(database, beautifySql, indentSize)
@@ -35,7 +35,7 @@ open class OracleDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for Oracle, formatting SQL expressions as strings with their execution arguments.
  */
-open class OracleFormatter(
+public open class OracleFormatter(
     database: Database,
     beautifySql: Boolean,
     indentSize: Int

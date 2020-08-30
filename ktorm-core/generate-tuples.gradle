@@ -14,7 +14,7 @@ def generateTuple(Writer writer, int tupleNumber) {
          * There is no meaning attached to values in this class, it can be used for any purpose.
          * Two tuples are equal if all the components are equal.
          */
-        data class Tuple$tupleNumber<$typeParams>(
+        public data class Tuple$tupleNumber<$typeParams>(
             $propertyDefinitions
         ) : Serializable { 
         
@@ -36,7 +36,7 @@ def generateTupleOf(Writer writer, int tupleNumber) {
          *
          * @since 2.7
          */
-        fun <$typeParams> tupleOf(
+        public fun <$typeParams> tupleOf(
             $params
         ): Tuple$tupleNumber<$typeParams> {
             return Tuple$tupleNumber($elements)
@@ -54,7 +54,7 @@ def generateToList(Writer writer, int tupleNumber) {
          *
          * @since 2.7
          */
-        fun <E> Tuple$tupleNumber<$typeParams>.toList(): List<E> {
+        public fun <E> Tuple$tupleNumber<$typeParams>.toList(): List<E> {
             return listOf($elements)
         }
     """.stripIndent())
@@ -80,7 +80,7 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
          * @return a list of the query results.
          */
-        inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.mapColumns$tupleNumber(
+        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.mapColumns$tupleNumber(
             isDistinct: Boolean = false,
             columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): List<Tuple$tupleNumber<$resultTypes>> {
@@ -100,7 +100,7 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
          * @return the [destination] collection of the query results.
          */
-        inline fun <E : Any, T : BaseTable<E>, $typeParams, R> EntitySequence<E, T>.mapColumns${tupleNumber}To(
+        public inline fun <E : Any, T : BaseTable<E>, $typeParams, R> EntitySequence<E, T>.mapColumns${tupleNumber}To(
             destination: R,
             isDistinct: Boolean = false,
             columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
@@ -136,7 +136,7 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return a tuple of the aggregate results.
          */
-        inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
+        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): Tuple$tupleNumber<$resultTypes> {
             val ($variableNames) = aggregationSelector(sourceTable)
@@ -175,7 +175,7 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
          */
-        inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
+        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
             return aggregateColumns${tupleNumber}To(LinkedHashMap(), aggregationSelector)
@@ -191,7 +191,7 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return the [destination] map associating the key of each group with the result of aggregations of the group elements.
          */
-        inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
+        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
             destination: M,
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): M where M : MutableMap<in K?, in Tuple$tupleNumber<$resultTypes>> {
@@ -235,12 +235,12 @@ task generateTuples {
                 /**
                  * Set a typealias `Tuple2` for `Pair`. 
                  */
-                typealias Tuple2<E1, E2> = Pair<E1, E2>
+                public typealias Tuple2<E1, E2> = Pair<E1, E2>
                 
                 /**
                  * Set a typealias `Tuple3` for `Triple`.
                  */
-                typealias Tuple3<E1, E2, E3> = Triple<E1, E2, E3>
+                public typealias Tuple3<E1, E2, E3> = Triple<E1, E2, E3>
             """.stripIndent())
 
             (4..maxTupleNumber).each { num ->

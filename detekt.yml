@@ -448,7 +448,7 @@ style:
   ProtectedMemberInFinalClass:
     active: true
   RedundantVisibilityModifierRule:
-    active: true
+    active: false
   ReturnCount:
     active: false
     max: 2

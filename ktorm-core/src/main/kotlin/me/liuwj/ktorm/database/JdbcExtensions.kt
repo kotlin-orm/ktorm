@@ -31,7 +31,7 @@ import kotlin.contracts.contract
  * @return the result of [block] function invoked on this resource.
  */
 @Suppress("ConvertTryFinallyToUseCall")
-inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
+public inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -49,7 +49,7 @@ inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
  * @since 2.7
  * @param args the arguments to set into the statement.
  */
-fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
+public fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
     for ((i, expr) in args.withIndex()) {
         @Suppress("UNCHECKED_CAST")
         val sqlType = expr.sqlType as SqlType<Any>
@@ -64,7 +64,7 @@ fun PreparedStatement.setArguments(args: List<ArgumentExpression<*>>) {
  * exactly the same reference as the this [ResultSet].
  */
 @Suppress("IteratorHasNextCallsNextMethod")
-operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
+public operator fun <T : ResultSet> T.iterator(): Iterator<T> = object : Iterator<T> {
     private val rs = this@iterator
     private var hasNext: Boolean? = null
 
@@ -85,6 +85,6 @@ operator fun <T : ResultSet> T.iterator() = object : Iterator<T> {
  *
  * @see ResultSet.iterator
  */
-fun <T : ResultSet> T.asIterable(): Iterable<T> {
+public fun <T : ResultSet> T.asIterable(): Iterable<T> {
     return Iterable { iterator() }
 }

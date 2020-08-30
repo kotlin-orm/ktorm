@@ -26,7 +26,7 @@ import me.liuwj.ktorm.schema.VarcharSqlType
 /**
  * Enum for `hstore` operators.
  */
-enum class HStoreExpressionType(private val value: String) {
+public enum class HStoreExpressionType(private val value: String) {
 
     /**
      * HStore get value operator, translated to the -> operator in PostgreSQL.
@@ -81,7 +81,7 @@ enum class HStoreExpressionType(private val value: String) {
  * @property left the expression's left operand.
  * @property right the expression's right operand.
  */
-data class HStoreExpression<T : Any>(
+public data class HStoreExpression<T : Any>(
     val type: HStoreExpressionType,
     val left: ScalarExpression<HStore>,
     val right: ScalarExpression<*>,
@@ -94,7 +94,7 @@ data class HStoreExpression<T : Any>(
  * HStore get value for key operator, translated to the -> operator in PostgreSQL.
  */
 @JvmName("getValue")
-operator fun ColumnDeclaring<HStore>.get(expr: ColumnDeclaring<String>): HStoreExpression<String> {
+public operator fun ColumnDeclaring<HStore>.get(expr: ColumnDeclaring<String>): HStoreExpression<String> {
     return HStoreExpression(HStoreExpressionType.GET, asExpression(), expr.asExpression(), VarcharSqlType)
 }
 
@@ -102,7 +102,7 @@ operator fun ColumnDeclaring<HStore>.get(expr: ColumnDeclaring<String>): HStoreE
  * HStore get value for key operator, translated to the -> operator in PostgreSQL.
  */
 @JvmName("getValue")
-operator fun ColumnDeclaring<HStore>.get(argument: String): HStoreExpression<String> {
+public operator fun ColumnDeclaring<HStore>.get(argument: String): HStoreExpression<String> {
     return this[ArgumentExpression(argument, VarcharSqlType)]
 }
 
@@ -110,7 +110,7 @@ operator fun ColumnDeclaring<HStore>.get(argument: String): HStoreExpression<Str
  * HStore get values for keys operator, translated to the -> operator in PostgreSQL.
  */
 @JvmName("getValues")
-operator fun ColumnDeclaring<HStore>.get(expr: ColumnDeclaring<TextArray>): HStoreExpression<TextArray> {
+public operator fun ColumnDeclaring<HStore>.get(expr: ColumnDeclaring<TextArray>): HStoreExpression<TextArray> {
     return HStoreExpression(HStoreExpressionType.GET, asExpression(), expr.asExpression(), TextArraySqlType)
 }
 
@@ -118,91 +118,91 @@ operator fun ColumnDeclaring<HStore>.get(expr: ColumnDeclaring<TextArray>): HSto
  * HStore get values for keys operator, translated to the -> operator in PostgreSQL.
  */
 @JvmName("getValues")
-operator fun ColumnDeclaring<HStore>.get(argument: TextArray): HStoreExpression<TextArray> {
+public operator fun ColumnDeclaring<HStore>.get(argument: TextArray): HStoreExpression<TextArray> {
     return this[ArgumentExpression(argument, TextArraySqlType)]
 }
 
 /**
  * HStore concatenate operator, translated to the || operator in PostgreSQL.
  */
-operator fun ColumnDeclaring<HStore>.plus(expr: ColumnDeclaring<HStore>): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.plus(expr: ColumnDeclaring<HStore>): HStoreExpression<HStore> {
     return HStoreExpression(HStoreExpressionType.CONCATENATE, asExpression(), expr.asExpression(), HStoreSqlType)
 }
 
 /**
  * HStore concatenate operator, translated to the || operator in PostgreSQL.
  */
-operator fun ColumnDeclaring<HStore>.plus(argument: HStore): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.plus(argument: HStore): HStoreExpression<HStore> {
     return this + wrapArgument(argument)
 }
 
 /**
  * HStore contains key operator, translated to the ? operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containsKey(expr: ColumnDeclaring<String>): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containsKey(expr: ColumnDeclaring<String>): HStoreExpression<Boolean> {
     return HStoreExpression(HStoreExpressionType.CONTAINS_KEY, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * HStore contains key operator, translated to the ? operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containsKey(argument: String): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containsKey(argument: String): HStoreExpression<Boolean> {
     return this.containsKey(ArgumentExpression(argument, VarcharSqlType))
 }
 
 /**
  * HStore contains all keys operator, translated to the ?& operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containsAll(expr: ColumnDeclaring<TextArray>): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containsAll(expr: ColumnDeclaring<TextArray>): HStoreExpression<Boolean> {
     return HStoreExpression(HStoreExpressionType.CONTAINS_ALL, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * HStore contains all keys operator, translated to the ?& operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containsAll(argument: TextArray): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containsAll(argument: TextArray): HStoreExpression<Boolean> {
     return this.containsAll(ArgumentExpression(argument, TextArraySqlType))
 }
 
 /**
  * HStore contains any keys operator, translated to the ?| operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containsAny(expr: ColumnDeclaring<TextArray>): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containsAny(expr: ColumnDeclaring<TextArray>): HStoreExpression<Boolean> {
     return HStoreExpression(HStoreExpressionType.CONTAINS_ANY, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * HStore contains any keys operator, translated to the ?| operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containsAny(argument: TextArray): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containsAny(argument: TextArray): HStoreExpression<Boolean> {
     return this.containsAny(ArgumentExpression(argument, TextArraySqlType))
 }
 
 /**
  * HStore contains operator, translated to the @> operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.contains(expr: ColumnDeclaring<HStore>): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.contains(expr: ColumnDeclaring<HStore>): HStoreExpression<Boolean> {
     return HStoreExpression(HStoreExpressionType.CONTAINS, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * HStore contains operator, translated to the @> operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.contains(argument: HStore): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.contains(argument: HStore): HStoreExpression<Boolean> {
     return this.contains(wrapArgument(argument))
 }
 
 /**
  * HStore contained in operator, translated to the <@ operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containedIn(expr: ColumnDeclaring<HStore>): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containedIn(expr: ColumnDeclaring<HStore>): HStoreExpression<Boolean> {
     return HStoreExpression(HStoreExpressionType.CONTAINED_IN, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * HStore contained in operator, translated to the <@ operator in PostgreSQL.
  */
-fun ColumnDeclaring<HStore>.containedIn(argument: HStore): HStoreExpression<Boolean> {
+public fun ColumnDeclaring<HStore>.containedIn(argument: HStore): HStoreExpression<Boolean> {
     return this.containedIn(wrapArgument(argument))
 }
 
@@ -210,7 +210,7 @@ fun ColumnDeclaring<HStore>.containedIn(argument: HStore): HStoreExpression<Bool
  * HStore delete key operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusKey")
-operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<String>): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<String>): HStoreExpression<HStore> {
     return HStoreExpression(HStoreExpressionType.DELETE, asExpression(), expr.asExpression(), HStoreSqlType)
 }
 
@@ -218,7 +218,7 @@ operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<String>): HStor
  * HStore delete key operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusKey")
-operator fun ColumnDeclaring<HStore>.minus(argument: String): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.minus(argument: String): HStoreExpression<HStore> {
     return this - ArgumentExpression(argument, VarcharSqlType)
 }
 
@@ -226,7 +226,7 @@ operator fun ColumnDeclaring<HStore>.minus(argument: String): HStoreExpression<H
  * HStore delete keys operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusKeys")
-operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<TextArray>): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<TextArray>): HStoreExpression<HStore> {
     return HStoreExpression(HStoreExpressionType.DELETE, asExpression(), expr.asExpression(), HStoreSqlType)
 }
 
@@ -234,7 +234,7 @@ operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<TextArray>): HS
  * HStore delete keys operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusKeys")
-operator fun ColumnDeclaring<HStore>.minus(argument: TextArray): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.minus(argument: TextArray): HStoreExpression<HStore> {
     return this - ArgumentExpression(argument, TextArraySqlType)
 }
 
@@ -242,7 +242,7 @@ operator fun ColumnDeclaring<HStore>.minus(argument: TextArray): HStoreExpressio
  * HStore delete matching pairs operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusMatching")
-operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<HStore>): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<HStore>): HStoreExpression<HStore> {
     return HStoreExpression(HStoreExpressionType.DELETE, asExpression(), expr.asExpression(), HStoreSqlType)
 }
 
@@ -250,6 +250,6 @@ operator fun ColumnDeclaring<HStore>.minus(expr: ColumnDeclaring<HStore>): HStor
  * HStore delete matching pairs operator, translated to the - operator in PostgreSQL.
  */
 @JvmName("minusMatching")
-operator fun ColumnDeclaring<HStore>.minus(argument: HStore): HStoreExpression<HStore> {
+public operator fun ColumnDeclaring<HStore>.minus(argument: HStore): HStoreExpression<HStore> {
     return this - wrapArgument(argument)
 }

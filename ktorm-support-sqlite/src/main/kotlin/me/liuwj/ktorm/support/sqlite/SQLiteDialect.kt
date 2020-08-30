@@ -25,7 +25,7 @@ import me.liuwj.ktorm.schema.IntSqlType
 /**
  * [SqlDialect] implementation for SQLite database.
  */
-open class SQLiteDialect : SqlDialect {
+public open class SQLiteDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return SQLiteFormatter(database, beautifySql, indentSize)
@@ -59,7 +59,7 @@ open class SQLiteDialect : SqlDialect {
 /**
  * [SqlFormatter] implementation for SQLite, formatting SQL expressions as strings with their execution arguments.
  */
-open class SQLiteFormatter(
+public open class SQLiteFormatter(
     database: Database,
     beautifySql: Boolean,
     indentSize: Int

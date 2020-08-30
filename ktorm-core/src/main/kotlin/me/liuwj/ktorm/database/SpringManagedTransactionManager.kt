@@ -31,11 +31,11 @@ import javax.sql.DataSource
  *
  * @property dataSource the data source used to obtained connections, typically comes from Spring's application context.
  */
-class SpringManagedTransactionManager(val dataSource: DataSource) : TransactionManager {
+public class SpringManagedTransactionManager(public val dataSource: DataSource) : TransactionManager {
 
     private val proxy = dataSource as? TransactionAwareDataSourceProxy ?: TransactionAwareDataSourceProxy(dataSource)
 
-    override val defaultIsolation get() = TransactionIsolation.REPEATABLE_READ
+    override val defaultIsolation: TransactionIsolation get() = TransactionIsolation.REPEATABLE_READ
 
     override val currentTransaction: Transaction? = null
 

@@ -24,35 +24,35 @@ import me.liuwj.ktorm.schema.ColumnDeclaring
 /**
  * Join the right table and return a new [QuerySource], translated to `cross join` in SQL.
  */
-fun BaseTable<*>.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun BaseTable<*>.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return Database.global.from(this).crossJoin(right, on)
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `inner join` in SQL.
  */
-fun BaseTable<*>.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun BaseTable<*>.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return Database.global.from(this).innerJoin(right, on)
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `left join` in SQL.
  */
-fun BaseTable<*>.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun BaseTable<*>.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return Database.global.from(this).leftJoin(right, on)
 }
 
 /**
  * Join the right table and return a new [QuerySource], translated to `right join` in SQL.
  */
-fun BaseTable<*>.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun BaseTable<*>.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return Database.global.from(this).rightJoin(right, on)
 }
 
 /**
  * Return a new-created [Query] object, left joining all the reference tables, and selecting all columns of them.
  */
-fun BaseTable<*>.joinReferencesAndSelect(): Query {
+public fun BaseTable<*>.joinReferencesAndSelect(): Query {
     return Database.global.from(this).joinReferencesAndSelect()
 }
 
@@ -61,7 +61,7 @@ fun BaseTable<*>.joinReferencesAndSelect(): Query {
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
  */
-fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
+public fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
     return Database.global.from(this).select(columns)
 }
 
@@ -70,7 +70,7 @@ fun BaseTable<*>.select(columns: Collection<ColumnDeclaring<*>>): Query {
  *
  * Note that the specific columns can be empty, that means `select *` in SQL.
  */
-fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
+public fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
     return Database.global.from(this).select(*columns)
 }
 
@@ -79,7 +79,7 @@ fun BaseTable<*>.select(vararg columns: ColumnDeclaring<*>): Query {
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
  */
-fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
+public fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query {
     return Database.global.from(this).selectDistinct(columns)
 }
 
@@ -88,6 +88,6 @@ fun BaseTable<*>.selectDistinct(columns: Collection<ColumnDeclaring<*>>): Query 
  *
  * Note that the specific columns can be empty, that means `select distinct *` in SQL.
  */
-fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
+public fun BaseTable<*>.selectDistinct(vararg columns: ColumnDeclaring<*>): Query {
     return Database.global.from(this).selectDistinct(*columns)
 }

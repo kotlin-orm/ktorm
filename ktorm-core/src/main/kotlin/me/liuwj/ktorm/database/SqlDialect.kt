@@ -38,7 +38,7 @@ import java.util.ServiceLoader
  * need to specify the `dialect` parameter explicitly anymore while creating [Database] instances. Ktorm auto detects
  * one for us from the classpath. We just need to insure the dialect module exists in the dependencies.
  */
-interface SqlDialect {
+public interface SqlDialect {
 
     /**
      * Create a [SqlFormatter] instance, formatting SQL expressions as strings with their execution arguments.
@@ -48,7 +48,7 @@ interface SqlDialect {
      * @param indentSize the indent size.
      * @return a [SqlFormatter] object, generally typed of subclasses to support dialect-specific sql expressions.
      */
-    fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
+    public fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return object : SqlFormatter(database, beautifySql, indentSize) {
             override fun writePagination(expr: QueryExpression) {
                 throw DialectFeatureNotSupportedException("Pagination is not supported in Standard SQL.")
@@ -66,7 +66,7 @@ interface SqlDialect {
      * @param args the arguments to be provided to the statement.
      * @return a [Pair] combines the effected row count and the generated keys.
      */
-    fun executeUpdateAndRetrieveKeys(
+    public fun executeUpdateAndRetrieveKeys(
         database: Database,
         sql: String,
         args: List<ArgumentExpression<*>>
@@ -89,12 +89,12 @@ interface SqlDialect {
  * @param message the detail message, which is saved for later retrieval by [Throwable.message].
  * @param cause the cause, which is saved for later retrieval by [Throwable.cause].
  */
-class DialectFeatureNotSupportedException(
+public class DialectFeatureNotSupportedException(
     message: String? = null,
     cause: Throwable? = null
 ) : UnsupportedOperationException(message, cause) {
 
-    companion object {
+    private companion object {
         private const val serialVersionUID = 1L
     }
 }
@@ -102,7 +102,7 @@ class DialectFeatureNotSupportedException(
 /**
  * Auto detect a dialect implementation.
  */
-fun detectDialectImplementation(): SqlDialect {
+public fun detectDialectImplementation(): SqlDialect {
     val dialects = ServiceLoader.load(SqlDialect::class.java).toList()
     return when (dialects.size) {
         0 -> object : SqlDialect { }

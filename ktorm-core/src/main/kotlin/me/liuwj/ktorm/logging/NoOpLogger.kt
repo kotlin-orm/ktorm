@@ -19,7 +19,7 @@ package me.liuwj.ktorm.logging
 /**
  * [Logger] implementation that performs no operations.
  */
-object NoOpLogger : Logger {
+public object NoOpLogger : Logger {
 
     override fun isTraceEnabled(): Boolean {
         return false

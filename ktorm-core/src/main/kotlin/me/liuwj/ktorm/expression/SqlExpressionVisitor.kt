@@ -34,13 +34,13 @@ package me.liuwj.ktorm.expression
  *
  * [SqlFormatter] is a typical example used to format expressions as executable SQL strings.
  */
-open class SqlExpressionVisitor {
+public open class SqlExpressionVisitor {
 
     /**
      * Dispatch different type of expression nodes to the specific `visit*` functions. Custom expression types that
      * are unknown to Ktorm will be dispatched to [visitUnknown].
      */
-    open fun visit(expr: SqlExpression): SqlExpression {
+    public open fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {
             is ScalarExpression<*> -> visitScalar(expr)
             is QueryExpression -> visitQuery(expr)

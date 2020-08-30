@@ -22,7 +22,7 @@ package me.liuwj.ktorm.logging
  *
  * @property threshold a threshold controlling which log levels are enabled.
  */
-class ConsoleLogger(val threshold: LogLevel) : Logger {
+public class ConsoleLogger(public val threshold: LogLevel) : Logger {
 
     override fun isTraceEnabled(): Boolean {
         return LogLevel.TRACE >= threshold

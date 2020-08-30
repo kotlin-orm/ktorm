@@ -32,10 +32,10 @@ import javax.sql.DataSource
  *
  * @property connector the callback function used to obtain SQL connections.
  */
-class JdbcTransactionManager(val connector: () -> Connection) : TransactionManager {
+public class JdbcTransactionManager(public val connector: () -> Connection) : TransactionManager {
     private val threadLocal = ThreadLocal<Transaction>()
 
-    override val defaultIsolation = TransactionIsolation.REPEATABLE_READ
+    override val defaultIsolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ
 
     override val currentTransaction: Transaction? get() = threadLocal.get()
 

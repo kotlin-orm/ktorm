@@ -39,8 +39,8 @@ import me.liuwj.ktorm.entity.Entity
  * @see ObjectMapper.registerModule
  * @see ObjectMapper.findAndRegisterModules
  */
-class KtormModule : Module() {
-    companion object {
+public class KtormModule : Module() {
+    private companion object {
         private const val serialVersionUID = 1L
     }
 

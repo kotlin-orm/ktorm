@@ -47,7 +47,7 @@ import kotlin.reflect.jvm.jvmErasure
  * ```
  */
 @Suppress("UNCHECKED_CAST")
-open class Table<E : Entity<E>>(
+public open class Table<E : Entity<E>>(
     tableName: String,
     alias: String? = null,
     catalog: String? = null,
@@ -66,7 +66,7 @@ open class Table<E : Entity<E>>(
      *
      * @return the new [Column] instance.
      */
-    inline fun <C : Any> Column<C>.bindTo(selector: (E) -> C?): Column<C> {
+    public inline fun <C : Any> Column<C>.bindTo(selector: (E) -> C?): Column<C> {
         val properties = detectBindingProperties(selector)
         return doBindInternal(NestedBinding(properties))
     }
@@ -89,7 +89,10 @@ open class Table<E : Entity<E>>(
      * @see me.liuwj.ktorm.entity.sequenceOf
      * @see createEntity
      */
-    inline fun <C : Any, R : Entity<R>> Column<C>.references(referenceTable: Table<R>, selector: (E) -> R?): Column<C> {
+    public inline fun <C : Any, R : Entity<R>> Column<C>.references(
+        referenceTable: Table<R>,
+        selector: (E) -> R?
+    ): Column<C> {
         val properties = detectBindingProperties(selector)
 
         if (properties.size > 1) {

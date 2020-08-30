@@ -35,7 +35,7 @@ import me.liuwj.ktorm.schema.Column
  * @property conflictTarget the index columns on which the conflict may happens.
  * @property updateAssignments the updated column assignments while any key conflict exists.
  */
-data class InsertOrUpdateExpression(
+public data class InsertOrUpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
     val conflictTarget: List<ColumnExpression<*>>,
@@ -76,7 +76,10 @@ data class InsertOrUpdateExpression(
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
+public fun <T : BaseTable<*>> Database.insertOrUpdate(
+    table: T,
+    block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
     val primaryKeys = table.primaryKeys
@@ -101,7 +104,7 @@ fun <T : BaseTable<*>> Database.insertOrUpdate(table: T, block: InsertOrUpdateSt
  * Base class of PostgreSQL DSL builders, provide basic functions used to build assignments for insert or update DSL.
  */
 @KtormDsl
-open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
+public open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
 
     /**
      * A getter that returns the readonly view of the built assignments list.
@@ -113,14 +116,14 @@ open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
  * DSL builder for insert or update statements.
  */
 @KtormDsl
-class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
+public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal val conflictColumns = ArrayList<Column<*>>()
 
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
+    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
         val builder = PostgreSqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
         conflictColumns += columns

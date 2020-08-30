@@ -26,17 +26,17 @@ import kotlin.reflect.jvm.jvmErasure
  * Base class used to obtain full generic type information by subclassing.
  */
 @Suppress("UnnecessaryAbstractClass")
-abstract class TypeReference<T> {
+public abstract class TypeReference<T> {
 
     /**
      * The actual type argument of subclass without erased.
      */
-    val referencedType: Type by lazy { findSuperclassTypeArgument(javaClass) }
+    public val referencedType: Type by lazy { findSuperclassTypeArgument(javaClass) }
 
     /**
      * The actual kotlin type argument of subclass without erased.
      */
-    val referencedKotlinType: KType by lazy { findSuperclassTypeArgument(javaClass.kotlin) }
+    public val referencedKotlinType: KType by lazy { findSuperclassTypeArgument(javaClass.kotlin) }
 
     private fun findSuperclassTypeArgument(cls: Class<*>): Type {
         val genericSuperclass = cls.genericSuperclass
@@ -72,14 +72,14 @@ abstract class TypeReference<T> {
 /**
  * Create a [TypeReference] object which references the reified type argument [T].
  */
-inline fun <reified T> typeRef(): TypeReference<T> {
+public inline fun <reified T> typeRef(): TypeReference<T> {
     return object : TypeReference<T>() { }
 }
 
 /**
  * Obtain the full generic type information of the reified type argument [T], usage: `typeOf<List<String>>()`.
  */
-inline fun <reified T> typeOf(): Type {
+public inline fun <reified T> typeOf(): Type {
     return typeRef<T>().referencedType
 }
 
@@ -90,6 +90,6 @@ inline fun <reified T> typeOf(): Type {
  * Note: Do not use this function until the bug [KT-28616](https://youtrack.jetbrains.com/issue/KT-28616) fixed.
  */
 @Deprecated("Do not use this function until the bug KT-28616 fixed.", level = DeprecationLevel.HIDDEN)
-inline fun <reified T> kotlinTypeOf(): KType {
+public inline fun <reified T> kotlinTypeOf(): KType {
     return typeRef<T>().referencedKotlinType
 }

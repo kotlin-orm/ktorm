@@ -30,18 +30,18 @@ import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
  * @property parameters return the SQL's execution parameters after the visit completes.
  */
 @Suppress("VariableNaming")
-abstract class SqlFormatter(
-    val database: Database,
-    val beautifySql: Boolean,
-    val indentSize: Int
+public abstract class SqlFormatter(
+    public val database: Database,
+    public val beautifySql: Boolean,
+    public val indentSize: Int
 ) : SqlExpressionVisitor() {
 
-    protected var _depth = 0
-    protected val _builder = StringBuilder()
-    protected val _parameters = ArrayList<ArgumentExpression<*>>()
+    protected var _depth: Int = 0
+    protected val _builder: StringBuilder = StringBuilder()
+    protected val _parameters: ArrayList<ArgumentExpression<*>> = ArrayList()
 
-    val sql: String get() = _builder.toString()
-    val parameters: List<ArgumentExpression<*>> get() = _parameters
+    public val sql: String get() = _builder.toString()
+    public val parameters: List<ArgumentExpression<*>> get() = _parameters
 
     protected enum class Indentation {
         INNER, OUTER, SAME

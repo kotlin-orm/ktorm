@@ -21,7 +21,7 @@ package me.liuwj.ktorm.logging
  *
  * @property logger a logger instance of Slf4j.
  */
-class Slf4jLoggerAdapter(val logger: org.slf4j.Logger) : Logger {
+public class Slf4jLoggerAdapter(public val logger: org.slf4j.Logger) : Logger {
 
     override fun isTraceEnabled(): Boolean {
         return logger.isTraceEnabled

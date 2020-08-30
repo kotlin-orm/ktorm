@@ -26,14 +26,14 @@ import kotlin.reflect.KProperty1
  * Base class of column bindings. A column might be bound to a simple property, nested properties,
  * or a reference to another table.
  */
-sealed class ColumnBinding
+public sealed class ColumnBinding
 
 /**
  * Bind the column to nested properties, eg. `employee.manager.department.id`.
  *
  * @property properties the nested properties, cannot be empty.
  */
-data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding()
+public data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding()
 
 /**
  * Bind the column to a reference table, equivalent to a foreign key in relational databases.
@@ -44,17 +44,17 @@ data class NestedBinding(val properties: List<KProperty1<*, *>>) : ColumnBinding
  * @see me.liuwj.ktorm.entity.sequenceOf
  * @see BaseTable.createEntity
  */
-data class ReferenceBinding(val referenceTable: BaseTable<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
+public data class ReferenceBinding(val referenceTable: BaseTable<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()
 
 /**
  * Common interface of [Column] and [ScalarExpression].
  */
-interface ColumnDeclaring<T : Any> {
+public interface ColumnDeclaring<T : Any> {
 
     /**
      * The [SqlType] of this column or expression.
      */
-    val sqlType: SqlType<T>
+    public val sqlType: SqlType<T>
 
     /**
      * Convert this instance to a [ScalarExpression].
@@ -62,23 +62,23 @@ interface ColumnDeclaring<T : Any> {
      * If this instance is a [Column], return a [ColumnExpression], otherwise if it's already a [ScalarExpression],
      * return `this` directly.
      */
-    fun asExpression(): ScalarExpression<T>
+    public fun asExpression(): ScalarExpression<T>
 
     /**
      * Wrap this instance as a [ColumnDeclaringExpression].
      */
-    fun aliased(label: String?): ColumnDeclaringExpression<T>
+    public fun aliased(label: String?): ColumnDeclaringExpression<T>
 
     /**
      * Wrap the given [argument] as an [ArgumentExpression] using the [sqlType].
      */
-    fun wrapArgument(argument: T?): ArgumentExpression<T>
+    public fun wrapArgument(argument: T?): ArgumentExpression<T>
 }
 
 /**
  * Represents database columns.
  */
-data class Column<T : Any>(
+public data class Column<T : Any>(
 
     /**
      * The table that this column belongs to.
@@ -118,19 +118,19 @@ data class Column<T : Any>(
      *
      * @see ColumnDeclaringExpression
      */
-    val label get() = toString(separator = "_")
+    val label: String get() = toString(separator = "_")
 
     /**
      * Return all the bindings of this column, including the primary [binding] and [extraBindings].
      */
-    val allBindings get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
+    val allBindings: List<ColumnBinding> get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
 
     /**
      * If the column is bound to a reference table, return the table, otherwise return null.
      *
      * Shortcut for `(binding as? ReferenceBinding)?.referenceTable`.
      */
-    val referenceTable get() = (binding as? ReferenceBinding)?.referenceTable
+    val referenceTable: BaseTable<*>? get() = (binding as? ReferenceBinding)?.referenceTable
 
     /**
      * Convert this column to a [ColumnExpression].

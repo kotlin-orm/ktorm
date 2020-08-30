@@ -21,7 +21,7 @@ package me.liuwj.ktorm.logging
  *
  * @property logger a logger instance of Apache Commons Logging.
  */
-class CommonsLoggerAdapter(val logger: org.apache.commons.logging.Log) : Logger {
+public class CommonsLoggerAdapter(public val logger: org.apache.commons.logging.Log) : Logger {
 
     override fun isTraceEnabled(): Boolean {
         return logger.isTraceEnabled
