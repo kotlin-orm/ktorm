@@ -29,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional
 import java.sql.*
 import java.util.*
 import javax.sql.DataSource
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * The entry class of Ktorm, represents a physical database, used to manage connections and transactions.
@@ -138,37 +141,37 @@ public class Database(
     /**
      * The URL of the connected database.
      */
-    public lateinit var url: String private set
+    public val url: String
 
     /**
      * The name of the connected database.
      */
-    public lateinit var name: String private set
+    public val name: String
 
     /**
      * The name of the connected database product, eg. MySQL, H2.
      */
-    public lateinit var productName: String private set
+    public val productName: String
 
     /**
      * The version of the connected database product.
      */
-    public lateinit var productVersion: String private set
+    public val productVersion: String
 
     /**
      * A set of all of this database's SQL keywords (including SQL:2003 keywords), all in uppercase.
      */
-    public lateinit var keywords: Set<String> private set
+    public val keywords: Set<String>
 
     /**
      * The string used to quote SQL identifiers, returns an empty string if identifier quoting is not supported.
      */
-    public lateinit var identifierQuoteString: String private set
+    public val identifierQuoteString: String
 
     /**
      * All the "extra" characters that can be used in unquoted identifier names (those beyond a-z, A-Z, 0-9 and _).
      */
-    public lateinit var extraNameCharacters: String private set
+    public val extraNameCharacters: String
 
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case sensitive and as a result
@@ -176,8 +179,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var supportsMixedCaseIdentifiers: Boolean = false
-        private set
+    public val supportsMixedCaseIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
@@ -185,8 +187,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var storesMixedCaseIdentifiers: Boolean = false
-        private set
+    public val storesMixedCaseIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
@@ -194,8 +195,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var storesUpperCaseIdentifiers: Boolean = false
-        private set
+    public val storesUpperCaseIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
@@ -203,8 +203,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var storesLowerCaseIdentifiers: Boolean = false
-        private set
+    public val storesLowerCaseIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case sensitive and as a result
@@ -212,8 +211,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var supportsMixedCaseQuotedIdentifiers: Boolean = false
-        private set
+    public val supportsMixedCaseQuotedIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
@@ -221,8 +219,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var storesMixedCaseQuotedIdentifiers: Boolean = false
-        private set
+    public val storesMixedCaseQuotedIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
@@ -230,8 +227,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var storesUpperCaseQuotedIdentifiers: Boolean = false
-        private set
+    public val storesUpperCaseQuotedIdentifiers: Boolean
 
     /**
      * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
@@ -239,8 +235,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var storesLowerCaseQuotedIdentifiers: Boolean = false
-        private set
+    public val storesLowerCaseQuotedIdentifiers: Boolean
 
     /**
      * The maximum number of characters this database allows for a column name. Zero means that there is no limit
@@ -248,8 +243,7 @@ public class Database(
      *
      * @since 3.1.0
      */
-    public var maxColumnNameLength: Int = 0
-        private set
+    public val maxColumnNameLength: Int
 
     init {
         fun Result<String?>.orEmpty() = getOrNull().orEmpty()
@@ -291,11 +285,11 @@ public class Database(
      * @param func the executed callback function.
      * @return the result of the callback function.
      */
+    @OptIn(ExperimentalContracts::class)
     public inline fun <T> useConnection(func: (Connection) -> T): T {
-        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
-        // contract {
-        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
-        // }
+         contract {
+             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+         }
 
         try {
             val transaction = transactionManager.currentTransaction
@@ -325,14 +319,14 @@ public class Database(
      * @param func the executed callback function.
      * @return the result of the callback function.
      */
+    @OptIn(ExperimentalContracts::class)
     public inline fun <T> useTransaction(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
         func: (Transaction) -> T
     ): T {
-        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
-        // contract {
-        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
-        // }
+         contract {
+             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+         }
 
         val current = transactionManager.currentTransaction
         val isOuter = current == null
@@ -389,11 +383,11 @@ public class Database(
      * @param func the callback function.
      * @return the result of the callback function.
      */
+    @OptIn(ExperimentalContracts::class)
     public inline fun <T> executeExpression(expression: SqlExpression, func: (PreparedStatement) -> T): T {
-        // Contracts for member functions are not allowed yet. Uncomment this after Kotlin 1.4 released
-        // contract {
-        //     callsInPlace(func, InvocationKind.EXACTLY_ONCE)
-        // }
+         contract {
+             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+         }
 
         val (sql, args) = formatExpression(expression)
 

@@ -28,6 +28,7 @@ import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import javax.sql.DataSource
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -228,6 +229,7 @@ public inline operator fun <T> Database.invoke(func: Database.() -> T): T {
  *
  * @see Database.useConnection
  */
+@OptIn(ExperimentalContracts::class)
 public inline fun <T> useConnection(func: (Connection) -> T): T {
     contract {
         callsInPlace(func, InvocationKind.EXACTLY_ONCE)
@@ -251,6 +253,7 @@ public inline fun <T> useConnection(func: (Connection) -> T): T {
  * @return the result of the callback function.
  * @see Database.useTransaction
  */
+@OptIn(ExperimentalContracts::class)
 public inline fun <T> useTransaction(
     isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
     func: (Transaction) -> T

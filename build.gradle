@@ -43,7 +43,7 @@ subprojects { project ->
         kotlinOptions.allWarningsAsErrors = true
         kotlinOptions.freeCompilerArgs = [
             "-Xexplicit-api=strict",
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts"
+            "-Xopt-in=kotlin.RequiresOptIn"
         ]
     }
 

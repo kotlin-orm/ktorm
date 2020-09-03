@@ -20,6 +20,7 @@ import me.liuwj.ktorm.expression.ArgumentExpression
 import me.liuwj.ktorm.schema.SqlType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -30,6 +31,7 @@ import kotlin.contracts.contract
  * @param block a function to process this [AutoCloseable] resource.
  * @return the result of [block] function invoked on this resource.
  */
+@OptIn(ExperimentalContracts::class)
 @Suppress("ConvertTryFinallyToUseCall")
 public inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
     contract {
