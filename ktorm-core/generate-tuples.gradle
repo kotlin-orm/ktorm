@@ -21,6 +21,10 @@ def generateTuple(Writer writer, int tupleNumber) {
             override fun toString(): String { 
                 return \"($toStringTemplate)\"
             }
+            
+            private companion object {
+                private const val serialVersionUID = 1L
+            }
         }
     """.stripIndent())
 }
