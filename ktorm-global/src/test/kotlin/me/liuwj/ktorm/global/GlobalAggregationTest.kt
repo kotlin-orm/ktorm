@@ -72,7 +72,7 @@ class GlobalAggregationTest : BaseGlobalTest() {
 
     @Test
     fun testAggregate2() {
-        val (max, min) = Employees.asSequence().aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
+        val (max, min) = Employees.asSequence().aggregateColumns { tupleOf(max(it.salary), min(it.salary)) }
         assert(max == 200L)
         assert(min == 50L)
     }

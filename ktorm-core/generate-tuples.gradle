@@ -132,7 +132,6 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * @return a list of the query results.
          * @since 3.1.0
          */
-        @SinceKotlin("1.4")
         @JvmName("_mapColumns$tupleNumber")
         @OptIn(ExperimentalTypeInference::class)
         @OverloadResolutionByLambdaReturnType
@@ -160,7 +159,6 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * @return the [destination] collection of the query results.
          * @since 3.1.0
          */
-        @SinceKotlin("1.4")
         @JvmName("_mapColumns${tupleNumber}To")
         @OptIn(ExperimentalTypeInference::class)
         @OverloadResolutionByLambdaReturnType
@@ -193,14 +191,35 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
          * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
          * and return the aggregate results.
          *
-         * See [EntitySequence.aggregateColumns] for more details. 
-         *
          * The operation is terminal.
          *
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return a tuple of the aggregate results.
          */
+        @Deprecated(
+            message = "This function will be removed in the future. Please use aggregateColumns { .. } instead.",
+            replaceWith = ReplaceWith("aggregateColumns(aggregationSelector)")
+        )
         public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
+            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): Tuple$tupleNumber<$resultTypes> {
+            return aggregateColumns(aggregationSelector)
+        }
+        
+        /**
+         * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
+         * and return the aggregate results.
+         *
+         * The operation is terminal.
+         *
+         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
+         * @return a tuple of the aggregate results.
+         * @since 3.1.0
+         */
+        @JvmName("_aggregateColumns$tupleNumber")
+        @OptIn(ExperimentalTypeInference::class)
+        @OverloadResolutionByLambdaReturnType
+        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.aggregateColumns(
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): Tuple$tupleNumber<$resultTypes> {
             val ($variableNames) = aggregationSelector(sourceTable)
@@ -213,7 +232,7 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
         
             if (rowSet.size() == 1) {
                 check(rowSet.next())
-                return Tuple$tupleNumber($resultExtractors)
+                return tupleOf($resultExtractors)
             } else {
                 val (sql, _) = database.formatExpression(expr, beautifySql = true)
                 throw IllegalStateException("Expected 1 row but \${rowSet.size()} returned from sql: \\n\\n\$sql")

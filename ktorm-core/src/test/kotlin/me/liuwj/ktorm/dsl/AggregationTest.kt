@@ -69,7 +69,7 @@ class AggregationTest : BaseTest() {
 
     @Test
     fun testAggregate2() {
-        val (max, min) = database.employees.aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
+        val (max, min) = database.employees.aggregateColumns { tupleOf(max(it.salary), min(it.salary)) }
         assert(max == 200L)
         assert(min == 50L)
     }

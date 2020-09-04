@@ -479,7 +479,6 @@ public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>
  * @param columnSelector a function in which we should return a column or expression to be selected.
  * @return a list of the query results.
  */
-@SinceKotlin("1.4")
 @OptIn(ExperimentalTypeInference::class)
 @OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
@@ -509,6 +508,8 @@ public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapC
  * @param columnSelector a function in which we should return a column or expression to be selected.
  * @return the [destination] collection of the query results.
  */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>, C, R> EntitySequence<E, T>.mapColumnsTo(
     destination: R,
     isDistinct: Boolean = false,
