@@ -22,6 +22,7 @@ import me.liuwj.ktorm.schema.ColumnDeclaring
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap
+import kotlin.experimental.ExperimentalTypeInference
 
 /**
  * Wraps an [EntitySequence] with a [keySelector] function, which can be applied to each record to get its key,
@@ -88,6 +89,8 @@ public class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return a [Map] associating the key of each group with the result of aggregation of the group elements.
  */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): Map<K?, C?> where K : Any, C : Any {
@@ -109,6 +112,8 @@ public inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.aggr
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return the [destination] map associating the key of each group with the result of aggregation of the group elements.
  */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>, K, C, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
     destination: M,
     aggregationSelector: (T) -> ColumnDeclaring<C>

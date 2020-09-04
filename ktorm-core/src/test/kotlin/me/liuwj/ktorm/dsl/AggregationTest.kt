@@ -78,7 +78,7 @@ class AggregationTest : BaseTest() {
     fun testGroupAggregate3() {
         database.employees
             .groupingBy { it.departmentId }
-            .aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
+            .aggregateColumns { tupleOf(max(it.salary), min(it.salary)) }
             .forEach { departmentId, (max, min) ->
                 println("$departmentId:$max:$min")
             }

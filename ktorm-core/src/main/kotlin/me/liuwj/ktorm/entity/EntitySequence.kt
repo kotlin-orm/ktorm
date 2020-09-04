@@ -652,6 +652,8 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): Entity
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return the aggregate result.
  */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggregateColumns(
     aggregationSelector: (T) -> ColumnDeclaring<C>
 ): C? {

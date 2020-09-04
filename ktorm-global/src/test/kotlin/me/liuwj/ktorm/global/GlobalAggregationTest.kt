@@ -2,7 +2,6 @@ package me.liuwj.ktorm.global
 
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.entity.aggregateColumns
-import me.liuwj.ktorm.entity.aggregateColumns2
 import me.liuwj.ktorm.entity.groupingBy
 import me.liuwj.ktorm.entity.tupleOf
 import org.junit.Test
@@ -82,7 +81,7 @@ class GlobalAggregationTest : BaseGlobalTest() {
         Employees
             .asSequence()
             .groupingBy { it.departmentId }
-            .aggregateColumns2 { tupleOf(max(it.salary), min(it.salary)) }
+            .aggregateColumns { tupleOf(max(it.salary), min(it.salary)) }
             .forEach { departmentId, (max, min) ->
                 println("$departmentId:$max:$min")
             }

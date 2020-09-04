@@ -253,28 +253,80 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
          * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
          * then store the results in a new [Map].
          * 
-         * See [EntityGrouping.aggregateColumns] for more details. 
+         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
+         * `select key, aggregation from source group by key`.
          *
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
          */
+        @Deprecated(
+            message = "This function will be removed in the future. Please use aggregateColumns { .. } instead.",
+            replaceWith = ReplaceWith("aggregateColumns(aggregationSelector)")
+        )
         public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
-            return aggregateColumns${tupleNumber}To(LinkedHashMap(), aggregationSelector)
+            return aggregateColumns(aggregationSelector)
         }
         
         /**
          * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
          * then store the results in the [destination] map.
          *
-         * See [EntityGrouping.aggregateColumnsTo] for more details. 
+         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
+         * `select key, aggregation from source group by key`.
          *
          * @param destination a [MutableMap] used to store the results.
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return the [destination] map associating the key of each group with the result of aggregations of the group elements.
          */
+        @Deprecated(
+            message = "This function will be removed in the future. Please use aggregateColumns(destination) { .. } instead.",
+            replaceWith = ReplaceWith("aggregateColumns(destination, aggregationSelector)")
+        )
         public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
+            destination: M,
+            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): M where M : MutableMap<in K?, in Tuple$tupleNumber<$resultTypes>> {
+            return aggregateColumnsTo(destination, aggregationSelector)
+        }
+        
+        /**
+         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
+         * then store the results in a new [Map].
+         *
+         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
+         * `select key, aggregation from source group by key`.
+         *
+         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
+         * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
+         * @since 3.1.0
+         */
+        @JvmName("_aggregateColumns$tupleNumber")
+        @OptIn(ExperimentalTypeInference::class)
+        @OverloadResolutionByLambdaReturnType
+        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns(
+            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
+        ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
+            return aggregateColumnsTo(LinkedHashMap(), aggregationSelector)
+        }
+        
+        /**
+         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
+         * then store the results in the [destination] map.
+         *
+         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
+         * `select key, aggregation from source group by key`.
+         *
+         * @param destination a [MutableMap] used to store the results.
+         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
+         * @return the [destination] map associating the key of each group with the result of aggregations of the group elements.
+         * @since 3.1.0
+         */
+        @JvmName("_aggregateColumns${tupleNumber}To")
+        @OptIn(ExperimentalTypeInference::class)
+        @OverloadResolutionByLambdaReturnType
+        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumnsTo(
             destination: M,
             aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
         ): M where M : MutableMap<in K?, in Tuple$tupleNumber<$resultTypes>> {
@@ -288,7 +340,7 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
         
             for (row in Query(sequence.database, expr)) {
                 val key = keyColumn.sqlType.getResult(row, 1)
-                destination[key] = Tuple$tupleNumber($resultExtractors)
+                destination[key] = tupleOf($resultExtractors)
             }
         
             return destination
