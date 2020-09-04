@@ -285,4 +285,18 @@ class QueryTest : BaseTest() {
             }
         }
     }
+
+    @Test
+    fun testFlatMap() {
+        val names = database
+            .from(Employees)
+            .select(Employees.name)
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row.getString(1)}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:vince")
+        assert(names[1] == "1:marry")
+    }
 }

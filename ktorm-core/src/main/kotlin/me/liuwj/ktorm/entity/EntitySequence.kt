@@ -461,6 +461,34 @@ public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>
 }
 
 /**
+ * Return a single list of all elements yielded from results of [transform] function being invoked
+ * on each element and its index of original sequence.
+ *
+ * The operation is terminal.
+ *
+ * @since 3.1.0
+ */
+public inline fun <E : Any, R> EntitySequence<E, *>.flatMapIndexed(transform: (index: Int, E) -> Iterable<R>): List<R> {
+    return flatMapIndexedTo(ArrayList(), transform)
+}
+
+/**
+ * Append all elements yielded from results of [transform] function being invoked on each element
+ * and its index of original sequence, to the given [destination].
+ *
+ * The operation is terminal.
+ *
+ * @since 3.1.0
+ */
+public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>.flatMapIndexedTo(
+    destination: C,
+    transform: (index: Int, E) -> Iterable<R>
+): C {
+    var index = 0
+    return flatMapTo(destination) { transform(index++, it) }
+}
+
+/**
  * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
  * containing the query results.
  *

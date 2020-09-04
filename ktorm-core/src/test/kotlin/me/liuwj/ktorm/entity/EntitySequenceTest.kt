@@ -196,4 +196,15 @@ class EntitySequenceTest : BaseTest() {
         assert(names.size == 4)
         assert(names[0] == "vince")
     }
+
+    @Test
+    fun testFlatMap() {
+        val names = database.employees
+            .sortedBy { it.id }
+            .flatMapIndexed { index, employee -> listOf("$index:${employee.name}") }
+
+        println(names)
+        assert(names.size == 4)
+        assert(names[0] == "0:vince")
+    }
 }

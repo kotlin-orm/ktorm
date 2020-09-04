@@ -551,6 +551,30 @@ public inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
 }
 
 /**
+ * Return a single list of all elements yielded from results of [transform] function being invoked on each row
+ * and its index of the query.
+ *
+ * @since 3.1.0
+ */
+public inline fun <R> Query.flatMapIndexed(transform: (index: Int, row: QueryRowSet) -> Iterable<R>): List<R> {
+    return flatMapIndexedTo(ArrayList(), transform)
+}
+
+/**
+ * Append all elements yielded from results of [transform] function being invoked on each row and its index
+ * of the query, to the given [destination].
+ *
+ * @since 3.1.0
+ */
+public inline fun <R, C : MutableCollection<in R>> Query.flatMapIndexedTo(
+    destination: C,
+    transform: (index: Int, row: QueryRowSet) -> Iterable<R>
+): C {
+    var index = 0
+    return flatMapTo(destination) { transform(index++, it) }
+}
+
+/**
  * Return a [Map] containing key-value pairs provided by [transform] function applied to rows of the query.
  *
  * If any of two pairs would have the same key the last one gets added to the map.
