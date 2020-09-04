@@ -246,11 +246,7 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
  * If the iterable is empty, the param [ifEmpty] will be returned.
  */
 public fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true): ColumnDeclaring<Boolean> {
-    if (this.any()) {
-        return this.reduce { a, b -> a and b }
-    } else {
-        return ArgumentExpression(ifEmpty, BooleanSqlType)
-    }
+    return this.reduceOrNull { a, b -> a and b } ?: ArgumentExpression(ifEmpty, BooleanSqlType)
 }
 
 /**

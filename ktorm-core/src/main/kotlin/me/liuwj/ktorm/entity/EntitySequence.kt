@@ -1238,11 +1238,50 @@ public inline fun <E : Any, R> EntitySequence<E, *>.foldIndexed(
  * Accumulate value starting with the first element and applying [operation] from left to right to current accumulator
  * value and each element.
  *
+ * Throws an exception if this sequence is empty. If the sequence can be empty in an expected way, please use
+ * [reduceOrNull] instead. It returns `null` when its receiver is empty.
+ *
+ * The [operation] function takes the current accumulator value and an element, and calculates the next
+ * accumulator value.
+ *
  * The operation is terminal.
  */
 public inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -> E): E {
+    return reduceOrNull(operation) ?: throw UnsupportedOperationException("Empty sequence can't be reduced.")
+}
+
+/**
+ * Accumulate value starting with the first element and applying [operation] from left to right to current accumulator
+ * value and each element with its index in the original sequence.
+ *
+ * Throws an exception if this sequence is empty. If the sequence can be empty in an expected way, please use
+ * [reduceIndexedOrNull] instead. It returns `null` when its receiver is empty.
+ *
+ * The [operation] function takes the index of an element, current accumulator value and the element itself and
+ * calculates the next accumulator value.
+ *
+ * The operation is terminal.
+ */
+public inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
+    return reduceIndexedOrNull(operation) ?: throw UnsupportedOperationException("Empty sequence can't be reduced.")
+}
+
+/**
+ * Accumulate value starting with the first element and applying [operation] from left to right to current accumulator
+ * value and each element.
+ *
+ * Returns `null` if the sequence is empty.
+ *
+ * The [operation] function takes the current accumulator value and an element, and calculates the next
+ * accumulator value.
+ *
+ * The operation is terminal.
+ *
+ * @since 3.1.0
+ */
+public inline fun <E : Any> EntitySequence<E, *>.reduceOrNull(operation: (acc: E, E) -> E): E? {
     val iterator = iterator()
-    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty sequence can't be reduced.")
+    if (!iterator.hasNext()) return null
 
     var accumulator = iterator.next()
     while (iterator.hasNext()) {
@@ -1256,22 +1295,18 @@ public inline fun <E : Any> EntitySequence<E, *>.reduce(operation: (acc: E, E) -
  * Accumulate value starting with the first element and applying [operation] from left to right to current accumulator
  * value and each element with its index in the original sequence.
  *
+ * Returns `null` if the sequence is empty.
+ *
  * The [operation] function takes the index of an element, current accumulator value and the element itself and
  * calculates the next accumulator value.
  *
  * The operation is terminal.
+ *
+ * @since 3.1.0
  */
-public inline fun <E : Any> EntitySequence<E, *>.reduceIndexed(operation: (index: Int, acc: E, E) -> E): E {
-    val iterator = iterator()
-    if (!iterator.hasNext()) throw UnsupportedOperationException("Empty sequence can't be reduced.")
-
+public inline fun <E : Any> EntitySequence<E, *>.reduceIndexedOrNull(operation: (index: Int, acc: E, E) -> E): E? {
     var index = 1
-    var accumulator = iterator.next()
-    while (iterator.hasNext()) {
-        accumulator = operation(index++, accumulator, iterator.next())
-    }
-
-    return accumulator
+    return reduceOrNull { acc, e -> operation(index++, acc, e) }
 }
 
 /**
