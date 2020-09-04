@@ -462,7 +462,7 @@ public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>
 
 /**
  * Return a single list of all elements yielded from results of [transform] function being invoked
- * on each element and its index of original sequence.
+ * on each element and its index in the original sequence.
  *
  * The operation is terminal.
  *
@@ -474,7 +474,7 @@ public inline fun <E : Any, R> EntitySequence<E, *>.flatMapIndexed(transform: (i
 
 /**
  * Append all elements yielded from results of [transform] function being invoked on each element
- * and its index of original sequence, to the given [destination].
+ * and its index in the original sequence, to the given [destination].
  *
  * The operation is terminal.
  *

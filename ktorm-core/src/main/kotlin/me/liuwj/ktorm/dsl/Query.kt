@@ -552,7 +552,7 @@ public inline fun <R, C : MutableCollection<in R>> Query.flatMapTo(
 
 /**
  * Return a single list of all elements yielded from results of [transform] function being invoked on each row
- * and its index of the query.
+ * and its index in the query.
  *
  * @since 3.1.0
  */
@@ -562,7 +562,7 @@ public inline fun <R> Query.flatMapIndexed(transform: (index: Int, row: QueryRow
 
 /**
  * Append all elements yielded from results of [transform] function being invoked on each row and its index
- * of the query, to the given [destination].
+ * in the query, to the given [destination].
  *
  * @since 3.1.0
  */
