@@ -223,7 +223,7 @@ class MySqlTest : BaseTest() {
     fun testMapColumns3() {
         database.employees
             .filter { it.departmentId eq 1 }
-            .mapColumns3 { tupleOf(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
+            .mapColumns { tupleOf(it.id, it.name, dateDiff(LocalDate.now(), it.hireDate)) }
             .forEach { (id, name, days) ->
                 println("$id:$name:$days")
             }

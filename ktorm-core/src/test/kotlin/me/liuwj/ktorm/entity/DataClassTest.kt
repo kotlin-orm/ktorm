@@ -156,7 +156,7 @@ class DataClassTest : BaseTest() {
         val (name, job) = database.staffs
             .filter { it.sectionId eq 1 }
             .filterNot { it.managerId.isNotNull() }
-            .mapColumns2 { tupleOf(it.name, it.job) }
+            .mapColumns { tupleOf(it.name, it.job) }
             .single()
 
         assert(name == "vince")

@@ -31,6 +31,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
+import kotlin.experimental.ExperimentalTypeInference
 import kotlin.math.min
 
 /**
@@ -478,6 +479,9 @@ public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>
  * @param columnSelector a function in which we should return a column or expression to be selected.
  * @return a list of the query results.
  */
+@SinceKotlin("1.4")
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapColumns(
     isDistinct: Boolean = false,
     columnSelector: (T) -> ColumnDeclaring<C>

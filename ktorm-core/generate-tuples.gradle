@@ -130,8 +130,12 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
          * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
          * @return a list of the query results.
+         * @since 3.1.0
          */
+        @SinceKotlin("1.4")
         @JvmName("_mapColumns$tupleNumber")
+        @OptIn(ExperimentalTypeInference::class)
+        @OverloadResolutionByLambdaReturnType
         public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.mapColumns(
             isDistinct: Boolean = false,
             columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
@@ -154,8 +158,12 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
          * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
          * @return the [destination] collection of the query results.
+         * @since 3.1.0
          */
+        @SinceKotlin("1.4")
         @JvmName("_mapColumns${tupleNumber}To")
+        @OptIn(ExperimentalTypeInference::class)
+        @OverloadResolutionByLambdaReturnType
         public inline fun <E : Any, T : BaseTable<E>, $typeParams, R> EntitySequence<E, T>.mapColumnsTo(
             destination: R,
             isDistinct: Boolean = false,
@@ -287,6 +295,7 @@ task generateTuples {
                 import me.liuwj.ktorm.schema.ColumnDeclaring
                 import me.liuwj.ktorm.schema.BaseTable
                 import java.io.Serializable
+                import kotlin.experimental.ExperimentalTypeInference
                 
                 /**
                  * Set a typealias `Tuple2` for `Pair`. 
