@@ -287,9 +287,9 @@ public class Database(
      */
     @OptIn(ExperimentalContracts::class)
     public inline fun <T> useConnection(func: (Connection) -> T): T {
-         contract {
-             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
-         }
+        contract {
+            callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        }
 
         try {
             val transaction = transactionManager.currentTransaction
@@ -324,9 +324,9 @@ public class Database(
         isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
         func: (Transaction) -> T
     ): T {
-         contract {
-             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
-         }
+        contract {
+            callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        }
 
         val current = transactionManager.currentTransaction
         val isOuter = current == null
@@ -385,9 +385,9 @@ public class Database(
      */
     @OptIn(ExperimentalContracts::class)
     public inline fun <T> executeExpression(expression: SqlExpression, func: (PreparedStatement) -> T): T {
-         contract {
-             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
-         }
+        contract {
+            callsInPlace(func, InvocationKind.EXACTLY_ONCE)
+        }
 
         val (sql, args) = formatExpression(expression)
 
