@@ -28,6 +28,8 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
 
 :us: [English](README.md) | :cn: 简体中文 | :jp: [日本語](README_jp.md)
 
+*【广告】阿里巴巴深圳 Lazada 团队招 Java 工程师/技术专家，可以写 Kotlin 哦，有兴趣者可把简历发我邮箱 [vincent.liu@alibaba-inc.com](mailto:vincent.liu@alibaba-inc.com)*
+
 # 特性
 
  - 没有配置文件、没有 xml、没有注解、甚至没有任何第三方依赖、轻量级、简洁易用
