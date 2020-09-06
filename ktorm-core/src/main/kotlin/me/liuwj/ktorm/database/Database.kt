@@ -366,7 +366,6 @@ public class Database(
         beautifySql: Boolean = false,
         indentSize: Int = 2
     ): Pair<String, List<ArgumentExpression<*>>> {
-
         val formatter = dialect.createSqlFormatter(this, beautifySql, indentSize)
         formatter.visit(expression)
         return Pair(formatter.sql, formatter.parameters)

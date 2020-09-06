@@ -236,6 +236,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getString(columnIndex: Int): String? {
         return when (val value = getColumnValue(columnIndex)) {
+            is String -> value
             is Clob -> value.characterStream.use { it.readText() }
             else -> value?.toString()
         }
@@ -252,6 +253,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getByte(columnIndex: Int): Byte {
         return when (val value = getColumnValue(columnIndex)) {
+            is Byte -> value
             is Number -> value.toByte()
             is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toByte() ?: 0
@@ -260,6 +262,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getShort(columnIndex: Int): Short {
         return when (val value = getColumnValue(columnIndex)) {
+            is Short -> value
             is Number -> value.toShort()
             is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toShort() ?: 0
@@ -268,6 +271,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getInt(columnIndex: Int): Int {
         return when (val value = getColumnValue(columnIndex)) {
+            is Int -> value
             is Number -> value.toInt()
             is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toInt() ?: 0
@@ -276,6 +280,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getLong(columnIndex: Int): Long {
         return when (val value = getColumnValue(columnIndex)) {
+            is Long -> value
             is Number -> value.toLong()
             is Boolean -> if (value) 1 else 0
             else -> value?.toString()?.toLong() ?: 0
@@ -284,6 +289,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getFloat(columnIndex: Int): Float {
         return when (val value = getColumnValue(columnIndex)) {
+            is Float -> value
             is Number -> value.toFloat()
             is Boolean -> if (value) 1.0F else 0.0F
             else -> value?.toString()?.toFloat() ?: 0.0F
@@ -292,6 +298,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
 
     override fun getDouble(columnIndex: Int): Double {
         return when (val value = getColumnValue(columnIndex)) {
+            is Double -> value
             is Number -> value.toDouble()
             is Boolean -> if (value) 1.0 else 0.0
             else -> value?.toString()?.toDouble() ?: 0.0
@@ -308,7 +315,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getBytes(columnIndex: Int): ByteArray? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is ByteArray -> value
+            is ByteArray -> Arrays.copyOf(value, value.size)
             is Blob -> value.binaryStream.use { it.readBytes() }
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to byte[].")
         }
@@ -317,6 +324,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getDate(columnIndex: Int): Date? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
+            is Date -> value.clone() as Date
             is java.util.Date -> Date(value.time)
             is Number -> Date(value.toLong())
             is String -> {
@@ -337,6 +345,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getTime(columnIndex: Int): Time? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
+            is Time -> value.clone() as Time
             is java.util.Date -> Time(value.time)
             is Number -> Time(value.toLong())
             is String -> {
@@ -357,6 +366,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getTimestamp(columnIndex: Int): Timestamp? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
+            is Timestamp -> value.clone() as Timestamp
             is java.util.Date -> Timestamp(value.time)
             is Number -> Timestamp(value.toLong())
             is String -> {
@@ -953,8 +963,8 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getBlob(columnIndex: Int): Blob? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is ByteArray -> MemoryBlob(value)
             is Blob -> value
+            is ByteArray -> MemoryBlob(value)
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Blob.")
         }
     }
@@ -962,8 +972,8 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getClob(columnIndex: Int): Clob? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is String -> MemoryClob(value)
             is Clob -> value
+            is String -> MemoryClob(value)
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Clob.")
         }
     }
