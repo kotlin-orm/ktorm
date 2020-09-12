@@ -129,6 +129,9 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * element. Besides, the function’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
          * columns or expressions to customize the `select` clause of the generated SQL.
          *
+         * Ktorm supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
+         * in the closure, then the function’s return type becomes `List<TupleN<C1?, C2?, .. Cn?>>`.
+         *
          * The operation is terminal.
          *
          * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
@@ -155,6 +158,9 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          * element. Besides, the function’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
          * columns or expressions to customize the `select` clause of the generated SQL.
          * 
+         * Ktorm supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
+         * in the closure, then the function’s return type becomes `List<TupleN<C1?, C2?, .. Cn?>>`.
+         *
          * The operation is terminal.
          *
          * @param destination a [MutableCollection] used to store the results.
@@ -213,6 +219,9 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
         /**
          * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
          * and return the aggregate results.
+         *
+         * Ktorm supports aggregating two or more columns, we just need to wrap our aggregate expressions by
+         * [tupleOf] in the closure, then the function’s return type becomes `TupleN<C1?, C2?, .. Cn?>`.
          *
          * The operation is terminal.
          *
@@ -302,6 +311,9 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
          * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
          * `select key, aggregation from source group by key`.
          *
+         * Ktorm supports aggregating two or more columns, we just need to wrap our aggregate expressions by [tupleOf]
+         * in the closure, then the function’s return type becomes `Map<K?, TupleN<C1?, C2?, .. Cn?>>`.
+         *
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
          * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
          * @since 3.1.0
@@ -321,6 +333,9 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
          *
          * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
          * `select key, aggregation from source group by key`.
+         *
+         * Ktorm supports aggregating two or more columns, we just need to wrap our aggregate expressions by [tupleOf]
+         * in the closure, then the function’s return type becomes `Map<K?, TupleN<C1?, C2?, .. Cn?>>`.
          *
          * @param destination a [MutableMap] used to store the results.
          * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.

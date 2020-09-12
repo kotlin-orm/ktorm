@@ -497,9 +497,8 @@ public inline fun <E : Any, R, C : MutableCollection<in R>> EntitySequence<E, *>
  * element. Besides, the function’s return type is `ColumnDeclaring<C>`, and we should return a column or expression
  * to customize the `select` clause of the generated SQL.
  *
- * Ktorm also supports selecting two or more columns, we can change to [mapColumns2] or [mapColumns3], then we need
- * to wrap our selected columns by [Pair] or [Triple] in the closure, and the function’s return type becomes
- * `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`.
+ * Ktorm also supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
+ * in the closure, then the function’s return type becomes `List<TupleN<C1?, C2?, .. Cn?>>`.
  *
  * The operation is terminal.
  *
@@ -525,9 +524,8 @@ public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.mapC
  * element. Besides, the function’s return type is `ColumnDeclaring<C>`, and we should return a column or expression
  * to customize the `select` clause of the generated SQL.
  *
- * Ktorm also supports selecting two or more columns, we can change to [mapColumns2To] or [mapColumns3To], then we need
- * to wrap our selected columns by [Pair] or [Triple] in the closure, and the function’s return type becomes
- * `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`.
+ * Ktorm also supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
+ * in the closure, then the function’s return type becomes `List<TupleN<C1?, C2?, .. Cn?>>`.
  *
  * The operation is terminal.
  *
@@ -671,9 +669,8 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.take(n: Int): Entity
  * Perform an aggregation given by [aggregationSelector] for all elements in the sequence,
  * and return the aggregate result.
  *
- * Ktorm also supports aggregating two or more columns, we can change to [EntitySequence.aggregateColumns2] or
- * [EntitySequence.aggregateColumns3], then we need to wrap our aggregate expressions by [Pair] or [Triple] in
- * the closure, and the function’s return type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`.
+ * Ktorm also supports aggregating two or more columns, we just need to wrap our aggregate expressions by
+ * [tupleOf] in the closure, then the function’s return type becomes `TupleN<C1?, C2?, .. Cn?>`.
  *
  * The operation is terminal.
  *

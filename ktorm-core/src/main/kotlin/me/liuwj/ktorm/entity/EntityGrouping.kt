@@ -82,9 +82,8 @@ public class EntityGrouping<E : Any, T : BaseTable<E>, K : Any>(
  * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
  * `select key, aggregation from source group by key`.
  *
- * Ktorm also supports aggregating two or more columns, we can change to [EntityGrouping.aggregateColumns2] or
- * [EntityGrouping.aggregateColumns3], then we need to wrap our aggregate expressions by [Pair] or [Triple] in
- * the closure, and the function’s return type becomes `Map<K?, Pair<C1?, C2?>>` or `Map<K?, Triple<C1?, C2?, C3?>>`.
+ * Ktorm also supports aggregating two or more columns, we just need to wrap our aggregate expressions by [tupleOf]
+ * in the closure, then the function’s return type becomes `Map<K?, TupleN<C1?, C2?, .. Cn?>>`.
  *
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.
  * @return a [Map] associating the key of each group with the result of aggregation of the group elements.
@@ -104,9 +103,8 @@ public inline fun <E : Any, T : BaseTable<E>, K, C> EntityGrouping<E, T, K>.aggr
  * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
  * `select key, aggregation from source group by key`.
  *
- * Ktorm also supports aggregating two or more columns, we can change to [EntityGrouping.aggregateColumns2To] or
- * [EntityGrouping.aggregateColumns3To], then we need to wrap our aggregate expressions by [Pair] or [Triple] in
- * the closure, and the function’s return type becomes `Map<K?, Pair<C1?, C2?>>` or `Map<K?, Triple<C1?, C2?, C3?>>`.
+ * Ktorm also supports aggregating two or more columns, we just need to wrap our aggregate expressions by [tupleOf]
+ * in the closure, then the function’s return type becomes `Map<K?, TupleN<C1?, C2?, .. Cn?>>`.
  *
  * @param destination a [MutableMap] used to store the results.
  * @param aggregationSelector a function that accepts the source table and returns the aggregate expression.

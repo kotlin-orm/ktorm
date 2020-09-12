@@ -401,12 +401,12 @@ val employees = database.employees.toCollection(ArrayList())
 val names = database.employees.mapColumns { it.name }
 ```
 
-除此之外，还有 `mapColumns2`、`mapColumns3` 等更多函数，它们用来同时获取多个列的结果，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些字段，函数的返回值也相应变成了 `List<Pair<C1?, C2?>>` 或 `List<Triple<C1?, C2?, C3?>>`：
+除此之外，`mapColumns` 还可以同时获取多个列的结果，这时我们只需要在闭包中使用 `tupleOf` 包装我们的这些字段，函数的返回值也相应变成了 `List<TupleN<C1?, C2?, .. Cn?>>`：
 
 ```kotlin
 database.employees
     .filter { it.departmentId eq 1 }
-    .mapColumns2 { Pair(it.id, it.name) }
+    .mapColumns { tupleOf(it.id, it.name) }
     .forEach { (id, name) ->
         println("$id:$name")
     }
@@ -438,12 +438,12 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-如果你希望同时获取多个聚合结果，可以改用 `aggregateColumns2` 或 `aggregateColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些聚合表达式，函数的返回值也相应变成了 `Pair<C1?, C2?>` 或 `Triple<C1?, C2?, C3?>`。下面的例子获取部门 1 中工资的平均值和极差：
+如果你希望同时获取多个聚合结果，只需要在闭包中使用 `tupleOf` 包装我们的这些聚合表达式即可，此时函数的返回值就相应变成了 `Pair<C1?, C2?, .. Cn?>`。下面的例子获取部门 1 中工资的平均值和极差：
 
 ```kotlin
 val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
-    .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
+    .aggregateColumns { tupleOf(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
 
 生成 SQL：
