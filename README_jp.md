@@ -399,12 +399,12 @@ val employees = database.employees.toCollection(ArrayList())
 val names = database.employees.mapColumns { it.name }
 ```
 
-さらに、2つ以上のカラムを選択したい場合は`mapColumns2` や `mapColumns3`に変更し、選択したカラムを `Pair` あるいは `Triple` でクロージャでラップする必要があります。この関数の戻り値の型は `List<Pair<C1?, C2?>>` か `List<Triple<C1?, C2?, C3?>>`になります: 
+さらに、2つ以上の列を選択する場合は、選択した列をクロージャの `tupleOf` でラップするだけでよく、関数の戻り値の型は `List<TupleN<C1?, C2?, .. Cn?>>` になります:
 
 ```kotlin
 database.employees
     .filter { it.departmentId eq 1 }
-    .mapColumns2 { Pair(it.id, it.name) }
+    .mapColumns { tupleOf(it.id, it.name) }
     .forEach { (id, name) ->
         println("$id:$name")
     }
@@ -436,12 +436,12 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-また、2つ以上の列を集約したい場合は `aggregateColumns2` や `aggregateColumns3` に変更し、クロージャ内で `Pair` や `Triple` で集約式をラップする必要があり、関数の戻り値の型は `Pair<C1?, C2?>` や `Triple<C1?, C2?, C3?>` となります。以下の例では、第1部門の給与の平均と範囲を求めています。: 
+また、2つ以上の列を集計する場合は、クロージャー内の `tupleOf` で集計式をラップするだけでよく、関数の戻り値の型は `TupleN<C1?, C2?, .. Cn?>` になります。 以下の例では、部門1の給与の平均と範囲を取得しています。
 
 ```kotlin
 val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
-    .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
+    .aggregateColumns { tupleOf(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
 
 生成される SQL文: 

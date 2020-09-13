@@ -399,12 +399,12 @@ The `mapColumns` function is used to obtain the results of a column:
 val names = database.employees.mapColumns { it.name }
 ```
 
-Additionally, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
+Additionally, if we want to select two or more columns, we just need to wrap our selected columns by `tupleOf` in the closure, and the function’s return type becomes `List<TupleN<C1?, C2?, .. Cn?>>`. 
 
 ```kotlin
 database.employees
     .filter { it.departmentId eq 1 }
-    .mapColumns2 { Pair(it.id, it.name) }
+    .mapColumns { tupleOf(it.id, it.name) }
     .forEach { (id, name) ->
         println("$id:$name")
     }
@@ -436,12 +436,12 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-Also, if we want to aggregate two or more columns, we can change to `aggregateColumns2` or `aggregateColumns3`, then we need to wrap our aggregate expressions by `Pair` or `Triple` in the closure, and the function’s return type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`. The example below obtains the average and the range of salaries in department 1: 
+Also, if we want to aggregate two or more columns, we just need to wrap our aggregate expressions by `tupleOf` in the closure, and the function’s return type becomes `TupleN<C1?, C2?, .. Cn?>`. The example below obtains the average and the range of salaries in department 1: 
 
 ```kotlin
 val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
-    .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
+    .aggregateColumns { tupleOf(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
 
 Generated SQL: 

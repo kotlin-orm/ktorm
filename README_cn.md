@@ -438,7 +438,7 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-如果你希望同时获取多个聚合结果，只需要在闭包中使用 `tupleOf` 包装我们的这些聚合表达式即可，此时函数的返回值就相应变成了 `Pair<C1?, C2?, .. Cn?>`。下面的例子获取部门 1 中工资的平均值和极差：
+如果你希望同时获取多个聚合结果，只需要在闭包中使用 `tupleOf` 包装我们的这些聚合表达式即可，此时函数的返回值就相应变成了 `TupleN<C1?, C2?, .. Cn?>`。下面的例子获取部门 1 中工资的平均值和极差：
 
 ```kotlin
 val (avg, diff) = database.employees
