@@ -1,9 +1,9 @@
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.logging.ConsoleLogger
-import me.liuwj.ktorm.logging.LogLevel
+import org.ktorm.BaseTest
+import org.ktorm.database.Database
+import org.ktorm.logging.ConsoleLogger
+import org.ktorm.logging.LogLevel
 
 /**
  * Created by vince at Apr 05, 2020.

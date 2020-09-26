@@ -1,10 +1,10 @@
-package me.liuwj.ktorm.jackson
+package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import me.liuwj.ktorm.entity.Entity
 import org.junit.Test
+import org.ktorm.entity.Entity
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -193,7 +193,7 @@ class JacksonTest {
     fun testParseTypedJson() {
         val json = """
             {
-              "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Foo",
+              "@class" : "org.ktorm.jackson.JacksonTest${separator}Foo",
               "boolean" : true,
               "byte" : 1,
               "short" : 2,
@@ -218,31 +218,31 @@ class JacksonTest {
               "nullList" : null,
               "set" : [ "java.util.Collections${separator}SingletonSet", [ "18" ] ],
               "list" : [ "java.util.Collections${separator}SingletonList", [ {
-                "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Department",
+                "@class" : "org.ktorm.jackson.JacksonTest${separator}Department",
                 "id" : 19,
                 "name" : "20"
               } ] ],
               "collection" : [ "java.util.Collections${separator}SingletonSet", [ "21" ] ],
               "entity" : {
-                "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Department",
+                "@class" : "org.ktorm.jackson.JacksonTest${separator}Department",
                 "id" : 22,
                 "name" : "23"
               },
               "nestedIntArray" : [ [ 27, 28 ], [ 29, 30 ] ],
-              "nestedArray" : [ "[[Lme.liuwj.ktorm.jackson.JacksonTest${separator}Department;", [ [ "[Lme.liuwj.ktorm.jackson.JacksonTest${separator}Department;", [ {
-                "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Department",
+              "nestedArray" : [ "[[Lorg.ktorm.jackson.JacksonTest${separator}Department;", [ [ "[Lorg.ktorm.jackson.JacksonTest${separator}Department;", [ {
+                "@class" : "org.ktorm.jackson.JacksonTest${separator}Department",
                 "id" : 31,
                 "name" : "32"
               } ] ] ] ],
               "nestedCollection" : [ "java.util.Collections${separator}SingletonList", [ [ "java.util.Collections${separator}SingletonList", [ {
-                "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Department",
+                "@class" : "org.ktorm.jackson.JacksonTest${separator}Department",
                 "id" : 33,
                 "name" : "34"
               } ] ] ] ],
               "map" : {
                 "@class" : "java.util.Collections${separator}SingletonMap",
                 "36" : {
-                  "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Department",
+                  "@class" : "org.ktorm.jackson.JacksonTest${separator}Department",
                   "id" : 35,
                   "name" : "36"
                 }
@@ -296,7 +296,7 @@ class JacksonTest {
         val json = """
             {
               "foo" : {
-                "@class" : "me.liuwj.ktorm.jackson.JacksonTest${separator}Foo",
+                "@class" : "org.ktorm.jackson.JacksonTest${separator}Foo",
                 "int" : 123
               }
             }

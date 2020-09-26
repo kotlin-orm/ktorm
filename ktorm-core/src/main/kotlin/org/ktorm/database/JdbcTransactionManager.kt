@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
 import java.sql.Connection
 import java.sql.DriverManager

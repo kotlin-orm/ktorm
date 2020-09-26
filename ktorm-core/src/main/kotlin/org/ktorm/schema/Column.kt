@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.schema
+package org.ktorm.schema
 
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.ColumnDeclaringExpression
-import me.liuwj.ktorm.expression.ColumnExpression
-import me.liuwj.ktorm.expression.ScalarExpression
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.ColumnDeclaringExpression
+import org.ktorm.expression.ColumnExpression
+import org.ktorm.expression.ScalarExpression
 import kotlin.reflect.KProperty1
 
 /**

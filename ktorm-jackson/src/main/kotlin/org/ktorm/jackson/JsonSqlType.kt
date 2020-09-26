@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.jackson
+package org.ktorm.jackson
 
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import me.liuwj.ktorm.schema.*
+import org.ktorm.schema.*
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types

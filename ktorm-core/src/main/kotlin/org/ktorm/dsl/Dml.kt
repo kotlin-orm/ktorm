@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.defaultValue
+import org.ktorm.database.Database
+import org.ktorm.expression.*
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.defaultValue
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 import java.sql.PreparedStatement

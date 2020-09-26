@@ -1,12 +1,12 @@
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.dsl.from
-import me.liuwj.ktorm.dsl.joinReferencesAndSelect
-import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.schema.*
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.dsl.eq
+import org.ktorm.dsl.from
+import org.ktorm.dsl.joinReferencesAndSelect
+import org.ktorm.entity.*
+import org.ktorm.schema.*
 import java.time.LocalDate
 
 /**

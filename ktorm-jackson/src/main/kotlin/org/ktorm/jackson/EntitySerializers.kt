@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.jackson
+package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.JsonToken.START_OBJECT
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.module.SimpleSerializers
-import me.liuwj.ktorm.entity.Entity
+import org.ktorm.entity.Entity
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter

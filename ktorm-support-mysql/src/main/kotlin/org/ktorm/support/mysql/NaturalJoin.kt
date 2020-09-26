@@ -16,11 +16,11 @@
 
 @file:Suppress("MatchingDeclarationName")
 
-package me.liuwj.ktorm.support.mysql
+package org.ktorm.support.mysql
 
-import me.liuwj.ktorm.dsl.QuerySource
-import me.liuwj.ktorm.expression.QuerySourceExpression
-import me.liuwj.ktorm.schema.BaseTable
+import org.ktorm.dsl.QuerySource
+import org.ktorm.expression.QuerySourceExpression
+import org.ktorm.schema.BaseTable
 
 /**
  * MySQL natural join expression.

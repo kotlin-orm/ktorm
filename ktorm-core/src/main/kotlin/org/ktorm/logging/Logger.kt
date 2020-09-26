@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.logging
+package org.ktorm.logging
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.logging.LogLevel.*
+import org.ktorm.database.Database
+import org.ktorm.logging.LogLevel.*
 
 /**
  * A simple logging interface abstracting third-party logging frameworks.

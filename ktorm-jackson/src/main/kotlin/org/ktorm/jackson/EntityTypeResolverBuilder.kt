@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.jackson
+package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.DeserializationConfig
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
-import me.liuwj.ktorm.entity.Entity
+import org.ktorm.entity.Entity
 
 /**
  * Created by vince on Aug 13, 2018.

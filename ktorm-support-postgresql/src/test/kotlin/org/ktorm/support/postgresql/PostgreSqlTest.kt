@@ -1,21 +1,21 @@
-package me.liuwj.ktorm.support.postgresql
+package org.ktorm.support.postgresql
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.logging.ConsoleLogger
-import me.liuwj.ktorm.logging.LogLevel
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.int
-import me.liuwj.ktorm.schema.varchar
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.database.Database
+import org.ktorm.database.use
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
+import org.ktorm.logging.ConsoleLogger
+import org.ktorm.logging.LogLevel
+import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.Table
+import org.ktorm.schema.int
+import org.ktorm.schema.varchar
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 import java.util.concurrent.ExecutionException
@@ -292,7 +292,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testHStoreDeleteKeys() {
         database.update(Metadatas) {
-            set(it.attributes, it.attributes - arrayOf<String?>("b", "c"))
+            set(it.attributes, it.attributes - arrayOf("b", "c"))
             where { it.id eq 1 }
         }
 

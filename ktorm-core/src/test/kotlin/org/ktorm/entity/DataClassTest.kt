@@ -1,10 +1,10 @@
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.schema.*
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.database.Database
+import org.ktorm.dsl.*
+import org.ktorm.schema.*
 import java.time.LocalDate
 
 /**

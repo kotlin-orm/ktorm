@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.expression.AggregateExpression
-import me.liuwj.ktorm.expression.AggregateType
-import me.liuwj.ktorm.schema.*
+import org.ktorm.expression.AggregateExpression
+import org.ktorm.expression.AggregateType
+import org.ktorm.schema.*
 
 /**
  * The min function, translated to `min(column)` in SQL.

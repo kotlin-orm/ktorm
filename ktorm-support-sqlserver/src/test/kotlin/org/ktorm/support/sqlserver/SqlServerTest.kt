@@ -1,27 +1,30 @@
-package me.liuwj.ktorm.support.sqlserver
+package org.ktorm.support.sqlserver
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.count
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.mapTo
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.logging.ConsoleLogger
-import me.liuwj.ktorm.logging.LogLevel
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.datetime
-import me.liuwj.ktorm.schema.int
-import me.liuwj.ktorm.schema.varchar
 import microsoft.sql.DateTimeOffset
 import org.junit.ClassRule
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.database.Database
+import org.ktorm.database.use
+import org.ktorm.dsl.*
+import org.ktorm.entity.count
+import org.ktorm.entity.filter
+import org.ktorm.entity.mapTo
+import org.ktorm.entity.sequenceOf
+import org.ktorm.logging.ConsoleLogger
+import org.ktorm.logging.LogLevel
+import org.ktorm.schema.Table
+import org.ktorm.schema.datetime
+import org.ktorm.schema.int
+import org.ktorm.schema.varchar
 import org.testcontainers.containers.MSSQLServerContainer
 import java.lang.AssertionError
 import java.sql.Timestamp
 import java.time.LocalDate
 
+/**
+ * Create by vince on Jul 12, 2019.
+ */
 class SqlServerTest : BaseTest() {
 
     companion object {

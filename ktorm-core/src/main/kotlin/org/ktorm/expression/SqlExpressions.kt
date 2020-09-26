@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.expression
+package org.ktorm.expression
 
-import me.liuwj.ktorm.schema.BooleanSqlType
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.SqlType
+import org.ktorm.schema.BooleanSqlType
+import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.SqlType
 
 /**
  * Root class of SQL expressions or statements.

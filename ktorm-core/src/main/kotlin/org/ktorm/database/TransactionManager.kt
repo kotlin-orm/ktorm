@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
 import org.springframework.transaction.annotation.Transactional
 import java.io.Closeable

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.logging
+package org.ktorm.logging
 
 import java.util.logging.Level
 

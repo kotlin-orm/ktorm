@@ -1,13 +1,12 @@
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.count
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.varchar
 import org.junit.Test
-import java.lang.Exception
+import org.ktorm.BaseTest
+import org.ktorm.dsl.*
+import org.ktorm.entity.count
+import org.ktorm.entity.sequenceOf
+import org.ktorm.schema.Table
+import org.ktorm.schema.varchar
 
 /**
  * Created by vince on Dec 02, 2018.

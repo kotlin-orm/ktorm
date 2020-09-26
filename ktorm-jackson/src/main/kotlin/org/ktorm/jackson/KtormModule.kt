@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.jackson
+package org.ktorm.jackson
 
 import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.core.Version
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
 import java.util.ServiceLoader
-import me.liuwj.ktorm.entity.Entity
+import org.ktorm.entity.Entity
 
 /**
  * Jackson [Module] implementation that supports serializing Ktorm's entity objects in JSON format.

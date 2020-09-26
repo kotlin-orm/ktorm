@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
 /**
  * Keywords in SQL:2003 standard, all in uppercase.

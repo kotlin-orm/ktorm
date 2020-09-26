@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.dsl.AliasRemover
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.*
+import org.ktorm.dsl.*
+import org.ktorm.dsl.AliasRemover
+import org.ktorm.expression.*
+import org.ktorm.schema.*
 
 /**
  * Insert the given entity into this sequence and return the affected record number. Only non-null properties

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.postgresql
+package org.ktorm.support.postgresql
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.schema.BaseTable
+import org.ktorm.database.Database
+import org.ktorm.schema.BaseTable
 import java.lang.reflect.InvocationTargetException
 
 /**

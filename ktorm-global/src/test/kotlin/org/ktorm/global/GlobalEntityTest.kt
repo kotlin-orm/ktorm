@@ -1,9 +1,9 @@
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.schema.*
 import org.junit.Test
+import org.ktorm.dsl.*
+import org.ktorm.entity.*
+import org.ktorm.schema.*
 import java.time.LocalDate
 
 /**

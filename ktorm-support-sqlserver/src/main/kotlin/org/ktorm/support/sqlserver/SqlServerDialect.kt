@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.sqlserver
+package org.ktorm.support.sqlserver
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
-import me.liuwj.ktorm.database.SqlDialect
-import me.liuwj.ktorm.expression.*
+import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
+import org.ktorm.database.SqlDialect
+import org.ktorm.expression.*
 
 /**
  * [SqlDialect] implementation for Microsoft SqlServer database.

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.mysql
+package org.ktorm.support.mysql
 
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.FunctionExpression
-import me.liuwj.ktorm.schema.*
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.FunctionExpression
+import org.ktorm.schema.*
 import java.math.BigDecimal
 import java.sql.Date
 import java.sql.Time

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.QueryExpression
-import me.liuwj.ktorm.expression.SqlFormatter
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.QueryExpression
+import org.ktorm.expression.SqlFormatter
 import java.sql.Statement
 import java.util.ServiceLoader
 

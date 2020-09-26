@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.OrderByExpression
-import me.liuwj.ktorm.expression.SelectExpression
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
+import org.ktorm.dsl.*
+import org.ktorm.expression.OrderByExpression
+import org.ktorm.expression.SelectExpression
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.ColumnDeclaring
 import java.sql.ResultSet
 import java.util.*
 import kotlin.NoSuchElementException
@@ -705,7 +705,7 @@ public inline fun <E : Any, T : BaseTable<E>, C : Any> EntitySequence<E, T>.aggr
  * The operation is terminal.
  */
 public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.count(): Int {
-    val count = aggregateColumns { me.liuwj.ktorm.dsl.count() }
+    val count = aggregateColumns { org.ktorm.dsl.count() }
     return count ?: error("Count expression returns null, which should never happens.")
 }
 

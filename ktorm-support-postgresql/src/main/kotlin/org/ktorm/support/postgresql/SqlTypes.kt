@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.postgresql
+package org.ktorm.support.postgresql
 
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.SqlType
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.SqlType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types

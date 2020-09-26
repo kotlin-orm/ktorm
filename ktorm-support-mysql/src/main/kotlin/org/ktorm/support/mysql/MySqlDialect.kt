@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.mysql
+package org.ktorm.support.mysql
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.SqlDialect
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.IntSqlType
-import me.liuwj.ktorm.schema.VarcharSqlType
+import org.ktorm.database.Database
+import org.ktorm.database.SqlDialect
+import org.ktorm.expression.*
+import org.ktorm.schema.IntSqlType
+import org.ktorm.schema.VarcharSqlType
 
 /**
  * [SqlDialect] implementation for MySQL database.

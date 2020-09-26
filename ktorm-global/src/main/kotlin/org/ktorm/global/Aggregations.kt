@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.database.Database
+import org.ktorm.entity.*
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.ColumnDeclaring
 
 /**
  * Check if all the records in the table matches the given [predicate].

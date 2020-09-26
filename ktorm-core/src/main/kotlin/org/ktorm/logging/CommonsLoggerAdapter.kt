@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.logging
+package org.ktorm.logging
 
 /**
  * Adapter [Logger] implementation integrating Apache Commons Logging with Ktorm.

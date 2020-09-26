@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.sqlite
+package org.ktorm.support.sqlite
 
-import me.liuwj.ktorm.database.*
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.QueryExpression
-import me.liuwj.ktorm.expression.SqlFormatter
-import me.liuwj.ktorm.schema.IntSqlType
+import org.ktorm.database.*
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.QueryExpression
+import org.ktorm.expression.SqlFormatter
+import org.ktorm.schema.IntSqlType
 
 /**
  * [SqlDialect] implementation for SQLite database.

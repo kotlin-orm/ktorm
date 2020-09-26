@@ -1,12 +1,12 @@
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.dsl.from
-import me.liuwj.ktorm.dsl.joinReferencesAndSelect
-import me.liuwj.ktorm.entity.Entity
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.int
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.dsl.from
+import org.ktorm.dsl.joinReferencesAndSelect
+import org.ktorm.entity.Entity
+import org.ktorm.schema.Table
+import org.ktorm.schema.int
 
 /**
  * Created by vince on Dec 19, 2018.

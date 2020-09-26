@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.schema.TypeReference
-import me.liuwj.ktorm.schema.Table
+import org.ktorm.database.Database
+import org.ktorm.schema.TypeReference
+import org.ktorm.schema.Table
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.schema
+package org.ktorm.schema
 
 import java.sql.PreparedStatement
 import java.sql.ResultSet

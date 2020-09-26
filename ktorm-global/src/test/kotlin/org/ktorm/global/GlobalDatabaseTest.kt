@@ -1,12 +1,12 @@
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.asIterable
-import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.dsl.eq
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.varchar
 import org.junit.Test
+import org.ktorm.database.Database
+import org.ktorm.database.asIterable
+import org.ktorm.database.use
+import org.ktorm.dsl.eq
+import org.ktorm.schema.Table
+import org.ktorm.schema.varchar
 
 /**
  * Created by vince at Apr 05, 2020.

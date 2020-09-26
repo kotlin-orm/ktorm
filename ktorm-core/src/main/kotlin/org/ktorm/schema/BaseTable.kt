@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.schema
+package org.ktorm.schema
 
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.entity.Entity
-import me.liuwj.ktorm.expression.TableExpression
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.entity.Entity
+import org.ktorm.expression.TableExpression
 import java.util.*
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass

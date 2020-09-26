@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
 import java.sql.ResultSetMetaData
 import java.sql.ResultSetMetaData.columnNullableUnknown

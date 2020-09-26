@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.expression
+package org.ktorm.expression
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
+import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
 
 /**
  * Subclass of [SqlExpressionVisitor], visiting SQL expression trees using visitor pattern. After the visit completes,

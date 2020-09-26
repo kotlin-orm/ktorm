@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.mysql
+package org.ktorm.support.mysql
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.AssignmentsBuilder
-import me.liuwj.ktorm.dsl.KtormDsl
-import me.liuwj.ktorm.dsl.batchInsert
-import me.liuwj.ktorm.expression.ColumnAssignmentExpression
-import me.liuwj.ktorm.expression.FunctionExpression
-import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.TableExpression
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.database.Database
+import org.ktorm.dsl.AssignmentsBuilder
+import org.ktorm.dsl.KtormDsl
+import org.ktorm.dsl.batchInsert
+import org.ktorm.expression.ColumnAssignmentExpression
+import org.ktorm.expression.FunctionExpression
+import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.TableExpression
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.ColumnDeclaring
 
 /**
  * Bulk insert expression, represents a bulk insert statement in MySQL.

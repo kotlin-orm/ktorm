@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.schema.SqlType
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.schema.SqlType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import kotlin.contracts.ExperimentalContracts

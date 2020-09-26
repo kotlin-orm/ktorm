@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.iterator
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.BooleanSqlType
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.database.Database
+import org.ktorm.database.iterator
+import org.ktorm.expression.*
+import org.ktorm.schema.BooleanSqlType
+import org.ktorm.schema.Column
+import org.ktorm.schema.ColumnDeclaring
 import java.lang.Appendable
 import java.sql.ResultSet
 

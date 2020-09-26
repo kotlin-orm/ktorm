@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.BooleanSqlType
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.ReferenceBinding
+import org.ktorm.database.Database
+import org.ktorm.expression.*
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.BooleanSqlType
+import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.ReferenceBinding
 
 /**
  * Represents a query source, used in the `from` clause of a query.

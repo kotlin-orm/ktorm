@@ -1,8 +1,8 @@
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.expression.ScalarExpression
 import org.junit.Test
+import org.ktorm.dsl.*
+import org.ktorm.expression.ScalarExpression
 
 /**
  * Created by vince at Apr 05, 2020.

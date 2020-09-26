@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.database.CachedRowSet
-import me.liuwj.ktorm.expression.ColumnDeclaringExpression
-import me.liuwj.ktorm.schema.Column
+import org.ktorm.database.CachedRowSet
+import org.ktorm.expression.ColumnDeclaringExpression
+import org.ktorm.schema.Column
 import java.sql.ResultSet
 
 /**

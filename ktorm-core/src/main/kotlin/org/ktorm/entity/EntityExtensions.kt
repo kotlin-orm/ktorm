@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.schema.*
+import org.ktorm.schema.*
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 

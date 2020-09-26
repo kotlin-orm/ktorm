@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.schema
+package org.ktorm.schema
 
-import me.liuwj.ktorm.dsl.QueryRowSet
-import me.liuwj.ktorm.entity.*
+import org.ktorm.dsl.QueryRowSet
+import org.ktorm.entity.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.jvmErasure
@@ -86,7 +86,7 @@ public open class Table<E : Entity<E>>(
      *
      * @return the new [Column] instance.
      *
-     * @see me.liuwj.ktorm.entity.sequenceOf
+     * @see org.ktorm.entity.sequenceOf
      * @see createEntity
      */
     public inline fun <C : Any, R : Entity<R>> Column<C>.references(

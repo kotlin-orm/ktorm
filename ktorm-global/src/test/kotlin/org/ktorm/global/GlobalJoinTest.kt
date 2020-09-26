@@ -1,7 +1,7 @@
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.dsl.*
 import org.junit.Test
+import org.ktorm.dsl.*
 
 /**
  * Created by vince at Apr 05, 2020.

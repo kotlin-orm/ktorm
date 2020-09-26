@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.*
+import org.ktorm.expression.*
+import org.ktorm.schema.*
 
 // ---- Unary operators... ----
 

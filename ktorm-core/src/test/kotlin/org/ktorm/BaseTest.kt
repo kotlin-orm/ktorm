@@ -1,14 +1,14 @@
-package me.liuwj.ktorm
+package org.ktorm
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.use
-import me.liuwj.ktorm.entity.Entity
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.logging.ConsoleLogger
-import me.liuwj.ktorm.logging.LogLevel
-import me.liuwj.ktorm.schema.*
 import org.junit.After
 import org.junit.Before
+import org.ktorm.database.Database
+import org.ktorm.database.use
+import org.ktorm.entity.Entity
+import org.ktorm.entity.sequenceOf
+import org.ktorm.logging.ConsoleLogger
+import org.ktorm.logging.LogLevel
+import org.ktorm.schema.*
 import java.io.Serializable
 import java.time.LocalDate
 

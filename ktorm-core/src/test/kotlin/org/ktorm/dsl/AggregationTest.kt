@@ -1,8 +1,8 @@
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.entity.*
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.entity.*
 
 /**
  * Created by vince on Dec 09, 2018.

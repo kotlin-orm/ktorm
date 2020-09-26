@@ -1,10 +1,10 @@
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.entity.aggregateColumns
-import me.liuwj.ktorm.entity.groupingBy
-import me.liuwj.ktorm.entity.tupleOf
 import org.junit.Test
+import org.ktorm.dsl.*
+import org.ktorm.entity.aggregateColumns
+import org.ktorm.entity.groupingBy
+import org.ktorm.entity.tupleOf
 
 /**
  * Created by vince at Apr 05, 2020.

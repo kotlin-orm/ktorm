@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.mysql
+package org.ktorm.support.mysql
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.QuerySource
-import me.liuwj.ktorm.dsl.batchInsert
-import me.liuwj.ktorm.dsl.from
-import me.liuwj.ktorm.schema.BaseTable
+import org.ktorm.database.Database
+import org.ktorm.dsl.QuerySource
+import org.ktorm.dsl.batchInsert
+import org.ktorm.dsl.from
+import org.ktorm.schema.BaseTable
 import java.lang.reflect.InvocationTargetException
 
 /**

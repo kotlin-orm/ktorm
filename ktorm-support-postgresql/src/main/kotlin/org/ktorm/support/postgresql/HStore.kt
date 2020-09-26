@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.postgresql
+package org.ktorm.support.postgresql
 
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.ScalarExpression
-import me.liuwj.ktorm.schema.BooleanSqlType
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.SqlType
-import me.liuwj.ktorm.schema.VarcharSqlType
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.ScalarExpression
+import org.ktorm.schema.BooleanSqlType
+import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.SqlType
+import org.ktorm.schema.VarcharSqlType
 
 /**
  * Enum for `hstore` operators.

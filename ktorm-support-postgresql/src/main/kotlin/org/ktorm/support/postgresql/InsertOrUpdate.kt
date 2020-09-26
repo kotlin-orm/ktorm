@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.postgresql
+package org.ktorm.support.postgresql
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.AssignmentsBuilder
-import me.liuwj.ktorm.dsl.KtormDsl
-import me.liuwj.ktorm.expression.ColumnAssignmentExpression
-import me.liuwj.ktorm.expression.ColumnExpression
-import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.expression.TableExpression
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
+import org.ktorm.database.Database
+import org.ktorm.dsl.AssignmentsBuilder
+import org.ktorm.dsl.KtormDsl
+import org.ktorm.expression.ColumnAssignmentExpression
+import org.ktorm.expression.ColumnExpression
+import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.TableExpression
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
 
 /**
  * Insert or update expression, represents an insert statement with an

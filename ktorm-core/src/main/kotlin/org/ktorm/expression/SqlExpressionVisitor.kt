@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.expression
+package org.ktorm.expression
 
 /**
  * Base class designed to visit or modify SQL expression trees using visitor pattern.

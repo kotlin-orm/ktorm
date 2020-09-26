@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.database.Database
+import org.ktorm.dsl.*
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.ColumnDeclaring
 
 /**
  * Join the right table and return a new [QuerySource], translated to `cross join` in SQL.

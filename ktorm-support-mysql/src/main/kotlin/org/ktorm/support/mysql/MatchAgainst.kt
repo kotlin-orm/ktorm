@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.mysql
+package org.ktorm.support.mysql
 
-import me.liuwj.ktorm.expression.ColumnExpression
-import me.liuwj.ktorm.expression.ScalarExpression
-import me.liuwj.ktorm.schema.BooleanSqlType
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.SqlType
+import org.ktorm.expression.ColumnExpression
+import org.ktorm.expression.ScalarExpression
+import org.ktorm.schema.BooleanSqlType
+import org.ktorm.schema.Column
+import org.ktorm.schema.SqlType
 
 /**
  * Enum class represents search modifiers in MySQL `match ... against ...` expressions.

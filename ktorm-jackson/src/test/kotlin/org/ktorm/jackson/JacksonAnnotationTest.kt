@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.liuwj.ktorm.jackson
+package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -23,14 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.readValue
-import me.liuwj.ktorm.entity.Entity
 import org.junit.Test
+import org.ktorm.entity.Entity
 
-
+/**
+ * Created by beetlerx on May 01, 2020.
+ */
 class JacksonAnnotationTest {
     private val objectMapper = ObjectMapper()
-            .configure(SerializationFeature.INDENT_OUTPUT, true)
-            .findAndRegisterModules()
+        .configure(SerializationFeature.INDENT_OUTPUT, true)
+        .findAndRegisterModules()
 
     interface TestEntity : Entity<TestEntity> {
         companion object : Entity.Factory<TestEntity>()

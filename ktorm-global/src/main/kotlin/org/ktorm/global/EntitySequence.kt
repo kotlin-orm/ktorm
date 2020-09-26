@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.entity.*
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.ColumnDeclaring
-import me.liuwj.ktorm.schema.Table
+import org.ktorm.database.Database
+import org.ktorm.entity.*
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.Table
 
 /**
  * Create an [EntitySequence] from this table.

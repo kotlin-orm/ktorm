@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.support.oracle
+package org.ktorm.support.oracle
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.database.DialectFeatureNotSupportedException
-import me.liuwj.ktorm.database.SqlDialect
-import me.liuwj.ktorm.expression.*
-import me.liuwj.ktorm.schema.IntSqlType
+import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
+import org.ktorm.database.SqlDialect
+import org.ktorm.expression.*
+import org.ktorm.schema.IntSqlType
 
 /**
  * [SqlDialect] implementation for Oracle database.

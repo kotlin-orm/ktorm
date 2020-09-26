@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.database.Database
-import me.liuwj.ktorm.schema.Table
-import me.liuwj.ktorm.schema.defaultValue
-import me.liuwj.ktorm.schema.kotlinProperty
+import org.ktorm.database.Database
+import org.ktorm.schema.Table
+import org.ktorm.schema.defaultValue
+import org.ktorm.schema.kotlinProperty
 import java.io.*
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.InvocationTargetException

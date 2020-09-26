@@ -1,7 +1,7 @@
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.BaseTest
 import org.junit.Test
+import org.ktorm.BaseTest
 
 /**
  * Created by vince on Dec 08, 2018.

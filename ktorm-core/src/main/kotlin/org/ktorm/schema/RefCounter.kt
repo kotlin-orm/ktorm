@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.schema
+package org.ktorm.schema
 
 /**
  * Created by vince at May 01, 2020.

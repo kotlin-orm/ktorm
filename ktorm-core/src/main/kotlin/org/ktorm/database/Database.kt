@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.database
+package org.ktorm.database
 
-import me.liuwj.ktorm.database.Database.Companion.connect
-import me.liuwj.ktorm.dsl.Query
-import me.liuwj.ktorm.entity.EntitySequence
-import me.liuwj.ktorm.expression.ArgumentExpression
-import me.liuwj.ktorm.expression.SqlExpression
-import me.liuwj.ktorm.logging.Logger
-import me.liuwj.ktorm.logging.detectLoggerImplementation
+import org.ktorm.dsl.Query
+import org.ktorm.entity.EntitySequence
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.SqlExpression
+import org.ktorm.logging.Logger
+import org.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.transaction.annotation.Transactional

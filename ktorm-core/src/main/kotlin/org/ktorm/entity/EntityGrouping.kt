@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.entity
+package org.ktorm.entity
 
-import me.liuwj.ktorm.dsl.*
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.ColumnDeclaring
+import org.ktorm.dsl.*
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.ColumnDeclaring
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.LinkedHashMap

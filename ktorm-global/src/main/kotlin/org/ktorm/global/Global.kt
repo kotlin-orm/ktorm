@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.global
+package org.ktorm.global
 
-import me.liuwj.ktorm.database.*
-import me.liuwj.ktorm.logging.Logger
-import me.liuwj.ktorm.logging.detectLoggerImplementation
+import org.ktorm.database.*
+import org.ktorm.logging.Logger
+import org.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.transaction.annotation.Transactional

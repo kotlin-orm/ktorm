@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package me.liuwj.ktorm.schema
+package org.ktorm.schema
 
-import me.liuwj.ktorm.entity.Entity
+import org.ktorm.entity.Entity
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy

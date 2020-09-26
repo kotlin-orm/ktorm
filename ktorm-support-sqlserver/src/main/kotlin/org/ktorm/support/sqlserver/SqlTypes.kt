@@ -16,13 +16,13 @@
 
 @file:Suppress("MatchingDeclarationName")
 
-package me.liuwj.ktorm.support.sqlserver
+package org.ktorm.support.sqlserver
 
-import me.liuwj.ktorm.schema.BaseTable
-import me.liuwj.ktorm.schema.Column
-import me.liuwj.ktorm.schema.SqlType
 import microsoft.sql.DateTimeOffset
 import microsoft.sql.Types
+import org.ktorm.schema.BaseTable
+import org.ktorm.schema.Column
+import org.ktorm.schema.SqlType
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 

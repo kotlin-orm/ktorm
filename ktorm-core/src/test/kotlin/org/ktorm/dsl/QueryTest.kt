@@ -1,12 +1,12 @@
-package me.liuwj.ktorm.dsl
+package org.ktorm.dsl
 
-import me.liuwj.ktorm.BaseTest
-import me.liuwj.ktorm.entity.filter
-import me.liuwj.ktorm.entity.first
-import me.liuwj.ktorm.entity.forUpdate
-import me.liuwj.ktorm.entity.sequenceOf
-import me.liuwj.ktorm.expression.ScalarExpression
 import org.junit.Test
+import org.ktorm.BaseTest
+import org.ktorm.entity.filter
+import org.ktorm.entity.first
+import org.ktorm.entity.forUpdate
+import org.ktorm.entity.sequenceOf
+import org.ktorm.expression.ScalarExpression
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
