@@ -1,52 +1,52 @@
 
-# Package me.liuwj.ktorm.database
+# Package org.ktorm.database
 
 Entry of Ktorm framework, providing basic features of connection and transaction management.
 
-# Package me.liuwj.ktorm.dsl
+# Package org.ktorm.dsl
 
 Constructs strong-typed SQL DSL.
 
-# Package me.liuwj.ktorm.entity
+# Package org.ktorm.entity
 
 Provides entity sequence APIs.
 
-# Package me.liuwj.ktorm.expression
+# Package org.ktorm.expression
 
 Expression tree and SQL generation supports, providing expression node types, tree visitor, and SQL formatter.
 
-# Package me.liuwj.ktorm.logging
+# Package org.ktorm.logging
 
 Simple logging facade of Ktorm, provides adapters for variable logging frameworks.
 
-# Package me.liuwj.ktorm.schema
+# Package org.ktorm.schema
 
 Database schema supports, including table and column definition, column binding, and SQL types.
 
-# Package me.liuwj.ktorm.global
+# Package org.ktorm.global
 
 Provide a more concise DSL syntax based on a global database instance. 
 
-# Package me.liuwj.ktorm.jackson
+# Package org.ktorm.jackson
 
-Jackson extension module for Ktorm, providing json serialization for entity objects and json SQL type.
+Jackson extension module for Ktorm, providing JSON serialization for entity objects and JSON SQL type.
 
-# Package me.liuwj.ktorm.support.mysql
+# Package org.ktorm.support.mysql
 
 MySQL dialect module for Ktorm.
 
-# Package me.liuwj.ktorm.support.oracle
+# Package org.ktorm.support.oracle
 
 Oracle dialect module for Ktorm.
 
-# Package me.liuwj.ktorm.support.postgresql
+# Package org.ktorm.support.postgresql
 
 PostgreSQL dialect module for Ktorm.
 
-# Package me.liuwj.ktorm.support.sqlite
+# Package org.ktorm.support.sqlite
 
 SQLite dialect module for Ktorm.
 
-# Package me.liuwj.ktorm.support.sqlserver
+# Package org.ktorm.support.sqlserver
 
 Microsoft SqlServer dialect module for Ktorm.
