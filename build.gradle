@@ -158,7 +158,7 @@ subprojects { project ->
         publish = true
 
         pkg {
-            repo = "maven"
+            repo = "ktorm"
             name = project.name
             licenses = ["Apache-2.0"]
             vcsUrl = "https://github.com/kotlin-orm/ktorm.git"
