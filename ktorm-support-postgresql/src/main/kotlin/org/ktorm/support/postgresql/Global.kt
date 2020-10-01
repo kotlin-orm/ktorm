@@ -27,7 +27,7 @@ import java.lang.reflect.InvocationTargetException
 @Suppress("SwallowedException")
 internal val Database.Companion.global: Database get() {
     try {
-        val cls = Class.forName("me.liuwj.ktorm.global.GlobalKt")
+        val cls = Class.forName("org.ktorm.global.GlobalKt")
         val method = cls.getMethod("getGlobal", Database.Companion::class.java)
         return method.invoke(null, Database.Companion) as Database
     } catch (e: ClassNotFoundException) {

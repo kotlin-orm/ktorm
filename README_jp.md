@@ -5,8 +5,8 @@
     <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
         <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
     </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
@@ -24,7 +24,7 @@
 
 Ktormは純粋なJDBCをベースにしたKotlin用の軽量で効率的なORMフレームワークです。強力に型付けされた柔軟性の高い SQL DSL と便利なシーケンス API を提供し、データベース操作の重複作業を軽減してくれます。もちろん、すべてのSQL文は自動的に生成されます。Ktormはオープンソースで、Apache 2.0ライセンスで提供されています。このライブラリが役に立ったならば、Starをつけてください!  
 
-詳細なドキュメントについては、私たちのサイトを参照してください。: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+詳細なドキュメントについては、私たちのサイトを参照してください。: [https://www.ktorm.org](https://www.ktorm.org).
 
 :us: [English](README.md) | :cn: [简体中文](README_cn.md) | :jp: 日本語
 
@@ -46,7 +46,7 @@ Ktormはmaven centralとjcenterにデプロイされているので、mavenを�
 
 ```xml
 <dependency>
-    <groupId>me.liuwj.ktorm</groupId>
+    <groupId>org.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
@@ -55,10 +55,10 @@ Ktormはmaven centralとjcenterにデプロイされているので、mavenを�
 Gradleの場合: 
 
 ```groovy
-compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
+compile "org.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-第一に、[テーブルスキーマを記述する](https://ktorm.liuwj.me/en/schema-definition.html)ためのKotlinオブジェクトを作成します。
+第一に、[テーブルスキーマを記述する](https://www.ktorm.org/en/schema-definition.html)ためのKotlinオブジェクトを作成します。
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -217,7 +217,7 @@ database.update(Employees) {
 database.delete(Employees) { it.id eq 4 }
 ```
 
-SQL DSLの詳しい使い方については、[詳細ドキュメント](https://ktorm.liuwj.me/en/query.html)を参照してください。
+SQL DSLの詳しい使い方については、[詳細ドキュメント](https://www.ktorm.org/en/query.html)を参照してください。
 
 ## エンティティと列のバインド
 
@@ -323,7 +323,7 @@ val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-エンティティAPIの詳しい使い方は、[column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html)と[entity query](https://ktorm.liuwj.me/en/entity-finding.html)のドキュメントに記載されています。
+エンティティAPIの詳しい使い方は、[column binding](https://www.ktorm.org/en/entities-and-column-binding.html)と[entity query](https://www.ktorm.org/en/entity-finding.html)のドキュメントに記載されています。
 
 ## エンティティシーケンス API
 
@@ -496,4 +496,4 @@ val totalSalaries = database.employees
     }
 ```
 
-エンティティシーケンスAPIの詳しい使い方は、[entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html)や[sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html)のドキュメントに記載されています。
+エンティティシーケンスAPIの詳しい使い方は、[entity sequence](https://www.ktorm.org/en/entity-sequence.html)や[sequence aggregation](https://www.ktorm.org/en/sequence-aggregation.html)のドキュメントに記載されています。

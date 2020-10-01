@@ -41,7 +41,7 @@ public data class NestedBinding(val properties: List<KProperty1<*, *>>) : Column
  *
  * @property referenceTable the reference table.
  * @property onProperty the property used to hold the referenced entity object.
- * @see me.liuwj.ktorm.entity.sequenceOf
+ * @see org.ktorm.entity.sequenceOf
  * @see BaseTable.createEntity
  */
 public data class ReferenceBinding(val referenceTable: BaseTable<*>, val onProperty: KProperty1<*, *>) : ColumnBinding()

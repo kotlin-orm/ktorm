@@ -31,7 +31,7 @@ import kotlin.reflect.jvm.jvmErasure
  * the result set and filling them into corresponding entity properties.
  *
  * To use this class, we need to define our entities as interfaces extending from [Entity]. Here is an example. More
- * documents can be found at https://ktorm.liuwj.me/en/entities-and-column-binding.html
+ * documents can be found at https://www.ktorm.org/en/entities-and-column-binding.html
  *
  * ```kotlin
  * interface Department : Entity<Department> {

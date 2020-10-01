@@ -131,7 +131,7 @@ public enum class LogLevel {
  * Auto detect a logger implementation.
  */
 public fun detectLoggerImplementation(): Logger {
-    val loggerName = "me.liuwj.ktorm.database"
+    val loggerName = "org.ktorm.database"
     var result: Logger? = null
 
     @Suppress("SwallowedException")

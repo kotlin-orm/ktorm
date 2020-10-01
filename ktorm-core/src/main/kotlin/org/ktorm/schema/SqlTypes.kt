@@ -473,7 +473,7 @@ public object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
  * Define a column typed of [EnumSqlType].
  *
  * @param name the column's name.
- * @param typeRef the generic type information of this column, generally created by [me.liuwj.ktorm.schema.typeRef].
+ * @param typeRef the generic type information of this column, generally created by [org.ktorm.schema.typeRef].
  * @return the registered column.
  */
 @Suppress("UNCHECKED_CAST")

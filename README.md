@@ -5,8 +5,8 @@
     <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
         <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
     </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
@@ -24,7 +24,7 @@
 
 Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong-typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQL statements, of course, are generated automatically. Ktorm is open source and available under the Apache 2.0 license. Please leave a star if you've found this library helpful! 
 
-For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+For more documentation, go to our site: [https://www.ktorm.org](https://www.ktorm.org).
 
 :us: English | :cn: [简体中文](README_cn.md) | :jp: [日本語](README_jp.md)
 
@@ -46,7 +46,7 @@ Ktorm was deployed to maven central and jcenter, so you just need to add a depen
 
 ```xml
 <dependency>
-    <groupId>me.liuwj.ktorm</groupId>
+    <groupId>org.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
@@ -55,10 +55,10 @@ Ktorm was deployed to maven central and jcenter, so you just need to add a depen
 Or Gradle: 
 
 ```groovy
-compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
+compile "org.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-Firstly, create Kotlin objects to [describe your table schemas](https://ktorm.liuwj.me/en/schema-definition.html): 
+Firstly, create Kotlin objects to [describe your table schemas](https://www.ktorm.org/en/schema-definition.html): 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -217,7 +217,7 @@ Delete:
 database.delete(Employees) { it.id eq 4 }
 ```
 
-Refer to [detailed documentation](https://ktorm.liuwj.me/en/query.html) for more usages about SQL DSL.
+Refer to [detailed documentation](https://www.ktorm.org/en/query.html) for more usages about SQL DSL.
 
 ## Entities and Column Binding
 
@@ -323,7 +323,7 @@ val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-Detailed usages of entity APIs can be found in the documentation of [column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html) and [entity query](https://ktorm.liuwj.me/en/entity-finding.html).
+Detailed usages of entity APIs can be found in the documentation of [column binding](https://www.ktorm.org/en/entities-and-column-binding.html) and [entity query](https://www.ktorm.org/en/entity-finding.html).
 
 ## Entity Sequence APIs
 
@@ -496,4 +496,4 @@ val totalSalaries = database.employees
     }
 ```
 
-Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html) and [sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html). 
+Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://www.ktorm.org./en/entity-sequence.html) and [sequence aggregation](https://www.ktorm.org/en/sequence-aggregation.html). 

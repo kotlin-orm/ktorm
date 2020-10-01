@@ -114,7 +114,7 @@ import kotlin.reflect.jvm.jvmErasure
  * }
  * ```
  *
- * More details can be found in our website: https://ktorm.liuwj.me/en/entities-and-column-binding.html#More-About-Entities
+ * More details can be found in our website: https://www.ktorm.org/en/entities-and-column-binding.html#More-About-Entities
  *
  * ### Serialization
  *

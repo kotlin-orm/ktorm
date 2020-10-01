@@ -5,8 +5,8 @@
     <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
         <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
     </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
@@ -24,7 +24,7 @@
 
 Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL 和方便的序列 API，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。Ktorm 基于 Apache 2.0 协议开放源代码，如果对你有帮助的话，请留下你的 star。
 
-查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me/zh-cn)。
+查看更多详细文档，请前往官网：[https://www.ktorm.org](https://www.ktorm.org/zh-cn)。
 
 :us: [English](README.md) | :cn: 简体中文 | :jp: [日本語](README_jp.md)
 
@@ -48,7 +48,7 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 
 ```xml
 <dependency>
-    <groupId>me.liuwj.ktorm</groupId>
+    <groupId>org.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
@@ -57,10 +57,10 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 或者 gradle： 
 
 ```groovy
-compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
+compile "org.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-首先，创建 Kotlin object，[描述你的表结构](https://ktorm.liuwj.me/zh-cn/schema-definition.html)： 
+首先，创建 Kotlin object，[描述你的表结构](https://www.ktorm.org/zh-cn/schema-definition.html)： 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -219,7 +219,7 @@ database.update(Employees) {
 database.delete(Employees) { it.id eq 4 }
 ```
 
-更多 SQL DSL 的用法，请参考[具体文档](https://ktorm.liuwj.me/zh-cn/query.html)。
+更多 SQL DSL 的用法，请参考[具体文档](https://www.ktorm.org/zh-cn/query.html)。
 
 ## 实体类与列绑定
 
@@ -325,7 +325,7 @@ val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-更多实体 API 的用法，可参考[列绑定](https://ktorm.liuwj.me/zh-cn/entities-and-column-binding.html)和[实体查询](https://ktorm.liuwj.me/zh-cn/entity-finding.html)相关的文档。
+更多实体 API 的用法，可参考[列绑定](https://www.ktorm.org/zh-cn/entities-and-column-binding.html)和[实体查询](https://www.ktorm.org/zh-cn/entity-finding.html)相关的文档。
 
 ## 实体序列 API
 
@@ -498,4 +498,4 @@ val totalSalaries = database.employees
     }
 ```
 
-更多实体序列 API 的用法，可参考[实体序列](https://ktorm.liuwj.me/zh-cn/entity-sequence.html)和[序列聚合](https://ktorm.liuwj.me/zh-cn/sequence-aggregation.html)相关的文档。
+更多实体序列 API 的用法，可参考[实体序列](https://www.ktorm.org/zh-cn/entity-sequence.html)和[序列聚合](https://www.ktorm.org/zh-cn/sequence-aggregation.html)相关的文档。

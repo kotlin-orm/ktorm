@@ -35,7 +35,7 @@ import kotlin.reflect.jvm.jvmErasure
  * object could be an interface extending from [Entity], or a data class, POJO, or any kind of classes.
  *
  * Here is an example defining an entity as data class. The full documentation can be found at:
- * https://ktorm.liuwj.me/en/define-entities-as-any-kind-of-classes.html
+ * https://www.ktorm.org/en/define-entities-as-any-kind-of-classes.html
  *
  * ```kotlin
  * data class Staff(
@@ -299,7 +299,7 @@ public abstract class BaseTable<E : Any>(
      * please use classes instead, and override this [aliased] function to return the same type as the concrete table
      * classes.
      *
-     * More details can be found on our website: https://ktorm.liuwj.me/en/joining.html#Self-Joining-amp-Table-Aliases
+     * More details can be found on our website: https://www.ktorm.org/en/joining.html#Self-Joining-amp-Table-Aliases
      */
     public open fun aliased(alias: String): BaseTable<E> {
         throw UnsupportedOperationException("The function 'aliased' is not supported by $javaClass")
