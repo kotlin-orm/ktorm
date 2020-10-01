@@ -496,4 +496,4 @@ val totalSalaries = database.employees
     }
 ```
 
-Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://www.ktorm.org./en/entity-sequence.html) and [sequence aggregation](https://www.ktorm.org/en/sequence-aggregation.html). 
+Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://www.ktorm.org/en/entity-sequence.html) and [sequence aggregation](https://www.ktorm.org/en/sequence-aggregation.html). 
