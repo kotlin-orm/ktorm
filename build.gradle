@@ -17,7 +17,7 @@ buildscript {
 
 allprojects {
     group = "org.ktorm"
-    version = "3.2.0-RC1"
+    version = "3.2.0-RC2"
 }
 
 subprojects { project ->
