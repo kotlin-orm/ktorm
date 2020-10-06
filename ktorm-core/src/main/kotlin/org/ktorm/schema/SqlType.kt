@@ -101,7 +101,10 @@ public abstract class SqlType<T : Any>(public val typeCode: Int, public val type
      * Two SQL types are equal if they have the same type codes and names.
      */
     override fun equals(other: Any?): Boolean {
-        return other is SqlType<*> && this.typeCode == other.typeCode && this.typeName == other.typeName
+        return other is SqlType<*>
+            && this::class == other::class
+            && this.typeCode == other.typeCode
+            && this.typeName == other.typeName
     }
 
     /**
