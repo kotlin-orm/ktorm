@@ -18,7 +18,6 @@ import org.ktorm.schema.datetime
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.MSSQLServerContainer
-import java.lang.AssertionError
 import java.sql.Timestamp
 import java.time.LocalDate
 
@@ -73,6 +72,36 @@ class SqlServerTest : BaseTest() {
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
 
         database.delete(configs) { it.key eq "test" }
+    }
+
+    @Test
+    fun testLimitWithoutOffset() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
+        assert(query.totalRecords == 4)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids[0] == 4)
+        assert(ids[1] == 3)
+    }
+
+    @Test
+    fun testOffsetWithoutLimit() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
+        assert(query.totalRecords == 4)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids[0] == 2)
+        assert(ids[1] == 1)
+    }
+
+    @Test
+    fun testOffsetWithLimit() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
+        assert(query.totalRecords == 4)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids.size == 1)
+        assert(ids[0] == 2)
     }
 
     @Test

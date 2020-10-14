@@ -1,6 +1,7 @@
 package org.ktorm.global
 
 import org.junit.Test
+import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.dsl.*
 import org.ktorm.expression.ScalarExpression
 
@@ -161,6 +162,16 @@ class GlobalQueryTest : BaseGlobalTest() {
         } catch (e: UnsupportedOperationException) {
             // Expected, pagination should be provided by dialects...
         }
+    }
+
+    @Test(expected = DialectFeatureNotSupportedException::class)
+    fun testLimitWithoutOffset() {
+        Employees.select().orderBy(Employees.id.desc()).limit(2).iterator()
+    }
+
+    @Test(expected = DialectFeatureNotSupportedException::class)
+    fun testOffsetWithoutLimit() {
+        Employees.select().orderBy(Employees.id.desc()).offset(2).iterator()
     }
 
     @Test

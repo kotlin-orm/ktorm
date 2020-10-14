@@ -22,7 +22,6 @@ import org.ktorm.expression.*
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
-import java.lang.Appendable
 import java.sql.ResultSet
 
 /**
@@ -331,6 +330,28 @@ public fun ColumnDeclaring<*>.desc(): OrderByExpression {
 }
 
 /**
+ * Specify the pagination limit parameter of this query.
+ *
+ * This function requires a dialect enabled, different SQLs will be generated with different dialects.
+ *
+ * Note that if [limit] is zero then it will be ignored.
+ */
+public fun Query.limit(limit: Int): Query {
+    return limit(null, limit)
+}
+
+/**
+ * Specify the pagination offset parameter of this query.
+ *
+ * This function requires a dialect enabled, different SQLs will be generated with different dialects.
+ *
+ * Note that if [offset] is zero then it will be ignored.
+ */
+public fun Query.offset(offset: Int): Query {
+    return limit(offset, null)
+}
+
+/**
  * Specify the pagination parameters of this query.
  *
  * This function requires a dialect enabled, different SQLs will be generated with different dialects. For example,
@@ -338,17 +359,33 @@ public fun ColumnDeclaring<*>.desc(): OrderByExpression {
  *
  * Note that if both [offset] and [limit] are zero, they will be ignored.
  */
-public fun Query.limit(offset: Int, limit: Int): Query {
-    if (offset == 0 && limit == 0) {
-        return this
+public fun Query.limit(offset: Int?, limit: Int?): Query {
+    val isOffsetValid = offset != null && offset > 0
+    val isLimitValid = limit != null && limit > 0
+    return if (isOffsetValid && isLimitValid) {
+        this.withExpression(
+                when (expression) {
+                    is SelectExpression -> expression.copy(offset = offset, limit = limit)
+                    is UnionExpression -> expression.copy(offset = offset, limit = limit)
+                }
+        )
+    } else if (isOffsetValid) {
+        this.withExpression(
+                when (expression) {
+                    is SelectExpression -> expression.copy(offset = offset)
+                    is UnionExpression -> expression.copy(offset = offset)
+                }
+        )
+    } else if (isLimitValid) {
+        this.withExpression(
+                when (expression) {
+                    is SelectExpression -> expression.copy(limit = limit)
+                    is UnionExpression -> expression.copy(limit = limit)
+                }
+        )
+    } else {
+        this
     }
-
-    return this.withExpression(
-        when (expression) {
-            is SelectExpression -> expression.copy(offset = offset, limit = limit)
-            is UnionExpression -> expression.copy(offset = offset, limit = limit)
-        }
-    )
 }
 
 /**
