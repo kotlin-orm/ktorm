@@ -75,11 +75,26 @@ class SqlServerTest : BaseTest() {
     }
 
     @Test
+    fun testBothLimitAndOffsetAreNotPositive() {
+        val totalRecords = 4
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
+        assert(query.totalRecords == totalRecords)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids.size == totalRecords)
+        assert(ids[0] == 4)
+        assert(ids[1] == 3)
+        assert(ids[2] == 2)
+        assert(ids[3] == 1)
+    }
+
+    @Test
     fun testLimitWithoutOffset() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
         assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
+        assert(ids.size == 2)
         assert(ids[0] == 4)
         assert(ids[1] == 3)
     }
@@ -90,6 +105,7 @@ class SqlServerTest : BaseTest() {
         assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
+        assert(ids.size == 2)
         assert(ids[0] == 2)
         assert(ids[1] == 1)
     }

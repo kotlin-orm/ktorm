@@ -357,35 +357,26 @@ public fun Query.offset(offset: Int): Query {
  * This function requires a dialect enabled, different SQLs will be generated with different dialects. For example,
  * `limit ?, ?` by MySQL, `limit m offset n` by PostgreSQL.
  *
- * Note that if both [offset] and [limit] are zero, they will be ignored.
+ * Note that if both [offset] and [limit] aren't positive, they will be ignored.
  */
 public fun Query.limit(offset: Int?, limit: Int?): Query {
-    val isOffsetValid = offset != null && offset > 0
-    val isLimitValid = limit != null && limit > 0
-    return if (isOffsetValid && isLimitValid) {
-        this.withExpression(
-                when (expression) {
-                    is SelectExpression -> expression.copy(offset = offset, limit = limit)
-                    is UnionExpression -> expression.copy(offset = offset, limit = limit)
-                }
-        )
-    } else if (isOffsetValid) {
-        this.withExpression(
-                when (expression) {
-                    is SelectExpression -> expression.copy(offset = offset)
-                    is UnionExpression -> expression.copy(offset = offset)
-                }
-        )
-    } else if (isLimitValid) {
-        this.withExpression(
-                when (expression) {
-                    is SelectExpression -> expression.copy(limit = limit)
-                    is UnionExpression -> expression.copy(limit = limit)
-                }
-        )
-    } else {
-        this
+    val isOffsetInvalid = offset == null || offset <= 0
+    val isLimitInvalid = limit == null || limit <= 0
+    if (isOffsetInvalid && isLimitInvalid) {
+        return this
     }
+    return this.withExpression(
+            when (expression) {
+                is SelectExpression -> expression.copy(
+                        offset = if (isOffsetInvalid) expression.offset else offset,
+                        limit = if (isLimitInvalid) expression.limit else limit
+                )
+                is UnionExpression -> expression.copy(
+                        offset = if (isOffsetInvalid) expression.offset else offset,
+                        limit = if (isLimitInvalid) expression.limit else limit
+                )
+            }
+    )
 }
 
 /**
