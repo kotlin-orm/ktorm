@@ -1,7 +1,7 @@
 
 # 参与者公约
 
-:us: [English](README.md) | :cn: 简体中文
+:us: [English](CODE_OF_CONDUCT.md) | :cn: 简体中文
 
 ## 我们的承诺
 
