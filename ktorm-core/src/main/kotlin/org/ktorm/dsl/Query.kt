@@ -18,7 +18,15 @@ package org.ktorm.dsl
 
 import org.ktorm.database.Database
 import org.ktorm.database.iterator
-import org.ktorm.expression.*
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.ColumnDeclaringExpression
+import org.ktorm.expression.ColumnExpression
+import org.ktorm.expression.OrderByExpression
+import org.ktorm.expression.OrderType
+import org.ktorm.expression.QueryExpression
+import org.ktorm.expression.SelectExpression
+import org.ktorm.expression.SqlExpressionVisitor
+import org.ktorm.expression.UnionExpression
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
@@ -366,16 +374,16 @@ public fun Query.limit(offset: Int?, limit: Int?): Query {
         return this
     }
     return this.withExpression(
-            when (expression) {
-                is SelectExpression -> expression.copy(
-                        offset = if (isOffsetInvalid) expression.offset else offset,
-                        limit = if (isLimitInvalid) expression.limit else limit
-                )
-                is UnionExpression -> expression.copy(
-                        offset = if (isOffsetInvalid) expression.offset else offset,
-                        limit = if (isLimitInvalid) expression.limit else limit
-                )
-            }
+        when (expression) {
+            is SelectExpression -> expression.copy(
+                offset = if (isOffsetInvalid) expression.offset else offset,
+                limit = if (isLimitInvalid) expression.limit else limit
+            )
+            is UnionExpression -> expression.copy(
+                    offset = if (isOffsetInvalid) expression.offset else offset,
+                    limit = if (isLimitInvalid) expression.limit else limit
+            )
+        }
     )
 }
 
