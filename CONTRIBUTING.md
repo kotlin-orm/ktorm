@@ -8,5 +8,5 @@ Pull requests are always welcome and can be a quick way to get your fix or impro
 - By contributing to Ktorm, you agree to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
 - By contributing to Ktorm, you agree that your contributions will be licensed under [Apache License 2.0](LICENSE).
 - Coding Conventions are very import. Refer to the [Kotlin Style Guide](https://kotlinlang.org/docs/reference/coding-conventions.html) for the recommended coding standards of Ktorm.
-- If it's your first time contributing to Ktorm, please also update the `build.gradle` file, add your GitHub ID to the developers info, which will let more people know your contributions.
 - If you've added code that should be tested, add tests and ensure they all pass. If you've changed APIs, update the documentation. 
+- If it's your first time contributing to Ktorm, please also update the `build.gradle` file, add your GitHub ID to the developers info, which will let more people know your contributions.
