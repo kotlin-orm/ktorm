@@ -18,7 +18,6 @@ import org.ktorm.schema.datetime
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.MSSQLServerContainer
-import java.lang.AssertionError
 import java.sql.Timestamp
 import java.time.LocalDate
 
@@ -28,6 +27,16 @@ import java.time.LocalDate
 class SqlServerTest : BaseTest() {
 
     companion object {
+        const val TOTAL_RECORDS = 4
+        const val MINUS_ONE = -1
+        const val ZERO = 0
+        const val ONE = 1
+        const val TWO = 2
+        const val ID_1 = 1
+        const val ID_2 = 2
+        const val ID_3 = 3
+        const val ID_4 = 4
+
         class KSqlServerContainer : MSSQLServerContainer<KSqlServerContainer>()
 
         @ClassRule
@@ -73,6 +82,54 @@ class SqlServerTest : BaseTest() {
         assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
 
         database.delete(configs) { it.key eq "test" }
+    }
+
+    /**
+     * Verifies that invalid pagination parameters are ignored.
+     */
+    @Test
+    fun testBothLimitAndOffsetAreNotPositive() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(ZERO, MINUS_ONE)
+        assert(query.totalRecords == TOTAL_RECORDS)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids == listOf(ID_4, ID_3, ID_2, ID_1))
+    }
+
+    /**
+     * Verifies that limit parameter works as expected.
+     */
+    @Test
+    fun testLimitWithoutOffset() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(TWO)
+        assert(query.totalRecords == TOTAL_RECORDS)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids == listOf(ID_4, ID_3))
+    }
+
+    /**
+     * Verifies that offset parameter works as expected.
+     */
+    @Test
+    fun testOffsetWithoutLimit() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(TWO)
+        assert(query.totalRecords == TOTAL_RECORDS)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids == listOf(ID_2, ID_1))
+    }
+
+    /**
+     * Verifies that limit and offset parameters work together as expected.
+     */
+    @Test
+    fun testOffsetWithLimit() {
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(TWO).limit(ONE)
+        assert(query.totalRecords == TOTAL_RECORDS)
+
+        val ids = query.map { it[Employees.id] }
+        assert(ids == listOf(ID_2))
     }
 
     @Test
