@@ -265,7 +265,7 @@ object Employees : Table<Employee>("t_employee") {
 
 > Naming Strategy: It's highly recommended to name your entity classes by singular nouns, name table objects by plurals (eg. Employee/Employees, Department/Departments). 
 
-Now that column bindings are configured, so we can use [sequence APIs](#Entity-Sequence-APIs) to perform many operations on entities. Let's add two extension properties for `Database` first. These properties return new created sequence objects via `sequenceOf` and they can help use improve the readability of the code: 
+Now that column bindings are configured, so we can use [sequence APIs](#Entity-Sequence-APIs) to perform many operations on entities. Let's add two extension properties for `Database` first. These properties return new created sequence objects via `sequenceOf` and they can help us improve the readability of the code: 
 
 ```kotlin
 val Database.departments get() = this.sequenceOf(Departments)
