@@ -73,6 +73,14 @@ open class BaseTest {
         var department: Department
     }
 
+    interface Customer : Entity<Customer> {
+        companion object : Entity.Factory<Customer>()
+        var id: Int?
+        var name: String
+        var email: String
+        var phoneNumber: String
+    }
+
     open class Departments(alias: String?) : Table<Department>("t_department", alias) {
         companion object : Departments(null)
         override fun aliased(alias: String) = Departments(alias)
@@ -97,7 +105,20 @@ open class BaseTest {
         val department = departmentId.referenceTable as Departments
     }
 
+    open class Customers(alias: String?) : Table<Customer>("t_customer", alias, schema="COMPANY") {
+        companion object : Customers(null)
+        override fun aliased(alias: String) = Customers(alias)
+
+        val id = int("id").primaryKey().bindTo { it.id }
+        val name = varchar("name").bindTo { it.name }
+        val email = varchar("email").bindTo { it.email }
+        val phoneNumber = varchar("phoneNumber").bindTo { it.phoneNumber }
+
+    }
+
     val Database.departments get() = this.sequenceOf(Departments)
 
     val Database.employees get() = this.sequenceOf(Employees)
+
+    val Database.customers get() = this.sequenceOf(Customers)
 }
