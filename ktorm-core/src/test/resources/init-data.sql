@@ -1,4 +1,5 @@
 
+create schema COMPANY;
 create table "t_department"(
   "id" int not null primary key auto_increment,
   "name" varchar(128) not null,
@@ -14,6 +15,13 @@ create table "t_employee"(
   "hire_date" date not null,
   "salary" bigint not null,
   "department_id" int not null
+);
+
+create table COMPANY."t_customer" (
+  "id" int not null primary key auto_increment,
+  "name" varchar(128) not null,
+  "email" varchar(128) not null,
+  "phoneNumber" varchar(128) not null,
 );
 
 insert into "t_department"("name", "location") values ('tech', 'Guangzhou');

@@ -551,7 +551,8 @@ public abstract class SqlFormatter(
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         writeKeyword("insert into ")
-        write("${expr.table.name.quoted} (")
+        visitTable(expr.table)
+        write("(")
         for ((i, column) in expr.columns.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(column.name)

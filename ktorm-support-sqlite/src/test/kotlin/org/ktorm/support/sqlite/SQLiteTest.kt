@@ -50,7 +50,7 @@ class SQLiteTest : BaseTest() {
     }
 
     override fun destroy() {
-        super.destroy()
+        execSqlScript("drop-sqlite-data.sql")
         connection.close()
     }
 

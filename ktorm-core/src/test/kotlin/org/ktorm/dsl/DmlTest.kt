@@ -82,6 +82,17 @@ class DmlTest : BaseTest() {
     }
 
     @Test
+    fun testInsertWithSchema() {
+        database.insert(Customers) {
+            set(it.name, "steve")
+            set(it.email, "steve@job.com")
+            set(it.phoneNumber, "0123456789")
+        }
+
+        assert(database.customers.count() == 1)
+    }
+
+    @Test
     fun testBatchInsert() {
         database.batchInsert(Employees) {
             item {
