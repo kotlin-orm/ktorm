@@ -535,7 +535,9 @@ public abstract class SqlFormatter(
 
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         writeKeyword("insert into ")
-        write("${expr.table.name.quoted} (")
+        visit(expr.table)
+        write(" (")
+
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(assignment.column.name)
@@ -550,7 +552,8 @@ public abstract class SqlFormatter(
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         writeKeyword("insert into ")
-        write("${expr.table.name.quoted} (")
+        visit(expr.table)
+        write(" (")
         for ((i, column) in expr.columns.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(column.name)

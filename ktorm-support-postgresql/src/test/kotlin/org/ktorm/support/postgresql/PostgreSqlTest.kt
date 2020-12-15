@@ -361,7 +361,7 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testSchema() {
+    fun testSchemaUpdate() {
         val t = object : Table<Department>("t_department", catalog = postgres.databaseName, schema = "public") {
             val id = int("id").primaryKey().bindTo { it.id }
             val name = varchar("name").bindTo { it.name }
@@ -372,6 +372,22 @@ class PostgreSqlTest : BaseTest() {
             where {
                 it.id eq 1
             }
+        }
+
+        assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
+        assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance"))
+    }
+
+    @Test
+    fun testSchemaInsert() {
+        val t = object : Table<Department>("t_department", catalog = postgres.databaseName, schema = "public") {
+            val id = int("id").primaryKey().bindTo { it.id }
+            val name = varchar("name").bindTo { it.name }
+        }
+
+        database.insert(t) {
+            set(it.id, 1)
+            set(it.name, "test")
         }
 
         assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
