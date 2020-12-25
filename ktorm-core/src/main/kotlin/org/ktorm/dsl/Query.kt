@@ -18,15 +18,7 @@ package org.ktorm.dsl
 
 import org.ktorm.database.Database
 import org.ktorm.database.iterator
-import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.ColumnDeclaringExpression
-import org.ktorm.expression.ColumnExpression
-import org.ktorm.expression.OrderByExpression
-import org.ktorm.expression.OrderType
-import org.ktorm.expression.QueryExpression
-import org.ktorm.expression.SelectExpression
-import org.ktorm.expression.SqlExpressionVisitor
-import org.ktorm.expression.UnionExpression
+import org.ktorm.expression.*
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
@@ -338,25 +330,25 @@ public fun ColumnDeclaring<*>.desc(): OrderByExpression {
 }
 
 /**
- * Specify the pagination limit parameter of this query.
- *
- * This function requires a dialect enabled, different SQLs will be generated with different dialects.
- *
- * Note that if [limit] is zero then it will be ignored.
- */
-public fun Query.limit(limit: Int): Query {
-    return limit(null, limit)
-}
-
-/**
  * Specify the pagination offset parameter of this query.
  *
  * This function requires a dialect enabled, different SQLs will be generated with different dialects.
  *
- * Note that if [offset] is zero then it will be ignored.
+ * Note that if the number isn't positive then it will be ignored.
  */
-public fun Query.offset(offset: Int): Query {
-    return limit(offset, null)
+public fun Query.offset(n: Int): Query {
+    return limit(offset = n, limit = null)
+}
+
+/**
+ * Specify the pagination limit parameter of this query.
+ *
+ * This function requires a dialect enabled, different SQLs will be generated with different dialects.
+ *
+ * Note that if the number isn't positive then it will be ignored.
+ */
+public fun Query.limit(n: Int): Query {
+    return limit(offset = null, limit = n)
 }
 
 /**
@@ -365,23 +357,18 @@ public fun Query.offset(offset: Int): Query {
  * This function requires a dialect enabled, different SQLs will be generated with different dialects. For example,
  * `limit ?, ?` by MySQL, `limit m offset n` by PostgreSQL.
  *
- * Note that if both [offset] and [limit] aren't positive, they will be ignored.
+ * Note that if the numbers aren't positive, they will be ignored.
  */
 public fun Query.limit(offset: Int?, limit: Int?): Query {
-    val isOffsetInvalid = offset == null || offset <= 0
-    val isLimitInvalid = limit == null || limit <= 0
-    if (isOffsetInvalid && isLimitInvalid) {
-        return this
-    }
     return this.withExpression(
         when (expression) {
             is SelectExpression -> expression.copy(
-                offset = if (isOffsetInvalid) expression.offset else offset,
-                limit = if (isLimitInvalid) expression.limit else limit
+                offset = offset?.takeIf { it > 0 } ?: expression.offset,
+                limit = limit?.takeIf { it > 0 } ?: expression.limit
             )
             is UnionExpression -> expression.copy(
-                    offset = if (isOffsetInvalid) expression.offset else offset,
-                    limit = if (isLimitInvalid) expression.limit else limit
+                offset = offset?.takeIf { it > 0 } ?: expression.offset,
+                limit = limit?.takeIf { it > 0 } ?: expression.limit
             )
         }
     )
