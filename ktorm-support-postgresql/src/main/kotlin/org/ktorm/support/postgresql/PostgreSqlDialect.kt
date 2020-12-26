@@ -131,23 +131,28 @@ public open class PostgreSqlFormatter(
 
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table)
+        visitTable(expr.table.copy(tableAlias = null))
         write("(")
+
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
+
         writeKeyword(") values (")
         visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
         removeLastBlank()
         writeKeyword(") on conflict (")
+
         for ((i, column) in expr.conflictTarget.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(column.name)
             write(column.name.quoted)
         }
+
         writeKeyword(") do update set ")
+
         for ((i, assignment) in expr.updateAssignments.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
@@ -158,6 +163,7 @@ public open class PostgreSqlFormatter(
             write("= ")
             visit(assignment.expression)
         }
+
         return expr
     }
 }

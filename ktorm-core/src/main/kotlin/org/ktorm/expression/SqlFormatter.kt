@@ -535,13 +535,15 @@ public abstract class SqlFormatter(
 
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table)
+        visitTable(expr.table.copy(tableAlias = null))
         write("(")
+
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
+
         writeKeyword(") values (")
         visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
         removeLastBlank()
@@ -551,17 +553,18 @@ public abstract class SqlFormatter(
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table)
+        visitTable(expr.table.copy(tableAlias = null))
         write("(")
+
         for ((i, column) in expr.columns.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(column.name)
             write(column.name.quoted)
         }
+
         write(") ")
-
+        newLine(Indentation.SAME)
         visitQuery(expr.query)
-
         return expr
     }
 
@@ -582,7 +585,7 @@ public abstract class SqlFormatter(
 
     override fun visitDelete(expr: DeleteExpression): DeleteExpression {
         writeKeyword("delete from ")
-        visit(expr.table)
+        visitTable(expr.table)
 
         if (expr.where != null) {
             writeKeyword("where ")

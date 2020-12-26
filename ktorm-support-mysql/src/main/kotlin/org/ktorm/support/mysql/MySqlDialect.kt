@@ -78,13 +78,15 @@ public open class MySqlFormatter(
 
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table)
+        visitTable(expr.table.copy(tableAlias = null))
         write("(")
+
         for ((i, assignment) in expr.assignments.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
+
         writeKeyword(") values ")
         writeValues(expr.assignments)
 
@@ -98,13 +100,15 @@ public open class MySqlFormatter(
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table)
+        visitTable(expr.table.copy(tableAlias = null))
         write("(")
+
         for ((i, assignment) in expr.assignments[0].withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
+
         writeKeyword(") values ")
 
         for ((i, assignments) in expr.assignments.withIndex()) {
