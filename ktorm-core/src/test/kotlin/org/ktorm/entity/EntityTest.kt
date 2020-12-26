@@ -495,7 +495,7 @@ class EntityTest : BaseTest() {
         employee.job = "engineer"
         employee.flushChanges()
 
-        employee = database.employees.find { it.id eq employee.id!! } ?: throw AssertionError()
+        employee = database.employees.find { it.id eq employee.id } ?: throw AssertionError()
         assert(employee.job == "engineer")
     }
 }

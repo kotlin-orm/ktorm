@@ -64,7 +64,7 @@ open class BaseTest {
 
     interface Employee : Entity<Employee> {
         companion object : Entity.Factory<Employee>()
-        var id: Int?
+        var id: Int
         var name: String
         var job: String
         var manager: Employee?
@@ -75,7 +75,7 @@ open class BaseTest {
 
     interface Customer : Entity<Customer> {
         companion object : Entity.Factory<Customer>()
-        var id: Int?
+        var id: Int
         var name: String
         var email: String
         var phoneNumber: String
@@ -105,15 +105,14 @@ open class BaseTest {
         val department = departmentId.referenceTable as Departments
     }
 
-    open class Customers(alias: String?) : Table<Customer>("t_customer", alias, schema="COMPANY") {
+    open class Customers(alias: String?) : Table<Customer>("t_customer", alias, schema = "company") {
         companion object : Customers(null)
         override fun aliased(alias: String) = Customers(alias)
 
         val id = int("id").primaryKey().bindTo { it.id }
         val name = varchar("name").bindTo { it.name }
         val email = varchar("email").bindTo { it.email }
-        val phoneNumber = varchar("phoneNumber").bindTo { it.phoneNumber }
-
+        val phoneNumber = varchar("phone_number").bindTo { it.phoneNumber }
     }
 
     val Database.departments get() = this.sequenceOf(Departments)
