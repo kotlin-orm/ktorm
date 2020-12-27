@@ -294,8 +294,9 @@ public open class AssignmentsBuilder {
      *
      * @since 3.1.0
      */
-    @Suppress("UNCHECKED_CAST")
     @JvmName("setAny")
+    @Suppress("UNCHECKED_CAST")
+    @Deprecated("This function will be removed in the future. Please use the generic version instead.")
     public fun set(column: Column<*>, value: Any?) {
         (column as Column<Any>).checkAssignableFrom(value)
         _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
@@ -330,8 +331,8 @@ public open class AssignmentsBuilder {
      * applications call [kotlin.to] unexpectedly in the DSL closures. An exception will be thrown
      * by this function if the argument type doesn't match the column's type.
      */
-    @Suppress("UNCHECKED_CAST")
     @JvmName("toAny")
+    @Suppress("UNCHECKED_CAST")
     @Deprecated(
         message = "This function will be removed in the future. Please use set(column, value) instead.",
         replaceWith = ReplaceWith("set(this, value)")
