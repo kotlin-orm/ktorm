@@ -200,7 +200,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testFlatMap() {
         val names = database.employees
-            .sortedBy { it.id }
+            .sortedBy { it.id.asc() }
             .flatMapIndexed { index, employee -> listOf("$index:${employee.name}") }
 
         println(names)

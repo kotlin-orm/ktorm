@@ -603,6 +603,10 @@ public inline fun <E : Any, T : BaseTable<E>, C, R> EntitySequence<E, T>.mapColu
  *
  * The operation is intermediate.
  */
+@Deprecated(
+    message = "This function is deprecated, use sortedBy({ it.col1.asc() }, { it.col2.desc() }) instead.",
+    replaceWith = ReplaceWith("sortedBy")
+)
 public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
     selector: (T) -> List<OrderByExpression>
 ): EntitySequence<E, T> {
@@ -610,14 +614,45 @@ public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
 }
 
 /**
+ * Return a sequence sorting elements by multiple columns, in ascending or descending order. For example,
+ * `sortedBy({ it.col1.asc() }, { it.col2.desc() })`.
+ *
+ * The operation is intermediate.
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
+    vararg selectors: (T) -> OrderByExpression
+): EntitySequence<E, T> {
+    return this.withExpression(expression.copy(orderBy = selectors.map { it(sourceTable) }))
+}
+
+/**
+ * Return a sequence sorting elements by a column, in ascending or descending order. For example,
+ * `sortedBy { it.col.asc() }`
+ *
+ * The operation is intermediate.
+ */
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
+    selector: (T) -> OrderByExpression
+): EntitySequence<E, T> {
+    return this.withExpression(expression.copy(orderBy = listOf(selector(sourceTable))))
+}
+
+/**
  * Return a sequence sorting elements by the specific column in ascending order.
  *
  * The operation is intermediate.
  */
+@JvmName("sortedByAscending")
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
 public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T> {
-    return sorted { listOf(selector(it).asc()) }
+    return this.withExpression(expression.copy(orderBy = listOf(selector(sourceTable).asc())))
 }
 
 /**
@@ -628,7 +663,7 @@ public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedBy(
 public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDescending(
     selector: (T) -> ColumnDeclaring<*>
 ): EntitySequence<E, T> {
-    return sorted { listOf(selector(it).desc()) }
+    return this.withExpression(expression.copy(orderBy = listOf(selector(sourceTable).desc())))
 }
 
 /**
