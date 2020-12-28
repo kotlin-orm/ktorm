@@ -187,7 +187,7 @@ public open class PostgreSqlFormatter(
         }
         writeKeyword(") do ")
 
-        if(updateAssignments.isNotEmpty()) {
+        if (updateAssignments.isNotEmpty()) {
             writeKeyword("update set ")
             updateAssignments.forEachIndexed { i, assignment ->
                 if (i > 0) {

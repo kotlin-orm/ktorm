@@ -20,10 +20,12 @@ import org.ktorm.database.Database
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.dsl.batchInsert
-import org.ktorm.expression.*
+import org.ktorm.expression.ColumnAssignmentExpression
+import org.ktorm.expression.ColumnExpression
+import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.TableExpression
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
-import org.ktorm.schema.ColumnDeclaring
 
 /**
  * Bulk insert expression, represents a bulk insert statement in PostgreSQL.
@@ -51,7 +53,8 @@ public data class BulkInsertOrUpdateExpression(
  * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
  * is much better than [batchInsert].
  *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)... ON CONFLICT (...) DO NOTHING/UPDATE SET ...`.
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)... ON
+ * CONFLICT (...) DO NOTHING/UPDATE SET ...`.
  *
  * Usage:
  *
