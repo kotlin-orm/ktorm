@@ -48,32 +48,36 @@ public data class BulkInsertOrUpdateExpression(
  * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using MySQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
+ * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
  * is much better than [batchInsert].
  *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)... ON CONFLICT (...) DO NOTHING/UPDATE SET ...`.
  *
  * Usage:
  *
  * ```kotlin
- * database.bulkInsert(Employees) {
- *     item {
- *         set(it.name, "jerry")
- *         set(it.job, "trainee")
- *         set(it.managerId, 1)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.salary, 50)
- *         set(it.departmentId, 1)
- *     }
- *     item {
- *         set(it.name, "linda")
- *         set(it.job, "assistant")
- *         set(it.managerId, 3)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.salary, 100)
- *         set(it.departmentId, 2)
- *     }
- * }
+ *      database.bulkInsert(Employees) {
+ *          item {
+ *              set(it.id, 1)
+ *              set(it.name, "vince")
+ *              set(it.job, "engineer")
+ *              set(it.salary, 1000)
+ *              set(it.hireDate, LocalDate.now())
+ *              set(it.departmentId, 1)
+ *          }
+ *          item {
+ *              set(it.id, 5)
+ *              set(it.name, "vince")
+ *              set(it.job, "engineer")
+ *              set(it.salary, 1000)
+ *              set(it.hireDate, LocalDate.now())
+ *              set(it.departmentId, 1)
+ *          }
+ *
+ *          onDuplicateKey(Employees.id) {
+ *              set(it.salary, it.salary + 900)
+ *          }
+ *      }
  * ```
  *
  * @since 2.7
