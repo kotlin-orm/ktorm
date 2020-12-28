@@ -185,16 +185,22 @@ public open class PostgreSqlFormatter(
             checkColumnName(column.name)
             write(column.name.quoted)
         }
-        writeKeyword(") do update set ")
-        updateAssignments.forEachIndexed { i, assignment ->
-            if (i > 0) {
-                removeLastBlank()
-                write(", ")
+        writeKeyword(") do ")
+
+        if(updateAssignments.isNotEmpty()) {
+            writeKeyword("update set ")
+            updateAssignments.forEachIndexed { i, assignment ->
+                if (i > 0) {
+                    removeLastBlank()
+                    write(", ")
+                }
+                checkColumnName(assignment.column.name)
+                write("${assignment.column.name.quoted} ")
+                write("= ")
+                visit(assignment.expression)
             }
-            checkColumnName(assignment.column.name)
-            write("${assignment.column.name.quoted} ")
-            write("= ")
-            visit(assignment.expression)
+        } else {
+            writeKeyword("nothing")
         }
     }
 }

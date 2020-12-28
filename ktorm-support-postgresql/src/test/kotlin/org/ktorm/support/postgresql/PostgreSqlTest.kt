@@ -143,31 +143,43 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testBulkInsert() {
-        database.bulkInsert(Employees) {
-            item {
-                set(it.id, 1)
-                set(it.name, "vince")
-                set(it.job, "engineer")
-                set(it.salary, 0)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 1)
-            }
-            item {
-                set(it.id, 5)
-                set(it.name, "vince")
-                set(it.job, "engineer")
-                set(it.salary, 0)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 1)
-            }
+        val bulkInsert = { onDuplicateKeyDoNothing: Boolean ->
+            database.bulkInsert(Employees) {
+                item {
+                    set(it.id, 1)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+                item {
+                    set(it.id, 5)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
 
-            onDuplicateKey(Employees.id) {
-                set(it.salary, it.salary + 900)
+                onDuplicateKey(Employees.id) {
+                    if (!onDuplicateKeyDoNothing)
+                        set(it.salary, it.salary + 900)
+                }
             }
         }
 
+        bulkInsert(false)
         assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
         assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+
+        bulkInsert(false)
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+
+        bulkInsert(true)
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
     }
 
     @Test
@@ -447,7 +459,8 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testCanParseEnum() {
-        val currentMood = database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        val currentMood =
+            database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
 
         assertThat(currentMood, equalTo(Mood.HAPPY))
     }
@@ -455,7 +468,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testCanSetEnum() {
         database.insert(TableWithEnum) {
-            set(it.current_mood,Mood.SAD)
+            set(it.current_mood, Mood.SAD)
         }
 
         val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
