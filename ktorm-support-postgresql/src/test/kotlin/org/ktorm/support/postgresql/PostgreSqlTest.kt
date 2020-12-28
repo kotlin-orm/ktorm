@@ -142,6 +142,35 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
+    fun testBulkInsert() {
+        database.bulkInsert(Employees) {
+            item {
+                set(it.id, 1)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 0)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            item {
+                set(it.id, 5)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 0)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+
+            onDuplicateKey(Employees.id) {
+                set(it.salary, it.salary + 900)
+            }
+        }
+
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+    }
+
+    @Test
     fun testInsertAndGenerateKey() {
         val id = database.insertAndGenerateKey(Employees) {
             set(it.name, "Joe Friend")

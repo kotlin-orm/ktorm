@@ -17,6 +17,7 @@
 package org.ktorm.support.postgresql
 
 import org.ktorm.database.Database
+import org.ktorm.dsl.batchInsert
 import org.ktorm.schema.BaseTable
 import java.lang.reflect.InvocationTargetException
 
@@ -69,4 +70,44 @@ internal val Database.Companion.global: Database get() {
  */
 public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
+}
+
+/**
+ * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
+ *
+ * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
+ * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
+ * is much better than [batchInsert].
+ *
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.bulkInsert {
+ *     item {
+ *         set(it.name, "jerry")
+ *         set(it.job, "trainee")
+ *         set(it.managerId, 1)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 50)
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.name, "linda")
+ *         set(it.job, "assistant")
+ *         set(it.managerId, 3)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.salary, 100)
+ *         set(it.departmentId, 2)
+ *     }
+ * }
+ * ```
+ *
+ * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
+ * @return the effected row count.
+ * @see batchInsert
+ */
+public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+    return Database.global.bulkInsert(this, block)
 }
