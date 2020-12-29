@@ -60,7 +60,7 @@ public data class BulkInsertOrUpdateExpression(
  * Usage:
  *
  * ```kotlin
- *      database.bulkInsert(Employees) {
+ *      database.bulkInsertOrUpdate(Employees) {
  *          item {
  *              set(it.id, 1)
  *              set(it.name, "vince")
@@ -79,22 +79,22 @@ public data class BulkInsertOrUpdateExpression(
  *          }
  *
  *          onDuplicateKey(Employees.id) {
- *              set(it.salary, it.salary + 900)
+ *              set(it.salary, it.salary + 900) // Or leave this empty to simply ignore without updating (do nothing)
  *          }
  *      }
  * ```
  *
  * @since 2.7
  * @param table the table to be inserted.
- * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
+ * @param block the DSL block, extension function of [BulkInsertOrUpdateStatementBuilder], used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> Database.bulkInsert(
+public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     table: T,
-    block: BulkInsertStatementBuilder<T>.() -> Unit
+    block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit
 ): Int {
-    val builder = BulkInsertStatementBuilder(table).apply(block)
+    val builder = BulkInsertOrUpdateStatementBuilder(table).apply(block)
 
     val primaryKeys = table.primaryKeys
     if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
@@ -118,7 +118,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * DSL builder for bulk insert statements.
  */
 @KtormDsl
-public class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()

@@ -73,41 +73,46 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
 }
 
 /**
- * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
+ * Construct a bulk insert-or-update expression in the given closure, then execute it and return the effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
- * is much better than [batchInsert].
+ * using PostgreSQL's bulk insert (with on conflict) syntax, instead of based on JDBC batch operations.
+ * For this reason, its performance is much better than [batchInsert].
  *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)... ON
+ * CONFLICT (...) DO NOTHING/UPDATE SET ...`.
  *
  * Usage:
  *
  * ```kotlin
- * Employees.bulkInsert {
- *     item {
- *         set(it.name, "jerry")
- *         set(it.job, "trainee")
- *         set(it.managerId, 1)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.salary, 50)
- *         set(it.departmentId, 1)
- *     }
- *     item {
- *         set(it.name, "linda")
- *         set(it.job, "assistant")
- *         set(it.managerId, 3)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.salary, 100)
- *         set(it.departmentId, 2)
- *     }
- * }
+ *      database.bulkInsertOrUpdate(Employees) {
+ *          item {
+ *              set(it.id, 1)
+ *              set(it.name, "vince")
+ *              set(it.job, "engineer")
+ *              set(it.salary, 1000)
+ *              set(it.hireDate, LocalDate.now())
+ *              set(it.departmentId, 1)
+ *          }
+ *          item {
+ *              set(it.id, 5)
+ *              set(it.name, "vince")
+ *              set(it.job, "engineer")
+ *              set(it.salary, 1000)
+ *              set(it.hireDate, LocalDate.now())
+ *              set(it.departmentId, 1)
+ *          }
+ *
+ *          onDuplicateKey(Employees.id) {
+ *              set(it.salary, it.salary + 900) // Or leave this empty to simply ignore without updating (do nothing)
+ *          }
+ *      }
  * ```
  *
- * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
+ * @param block the DSL block, extension function of [BulkInsertOrUpdateStatementBuilder], used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
-    return Database.global.bulkInsert(this, block)
+public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit): Int {
+    return Database.global.bulkInsertOrUpdate(this, block)
 }
