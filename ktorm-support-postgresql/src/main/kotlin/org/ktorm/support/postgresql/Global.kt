@@ -73,7 +73,8 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
 }
 
 /**
- * Construct a bulk insert-or-update expression in the given closure, then execute it and return the effected row count.
+ * Construct a bulk insert-or-update expression in the given closure, then execute it and return the effected
+ * row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
  * using PostgreSQL's bulk insert (with on conflict) syntax, instead of based on JDBC batch operations.
@@ -104,12 +105,14 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  *          }
  *
  *          onDuplicateKey(Employees.id) {
- *              set(it.salary, it.salary + 900) // Or leave this empty to simply ignore without updating (do nothing)
+ *              // Or leave this empty to simply ignore without updating (do nothing)
+ *              set(it.salary, it.salary + 900)
  *          }
  *      }
  * ```
  *
- * @param block the DSL block, extension function of [BulkInsertOrUpdateStatementBuilder], used to construct the expression.
+ * @param block the DSL block, extension function of [BulkInsertOrUpdateStatementBuilder],
+ * used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
