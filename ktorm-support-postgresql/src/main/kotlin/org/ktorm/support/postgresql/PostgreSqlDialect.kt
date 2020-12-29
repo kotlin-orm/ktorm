@@ -50,7 +50,7 @@ public open class PostgreSqlFormatter(
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
-            is BulkInsertOrUpdateExpression -> visitBulkInsert(expr)
+            is BulkInsertOrUpdateExpression -> visitBulkInsertOrUpdate(expr)
             else -> super.visit(expr)
         }
 
@@ -130,7 +130,7 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitBulkInsert(expr: BulkInsertOrUpdateExpression): BulkInsertOrUpdateExpression {
+    protected open fun visitBulkInsertOrUpdate(expr: BulkInsertOrUpdateExpression): BulkInsertOrUpdateExpression {
         generateMultipleInsertSQL(expr.table.name.quoted, expr.assignments)
 
         generateOnConflictSQL(expr.conflictTarget, expr.updateAssignments)
