@@ -30,7 +30,8 @@ import org.ktorm.schema.Column
 /**
  * Bulk insert expression, represents a bulk insert statement in PostgreSQL.
  *
- * For example: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ * For example: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)... ON
+ * CONFLICT (...) DO NOTHING/UPDATE SET ...`.
  *
  * @property table the table to be inserted.
  * @property assignments column assignments of the bulk insert statement.
