@@ -144,7 +144,7 @@ class PostgreSqlTest : BaseTest() {
     @Test
     fun testBulkInsert() {
         val bulkInsert = { onDuplicateKeyDoNothing: Boolean ->
-            database.bulkInsert(Employees) {
+            database.bulkInsertOrUpdate(Employees) {
                 item {
                     set(it.id, 1)
                     set(it.name, "vince")
