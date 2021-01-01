@@ -86,7 +86,7 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * Usage:
  *
  * ```kotlin
- *      database.bulkInsertOrUpdate(Employees) {
+ *      database.bulkInsert(Employees) {
  *          item {
  *              set(it.id, 1)
  *              set(it.name, "vince")
@@ -111,11 +111,11 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  *      }
  * ```
  *
- * @param block the DSL block, extension function of [BulkInsertOrUpdateStatementBuilder],
+ * @param block the DSL block, extension function of [BulkInsertStatementBuilder],
  * used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit): Int {
-    return Database.global.bulkInsertOrUpdate(this, block)
+public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+    return Database.global.bulkInsert(this, block)
 }

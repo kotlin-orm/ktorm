@@ -16,6 +16,7 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import org.postgresql.util.PSQLException
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 import java.util.concurrent.ExecutionException
@@ -34,6 +35,14 @@ class PostgreSqlTest : BaseTest() {
         @ClassRule
         @JvmField
         val postgres = KPostgreSqlContainer()
+
+        var idCounter = 1000
+
+        fun generateId(): Int {
+            synchronized(postgres) {
+                return idCounter++
+            }
+        }
     }
 
     override fun init() {
@@ -112,6 +121,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testInsertOrUpdate() {
+        // TODO: Should this test also guarantee that the created ids are not overlapping with other tests?
         database.insertOrUpdate(Employees) {
             set(it.id, 1)
             set(it.name, "vince")
@@ -142,11 +152,15 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testBulkInsert() {
-        val bulkInsert = { onDuplicateKeyDoNothing: Boolean ->
-            database.bulkInsertOrUpdate(Employees) {
+    fun testBulkInsertWithUpdate() {
+        // Make sure we are creating new entries in the table (avoid colliding with existing test data)
+        val id1 = generateId()
+        val id2 = generateId()
+
+        val bulkInsertWithUpdate = { onDuplicateKeyDoNothing: Boolean ->
+            database.bulkInsert(Employees) {
                 item {
-                    set(it.id, 1)
+                    set(it.id, id1)
                     set(it.name, "vince")
                     set(it.job, "engineer")
                     set(it.salary, 1000)
@@ -154,7 +168,7 @@ class PostgreSqlTest : BaseTest() {
                     set(it.departmentId, 1)
                 }
                 item {
-                    set(it.id, 5)
+                    set(it.id, id2)
                     set(it.name, "vince")
                     set(it.job, "engineer")
                     set(it.salary, 1000)
@@ -169,17 +183,62 @@ class PostgreSqlTest : BaseTest() {
             }
         }
 
-        bulkInsert(false)
-        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
-        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+        bulkInsertWithUpdate(false)
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1000L)
 
-        bulkInsert(false)
-        assert(database.employees.find { it.id eq 1 }!!.salary == 1900L)
-        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+        bulkInsertWithUpdate(false)
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
 
-        bulkInsert(true)
-        assert(database.employees.find { it.id eq 1 }!!.salary == 1900L)
-        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+        bulkInsertWithUpdate(true)
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
+    }
+
+    @Test
+    fun testBulkInsertWithoutUpdate() {
+        // Make sure we are creating new entries in the table (avoid colliding with existing test data)
+        val id1 = generateId()
+        val id2 = generateId()
+
+        val bulkInsertWithoutUpdate = {
+            database.bulkInsert(Employees) {
+                item {
+                    set(it.id, id1)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+                item {
+                    set(it.id, id2)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+            }
+        }
+
+        bulkInsertWithoutUpdate()
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1000L)
+
+        val ex = try {
+            bulkInsertWithoutUpdate()
+            null
+        } catch (t: Throwable) {
+            t
+        }
+
+        assert(ex is PSQLException)
+        ex!!.message!!.let { msg ->
+            assert(msg.contains("duplicate key"))
+            assert(msg.contains("t_employee_pkey"))
+        }
     }
 
     @Test

@@ -50,7 +50,7 @@ public open class PostgreSqlFormatter(
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
-            is BulkInsertOrUpdateExpression -> visitBulkInsertOrUpdate(expr)
+            is BulkInsertExpression -> visitBulkInsert(expr)
             else -> super.visit(expr)
         }
 
@@ -130,7 +130,7 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitBulkInsertOrUpdate(expr: BulkInsertOrUpdateExpression): BulkInsertOrUpdateExpression {
+    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         generateMultipleInsertSQL(expr.table.name.quoted, expr.assignments)
 
         generateOnConflictSQL(expr.conflictTarget, expr.updateAssignments)
@@ -179,7 +179,12 @@ public open class PostgreSqlFormatter(
         conflictTarget: List<ColumnExpression<*>>,
         updateAssignments: List<ColumnAssignmentExpression<*>>
     ) {
-        writeKeyword("on conflict (")
+        if (conflictTarget.isEmpty()) {
+            // We are just performing an Insert operation, so any conflict will interrupt the query with an error
+            return
+        }
+
+        writeKeyword(" on conflict (")
         conflictTarget.forEachIndexed { i, column ->
             if (i > 0) write(", ")
             checkColumnName(column.name)

@@ -38,7 +38,7 @@ import org.ktorm.schema.Column
  * @property conflictTarget the index columns on which the conflict may happens.
  * @property updateAssignments the updated column assignments while key conflict exists.
  */
-public data class BulkInsertOrUpdateExpression(
+public data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
     val conflictTarget: List<ColumnExpression<*>>,
@@ -61,7 +61,7 @@ public data class BulkInsertOrUpdateExpression(
  * Usage:
  *
  * ```kotlin
- *      database.bulkInsertOrUpdate(Employees) {
+ *      database.bulkInsert(Employees) {
  *          item {
  *              set(it.id, 1)
  *              set(it.name, "vince")
@@ -88,29 +88,21 @@ public data class BulkInsertOrUpdateExpression(
  *
  * @since 2.7
  * @param table the table to be inserted.
- * @param block the DSL block, extension function of [BulkInsertOrUpdateStatementBuilder],
+ * @param block the DSL block, extension function of [BulkInsertStatementBuilder],
  * used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
+public fun <T : BaseTable<*>> Database.bulkInsert(
     table: T,
-    block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit
+    block: BulkInsertStatementBuilder<T>.() -> Unit
 ): Int {
-    val builder = BulkInsertOrUpdateStatementBuilder(table).apply(block)
+    val builder = BulkInsertStatementBuilder(table).apply(block)
 
-    val primaryKeys = table.primaryKeys
-    if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
-        val msg =
-            "Table '$table' doesn't have a primary key, " +
-                    "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
-        throw IllegalStateException(msg)
-    }
-
-    val expression = BulkInsertOrUpdateExpression(
+    val expression = BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
-        conflictTarget = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
+        conflictTarget = builder.conflictColumns.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
 
@@ -121,7 +113,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
  * DSL builder for bulk insert statements.
  */
 @KtormDsl
-public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+public class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
