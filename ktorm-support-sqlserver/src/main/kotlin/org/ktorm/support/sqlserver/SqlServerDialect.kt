@@ -105,6 +105,10 @@ public open class SqlServerFormatter(
         val visitor = object : SqlExpressionVisitor() {
             override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
                 val alias = (expr as? SelectExpression)?.columns?.find { it.expression == column }?.declaredName
+                if (alias == null && expr is SelectExpression && expr.columns.isNotEmpty()) {
+                    throw IllegalStateException("Order-by column '${column.name}' must exist in the select clause.")
+                }
+
                 return column.copy(table = TableExpression(name = "", tableAlias = "_t1"), name = alias ?: column.name)
             }
         }
