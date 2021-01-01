@@ -124,7 +124,7 @@ public abstract class SqlFormatter(
                 if (database.storesMixedCaseQuotedIdentifiers) {
                     return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
                 }
-                // Should never happen, but it's still needed as some database drivers are not implemented corectlly.
+                // Should never happen, but it's still needed as some database drivers are not implemented correctly.
                 return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
             }
         } else {
@@ -140,7 +140,7 @@ public abstract class SqlFormatter(
                 if (database.storesMixedCaseIdentifiers) {
                     return this
                 }
-                // Should never happen, but it's still needed as some database drivers are not implemented corectlly.
+                // Should never happen, but it's still needed as some database drivers are not implemented correctly.
                 return this
             }
         }
