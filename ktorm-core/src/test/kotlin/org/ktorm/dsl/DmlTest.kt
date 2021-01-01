@@ -60,7 +60,7 @@ class DmlTest : BaseTest() {
         val salary = database
             .from(Employees)
             .select(Employees.salary)
-            .where { Employees.id eq 1 }
+            .where(Employees.id.eq(1))
             .map { it.getLong(1) }
             .first()
 

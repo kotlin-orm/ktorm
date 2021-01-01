@@ -196,15 +196,22 @@ internal fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclari
 }
 
 /**
- * Specify the `where` clause of this query using the expression returned by the given callback function.
+ * Specify the `where` clause of this query using the specified condition expression.
  */
-public inline fun Query.where(block: () -> ColumnDeclaring<Boolean>): Query {
+public fun Query.where(condition: ColumnDeclaring<Boolean>): Query {
     return this.withExpression(
         when (expression) {
-            is SelectExpression -> expression.copy(where = block().asExpression())
+            is SelectExpression -> expression.copy(where = condition.asExpression())
             is UnionExpression -> throw IllegalStateException("Where clause is not supported in a union expression.")
         }
     )
+}
+
+/**
+ * Specify the `where` clause of this query using the expression returned by the given callback function.
+ */
+public inline fun Query.where(condition: () -> ColumnDeclaring<Boolean>): Query {
+    return where(condition())
 }
 
 /**
@@ -251,7 +258,7 @@ public fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean
 /**
  * Specify the `group by` clause of this query using the given columns or expressions.
  */
-public fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
+public fun Query.groupBy(columns: Collection<ColumnDeclaring<*>>): Query {
     return this.withExpression(
         when (expression) {
             is SelectExpression -> expression.copy(groupBy = columns.map { it.asExpression() })
@@ -261,13 +268,42 @@ public fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
 }
 
 /**
- * Specify the `having` clause of this query using the expression returned by the given callback function.
+ * Specify the `group by` clause of this query using the given columns or expressions.
  */
-public inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
+public fun Query.groupBy(vararg columns: ColumnDeclaring<*>): Query {
+    return groupBy(columns.asList())
+}
+
+/**
+ * Specify the `having` clause of this query using the given condition expression.
+ */
+public fun Query.having(condition: ColumnDeclaring<Boolean>): Query {
     return this.withExpression(
         when (expression) {
-            is SelectExpression -> expression.copy(having = block().asExpression())
+            is SelectExpression -> expression.copy(having = condition.asExpression())
             is UnionExpression -> throw IllegalStateException("Having clause is not supported in a union expression.")
+        }
+    )
+}
+
+/**
+ * Specify the `having` clause of this query using the expression returned by the given callback function.
+ */
+public inline fun Query.having(condition: () -> ColumnDeclaring<Boolean>): Query {
+    return having(condition())
+}
+
+/**
+ * Specify the `order by` clause of this query using the given order-by expressions.
+ */
+public fun Query.orderBy(orders: Collection<OrderByExpression>): Query {
+    return this.withExpression(
+        when (expression) {
+            is SelectExpression -> expression.copy(orderBy = orders.toList())
+            is UnionExpression -> {
+                val replacer = OrderByReplacer(expression)
+                expression.copy(orderBy = orders.map { replacer.visit(it) as OrderByExpression })
+            }
         }
     )
 }
@@ -276,15 +312,7 @@ public inline fun Query.having(block: () -> ColumnDeclaring<Boolean>): Query {
  * Specify the `order by` clause of this query using the given order-by expressions.
  */
 public fun Query.orderBy(vararg orders: OrderByExpression): Query {
-    return this.withExpression(
-        when (expression) {
-            is SelectExpression -> expression.copy(orderBy = orders.asList())
-            is UnionExpression -> {
-                val replacer = OrderByReplacer(expression)
-                expression.copy(orderBy = orders.map { replacer.visit(it) as OrderByExpression })
-            }
-        }
-    )
+    return orderBy(orders.asList())
 }
 
 private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {

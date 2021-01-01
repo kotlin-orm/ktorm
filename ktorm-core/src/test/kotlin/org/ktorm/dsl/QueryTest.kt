@@ -122,7 +122,7 @@ class QueryTest : BaseTest() {
             .from(t)
             .select(t.departmentId, avg(t.salary))
             .groupBy(t.departmentId)
-            .having { avg(t.salary) greater 100.0 }
+            .having(avg(t.salary).greater(100.0))
             .associate { it.getInt(1) to it.getDouble(2) }
 
         println(salaries)
