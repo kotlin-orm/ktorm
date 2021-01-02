@@ -50,6 +50,7 @@ public open class PostgreSqlFormatter(
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            is BulkInsertExpression -> visitBulkInsert(expr)
             else -> super.visit(expr)
         }
 
@@ -129,42 +130,85 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-        writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
-        write("(")
+    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+        generateMultipleInsertSQL(expr.table.name.quoted, expr.assignments)
 
-        for ((i, assignment) in expr.assignments.withIndex()) {
+        generateOnConflictSQL(expr.conflictTarget, expr.updateAssignments)
+
+        return expr
+    }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        generateMultipleInsertSQL(expr.table.name.quoted, listOf(expr.assignments))
+
+        generateOnConflictSQL(expr.conflictTarget, expr.updateAssignments)
+
+        return expr
+    }
+
+    private fun generateMultipleInsertSQL(
+        quotedTableName: String,
+        assignmentsList: List<List<ColumnAssignmentExpression<*>>>
+    ) {
+        if (assignmentsList.isEmpty()) {
+            throw IllegalStateException("The insert expression has no values to insert")
+        }
+
+        writeKeyword("insert into ")
+
+        write("$quotedTableName (")
+        assignmentsList.first().forEachIndexed { i, assignment ->
             if (i > 0) write(", ")
             checkColumnName(assignment.column.name)
             write(assignment.column.name.quoted)
         }
 
-        writeKeyword(") values (")
-        visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
-        removeLastBlank()
-        writeKeyword(") on conflict (")
+        writeKeyword(")")
+        writeKeyword(" values ")
 
-        for ((i, column) in expr.conflictTarget.withIndex()) {
+        assignmentsList.forEachIndexed { i, assignments ->
+            if (i > 0) write(", ")
+            writeKeyword("( ")
+            visitExpressionList(assignments.map { it.expression as ArgumentExpression })
+            writeKeyword(")")
+        }
+
+        removeLastBlank()
+    }
+
+    private fun generateOnConflictSQL(
+        conflictTarget: List<ColumnExpression<*>>,
+        updateAssignments: List<ColumnAssignmentExpression<*>>
+    ) {
+        if (conflictTarget.isEmpty()) {
+            // We are just performing an Insert operation, so any conflict will interrupt the query with an error
+            return
+        }
+
+        writeKeyword(" on conflict (")
+        conflictTarget.forEachIndexed { i, column ->
             if (i > 0) write(", ")
             checkColumnName(column.name)
             write(column.name.quoted)
         }
 
-        writeKeyword(") do update set ")
+        writeKeyword(") do ")
 
-        for ((i, assignment) in expr.updateAssignments.withIndex()) {
-            if (i > 0) {
-                removeLastBlank()
-                write(", ")
+        if (updateAssignments.isNotEmpty()) {
+            writeKeyword("update set ")
+            updateAssignments.forEachIndexed { i, assignment ->
+                if (i > 0) {
+                    removeLastBlank()
+                    write(", ")
+                }
+                checkColumnName(assignment.column.name)
+                write("${assignment.column.name.quoted} ")
+                write("= ")
+                visit(assignment.expression)
             }
-            checkColumnName(assignment.column.name)
-            write("${assignment.column.name.quoted} ")
-            write("= ")
-            visit(assignment.expression)
+        } else {
+            writeKeyword("nothing")
         }
-
-        return expr
     }
 }
 
@@ -225,7 +269,8 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
         if (table === expr.table
             && assignments === expr.assignments
             && conflictTarget === expr.conflictTarget
-            && updateAssignments === expr.updateAssignments) {
+            && updateAssignments === expr.updateAssignments
+        ) {
             return expr
         } else {
             return expr.copy(

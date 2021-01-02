@@ -157,6 +157,11 @@ subprojects { project ->
                             name = "Simon Schoof"
                             email = "simon.schoof@hey.com"
                         }
+                        developer {
+                            id = "pedrod"
+                            name = "Pedro Domingues"
+                            email = "pedro.domingues.pt@gmail.com"
+                        }
                     }
                     scm {
                         url = "https://github.com/kotlin-orm/ktorm.git"
