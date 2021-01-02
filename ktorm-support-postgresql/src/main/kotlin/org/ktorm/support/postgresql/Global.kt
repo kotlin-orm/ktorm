@@ -52,7 +52,7 @@ internal val Database.Companion.global: Database get() {
  *     set(it.salary, 1000)
  *     set(it.hireDate, LocalDate.now())
  *     set(it.departmentId, 1)
- *     onDuplicateKey {
+ *     onConflict {
  *         set(it.salary, it.salary + 900)
  *     }
  * }
@@ -62,7 +62,7 @@ internal val Database.Companion.global: Database get() {
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
+ * on conflict (id) do update set salary = salary + ?
  * ```
  *
  * @param block the DSL block used to construct the expression.
@@ -73,49 +73,90 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
 }
 
 /**
- * Construct a bulk insert-or-update expression in the given closure, then execute it and return the effected
- * row count.
+ * Construct a bulk insert expression in the given closure, then execute it and return the
+ * effected row count.
  *
- * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using PostgreSQL's bulk insert (with on conflict) syntax, instead of based on JDBC batch operations.
+ * The usage is almost the same as [batchInsert], but this function is implemented by generating a
+ * special SQL using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations.
  * For this reason, its performance is much better than [batchInsert].
  *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)... ON
- * CONFLICT (...) DO NOTHING/UPDATE SET ...`.
+ * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
  *
  * Usage:
  *
  * ```kotlin
- *      database.bulkInsert(Employees) {
- *          item {
- *              set(it.id, 1)
- *              set(it.name, "vince")
- *              set(it.job, "engineer")
- *              set(it.salary, 1000)
- *              set(it.hireDate, LocalDate.now())
- *              set(it.departmentId, 1)
- *          }
- *          item {
- *              set(it.id, 5)
- *              set(it.name, "vince")
- *              set(it.job, "engineer")
- *              set(it.salary, 1000)
- *              set(it.hireDate, LocalDate.now())
- *              set(it.departmentId, 1)
- *          }
- *
- *          onDuplicateKey(Employees.id) {
- *              // Or leave this empty to simply ignore without updating (do nothing)
- *              set(it.salary, it.salary + 900)
- *          }
- *      }
+ * Employees.bulkInsert {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ * }
  * ```
  *
- * @param block the DSL block, extension function of [BulkInsertStatementBuilder],
- * used to construct the expression.
+ * @since 3.3.0
+ * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
-//public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
-//    return Database.global.bulkInsert(this, block)
-//}
+public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+    return Database.global.bulkInsert(this, block)
+}
+
+/**
+ * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
+ * and automatically performs updates if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Employees.bulkInsertOrUpdate {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = salary + ?
+ * ```
+ *
+ * @since 3.3.0
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
+ * @see bulkInsert
+ */
+public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit): Int {
+    return Database.global.bulkInsertOrUpdate(this, block)
+}
