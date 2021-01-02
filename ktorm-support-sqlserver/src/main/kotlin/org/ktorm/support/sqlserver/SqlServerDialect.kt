@@ -35,9 +35,7 @@ public open class SqlServerDialect : SqlDialect {
  * [SqlFormatter] implementation for SqlServer, formatting SQL expressions as strings with their execution arguments.
  */
 public open class SqlServerFormatter(
-    database: Database,
-    beautifySql: Boolean,
-    indentSize: Int
+    database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun checkColumnName(name: String) {

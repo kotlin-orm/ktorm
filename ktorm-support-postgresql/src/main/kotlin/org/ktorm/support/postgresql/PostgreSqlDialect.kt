@@ -35,9 +35,7 @@ public open class PostgreSqlDialect : SqlDialect {
  * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
  */
 public open class PostgreSqlFormatter(
-    database: Database,
-    beautifySql: Boolean,
-    indentSize: Int
+    database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun checkColumnName(name: String) {

@@ -36,9 +36,7 @@ public open class MySqlDialect : SqlDialect {
  * [SqlFormatter] implementation for MySQL, formatting SQL expressions as strings with their execution arguments.
  */
 public open class MySqlFormatter(
-    database: Database,
-    beautifySql: Boolean,
-    indentSize: Int
+    database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
 
     override fun visit(expr: SqlExpression): SqlExpression {
