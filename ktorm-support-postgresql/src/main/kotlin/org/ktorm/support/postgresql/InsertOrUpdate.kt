@@ -32,13 +32,13 @@ import org.ktorm.schema.Column
  *
  * @property table the table to be inserted.
  * @property assignments the inserted column assignments.
- * @property conflictTarget the index columns on which the conflict may happens.
+ * @property conflictColumns the index columns on which the conflict may happens.
  * @property updateAssignments the updated column assignments while any key conflict exists.
  */
 public data class InsertOrUpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
-    val conflictTarget: List<ColumnExpression<*>>,
+    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
@@ -58,7 +58,7 @@ public data class InsertOrUpdateExpression(
  *     set(it.salary, 1000)
  *     set(it.hireDate, LocalDate.now())
  *     set(it.departmentId, 1)
- *     onDuplicateKey {
+ *     onConflict {
  *         set(it.salary, it.salary + 900)
  *     }
  * }
@@ -85,7 +85,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
     if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+            "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
@@ -93,7 +93,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
         InsertOrUpdateExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
-            conflictTarget = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
+            conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
             updateAssignments = builder.updateAssignments
         )
     )
@@ -124,7 +124,18 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     /**
      * Specify the update assignments while any key conflict exists.
      */
+    @Deprecated(
+        message = "This function will be removed in the future, please use onConflict instead",
+        replaceWith = ReplaceWith("onConflict(columns, block)")
+    )
     public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
+        onConflict(*columns, block = block)
+    }
+
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
+    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
         val builder = PostgreSqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
         conflictColumns += columns

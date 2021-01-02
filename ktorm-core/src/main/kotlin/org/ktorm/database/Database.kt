@@ -493,7 +493,7 @@ public class Database(
 
                     if (subSql != sql) {
                         throw IllegalArgumentException(
-                            "Every item in a batch operation must generate the same. SQL: \n\n$sql"
+                            "Every item in a batch operation must generate the same SQL: \n\n$subSql"
                         )
                     }
                     if (logger.isDebugEnabled()) {
