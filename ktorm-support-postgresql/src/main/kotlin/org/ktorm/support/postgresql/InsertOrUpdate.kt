@@ -68,7 +68,7 @@ public data class InsertOrUpdateExpression(
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
+ * on conflict (id) do update set salary = salary + ?
  * ```
  *
  * @since 2.7
@@ -77,8 +77,7 @@ public data class InsertOrUpdateExpression(
  * @return the effected row count.
  */
 public fun <T : BaseTable<*>> Database.insertOrUpdate(
-    table: T,
-    block: InsertOrUpdateStatementBuilder.(T) -> Unit
+    table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
