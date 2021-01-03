@@ -134,7 +134,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
- * on duplicate key update salary = t_employee.salary + ?
+ * on duplicate key update salary = salary + ?
  * ```
  *
  * @since 3.3.0
