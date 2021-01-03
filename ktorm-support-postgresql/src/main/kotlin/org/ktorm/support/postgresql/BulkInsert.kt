@@ -87,9 +87,9 @@ public data class BulkInsertExpression(
  * @see batchInsert
  */
 public fun <T : BaseTable<*>> Database.bulkInsert(
-    table: T, block: BulkInsertStatementBuilder<T>.() -> Unit
+    table: T, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): Int {
-    val builder = BulkInsertStatementBuilder(table).apply(block)
+    val builder = BulkInsertStatementBuilder(table).apply { block(table) }
     val expression = BulkInsertExpression(table.asExpression(), builder.assignments)
     return executeUpdate(expression)
 }
@@ -139,9 +139,9 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * @see bulkInsert
  */
 public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
-    table: T, block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit
+    table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): Int {
-    val builder = BulkInsertOrUpdateStatementBuilder(table).apply(block)
+    val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
 
     val primaryKeys = table.primaryKeys
     if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
@@ -171,9 +171,8 @@ public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val tabl
     /**
      * Add the assignments of a new row to the bulk insert.
      */
-    public fun item(block: AssignmentsBuilder.(T) -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder()
-        builder.block(table)
+    public fun item(block: AssignmentsBuilder.() -> Unit) {
+        val builder = PostgreSqlAssignmentsBuilder().apply(block)
 
         if (assignments.isEmpty()
             || assignments[0].map { it.column.name } == builder.assignments.map { it.column.name }
@@ -196,9 +195,8 @@ public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : Bu
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.(T) -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder()
-        builder.block(table)
+    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
+        val builder = PostgreSqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
         conflictColumns += columns
     }

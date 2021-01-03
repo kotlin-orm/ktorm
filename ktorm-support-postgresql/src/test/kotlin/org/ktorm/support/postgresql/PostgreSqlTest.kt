@@ -130,7 +130,7 @@ class PostgreSqlTest : BaseTest() {
             set(it.salary, 1000)
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
-            onConflict {
+            onConflict(it.id) {
                 set(it.salary, it.salary + 1000)
             }
         }
@@ -180,7 +180,7 @@ class PostgreSqlTest : BaseTest() {
                 set(it.hireDate, LocalDate.now())
                 set(it.departmentId, 1)
             }
-            onConflict {
+            onConflict(it.id) {
                 set(it.salary, it.salary + 1000)
             }
         }
