@@ -332,7 +332,7 @@ public data class ColumnExpression<T : Any>(
     val table: TableExpression?,
     val name: String,
     override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = true,
+    override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 

@@ -176,6 +176,7 @@ public abstract class SqlFormatter(
 
     protected val SqlExpression.removeBrackets: Boolean get() {
         return isLeafNode
+            || this is ColumnExpression<*>
             || this is FunctionExpression<*>
             || this is AggregateExpression<*>
             || this is ExistsExpression

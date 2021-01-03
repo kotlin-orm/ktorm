@@ -167,7 +167,7 @@ class PostgreSqlTest : BaseTest() {
             item {
                 set(it.id, 1)
                 set(it.name, "vince")
-                set(it.job, "engineer")
+                set(it.job, "trainee")
                 set(it.salary, 1000)
                 set(it.hireDate, LocalDate.now())
                 set(it.departmentId, 1)
@@ -181,12 +181,23 @@ class PostgreSqlTest : BaseTest() {
                 set(it.departmentId, 1)
             }
             onConflict(it.id) {
+                set(it.job, it.job)
+                set(it.hireDate, excluded(it.hireDate))
                 set(it.salary, it.salary + 1000)
             }
         }
 
-        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
-        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+        database.employees.find { it.id eq 1 }!!.let {
+            assert(it.job == "engineer")
+            assert(it.hireDate == LocalDate.now())
+            assert(it.salary == 1100L)
+        }
+
+        database.employees.find { it.id eq 5 }!!.let {
+            assert(it.job == "engineer")
+            assert(it.hireDate == LocalDate.now())
+            assert(it.salary == 1000L)
+        }
     }
 
     @Test

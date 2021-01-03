@@ -25,7 +25,7 @@ import org.ktorm.expression.FunctionExpression
 import org.ktorm.expression.SqlExpression
 import org.ktorm.expression.TableExpression
 import org.ktorm.schema.BaseTable
-import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.Column
 
 /**
  * Bulk insert expression, represents a bulk insert statement in MySQL.
@@ -127,7 +127,7 @@ public class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T)
 }
 
 /**
- * DSL builder for bulk insert assignments.
+ * DSL builder for bulk insert on duplicate key clause.
  */
 @KtormDsl
 public class BulkInsertOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
@@ -135,12 +135,12 @@ public class BulkInsertOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
     /**
      * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
      */
-    public fun <T : Any> values(expr: ColumnDeclaring<T>): FunctionExpression<T> {
-        // values(expr)
+    public fun <T : Any> values(column: Column<T>): FunctionExpression<T> {
+        // values(column)
         return FunctionExpression(
             functionName = "values",
-            arguments = listOf(expr.asExpression()),
-            sqlType = expr.sqlType
+            arguments = listOf(column.asExpression()),
+            sqlType = column.sqlType
         )
     }
 }

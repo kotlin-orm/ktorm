@@ -195,9 +195,28 @@ public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : Bu
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder().apply(block)
+    public fun onConflict(vararg columns: Column<*>, block: BulkInsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
+        val builder = BulkInsertOrUpdateOnConflictClauseBuilder().apply(block)
         updateAssignments += builder.assignments
         conflictColumns += columns
+    }
+}
+
+/**
+ * DSL builder for bulk insert or update on conflict clause.
+ */
+@KtormDsl
+public class BulkInsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBuilder() {
+
+    /**
+     * Reference the 'EXCLUDED' table in a ON CONFLICT clause.
+     */
+    public fun <T : Any> excluded(column: Column<T>): ColumnExpression<T> {
+        // excluded.name
+        return ColumnExpression(
+            table = TableExpression(name = "excluded"),
+            name = column.name,
+            sqlType = column.sqlType
+        )
     }
 }
