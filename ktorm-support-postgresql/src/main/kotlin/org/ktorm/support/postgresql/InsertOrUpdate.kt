@@ -81,8 +81,8 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
 ): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
-    val primaryKeys = table.primaryKeys
-    if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
+    val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
+    if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
             "you must specify the conflict columns when calling onConflict(col) { .. }"
@@ -92,7 +92,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
-        conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
+        conflictColumns = conflictColumns.map { it.asExpression() },
         updateAssignments = builder.updateAssignments
     )
 
