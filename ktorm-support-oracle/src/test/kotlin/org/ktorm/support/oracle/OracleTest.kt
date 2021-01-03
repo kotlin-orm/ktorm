@@ -148,7 +148,7 @@ class OracleTest : BaseTest() {
     }
 
     @Test
-    fun testSelctForUpdate() {
+    fun testSelectForUpdate() {
         database.useTransaction(isolation = TransactionIsolation.SERIALIZABLE) {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)

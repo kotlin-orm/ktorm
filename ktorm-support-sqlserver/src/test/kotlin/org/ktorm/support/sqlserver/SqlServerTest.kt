@@ -238,4 +238,11 @@ class SqlServerTest : BaseTest() {
             assert("too long" in e.message!!)
         }
     }
+
+    @Test
+    fun testSequence() {
+        for (employee in database.employees) {
+            println(employee)
+        }
+    }
 }
