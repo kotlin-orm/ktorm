@@ -128,85 +128,74 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        generateMultipleInsertSQL(expr.table.name.quoted, expr.assignments)
-
-        generateOnConflictSQL(expr.conflictTarget, expr.updateAssignments)
-
-        return expr
-    }
-
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-        generateMultipleInsertSQL(expr.table.name.quoted, listOf(expr.assignments))
+        writeKeyword("insert into ")
+        visitTable(expr.table.copy(tableAlias = null))
+        writeColumnNames(expr.assignments.map { it.column })
+        writeKeyword("values ")
+        writeValues(expr.assignments)
 
-        generateOnConflictSQL(expr.conflictTarget, expr.updateAssignments)
+        if (expr.conflictColumns.isNotEmpty()) {
+            writeKeyword("on conflict ")
+            writeColumnNames(expr.conflictColumns)
+
+            if (expr.updateAssignments.isNotEmpty()) {
+                writeKeyword("do update set ")
+                visitColumnAssignments(expr.updateAssignments)
+            } else {
+                writeKeyword("do nothing ")
+            }
+        }
 
         return expr
     }
 
-    private fun generateMultipleInsertSQL(
-        quotedTableName: String,
-        assignmentsList: List<List<ColumnAssignmentExpression<*>>>
-    ) {
-        if (assignmentsList.isEmpty()) {
-            throw IllegalStateException("The insert expression has no values to insert")
-        }
-
+    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
+        visitTable(expr.table.copy(tableAlias = null))
+        writeColumnNames(expr.assignments[0].map { it.column })
+        writeKeyword("values ")
 
-        write("$quotedTableName (")
-        assignmentsList.first().forEachIndexed { i, assignment ->
-            if (i > 0) write(", ")
-            checkColumnName(assignment.column.name)
-            write(assignment.column.name.quoted)
+        for ((i, assignments) in expr.assignments.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+            writeValues(assignments)
         }
 
-        writeKeyword(")")
-        writeKeyword(" values ")
+        if (expr.conflictColumns.isNotEmpty()) {
+            writeKeyword("on conflict ")
+            writeColumnNames(expr.conflictColumns)
 
-        assignmentsList.forEachIndexed { i, assignments ->
-            if (i > 0) write(", ")
-            writeKeyword("( ")
-            visitExpressionList(assignments.map { it.expression as ArgumentExpression })
-            writeKeyword(")")
+            if (expr.updateAssignments.isNotEmpty()) {
+                writeKeyword("do update set ")
+                visitColumnAssignments(expr.updateAssignments)
+            } else {
+                writeKeyword("do nothing ")
+            }
         }
 
-        removeLastBlank()
+        return expr
     }
 
-    private fun generateOnConflictSQL(
-        conflictTarget: List<ColumnExpression<*>>,
-        updateAssignments: List<ColumnAssignmentExpression<*>>
-    ) {
-        if (conflictTarget.isEmpty()) {
-            // We are just performing an Insert operation, so any conflict will interrupt the query with an error
-            return
-        }
+    private fun writeColumnNames(columns: List<ColumnExpression<*>>) {
+        write("(")
 
-        writeKeyword(" on conflict (")
-        conflictTarget.forEachIndexed { i, column ->
+        for ((i, column) in columns.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(column.name)
             write(column.name.quoted)
         }
 
-        writeKeyword(") do ")
+        write(") ")
+    }
 
-        if (updateAssignments.isNotEmpty()) {
-            writeKeyword("update set ")
-            updateAssignments.forEachIndexed { i, assignment ->
-                if (i > 0) {
-                    removeLastBlank()
-                    write(", ")
-                }
-                checkColumnName(assignment.column.name)
-                write("${assignment.column.name.quoted} ")
-                write("= ")
-                visit(assignment.expression)
-            }
-        } else {
-            writeKeyword("nothing")
-        }
+    private fun writeValues(assignments: List<ColumnAssignmentExpression<*>>) {
+        write("(")
+        visitExpressionList(assignments.map { it.expression as ArgumentExpression })
+        removeLastBlank()
+        write(") ")
     }
 }
 
@@ -260,13 +249,13 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         val table = visitTable(expr.table)
         val assignments = visitColumnAssignments(expr.assignments)
-        val conflictTarget = visitExpressionList(expr.conflictTarget)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
 
         @Suppress("ComplexCondition")
         if (table === expr.table
             && assignments === expr.assignments
-            && conflictTarget === expr.conflictTarget
+            && conflictColumns === expr.conflictColumns
             && updateAssignments === expr.updateAssignments
         ) {
             return expr
@@ -274,9 +263,50 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
             return expr.copy(
                 table = table,
                 assignments = assignments,
-                conflictTarget = conflictTarget,
+                conflictColumns = conflictColumns,
                 updateAssignments = updateAssignments
             )
         }
+    }
+
+    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+        val table = expr.table
+        val assignments = visitBulkInsertAssignments(expr.assignments)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictColumns === expr.conflictColumns
+            && updateAssignments === expr.updateAssignments
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictColumns = conflictColumns,
+                updateAssignments = updateAssignments
+            )
+        }
+    }
+
+    protected open fun visitBulkInsertAssignments(
+        assignments: List<List<ColumnAssignmentExpression<*>>>
+    ): List<List<ColumnAssignmentExpression<*>>> {
+        val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
+        var changed = false
+
+        for (row in assignments) {
+            val visited = visitColumnAssignments(row)
+            result += visited
+
+            if (visited !== row) {
+                changed = true
+            }
+        }
+
+        return if (changed) result else assignments
     }
 }
