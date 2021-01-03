@@ -90,11 +90,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
     table: T, block: BulkInsertStatementBuilder<T>.() -> Unit
 ): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
-
-    val expression = AliasRemover.visit(
-        BulkInsertExpression(table.asExpression(), builder.assignments)
-    )
-
+    val expression = BulkInsertExpression(table.asExpression(), builder.assignments)
     return executeUpdate(expression)
 }
 
@@ -155,13 +151,11 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    val expression = AliasRemover.visit(
-        BulkInsertExpression(
-            table = table.asExpression(),
-            assignments = builder.assignments,
-            conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
-            updateAssignments = builder.updateAssignments
-        )
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
+        updateAssignments = builder.updateAssignments
     )
 
     return executeUpdate(expression)
@@ -202,8 +196,9 @@ public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : Bu
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder().apply(block)
+    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.(T) -> Unit) {
+        val builder = PostgreSqlAssignmentsBuilder()
+        builder.block(table)
         updateAssignments += builder.assignments
         conflictColumns += columns
     }

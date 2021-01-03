@@ -35,14 +35,6 @@ class PostgreSqlTest : BaseTest() {
         @ClassRule
         @JvmField
         val postgres = KPostgreSqlContainer()
-
-        var idCounter = 1000
-
-        fun generateId(): Int {
-            synchronized(postgres) {
-                return idCounter++
-            }
-        }
     }
 
     override fun init() {
@@ -121,7 +113,6 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testInsertOrUpdate() {
-        // TODO: Should this test also guarantee that the created ids are not overlapping with other tests?
         database.insertOrUpdate(Employees) {
             set(it.id, 1)
             set(it.name, "vince")
@@ -131,7 +122,7 @@ class PostgreSqlTest : BaseTest() {
             set(it.departmentId, 1)
 
             onDuplicateKey {
-                set(it.salary, it.salary + 900)
+                set(it.salary, it.salary + 1000)
             }
         }
         database.insertOrUpdate(Employees) {
@@ -143,102 +134,62 @@ class PostgreSqlTest : BaseTest() {
             set(it.departmentId, 1)
 
             onDuplicateKey(it.id) {
-                set(it.salary, it.salary + 900)
+                set(it.salary, it.salary + 1000)
             }
         }
 
-        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
         assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
     }
 
     @Test
-    fun testBulkInsertWithUpdate() {
-        // Make sure we are creating new entries in the table (avoid colliding with existing test data)
-        val id1 = generateId()
-        val id2 = generateId()
-
-        val bulkInsertWithUpdate = { onDuplicateKeyDoNothing: Boolean ->
-            database.bulkInsert(Employees) {
-                item {
-                    set(it.id, id1)
-                    set(it.name, "vince")
-                    set(it.job, "engineer")
-                    set(it.salary, 1000)
-                    set(it.hireDate, LocalDate.now())
-                    set(it.departmentId, 1)
-                }
-                item {
-                    set(it.id, id2)
-                    set(it.name, "vince")
-                    set(it.job, "engineer")
-                    set(it.salary, 1000)
-                    set(it.hireDate, LocalDate.now())
-                    set(it.departmentId, 1)
-                }
-
-                onDuplicateKey(Employees.id) {
-                    if (!onDuplicateKeyDoNothing)
-                        set(it.salary, it.salary + 900)
-                }
+    fun testBulkInsert() {
+        database.bulkInsert(Employees) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
             }
         }
 
-        bulkInsertWithUpdate(false)
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1000L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1000L)
-
-        bulkInsertWithUpdate(false)
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
-
-        bulkInsertWithUpdate(true)
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
+        assert(database.employees.count() == 6)
     }
 
     @Test
-    fun testBulkInsertWithoutUpdate() {
-        // Make sure we are creating new entries in the table (avoid colliding with existing test data)
-        val id1 = generateId()
-        val id2 = generateId()
-
-        val bulkInsertWithoutUpdate = {
-            database.bulkInsert(Employees) {
-                item {
-                    set(it.id, id1)
-                    set(it.name, "vince")
-                    set(it.job, "engineer")
-                    set(it.salary, 1000)
-                    set(it.hireDate, LocalDate.now())
-                    set(it.departmentId, 1)
-                }
-                item {
-                    set(it.id, id2)
-                    set(it.name, "vince")
-                    set(it.job, "engineer")
-                    set(it.salary, 1000)
-                    set(it.hireDate, LocalDate.now())
-                    set(it.departmentId, 1)
-                }
+    fun testBulkInsertOrUpdate() {
+        database.bulkInsertOrUpdate(Employees.aliased("t")) {
+            item {
+                set(it.id, 1)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            item {
+                set(it.id, 5)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            onConflict {
+                set(it.salary, it.salary + 1000)
             }
         }
 
-        bulkInsertWithoutUpdate()
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1000L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1000L)
-
-        val ex = try {
-            bulkInsertWithoutUpdate()
-            null
-        } catch (t: Throwable) {
-            t
-        }
-
-        assert(ex is PSQLException)
-        ex!!.message!!.let { msg ->
-            assert(msg.contains("duplicate key"))
-            assert(msg.contains("t_employee_pkey"))
-        }
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
     }
 
     @Test

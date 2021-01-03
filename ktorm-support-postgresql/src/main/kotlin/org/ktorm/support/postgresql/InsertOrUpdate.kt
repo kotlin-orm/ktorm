@@ -89,13 +89,11 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    val expression = AliasRemover.visit(
-        InsertOrUpdateExpression(
-            table = table.asExpression(),
-            assignments = builder.assignments,
-            conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
-            updateAssignments = builder.updateAssignments
-        )
+    val expression = InsertOrUpdateExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
+        updateAssignments = builder.updateAssignments
     )
 
     return executeUpdate(expression)
@@ -125,7 +123,7 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
      * Specify the update assignments while any key conflict exists.
      */
     @Deprecated(
-        message = "This function will be removed in the future, please use onConflict instead",
+        message = "This function will be removed in the future, please use onConflict { } instead",
         replaceWith = ReplaceWith("onConflict(columns, block)")
     )
     public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
@@ -139,27 +137,5 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
         val builder = PostgreSqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
         conflictColumns += columns
-    }
-}
-
-/**
- * [PostgreSqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
- */
-internal object AliasRemover : PostgreSqlExpressionVisitor() {
-
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.tableAlias == null) {
-            return expr
-        } else {
-            return expr.copy(tableAlias = null)
-        }
-    }
-
-    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.table == null) {
-            return expr
-        } else {
-            return expr.copy(table = null)
-        }
     }
 }

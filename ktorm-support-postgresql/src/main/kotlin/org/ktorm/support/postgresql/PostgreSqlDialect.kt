@@ -130,7 +130,7 @@ public open class PostgreSqlFormatter(
 
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
+        visitTable(expr.table)
         writeColumnNames(expr.assignments.map { it.column })
         writeKeyword("values ")
         writeValues(expr.assignments)
@@ -152,7 +152,7 @@ public open class PostgreSqlFormatter(
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
+        visitTable(expr.table)
         writeColumnNames(expr.assignments[0].map { it.column })
         writeKeyword("values ")
 
@@ -177,6 +177,24 @@ public open class PostgreSqlFormatter(
         }
 
         return expr
+    }
+
+    override fun visitColumnAssignments(
+        original: List<ColumnAssignmentExpression<*>>
+    ): List<ColumnAssignmentExpression<*>> {
+        for ((i, assignment) in original.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+
+            checkColumnName(assignment.column.name)
+            write("${assignment.column.name.quoted} ")
+            write("= ")
+            visit(assignment.expression)
+        }
+
+        return original
     }
 
     private fun writeColumnNames(columns: List<ColumnExpression<*>>) {
@@ -209,6 +227,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     override fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            is BulkInsertExpression -> visitBulkInsert(expr)
             else -> super.visit(expr)
         }
     }

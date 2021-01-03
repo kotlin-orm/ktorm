@@ -268,6 +268,7 @@ public abstract class SqlFormatter(
         write("${expr.name.quoted} ")
 
         if (expr.tableAlias != null && expr.tableAlias.isNotBlank()) {
+            writeKeyword("as ")
             write("${expr.tableAlias.quoted} ")
         }
 
