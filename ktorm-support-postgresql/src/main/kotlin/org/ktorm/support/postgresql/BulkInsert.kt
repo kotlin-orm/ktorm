@@ -129,7 +129,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = salary + ?
+ * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
  * @since 3.3.0

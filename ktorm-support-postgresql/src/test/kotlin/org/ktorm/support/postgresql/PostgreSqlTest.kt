@@ -16,7 +16,6 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
-import org.postgresql.util.PSQLException
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 import java.util.concurrent.ExecutionException
@@ -120,20 +119,18 @@ class PostgreSqlTest : BaseTest() {
             set(it.salary, 1000)
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
-
-            onDuplicateKey {
+            onConflict {
                 set(it.salary, it.salary + 1000)
             }
         }
-        database.insertOrUpdate(Employees) {
+        database.insertOrUpdate(Employees.aliased("t")) {
             set(it.id, 5)
             set(it.name, "vince")
             set(it.job, "engineer")
             set(it.salary, 1000)
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
-
-            onDuplicateKey(it.id) {
+            onConflict {
                 set(it.salary, it.salary + 1000)
             }
         }
@@ -166,7 +163,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testBulkInsertOrUpdate() {
-        database.bulkInsertOrUpdate(Employees.aliased("t")) {
+        database.bulkInsertOrUpdate(Employees) {
             item {
                 set(it.id, 1)
                 set(it.name, "vince")

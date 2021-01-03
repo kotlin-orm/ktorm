@@ -76,7 +76,7 @@ public open class MySqlFormatter(
 
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
+        visitTable(expr.table)
         write("(")
 
         for ((i, assignment) in expr.assignments.withIndex()) {
@@ -98,7 +98,7 @@ public open class MySqlFormatter(
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
+        visitTable(expr.table)
         write("(")
 
         for ((i, assignment) in expr.assignments[0].withIndex()) {

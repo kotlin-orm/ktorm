@@ -67,6 +67,24 @@ public open class PostgreSqlFormatter(
         return result as ScalarExpression<T>
     }
 
+    override fun visitTable(expr: TableExpression): TableExpression {
+        if (expr.catalog != null && expr.catalog!!.isNotBlank()) {
+            write("${expr.catalog!!.quoted}.")
+        }
+        if (expr.schema != null && expr.schema!!.isNotBlank()) {
+            write("${expr.schema!!.quoted}.")
+        }
+
+        write("${expr.name.quoted} ")
+
+        if (expr.tableAlias != null && expr.tableAlias!!.isNotBlank()) {
+            writeKeyword("as ") // The 'as' keyword is required for update statements in PostgreSQL.
+            write("${expr.tableAlias!!.quoted} ")
+        }
+
+        return expr
+    }
+
     override fun writePagination(expr: QueryExpression) {
         newLine(Indentation.SAME)
 
@@ -177,24 +195,6 @@ public open class PostgreSqlFormatter(
         }
 
         return expr
-    }
-
-    override fun visitColumnAssignments(
-        original: List<ColumnAssignmentExpression<*>>
-    ): List<ColumnAssignmentExpression<*>> {
-        for ((i, assignment) in original.withIndex()) {
-            if (i > 0) {
-                removeLastBlank()
-                write(", ")
-            }
-
-            checkColumnName(assignment.column.name)
-            write("${assignment.column.name.quoted} ")
-            write("= ")
-            visit(assignment.expression)
-        }
-
-        return original
     }
 
     private fun writeColumnNames(columns: List<ColumnExpression<*>>) {

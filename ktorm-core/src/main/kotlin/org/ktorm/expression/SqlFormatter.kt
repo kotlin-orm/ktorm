@@ -526,7 +526,9 @@ public abstract class SqlFormatter(
                 removeLastBlank()
                 write(", ")
             }
-            visitColumn(assignment.column)
+
+            checkColumnName(assignment.column.name)
+            write("${assignment.column.name.quoted} ")
             write("= ")
             visit(assignment.expression)
         }
@@ -536,7 +538,7 @@ public abstract class SqlFormatter(
 
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
+        visitTable(expr.table)
         write("(")
 
         for ((i, assignment) in expr.assignments.withIndex()) {
@@ -554,7 +556,7 @@ public abstract class SqlFormatter(
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         writeKeyword("insert into ")
-        visitTable(expr.table.copy(tableAlias = null))
+        visitTable(expr.table)
         write("(")
 
         for ((i, column) in expr.columns.withIndex()) {
