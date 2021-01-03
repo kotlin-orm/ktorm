@@ -26,7 +26,8 @@ import org.ktorm.expression.TableExpression
 import org.ktorm.schema.BaseTable
 
 /**
- * Insert or update expression, represents an insert statement with an `on duplicate key update` clause in MySQL.
+ * Insert or update expression, represents an insert statement with an
+ * `on duplicate key update` clause in MySQL.
  *
  * @property table the table to be inserted.
  * @property assignments the inserted column assignments.
@@ -73,16 +74,15 @@ public data class InsertOrUpdateExpression(
  * @return the effected row count.
  */
 public fun <T : BaseTable<*>> Database.insertOrUpdate(
-    table: T,
-    block: InsertOrUpdateStatementBuilder.(T) -> Unit
+    table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
-    val expr = AliasRemover.visit(
+    val expression = AliasRemover.visit(
         InsertOrUpdateExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     )
 
-    return executeUpdate(expr)
+    return executeUpdate(expression)
 }
 
 /**

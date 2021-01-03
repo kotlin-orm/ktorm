@@ -30,7 +30,12 @@ import org.ktorm.schema.Column
 /**
  * Bulk insert expression, represents a bulk insert statement in MySQL.
  *
- * For example: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
+ * For example:
+ *
+ * ```sql
+ * insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...
+ * on duplicate key update ...
+ * ```
  *
  * @property table the table to be inserted.
  * @property assignments column assignments of the bulk insert statement.
@@ -82,21 +87,90 @@ public data class BulkInsertExpression(
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> Database.bulkInsert(table: T, block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+public fun <T : BaseTable<*>> Database.bulkInsert(
+    table: T, block: BulkInsertStatementBuilder<T>.() -> Unit
+): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
 
-    val expr = AliasRemover.visit(
+    val expression = AliasRemover.visit(
         BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     )
 
-    return executeUpdate(expr)
+    return executeUpdate(expression)
+}
+
+/**
+ * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
+ * and automatically performs updates if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdate(Employees) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onDuplicateKey {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on duplicate key update salary = t_employee.salary + ?
+ * ```
+ *
+ * @since 3.3.0
+ * @param table the table to be inserted.
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
+ * @see bulkInsert
+ */
+public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
+    table: T, block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit
+): Int {
+    val builder = BulkInsertOrUpdateStatementBuilder(table).apply(block)
+
+    val expression = AliasRemover.visit(
+        BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
+    )
+
+    return executeUpdate(expression)
 }
 
 /**
  * DSL builder for bulk insert statements.
  */
+public class BulkInsertStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertOrUpdateStatementBuilder<T>(table) {
+
+    @Deprecated("This function will be removed in the future, please use bulkInsertOrUpdate instead of bulkInsert.")
+    override fun onDuplicateKey(block: BulkInsertOrUpdateOnDuplicateKeyClauseBuilder.(T) -> Unit) {
+        super.onDuplicateKey(block)
+    }
+}
+
+/**
+ * DSL builder for bulk insert or update statements.
+ */
 @KtormDsl
-public class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+public open class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
@@ -119,18 +193,18 @@ public class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T)
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    public fun onDuplicateKey(block: BulkInsertOnDuplicateKeyClauseBuilder.(T) -> Unit) {
-        val builder = BulkInsertOnDuplicateKeyClauseBuilder()
+    public open fun onDuplicateKey(block: BulkInsertOrUpdateOnDuplicateKeyClauseBuilder.(T) -> Unit) {
+        val builder = BulkInsertOrUpdateOnDuplicateKeyClauseBuilder()
         builder.block(table)
         updateAssignments += builder.assignments
     }
 }
 
 /**
- * DSL builder for bulk insert on duplicate key clause.
+ * DSL builder for bulk insert or update on duplicate key clause.
  */
 @KtormDsl
-public class BulkInsertOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
+public class BulkInsertOrUpdateOnDuplicateKeyClauseBuilder : MySqlAssignmentsBuilder() {
 
     /**
      * Use VALUES() function in a ON DUPLICATE KEY UPDATE clause.
