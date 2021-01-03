@@ -110,7 +110,7 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
+public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.(T) -> Unit): Int {
     return Database.global.bulkInsert(this, block)
 }
 
@@ -157,6 +157,6 @@ public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.
  * @return the effected row count.
  * @see bulkInsert
  */
-public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit): Int {
+public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit): Int {
     return Database.global.bulkInsertOrUpdate(this, block)
 }
