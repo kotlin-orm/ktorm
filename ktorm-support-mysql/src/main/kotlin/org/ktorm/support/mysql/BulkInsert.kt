@@ -158,6 +158,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
 /**
  * DSL builder for bulk insert statements.
  */
+@KtormDsl
 public class BulkInsertStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertOrUpdateStatementBuilder<T>(table) {
 
     @Deprecated("This function will be removed in the future, please use bulkInsertOrUpdate instead of bulkInsert.")
