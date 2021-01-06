@@ -143,34 +143,6 @@ class MySqlTest : BaseTest() {
     }
 
     @Test
-    fun testBulkInsert() {
-        database.bulkInsert(Employees) {
-            item {
-                set(it.name, "jerry")
-                set(it.job, "trainee")
-                set(it.managerId, 1)
-                set(it.hireDate, LocalDate.now())
-                set(it.salary, 50)
-                set(it.departmentId, 1)
-            }
-            item {
-                set(it.name, "linda")
-                set(it.job, "assistant")
-                set(it.managerId, 3)
-                set(it.hireDate, LocalDate.now())
-                set(it.salary, 100)
-                set(it.departmentId, 2)
-            }
-            onDuplicateKey {
-                set(it.name, it.name)
-                set(it.job, values(it.job))
-            }
-        }
-
-        assert(database.employees.count() == 6)
-    }
-
-    @Test
     fun testInsertOrUpdate() {
         database.insertOrUpdate(Employees) {
             set(it.id, 1)
@@ -179,26 +151,85 @@ class MySqlTest : BaseTest() {
             set(it.salary, 1000)
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
-
             onDuplicateKey {
-                set(it.salary, it.salary + 900)
+                set(it.salary, it.salary + 1000)
             }
         }
-        database.insertOrUpdate(Employees) {
+        database.insertOrUpdate(Employees.aliased("t")) {
             set(it.id, 5)
             set(it.name, "vince")
             set(it.job, "engineer")
             set(it.salary, 1000)
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
-
             onDuplicateKey {
-                set(it.salary, it.salary + 900)
+                set(it.salary, it.salary + 1000)
             }
         }
 
-        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
         assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+    }
+
+    @Test
+    fun testBulkInsert() {
+        database.bulkInsert(Employees) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+        }
+
+        assert(database.employees.count() == 6)
+    }
+
+    @Test
+    fun testBulkInsertOrUpdate() {
+        database.bulkInsertOrUpdate(Employees) {
+            item {
+                set(it.id, 1)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 5)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            onDuplicateKey {
+                set(it.job, it.job)
+                set(it.departmentId, values(it.departmentId))
+                set(it.salary, it.salary + 1000)
+            }
+        }
+
+        database.employees.find { it.id eq 1 }!!.let {
+            assert(it.job == "engineer")
+            assert(it.department.id == 2)
+            assert(it.salary == 1100L)
+        }
+
+        database.employees.find { it.id eq 5 }!!.let {
+            assert(it.job == "engineer")
+            assert(it.department.id == 2)
+            assert(it.salary == 1000L)
+        }
     }
 
     @Test
