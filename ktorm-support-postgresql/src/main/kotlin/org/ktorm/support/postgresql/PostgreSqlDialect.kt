@@ -149,13 +149,13 @@ public open class PostgreSqlFormatter(
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
-        writeColumnNames(expr.assignments.map { it.column })
+        writeInsertColumnNames(expr.assignments.map { it.column })
         writeKeyword("values ")
-        writeValues(expr.assignments)
+        writeInsertValues(expr.assignments)
 
         if (expr.updateAssignments.isNotEmpty()) {
             writeKeyword("on conflict ")
-            writeColumnNames(expr.conflictColumns)
+            writeInsertColumnNames(expr.conflictColumns)
             writeKeyword("do update set ")
             visitColumnAssignments(expr.updateAssignments)
         }
@@ -166,7 +166,7 @@ public open class PostgreSqlFormatter(
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
-        writeColumnNames(expr.assignments[0].map { it.column })
+        writeInsertColumnNames(expr.assignments[0].map { it.column })
         writeKeyword("values ")
 
         for ((i, assignments) in expr.assignments.withIndex()) {
@@ -174,36 +174,17 @@ public open class PostgreSqlFormatter(
                 removeLastBlank()
                 write(", ")
             }
-            writeValues(assignments)
+            writeInsertValues(assignments)
         }
 
         if (expr.updateAssignments.isNotEmpty()) {
             writeKeyword("on conflict ")
-            writeColumnNames(expr.conflictColumns)
+            writeInsertColumnNames(expr.conflictColumns)
             writeKeyword("do update set ")
             visitColumnAssignments(expr.updateAssignments)
         }
 
         return expr
-    }
-
-    private fun writeColumnNames(columns: List<ColumnExpression<*>>) {
-        write("(")
-
-        for ((i, column) in columns.withIndex()) {
-            if (i > 0) write(", ")
-            checkColumnName(column.name)
-            write(column.name.quoted)
-        }
-
-        write(") ")
-    }
-
-    private fun writeValues(assignments: List<ColumnAssignmentExpression<*>>) {
-        write("(")
-        visitExpressionList(assignments.map { it.expression as ArgumentExpression })
-        removeLastBlank()
-        write(") ")
     }
 }
 

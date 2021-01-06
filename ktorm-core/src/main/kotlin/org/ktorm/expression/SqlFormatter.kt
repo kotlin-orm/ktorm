@@ -540,36 +540,38 @@ public abstract class SqlFormatter(
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
-        write("(")
-
-        for ((i, assignment) in expr.assignments.withIndex()) {
-            if (i > 0) write(", ")
-            checkColumnName(assignment.column.name)
-            write(assignment.column.name.quoted)
-        }
-
-        writeKeyword(") values (")
-        visitExpressionList(expr.assignments.map { it.expression as ArgumentExpression })
-        removeLastBlank()
-        write(") ")
+        writeInsertColumnNames(expr.assignments.map { it.column })
+        writeKeyword("values ")
+        writeInsertValues(expr.assignments)
         return expr
     }
 
     override fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
+        writeInsertColumnNames(expr.columns)
+        newLine(Indentation.SAME)
+        visitQuery(expr.query)
+        return expr
+    }
+
+    protected fun writeInsertColumnNames(columns: List<ColumnExpression<*>>) {
         write("(")
 
-        for ((i, column) in expr.columns.withIndex()) {
+        for ((i, column) in columns.withIndex()) {
             if (i > 0) write(", ")
             checkColumnName(column.name)
             write(column.name.quoted)
         }
 
         write(") ")
-        newLine(Indentation.SAME)
-        visitQuery(expr.query)
-        return expr
+    }
+
+    protected fun writeInsertValues(assignments: List<ColumnAssignmentExpression<*>>) {
+        write("(")
+        visitExpressionList(assignments.map { it.expression as ArgumentExpression })
+        removeLastBlank()
+        write(") ")
     }
 
     override fun visitUpdate(expr: UpdateExpression): UpdateExpression {

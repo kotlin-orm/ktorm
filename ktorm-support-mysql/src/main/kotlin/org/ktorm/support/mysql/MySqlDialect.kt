@@ -77,16 +77,9 @@ public open class MySqlFormatter(
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
-        write("(")
-
-        for ((i, assignment) in expr.assignments.withIndex()) {
-            if (i > 0) write(", ")
-            checkColumnName(assignment.column.name)
-            write(assignment.column.name.quoted)
-        }
-
-        writeKeyword(") values ")
-        writeValues(expr.assignments)
+        writeInsertColumnNames(expr.assignments.map { it.column })
+        writeKeyword("values ")
+        writeInsertValues(expr.assignments)
 
         if (expr.updateAssignments.isNotEmpty()) {
             writeKeyword("on duplicate key update ")
@@ -99,22 +92,15 @@ public open class MySqlFormatter(
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
-        write("(")
-
-        for ((i, assignment) in expr.assignments[0].withIndex()) {
-            if (i > 0) write(", ")
-            checkColumnName(assignment.column.name)
-            write(assignment.column.name.quoted)
-        }
-
-        writeKeyword(") values ")
+        writeInsertColumnNames(expr.assignments[0].map { it.column })
+        writeKeyword("values ")
 
         for ((i, assignments) in expr.assignments.withIndex()) {
             if (i > 0) {
                 removeLastBlank()
                 write(", ")
             }
-            writeValues(assignments)
+            writeInsertValues(assignments)
         }
 
         if (expr.updateAssignments.isNotEmpty()) {
@@ -123,13 +109,6 @@ public open class MySqlFormatter(
         }
 
         return expr
-    }
-
-    private fun writeValues(assignments: List<ColumnAssignmentExpression<*>>) {
-        write("(")
-        visitExpressionList(assignments.map { it.expression as ArgumentExpression })
-        removeLastBlank()
-        write(") ")
     }
 
     protected open fun visitNaturalJoin(expr: NaturalJoinExpression): NaturalJoinExpression {
