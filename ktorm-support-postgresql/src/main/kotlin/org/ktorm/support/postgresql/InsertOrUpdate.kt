@@ -243,7 +243,7 @@ public class InsertOrUpdateReturningColumnsStatementBuilder : PostgreSqlAssignme
     }
 
     /**
-     * Specify the columns to return
+     * Specify the columns to return.
      */
     public fun returning(vararg returningColumns: Column<*>) {
         this.returningColumns += returningColumns
