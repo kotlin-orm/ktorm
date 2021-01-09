@@ -1,6 +1,7 @@
 package org.ktorm.support.oracle
 
 import org.junit.ClassRule
+import org.junit.Ignore
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
@@ -148,6 +149,7 @@ class OracleTest : BaseTest() {
     }
 
     @Test
+    @Ignore
     fun testSelectForUpdate() {
         database.useTransaction(isolation = TransactionIsolation.SERIALIZABLE) {
             val employee = database
