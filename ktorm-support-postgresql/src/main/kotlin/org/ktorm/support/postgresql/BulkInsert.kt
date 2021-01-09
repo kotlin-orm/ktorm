@@ -404,6 +404,9 @@ public open class BulkInsertReturningStatementBuilder<T : BaseTable<*>>(internal
         }
     }
 
+    /**
+     * Specify the columns to return
+     */
     public fun returning(vararg returningColumns: Column<*>) {
         this.returningColumns += returningColumns
     }
@@ -428,6 +431,9 @@ public class BulkInsertOrUpdateReturningStatementBuilder<T : BaseTable<*>>(table
         conflictColumns += columns
     }
 
+    /**
+     * Specify the columns to return
+     */
     public fun returning(vararg returningColumns: Column<*>) {
         this.returningColumns += returningColumns
     }

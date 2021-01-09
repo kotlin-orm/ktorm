@@ -165,7 +165,9 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitInsertOrUpdateReturningColumns(expr: InsertOrUpdateReturningColumnsExpression): InsertOrUpdateReturningColumnsExpression {
+    protected open fun visitInsertOrUpdateReturningColumns(
+        expr: InsertOrUpdateReturningColumnsExpression
+    ): InsertOrUpdateReturningColumnsExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments.map { it.column })
@@ -191,7 +193,9 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitBulkInsertReturningColumns(expr: BulkInsertReturningExpression): BulkInsertReturningExpression {
+    protected open fun visitBulkInsertReturningColumns(
+        expr: BulkInsertReturningExpression
+    ): BulkInsertReturningExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments[0].map { it.column })

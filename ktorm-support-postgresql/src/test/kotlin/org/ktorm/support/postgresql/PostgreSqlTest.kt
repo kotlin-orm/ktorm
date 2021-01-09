@@ -252,7 +252,7 @@ class PostgreSqlTest : BaseTest() {
             onConflict(it.id) {
                 set(it.job, it.job)
                 set(it.departmentId, excluded(it.departmentId))
-                set(it.salary, it.salary + 1000)
+                set(it.salary, excluded(it.salary) + 1000)
             }
         }
 
@@ -271,7 +271,7 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testBulkInsertReturningColumns() {
-        val rs = database.bulkInsertOrUpdateReturning(Employees) {
+        val rs = database.bulkInsertReturning(Employees) {
             item {
                 set(it.id, 10001)
                 set(it.name, "vince")

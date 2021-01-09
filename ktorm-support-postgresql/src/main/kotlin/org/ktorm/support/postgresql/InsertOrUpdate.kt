@@ -242,6 +242,9 @@ public class InsertOrUpdateReturningColumnsStatementBuilder : PostgreSqlAssignme
         conflictColumns += columns
     }
 
+    /**
+     * Specify the columns to return
+     */
     public fun returning(vararg returningColumns: Column<*>) {
         this.returningColumns += returningColumns
     }
