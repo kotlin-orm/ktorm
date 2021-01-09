@@ -48,7 +48,8 @@ public open class PostgreSqlFormatter(
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
-            is InsertOrUpdateAndReturningColumnsExpression -> visitInsertOrUpdateAndRetrieveColumns(expr)
+            is InsertOrUpdateReturningColumnsExpression -> visitInsertOrUpdateReturningColumns(expr)
+            is BulkInsertReturningExpression -> visitBulkInsertReturningColumns(expr)
             is BulkInsertExpression -> visitBulkInsert(expr)
             else -> super.visit(expr)
         }
@@ -164,12 +165,45 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitInsertOrUpdateAndRetrieveColumns(expr: InsertOrUpdateAndReturningColumnsExpression): InsertOrUpdateAndReturningColumnsExpression {
+    protected open fun visitInsertOrUpdateReturningColumns(expr: InsertOrUpdateReturningColumnsExpression): InsertOrUpdateReturningColumnsExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments.map { it.column })
         writeKeyword("values ")
         writeInsertValues(expr.assignments)
+
+        if (expr.updateAssignments.isNotEmpty()) {
+            writeKeyword("on conflict ")
+            writeInsertColumnNames(expr.conflictColumns)
+            writeKeyword("do update set ")
+            visitColumnAssignments(expr.updateAssignments)
+        }
+
+        if (expr.returningColumns.isNotEmpty()) {
+            writeKeyword(" returning ")
+            expr.returningColumns.forEachIndexed { i, column ->
+                if (i > 0) write(", ")
+                checkColumnName(column.name)
+                write(column.name.quoted)
+            }
+        }
+
+        return expr
+    }
+
+    protected open fun visitBulkInsertReturningColumns(expr: BulkInsertReturningExpression): BulkInsertReturningExpression {
+        writeKeyword("insert into ")
+        visitTable(expr.table)
+        writeInsertColumnNames(expr.assignments[0].map { it.column })
+        writeKeyword("values ")
+
+        for ((i, assignments) in expr.assignments.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+            writeInsertValues(assignments)
+        }
 
         if (expr.updateAssignments.isNotEmpty()) {
             writeKeyword("on conflict ")

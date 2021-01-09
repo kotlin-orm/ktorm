@@ -2,6 +2,7 @@ package org.ktorm.support.postgresql
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
 import org.junit.Test
@@ -162,8 +163,8 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testInsertOrUpdateAndRetrieveColumns() {
-        val t1 = database.insertOrUpdateAndReturningColumns(Employees) {
+    fun testInsertOrUpdateReturningColumns() {
+        val t1 = database.insertOrUpdateReturningColumns(Employees) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -186,7 +187,7 @@ class PostgreSqlTest : BaseTest() {
         assert(t1.second.getString("name") == "vince")
         assert(t1.second.getInt("id") == 1001)
 
-        val t2 = database.insertOrUpdateAndReturningColumns(Employees) {
+        val t2 = database.insertOrUpdateReturningColumns(Employees) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -211,7 +212,7 @@ class PostgreSqlTest : BaseTest() {
         assert(t2.second.getString("name") == "vince")
         assert(t2.second.getInt("id") == 1001)
 
-        val t3 = database.insertOrUpdateAndReturningColumns(Employees) {
+        val t3 = database.insertOrUpdateReturningColumns(Employees) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -266,6 +267,78 @@ class PostgreSqlTest : BaseTest() {
             assert(it.department.id == 2)
             assert(it.salary == 1000L)
         }
+    }
+
+    @Test
+    fun testBulkInsertReturningColumns() {
+        val rs = database.bulkInsertOrUpdateReturning(Employees) {
+            item {
+                set(it.id, 10001)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 50001)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            returning(
+                it.id,
+                it.job
+            )
+        }
+
+        assertEquals(rs.first, 2)
+        rs.second.next()
+        assertEquals(rs.second.getInt("id"), 10001)
+        assertEquals(rs.second.getString("job"), "trainee")
+        rs.second.next()
+        assertEquals(rs.second.getInt("id"), 50001)
+        assertEquals(rs.second.getString("job"), "engineer")
+    }
+
+    @Test
+    fun testBulkInsertOrUpdateReturningColumns() {
+        val rs = database.bulkInsertOrUpdateReturning(Employees) {
+            item {
+                set(it.id, 1000)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 5000)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            onConflict(it.id) {
+                set(it.departmentId, excluded(it.departmentId))
+                set(it.salary, it.salary + 1000)
+            }
+            returning(
+                it.id,
+                it.job
+            )
+        }
+
+        assertEquals(rs.first, 2)
+        rs.second.next()
+        assertEquals(rs.second.getInt("id"), 1000)
+        assertEquals(rs.second.getString("job"), "trainee")
+        rs.second.next()
+        assertEquals(rs.second.getInt("id"), 5000)
+        assertEquals(rs.second.getString("job"), "engineer")
     }
 
     @Test
