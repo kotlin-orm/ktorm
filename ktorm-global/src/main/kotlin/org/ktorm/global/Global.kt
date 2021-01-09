@@ -256,7 +256,7 @@ public inline fun <T> useConnection(func: (Connection) -> T): T {
  * @see Database.useTransaction
  */
 @OptIn(ExperimentalContracts::class)
-public inline fun <T> useTransaction(isolation: TransactionIsolation?, func: (Transaction) -> T): T {
+public inline fun <T> useTransaction(isolation: TransactionIsolation? = null, func: (Transaction) -> T): T {
     contract {
         callsInPlace(func, InvocationKind.EXACTLY_ONCE)
     }
