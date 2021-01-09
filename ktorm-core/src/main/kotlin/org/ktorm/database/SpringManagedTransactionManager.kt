@@ -35,11 +35,11 @@ public class SpringManagedTransactionManager(public val dataSource: DataSource) 
 
     private val proxy = dataSource as? TransactionAwareDataSourceProxy ?: TransactionAwareDataSourceProxy(dataSource)
 
-    override val defaultIsolation: TransactionIsolation get() = TransactionIsolation.REPEATABLE_READ
+    override val defaultIsolation: TransactionIsolation? = null
 
     override val currentTransaction: Transaction? = null
 
-    override fun newTransaction(isolation: TransactionIsolation): Nothing {
+    override fun newTransaction(isolation: TransactionIsolation?): Nothing {
         val msg = "Transaction is managed by Spring, please use Spring's @Transactional annotation instead."
         throw UnsupportedOperationException(msg)
     }

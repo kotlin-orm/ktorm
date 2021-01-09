@@ -313,16 +313,15 @@ public class Database(
      * - Any exceptions thrown in the callback function can trigger a rollback.
      * - This function is reentrant, so it can be called nested. However, the inner calls don’t open new transactions
      * but share the same ones with outers.
+     * - Since version 3.3.0, the default isolation has changed to null (stands for the default isolation level of the
+     * underlying datastore), not [TransactionIsolation.REPEATABLE_READ] anymore.
      *
-     * @param isolation transaction isolation, enums defined in [TransactionIsolation].
+     * @param isolation transaction isolation, null for the default isolation level of the underlying datastore.
      * @param func the executed callback function.
      * @return the result of the callback function.
      */
     @OptIn(ExperimentalContracts::class)
-    public inline fun <T> useTransaction(
-        isolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ,
-        func: (Transaction) -> T
-    ): T {
+    public inline fun <T> useTransaction(isolation: TransactionIsolation? = null, func: (Transaction) -> T): T {
         contract {
             callsInPlace(func, InvocationKind.EXACTLY_ONCE)
         }

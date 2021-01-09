@@ -30,9 +30,9 @@ import java.sql.Connection
 public interface TransactionManager {
 
     /**
-     * The default transaction isolation.
+     * The default transaction isolation, null for the default isolation level of the underlying datastore.
      */
-    public val defaultIsolation: TransactionIsolation
+    public val defaultIsolation: TransactionIsolation?
 
     /**
      * The opened transaction of the current thread, null if there is no transaction opened.
@@ -46,7 +46,7 @@ public interface TransactionManager {
      * @return the new-created transaction.
      * @throws [IllegalStateException] if there is already a transaction opened.
      */
-    public fun newTransaction(isolation: TransactionIsolation = defaultIsolation): Transaction
+    public fun newTransaction(isolation: TransactionIsolation? = defaultIsolation): Transaction
 
     /**
      * Create a native JDBC connection to the database.

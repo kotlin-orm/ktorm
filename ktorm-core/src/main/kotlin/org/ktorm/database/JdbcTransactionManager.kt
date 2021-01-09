@@ -35,11 +35,11 @@ import javax.sql.DataSource
 public class JdbcTransactionManager(public val connector: () -> Connection) : TransactionManager {
     private val threadLocal = ThreadLocal<Transaction>()
 
-    override val defaultIsolation: TransactionIsolation = TransactionIsolation.REPEATABLE_READ
+    override val defaultIsolation: TransactionIsolation? = null
 
     override val currentTransaction: Transaction? get() = threadLocal.get()
 
-    override fun newTransaction(isolation: TransactionIsolation): Transaction {
+    override fun newTransaction(isolation: TransactionIsolation?): Transaction {
         if (currentTransaction != null) {
             throw IllegalStateException("Current thread is already in a transaction.")
         }
@@ -51,16 +51,18 @@ public class JdbcTransactionManager(public val connector: () -> Connection) : Tr
         return connector.invoke()
     }
 
-    private inner class JdbcTransaction(private val desiredIsolation: TransactionIsolation) : Transaction {
-        private var originIsolation = defaultIsolation.level
+    private inner class JdbcTransaction(private val desiredIsolation: TransactionIsolation?) : Transaction {
+        private var originIsolation = -1
         private var originAutoCommit = true
 
         private val connectionLazy = lazy(LazyThreadSafetyMode.NONE) {
             newConnection().apply {
                 try {
-                    originIsolation = transactionIsolation
-                    if (originIsolation != desiredIsolation.level) {
-                        transactionIsolation = desiredIsolation.level
+                    if (desiredIsolation != null) {
+                        originIsolation = transactionIsolation
+                        if (originIsolation != desiredIsolation.level) {
+                            transactionIsolation = desiredIsolation.level
+                        }
                     }
 
                     originAutoCommit = autoCommit
@@ -83,7 +85,7 @@ public class JdbcTransactionManager(public val connector: () -> Connection) : Tr
         }
 
         override fun rollback() {
-            if (connectionLazy.isInitialized() && !connection.isClosed) {
+            if (connectionLazy.isInitialized()) {
                 connection.rollback()
             }
         }
@@ -101,7 +103,7 @@ public class JdbcTransactionManager(public val connector: () -> Connection) : Tr
         @Suppress("SwallowedException")
         private fun Connection.closeSilently() {
             try {
-                if (originIsolation != desiredIsolation.level) {
+                if (desiredIsolation != null && originIsolation != desiredIsolation.level) {
                     transactionIsolation = originIsolation
                 }
                 if (originAutoCommit) {
