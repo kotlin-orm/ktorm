@@ -196,7 +196,7 @@ internal fun <T : Any> ColumnDeclaring<T>.asDeclaringExpression(): ColumnDeclari
 }
 
 /**
- * Specify the `where` clause of this query using the specified condition expression.
+ * Specify the `where` clause of this query using the given condition expression.
  */
 public fun Query.where(condition: ColumnDeclaring<Boolean>): Query {
     return this.withExpression(
