@@ -1,7 +1,7 @@
 
 buildscript {
     ext {
-        kotlinVersion = "1.4.10"
+        kotlinVersion = "1.4.21"
         detektVersion = "1.12.0-RC1"
     }
     repositories {
@@ -17,7 +17,7 @@ buildscript {
 
 allprojects {
     group = "org.ktorm"
-    version = "3.2.0"
+    version = "3.3.0"
 }
 
 subprojects { project ->

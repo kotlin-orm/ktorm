@@ -33,10 +33,10 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 @PublishedApi
-internal val lastConnected = AtomicReference<Database>()
+internal val lastConnected: AtomicReference<Database> = AtomicReference()
 
 @PublishedApi
-internal val threadLocal = ThreadLocal<Database>()
+internal val threadLocal: ThreadLocal<Database> = ThreadLocal()
 
 /**
  * The global database instance, Ktorm uses this property to obtain a database when any SQL is executed.
