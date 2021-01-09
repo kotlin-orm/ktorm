@@ -388,7 +388,7 @@ class GlobalEntityTest : BaseGlobalTest() {
         employee.job = "engineer"
         employee.flushChanges()
 
-        employee = sequence.find { it.id eq employee.id!! } ?: throw AssertionError()
+        employee = sequence.find { it.id eq employee.id } ?: throw AssertionError()
         assert(employee.job == "engineer")
     }
 }
