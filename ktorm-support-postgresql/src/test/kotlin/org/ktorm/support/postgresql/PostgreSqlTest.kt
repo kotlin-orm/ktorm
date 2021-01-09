@@ -162,6 +162,74 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
+    fun testInsertOrUpdateAndRetrieveColumns() {
+        val t1 = database.insertOrUpdateAndReturningColumns(Employees) {
+            set(it.id, 1001)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+
+            onDuplicateKey {
+                set(it.salary, it.salary + 900)
+            }
+
+            returning(
+                it.name,
+                it.id
+            )
+        }
+
+        assert(t1.first == 1)
+        t1.second.next()
+        assert(t1.second.getString("name") == "vince")
+        assert(t1.second.getInt("id") == 1001)
+
+        val t2 = database.insertOrUpdateAndReturningColumns(Employees) {
+            set(it.id, 1001)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+
+            onDuplicateKey(it.id) {
+                set(it.salary, it.salary + 900)
+            }
+
+            returning(
+                it.name,
+                it.id,
+                it.salary
+            )
+        }
+
+        assert(t2.first == 1)
+        t2.second.next()
+        assert(t2.second.getInt("salary") == 1900)
+        assert(t2.second.getString("name") == "vince")
+        assert(t2.second.getInt("id") == 1001)
+
+        val t3 = database.insertOrUpdateAndReturningColumns(Employees) {
+            set(it.id, 1001)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+
+            onDuplicateKey(it.id) {
+                set(it.salary, it.salary + 900)
+            }
+        }
+
+        assert(t3.first == 1)
+        t3.second.next()
+        assert(t3.second.getInt("id") == 1001)
+    }
+
+    @Test
     fun testBulkInsertOrUpdate() {
         database.bulkInsertOrUpdate(Employees) {
             item {

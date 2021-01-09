@@ -16,6 +16,7 @@
 
 package org.ktorm.support.postgresql
 
+import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
@@ -138,4 +139,112 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
         updateAssignments += builder.assignments
         conflictColumns += columns
     }
+}
+
+
+/**
+ * Insert or update expression, represents an insert statement with an
+ * `on conflict (key) do update set (...) returning ...` clause in PostgreSQL,
+ * capable of retrieving columns.
+ *
+ * @property table the table to be inserted.
+ * @property assignments the inserted column assignments.
+ * @property conflictColumns the index columns on which the conflict may happens.
+ * @property updateAssignments the updated column assignments while any key conflict exists.
+ * @property returningColumns the columns to returning.
+ */
+public data class InsertOrUpdateAndReturningColumnsExpression(
+    val table: TableExpression,
+    val assignments: List<ColumnAssignmentExpression<*>>,
+    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
+    val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val returningColumns: List<ColumnExpression<*>>,
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
+) : SqlExpression()
+
+/**
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
+ * performs an update if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.insertOrUpdate(Employees) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onDuplicateKey {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ *     returning {
+ *      it.id,
+ *      it.job
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id, job
+ * ```
+ *
+ * @since 3.4
+ * @param table the table to be inserted.
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
+ */
+public fun <T : BaseTable<*>> Database.insertOrUpdateAndReturningColumns(
+    table: T,
+    block: InsertOrUpdateAndReturningColumnsStatementBuilder.(T) -> Unit
+): Pair<Int, CachedRowSet> {
+    val builder = InsertOrUpdateAndReturningColumnsStatementBuilder().apply { block(table) }
+
+    val primaryKeys = table.primaryKeys
+    if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
+        val msg =
+            "Table '$table' doesn't have a primary key, " +
+                    "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+        throw IllegalStateException(msg)
+    }
+
+    val expression = InsertOrUpdateAndReturningColumnsExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
+        updateAssignments = builder.updateAssignments,
+        returningColumns = builder.retrievingColumns.ifEmpty { primaryKeys }.map { it.asExpression() }
+    )
+
+    return executeUpdateAndRetrieveKeys(expression)
+}
+
+/**
+ * DSL builder for insert or update statements that return columns.
+ */
+@KtormDsl
+public class InsertOrUpdateAndReturningColumnsStatementBuilder : PostgreSqlAssignmentsBuilder() {
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal val conflictColumns = ArrayList<Column<*>>()
+    internal val retrievingColumns = ArrayList<Column<*>>()
+
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
+    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
+        val builder = PostgreSqlAssignmentsBuilder().apply(block)
+        updateAssignments += builder.assignments
+        conflictColumns += columns
+    }
+
+    public fun returning(vararg retrievingColumns: Column<*>) {
+        this.retrievingColumns += retrievingColumns
+    }
+
 }
