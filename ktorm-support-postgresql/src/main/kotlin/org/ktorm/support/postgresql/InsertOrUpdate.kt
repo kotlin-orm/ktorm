@@ -169,7 +169,7 @@ public data class InsertOrUpdateReturningColumnsExpression(
  * Usage:
  *
  * ```kotlin
- * database.insertOrUpdate(Employees) {
+ * database.insertOrUpdateReturning(Employees) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -199,7 +199,7 @@ public data class InsertOrUpdateReturningColumnsExpression(
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-public fun <T : BaseTable<*>> Database.insertOrUpdateReturningColumns(
+public fun <T : BaseTable<*>> Database.insertOrUpdateReturning(
     table: T,
     block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
 ): Pair<Int, CachedRowSet> {

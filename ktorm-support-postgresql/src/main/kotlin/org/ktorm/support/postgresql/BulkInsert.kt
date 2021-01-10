@@ -264,7 +264,7 @@ public data class BulkInsertReturningExpression(
  * Usage:
  *
  * ```kotlin
- * database.bulkInsert(Employees) {
+ * database.bulkInsertReturning(Employees) {
  *     item {
  *         set(it.name, "jerry")
  *         set(it.job, "trainee")
@@ -314,7 +314,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertReturning(
  * Usage:
  *
  * ```kotlin
- * database.bulkInsertOrUpdate(Employees) {
+ * database.bulkInsertOrUpdateReturning(Employees) {
  *     item {
  *         set(it.id, 1)
  *         set(it.name, "vince")

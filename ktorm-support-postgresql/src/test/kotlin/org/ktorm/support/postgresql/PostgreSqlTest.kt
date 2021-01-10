@@ -163,8 +163,8 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testInsertOrUpdateReturningColumns() {
-        val t1 = database.insertOrUpdateReturningColumns(Employees) {
+    fun testInsertOrUpdateReturning() {
+        val t1 = database.insertOrUpdateReturning(Employees) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -187,7 +187,7 @@ class PostgreSqlTest : BaseTest() {
         assert(t1.second.getString("name") == "vince")
         assert(t1.second.getInt("id") == 1001)
 
-        val t2 = database.insertOrUpdateReturningColumns(Employees) {
+        val t2 = database.insertOrUpdateReturning(Employees) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -212,7 +212,7 @@ class PostgreSqlTest : BaseTest() {
         assert(t2.second.getString("name") == "vince")
         assert(t2.second.getInt("id") == 1001)
 
-        val t3 = database.insertOrUpdateReturningColumns(Employees) {
+        val t3 = database.insertOrUpdateReturning(Employees) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -270,7 +270,7 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testBulkInsertReturningColumns() {
+    fun testBulkInsertReturning() {
         val rs = database.bulkInsertReturning(Employees) {
             item {
                 set(it.id, 10001)
@@ -304,7 +304,7 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testBulkInsertOrUpdateReturningColumns() {
+    fun testBulkInsertOrUpdateReturning() {
         val rs = database.bulkInsertOrUpdateReturning(Employees) {
             item {
                 set(it.id, 1000)
