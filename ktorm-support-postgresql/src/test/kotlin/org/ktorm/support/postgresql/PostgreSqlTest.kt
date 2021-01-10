@@ -252,7 +252,7 @@ class PostgreSqlTest : BaseTest() {
             onConflict(it.id) {
                 set(it.job, it.job)
                 set(it.departmentId, excluded(it.departmentId))
-                set(it.salary, excluded(it.salary) + 1000)
+                set(it.salary, it.salary + 1000)
             }
         }
 
