@@ -18,6 +18,7 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
 import java.time.LocalDate
 import java.util.concurrent.*
 
@@ -27,7 +28,7 @@ import java.util.concurrent.*
 class PostgreSqlTest : BaseTest() {
 
     companion object {
-        class KPostgreSqlContainer : PostgreSQLContainer<KPostgreSqlContainer>()
+        class KPostgreSqlContainer : PostgreSQLContainer<KPostgreSqlContainer>("postgres:13.1-alpine")
 
         @ClassRule
         @JvmField
@@ -493,13 +494,15 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testSelctForUpdateSkipLocked() {
+    fun testSelectForUpdateSkipLocked() {
         val readyToTestSkipLocksLatch = CountDownLatch(1)
         val testSkipLocksDoneLatch = CountDownLatch(1)
 
         val skippedFuture = Executors.newSingleThreadExecutor().submit {
             assertTrue(readyToTestSkipLocksLatch.await(5, TimeUnit.SECONDS))
             val employees = database.useTransaction(isolation = TransactionIsolation.REPEATABLE_READ) {
+                System.err.println("Cake: ${database.transactionManager.currentTransaction}")
+
                 database
                     .sequenceOf(Employees, withReferences = false)
                     .filter { it.id eq 1 }
@@ -509,29 +512,32 @@ class PostgreSqlTest : BaseTest() {
             }
             testSkipLocksDoneLatch.countDown()
             if (employees.isNotEmpty()) {
+                System.err.println(employees)
                 throw java.lang.IllegalStateException("Entry should have been skipped due to being locked.")
             }
         }
 
         val selectedFuture = Executors.newSingleThreadExecutor().submit {
             val employees = database.useTransaction(isolation = TransactionIsolation.REPEATABLE_READ) {
-                database
+                System.err.println(database.transactionManager.currentTransaction)
+                val employeeList = database
                     .sequenceOf(Employees, withReferences = false)
                     .filter { it.id eq 1 }
                     .forUpdate()
                     .skipLocked()
                     .toList()
+
+                readyToTestSkipLocksLatch.countDown()
+                assertTrue(testSkipLocksDoneLatch.await(10, TimeUnit.SECONDS))
+                employeeList
             }
-            readyToTestSkipLocksLatch.countDown()
             if (employees.size != 1) {
                 throw java.lang.IllegalStateException("Entry should be available.")
             }
         }
 
-        assertTrue(testSkipLocksDoneLatch.await(10, TimeUnit.SECONDS))
+        assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
+        assertNull(skippedFuture.get(5, TimeUnit.SECONDS))
 
-        assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
-        assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
-        
     }
 }
