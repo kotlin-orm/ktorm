@@ -2,7 +2,7 @@
 buildscript {
     ext {
         kotlinVersion = "1.4.21"
-        detektVersion = "1.12.0-RC1"
+        detektVersion = "1.14.2"
     }
     repositories {
         jcenter()
@@ -161,6 +161,11 @@ subprojects { project ->
                             id = "pedrod"
                             name = "Pedro Domingues"
                             email = "pedro.domingues.pt@gmail.com"
+                        }
+                        developer {
+                            id = "sigmanil"
+                            name = "Sigmund M. Nilssen"
+                            email = "sigmundn@gmail.com"
                         }
                     }
                     scm {

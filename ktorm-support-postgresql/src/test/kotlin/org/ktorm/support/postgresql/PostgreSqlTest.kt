@@ -2,11 +2,12 @@ package org.ktorm.support.postgresql
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
-import org.junit.Assert.assertThat
+import org.junit.Assert.*
 import org.junit.ClassRule
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
+import org.ktorm.database.TransactionIsolation
 import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
@@ -18,10 +19,7 @@ import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 
 /**
  * Created by vince on Feb 13, 2019.
@@ -492,5 +490,74 @@ class PostgreSqlTest : BaseTest() {
         val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
 
         assertThat(count, equalTo(1))
+    }
+
+    @Test
+    fun testSelctForUpdateSkipLocked() {
+        val readyToTestSkipLocksLatch = CountDownLatch(1)
+        val testSkipLocksDoneLatch = CountDownLatch(1)
+
+        val skippedFuture = Executors.newSingleThreadExecutor().submit {
+            assertTrue(readyToTestSkipLocksLatch.await(5, TimeUnit.SECONDS))
+            val employees = database.useTransaction(isolation = TransactionIsolation.REPEATABLE_READ) {
+                database
+                    .sequenceOf(Employees, withReferences = false)
+                    .filter { it.id eq 1 }
+                    .forUpdate()
+                    .skipLocked()
+                    .toList()
+            }
+            testSkipLocksDoneLatch.countDown()
+            if (employees.isNotEmpty()) {
+                throw java.lang.IllegalStateException("Entry should have been skipped due to being locked.")
+            }
+        }
+
+        val selectedFuture = Executors.newSingleThreadExecutor().submit {
+            val employees = database.useTransaction(isolation = TransactionIsolation.REPEATABLE_READ) {
+                database
+                    .sequenceOf(Employees, withReferences = false)
+                    .filter { it.id eq 1 }
+                    .forUpdate()
+                    .skipLocked()
+                    .toList()
+            }
+            readyToTestSkipLocksLatch.countDown()
+            if (employees.size != 1) {
+                throw java.lang.IllegalStateException("Entry should be available.")
+            }
+        }
+
+        assertTrue(testSkipLocksDoneLatch.await(10, TimeUnit.SECONDS))
+
+        assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
+        assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
+
+//
+//
+//        database.useTransaction {
+//            val employee = database
+//                .sequenceOf(Employees, withReferences = false)
+//                .filter { it.id eq 1 }
+//                .forUpdate()
+//                .skipLocked()
+//                .first()
+//
+//            val future = Executors.newSingleThreadExecutor().submit {
+//                employee.name = "vince"
+//                employee.flushChanges()
+//            }
+//
+//            try {
+//                future.get(5, TimeUnit.SECONDS)
+//                throw AssertionError()
+//            } catch (e: ExecutionException) {
+//                // Expected, the record is locked.
+//                e.printStackTrace()
+//            } catch (e: TimeoutException) {
+//                // Expected, the record is locked.
+//                e.printStackTrace()
+//            }
+//        }
     }
 }

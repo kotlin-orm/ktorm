@@ -146,6 +146,14 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
+    override fun visitSelect(expr: SelectExpression): SelectExpression {
+        super.visitSelect(expr)
+        if (expr.extraProperties[SKIP_LOCKED] == true) {
+            writeKeyword("skip locked ")
+        }
+        return expr
+    }
+
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
