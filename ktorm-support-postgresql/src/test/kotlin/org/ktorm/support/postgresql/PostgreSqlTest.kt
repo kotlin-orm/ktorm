@@ -532,32 +532,6 @@ class PostgreSqlTest : BaseTest() {
 
         assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
         assertNull(selectedFuture.get(5, TimeUnit.SECONDS))
-
-//
-//
-//        database.useTransaction {
-//            val employee = database
-//                .sequenceOf(Employees, withReferences = false)
-//                .filter { it.id eq 1 }
-//                .forUpdate()
-//                .skipLocked()
-//                .first()
-//
-//            val future = Executors.newSingleThreadExecutor().submit {
-//                employee.name = "vince"
-//                employee.flushChanges()
-//            }
-//
-//            try {
-//                future.get(5, TimeUnit.SECONDS)
-//                throw AssertionError()
-//            } catch (e: ExecutionException) {
-//                // Expected, the record is locked.
-//                e.printStackTrace()
-//            } catch (e: TimeoutException) {
-//                // Expected, the record is locked.
-//                e.printStackTrace()
-//            }
-//        }
+        
     }
 }
