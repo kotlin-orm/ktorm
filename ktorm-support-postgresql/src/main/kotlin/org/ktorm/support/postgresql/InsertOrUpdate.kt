@@ -41,6 +41,7 @@ public data class InsertOrUpdateExpression(
     val assignments: List<ColumnAssignmentExpression<*>>,
     val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val returningColumns: List<ColumnExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -142,27 +143,6 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
 }
 
 /**
- * Insert or update expression, represents an insert statement with an
- * `on conflict (key) do update set (...) returning ...` clause in PostgreSQL,
- * capable of retrieving columns.
- *
- * @property table the table to be inserted.
- * @property assignments the inserted column assignments.
- * @property conflictColumns the index columns on which the conflict may happens.
- * @property updateAssignments the updated column assignments while any key conflict exists.
- * @property returningColumns the columns to returning.
- */
-public data class InsertOrUpdateReturningColumnsExpression(
-    val table: TableExpression,
-    val assignments: List<ColumnAssignmentExpression<*>>,
-    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
-    val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
-    val returningColumns: List<ColumnExpression<*>>,
-    override val isLeafNode: Boolean = false,
-    override val extraProperties: Map<String, Any> = emptyMap()
-) : SqlExpression()
-
-/**
  * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
  * performs an update if any conflict exists.
  *
@@ -194,7 +174,7 @@ public data class InsertOrUpdateReturningColumnsExpression(
  * returning id, job
  * ```
  *
- * @since 3.4
+ * @since 3.4.0
  * @param table the table to be inserted.
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
@@ -213,7 +193,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdateReturning(
         throw IllegalStateException(msg)
     }
 
-    val expression = InsertOrUpdateReturningColumnsExpression(
+    val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },

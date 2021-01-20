@@ -48,6 +48,7 @@ public data class BulkInsertExpression(
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
     val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val returningColumns: List<ColumnExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -226,32 +227,6 @@ public class BulkInsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBu
 }
 
 /**
- * Bulk insert expression, represents a bulk insert statement in PostgreSQL.
- *
- * For example:
- *
- * ```sql
- * insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...
- * `on conflict (key) do update set (...) returning ...
- * ```
- *
- * @property table the table to be inserted.
- * @property assignments column assignments of the bulk insert statement.
- * @property conflictColumns the index columns on which the conflict may happens.
- * @property updateAssignments the updated column assignments while key conflict exists.
- * @property returningColumns the columns to returning.
- */
-public data class BulkInsertReturningExpression(
-    val table: TableExpression,
-    val assignments: List<List<ColumnAssignmentExpression<*>>>,
-    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
-    val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
-    val returningColumns: List<ColumnExpression<*>>,
-    override val isLeafNode: Boolean = false,
-    override val extraProperties: Map<String, Any> = emptyMap()
-) : SqlExpression()
-
-/**
  * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
@@ -299,7 +274,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertReturning(
     table: T, block: BulkInsertReturningStatementBuilder<T>.(T) -> Unit
 ): Pair<Int, CachedRowSet> {
     val builder = BulkInsertReturningStatementBuilder(table).apply { block(table) }
-    val expression = BulkInsertReturningExpression(
+    val expression = BulkInsertExpression(
         table.asExpression(),
         builder.assignments,
         returningColumns = builder.returningColumns.ifEmpty { table.primaryKeys }.map { it.asExpression() }
@@ -370,7 +345,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturning(
         throw IllegalStateException(msg)
     }
 
-    val expression = BulkInsertReturningExpression(
+    val expression = BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
