@@ -227,7 +227,7 @@ internal class EntityImplementation(
     }
 
     override fun hashCode(): Int {
-        return values.hashCode() + (13 * entityClass.hashCode())
+        return values.hashCode() + 13 * entityClass.hashCode()
     }
 
     override fun toString(): String {
