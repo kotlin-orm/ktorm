@@ -150,6 +150,56 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
  * Usage:
  *
  * ```kotlin
+ * database.insertOrUpdateReturning(Employees, Employees.id) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onDuplicateKey {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returningColumn the column to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning column value.
+ */
+public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
+    table: T,
+    returningColumn: Column<R>,
+    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+): R? {
+    val (_, rowSet) = this.insertOrUpdateReturningAux(
+        table,
+        listOfNotNull(returningColumn),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        returningColumn.sqlType.getResult(row, 1)
+    }.first()
+}
+
+/**
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
+ * performs an update if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
  * database.insertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
@@ -173,25 +223,10 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
  *
  * @since 3.4.0
  * @param table the table to be inserted.
+ * @param returningColumns the columns to return
  * @param block the DSL block used to construct the expression.
- * @return the effected row count.
+ * @return the returning columns' values.
  */
-public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
-    table: T,
-    returningColumn: Column<R>,
-    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
-): R? {
-    val (_, rowSet) = this.insertOrUpdateReturningAux(
-        table,
-        listOfNotNull(returningColumn),
-        block
-    )
-
-    return rowSet.asIterable().map { row ->
-        returningColumn.sqlType.getResult(row, 1)
-    }.first()
-}
-
 public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturning(
     table: T,
     returningColumns: Pair<Column<R1>, Column<R2>>,
@@ -211,6 +246,40 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturni
     }.first()
 }
 
+/**
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
+ * performs an update if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.insertOrUpdateReturning(Employees, Triple(Employees.id, Employees.job, Employees.salary)) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onDuplicateKey {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id, job, salary
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returningColumns the columns to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning columns' values.
+ */
 public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.insertOrUpdateReturning(
     table: T,
     returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,

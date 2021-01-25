@@ -2,7 +2,6 @@ package org.ktorm.support.postgresql
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.ClassRule
 import org.junit.Test
@@ -368,7 +367,13 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testBulkInsertOrUpdateReturning() {
-        val rs = database.bulkInsertOrUpdateReturning(Employees) {
+        database.bulkInsertOrUpdateReturning(
+            Employees,
+            Pair(
+                Employees.id,
+                Employees.job
+            )
+        ) {
             item {
                 set(it.id, 1000)
                 set(it.name, "vince")
@@ -389,19 +394,14 @@ class PostgreSqlTest : BaseTest() {
                 set(it.departmentId, excluded(it.departmentId))
                 set(it.salary, it.salary + 1000)
             }
-            returning(
-                it.id,
-                it.job
+        }.let { created ->
+            assert(
+                listOf(
+                    Pair(1000, "trainee"),
+                    Pair(5000, "engineer")
+                ) == created
             )
         }
-
-        assertEquals(rs.first, 2)
-        rs.second.next()
-        assertEquals(rs.second.getInt("id"), 1000)
-        assertEquals(rs.second.getString("job"), "trainee")
-        rs.second.next()
-        assertEquals(rs.second.getInt("id"), 5000)
-        assertEquals(rs.second.getString("job"), "engineer")
     }
 
     @Test
