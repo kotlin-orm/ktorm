@@ -220,14 +220,14 @@ internal class EntityImplementation(
 
     override fun equals(other: Any?): Boolean {
         return when (other) {
-            is EntityImplementation -> this === other
-            is Entity<*> -> this === other.implementation
+            is EntityImplementation -> values == other.values && entityClass == other.entityClass
+            is Entity<*> -> values == other.implementation.values && entityClass == other.implementation.entityClass
             else -> false
         }
     }
 
     override fun hashCode(): Int {
-        return System.identityHashCode(this)
+        return values.hashCode() + (13 * entityClass.hashCode())
     }
 
     override fun toString(): String {

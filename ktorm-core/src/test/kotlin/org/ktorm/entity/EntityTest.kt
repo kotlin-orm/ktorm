@@ -498,4 +498,39 @@ class EntityTest : BaseTest() {
         employee = database.employees.find { it.id eq employee.id } ?: throw AssertionError()
         assert(employee.job == "engineer")
     }
+
+    @Test
+    fun testValueEquality() {
+        val now = LocalDate.now()
+        val employee1 = Employee {
+            id = 1
+            name = "Eric"
+            job = "contributor"
+            hireDate = now
+            salary = 50
+        }
+
+        val employee2 = Employee {
+            id = 1
+            name = "Eric"
+            job = "contributor"
+            hireDate = now
+            salary = 50
+        }
+
+        assert(employee1 == employee2)
+    }
+
+    @Test
+    fun testDifferentClassesSameValuesNotEqual() {
+        val employee = Employee {
+            name = "name"
+        }
+
+        val department = Department {
+            name = "name"
+        }
+
+        assert(employee != department)
+    }
 }
