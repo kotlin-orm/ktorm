@@ -164,7 +164,31 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testInsertOrUpdateReturning() {
-        val t1 = database.insertOrUpdateReturning(Employees) {
+        database.insertOrUpdateReturning(
+            Employees,
+            Employees.id
+        ) {
+            set(it.id, 1009)
+            set(it.name, "pedro")
+            set(it.job, "engineer")
+            set(it.salary, 1500)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+
+            onDuplicateKey {
+                set(it.salary, it.salary + 900)
+            }
+        }.let { createdId ->
+            assert(createdId == 1009)
+        }
+
+        database.insertOrUpdateReturning(
+            Employees,
+            Pair(
+                Employees.id,
+                Employees.name
+            )
+        ) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -175,19 +199,19 @@ class PostgreSqlTest : BaseTest() {
             onDuplicateKey {
                 set(it.salary, it.salary + 900)
             }
-
-            returning(
-                it.name,
-                it.id
-            )
+        }.let { (createdId, createdName) ->
+            assert(createdId == 1001)
+            assert(createdName == "vince")
         }
 
-        assert(t1.first == 1)
-        t1.second.next()
-        assert(t1.second.getString("name") == "vince")
-        assert(t1.second.getInt("id") == 1001)
-
-        val t2 = database.insertOrUpdateReturning(Employees) {
+        database.insertOrUpdateReturning(
+            Employees,
+            Triple(
+                Employees.id,
+                Employees.name,
+                Employees.salary
+            )
+        ) {
             set(it.id, 1001)
             set(it.name, "vince")
             set(it.job, "engineer")
@@ -198,36 +222,11 @@ class PostgreSqlTest : BaseTest() {
             onDuplicateKey(it.id) {
                 set(it.salary, it.salary + 900)
             }
-
-            returning(
-                it.name,
-                it.id,
-                it.salary
-            )
+        }.let { (createdId, createdName, createdSalary) ->
+            assert(createdId == 1001)
+            assert(createdName == "vince")
+            assert(createdSalary == 1900L)
         }
-
-        assert(t2.first == 1)
-        t2.second.next()
-        assert(t2.second.getInt("salary") == 1900)
-        assert(t2.second.getString("name") == "vince")
-        assert(t2.second.getInt("id") == 1001)
-
-        val t3 = database.insertOrUpdateReturning(Employees) {
-            set(it.id, 1001)
-            set(it.name, "vince")
-            set(it.job, "engineer")
-            set(it.salary, 1000)
-            set(it.hireDate, LocalDate.now())
-            set(it.departmentId, 1)
-
-            onDuplicateKey(it.id) {
-                set(it.salary, it.salary + 900)
-            }
-        }
-
-        assert(t3.first == 1)
-        t3.second.next()
-        assert(t3.second.getInt("id") == 1001)
     }
 
     @Test
@@ -271,7 +270,10 @@ class PostgreSqlTest : BaseTest() {
 
     @Test
     fun testBulkInsertReturning() {
-        val rs = database.bulkInsertReturning(Employees) {
+        database.bulkInsertReturning(
+            Employees,
+            Employees.id
+        ) {
             item {
                 set(it.id, 10001)
                 set(it.name, "vince")
@@ -288,19 +290,80 @@ class PostgreSqlTest : BaseTest() {
                 set(it.hireDate, LocalDate.now())
                 set(it.departmentId, 2)
             }
-            returning(
-                it.id,
-                it.job
+        }.let { createdIds ->
+            assert(createdIds.size == 2)
+            assert(
+                listOf(
+                    10001,
+                    50001
+                ) == createdIds
             )
         }
 
-        assertEquals(rs.first, 2)
-        rs.second.next()
-        assertEquals(rs.second.getInt("id"), 10001)
-        assertEquals(rs.second.getString("job"), "trainee")
-        rs.second.next()
-        assertEquals(rs.second.getInt("id"), 50001)
-        assertEquals(rs.second.getString("job"), "engineer")
+        database.bulkInsertReturning(
+            Employees,
+            Pair(
+                Employees.id,
+                Employees.name
+            )
+        ) {
+            item {
+                set(it.id, 10002)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 50002)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+        }.let { created ->
+            assert(
+                listOf(
+                    (10002 to "vince"),
+                    (50002 to "vince")
+                ) == created
+            )
+        }
+
+        database.bulkInsertReturning(
+            Employees,
+            Triple(
+                Employees.id,
+                Employees.name,
+                Employees.job
+            )
+        ) {
+            item {
+                set(it.id, 10003)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 50003)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+        }.let { created ->
+            assert(
+                listOf(
+                    Triple(10003,"vince","trainee"),
+                    Triple(50003,"vince","engineer")
+                ) == created
+            )
+        }
     }
 
     @Test

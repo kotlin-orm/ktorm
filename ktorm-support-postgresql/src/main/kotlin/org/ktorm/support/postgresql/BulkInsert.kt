@@ -18,6 +18,7 @@ package org.ktorm.support.postgresql
 
 import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
+import org.ktorm.database.asIterable
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.dsl.batchInsert
@@ -239,7 +240,7 @@ public class BulkInsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBu
  * Usage:
  *
  * ```kotlin
- * database.bulkInsertReturning(Employees) {
+ * database.bulkInsertReturning(Employees, Pair(Employees.id, Employees.job)) {
  *     item {
  *         set(it.name, "jerry")
  *         set(it.job, "trainee")
@@ -256,11 +257,6 @@ public class BulkInsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBu
  *         set(it.salary, 100)
  *         set(it.departmentId, 2)
  *     }
- *
- *     returning (
- *      it.id,
- *      it.job
- *     )
  * }
  * ```
  *
@@ -270,15 +266,74 @@ public class BulkInsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBu
  * @return the effected row count.
  * @see batchInsert
  */
-public fun <T : BaseTable<*>> Database.bulkInsertReturning(
-    table: T, block: BulkInsertReturningStatementBuilder<T>.(T) -> Unit
+public fun <T : BaseTable<*>, R : Any> Database.bulkInsertReturning(
+    table: T,
+    returningColumn: Column<R>,
+    block: BulkInsertReturningStatementBuilder<T>.(T) -> Unit
+): List<R?> {
+    val (_, rowSet) = this.bulkInsertReturningAux(
+        table,
+        listOf(returningColumn),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        returningColumn.sqlType.getResult(row, 1)
+    }
+}
+
+public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.bulkInsertReturning(
+    table: T,
+    returningColumns: Pair<Column<R1>, Column<R2>>,
+    block: BulkInsertReturningStatementBuilder<T>.(T) -> Unit
+): List<Pair<R1?, R2?>> {
+    val (_, rowSet) = this.bulkInsertReturningAux(
+        table,
+        returningColumns.toList(),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        Pair(
+            returningColumns.first.sqlType.getResult(row, 1),
+            returningColumns.second.sqlType.getResult(row, 2)
+        )
+    }
+}
+
+public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.bulkInsertReturning(
+    table: T,
+    returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,
+    block: BulkInsertReturningStatementBuilder<T>.(T) -> Unit
+): List<Triple<R1?, R2?, R3?>> {
+    val (_, rowSet) = this.bulkInsertReturningAux(
+        table,
+        returningColumns.toList(),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        Triple(
+            returningColumns.first.sqlType.getResult(row, 1),
+            returningColumns.second.sqlType.getResult(row, 2),
+            returningColumns.third.sqlType.getResult(row, 3)
+        )
+    }
+}
+
+private fun <T : BaseTable<*>> Database.bulkInsertReturningAux(
+    table: T,
+    returningColumns: List<Column<*>>,
+    block: BulkInsertReturningStatementBuilder<T>.(T) -> Unit
 ): Pair<Int, CachedRowSet> {
     val builder = BulkInsertReturningStatementBuilder(table).apply { block(table) }
+
     val expression = BulkInsertExpression(
         table.asExpression(),
         builder.assignments,
-        returningColumns = builder.returningColumns.ifEmpty { table.primaryKeys }.map { it.asExpression() }
+        returningColumns = returningColumns.map { it.asExpression() }
     )
+
     return executeUpdateAndRetrieveKeys(expression)
 }
 
@@ -289,7 +344,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertReturning(
  * Usage:
  *
  * ```kotlin
- * database.bulkInsertOrUpdateReturning(Employees) {
+ * database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.name)) {
  *     item {
  *         set(it.id, 1)
  *         set(it.name, "vince")
@@ -309,11 +364,6 @@ public fun <T : BaseTable<*>> Database.bulkInsertReturning(
  *     onConflict {
  *         set(it.salary, it.salary + 900)
  *     }
- *
- *     returning (
- *      it.id,
- *      it.job
- *     )
  * }
  * ```
  *
@@ -362,7 +412,6 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturning(
 @KtormDsl
 public open class BulkInsertReturningStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
-    internal val returningColumns = ArrayList<Column<*>>()
 
     /**
      * Add the assignments of a new row to the bulk insert.
@@ -377,13 +426,6 @@ public open class BulkInsertReturningStatementBuilder<T : BaseTable<*>>(internal
         } else {
             throw IllegalArgumentException("Every item in a batch operation must be the same.")
         }
-    }
-
-    /**
-     * Specify the columns to return.
-     */
-    public fun returning(vararg returningColumns: Column<*>) {
-        this.returningColumns += returningColumns
     }
 }
 

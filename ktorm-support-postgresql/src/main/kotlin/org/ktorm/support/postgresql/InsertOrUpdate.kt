@@ -18,6 +18,7 @@ package org.ktorm.support.postgresql
 
 import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
+import org.ktorm.database.asIterable
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.expression.ColumnAssignmentExpression
@@ -87,7 +88,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onConflict(col) { .. }"
+                    "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
@@ -149,7 +150,7 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
  * Usage:
  *
  * ```kotlin
- * database.insertOrUpdateReturning(Employees) {
+ * database.insertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -159,10 +160,6 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
  *     onDuplicateKey {
  *         set(it.salary, it.salary + 900)
  *     }
- *     returning (
- *      it.id,
- *      it.job
- *     )
  * }
  * ```
  *
@@ -179,8 +176,64 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-public fun <T : BaseTable<*>> Database.insertOrUpdateReturning(
+public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
     table: T,
+    returningColumn: Column<R>,
+    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+): R? {
+    val (_, rowSet) = this.insertOrUpdateReturningAux(
+        table,
+        listOfNotNull(returningColumn),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        returningColumn.sqlType.getResult(row, 1)
+    }.first()
+}
+
+public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturning(
+    table: T,
+    returningColumns: Pair<Column<R1>, Column<R2>>,
+    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+): Pair<R1?, R2?> {
+    val (_, rowSet) = this.insertOrUpdateReturningAux(
+        table,
+        returningColumns.toList(),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        Pair(
+            returningColumns.first.sqlType.getResult(row, 1),
+            returningColumns.second.sqlType.getResult(row, 2)
+        )
+    }.first()
+}
+
+public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.insertOrUpdateReturning(
+    table: T,
+    returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,
+    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+): Triple<R1?, R2?, R3?> {
+    val (_, rowSet) = this.insertOrUpdateReturningAux(
+        table,
+        returningColumns.toList(),
+        block
+    )
+
+    return rowSet.asIterable().map { row ->
+        Triple(
+            returningColumns.first.sqlType.getResult(row, 1),
+            returningColumns.second.sqlType.getResult(row, 2),
+            returningColumns.third.sqlType.getResult(row, 3)
+        )
+    }.first()
+}
+
+private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
+    table: T,
+    returningColumns: List<Column<*>>,
     block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
 ): Pair<Int, CachedRowSet> {
     val builder = InsertOrUpdateReturningColumnsStatementBuilder().apply { block(table) }
@@ -198,7 +251,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdateReturning(
         assignments = builder.assignments,
         conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
         updateAssignments = builder.updateAssignments,
-        returningColumns = builder.returningColumns.ifEmpty { primaryKeys }.map { it.asExpression() }
+        returningColumns = returningColumns.map { it.asExpression() }
     )
 
     return executeUpdateAndRetrieveKeys(expression)
@@ -211,7 +264,6 @@ public fun <T : BaseTable<*>> Database.insertOrUpdateReturning(
 public class InsertOrUpdateReturningColumnsStatementBuilder : PostgreSqlAssignmentsBuilder() {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal val conflictColumns = ArrayList<Column<*>>()
-    internal val returningColumns = ArrayList<Column<*>>()
 
     /**
      * Specify the update assignments while any key conflict exists.
@@ -220,12 +272,5 @@ public class InsertOrUpdateReturningColumnsStatementBuilder : PostgreSqlAssignme
         val builder = PostgreSqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
         conflictColumns += columns
-    }
-
-    /**
-     * Specify the columns to return.
-     */
-    public fun returning(vararg returningColumns: Column<*>) {
-        this.returningColumns += returningColumns
     }
 }
