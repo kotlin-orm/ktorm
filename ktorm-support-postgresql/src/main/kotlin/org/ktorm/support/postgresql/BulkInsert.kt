@@ -394,10 +394,11 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.bulkInsertR
     )
 
     return rowSet.asIterable().map { row ->
+        var i = 0
         Triple(
-            returningColumns.first.sqlType.getResult(row, 1),
-            returningColumns.second.sqlType.getResult(row, 2),
-            returningColumns.third.sqlType.getResult(row, 3)
+            returningColumns.first.sqlType.getResult(row, ++i),
+            returningColumns.second.sqlType.getResult(row, ++i),
+            returningColumns.third.sqlType.getResult(row, ++i)
         )
     }
 }
@@ -603,10 +604,11 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.bulkInsertO
     )
 
     return rowSet.asIterable().map { row ->
+        var i = 0
         Triple(
-            returningColumns.first.sqlType.getResult(row, 1),
-            returningColumns.second.sqlType.getResult(row, 2),
-            returningColumns.third.sqlType.getResult(row, 3)
+            returningColumns.first.sqlType.getResult(row, ++i),
+            returningColumns.second.sqlType.getResult(row, ++i),
+            returningColumns.third.sqlType.getResult(row, ++i)
         )
     }
 }
