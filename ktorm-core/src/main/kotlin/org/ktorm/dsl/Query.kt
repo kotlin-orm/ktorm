@@ -763,7 +763,7 @@ public fun Query.joinToString(
 }
 
 /**
- * Indicate that this query should aquire the record-lock, the generated SQL would be `select ... for update`.
+ * Indicate that this query should acquire the record-lock, the generated SQL would be `select ... for update`.
  *
  * @since 3.1.0
  */
