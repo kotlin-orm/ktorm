@@ -19,6 +19,7 @@ package org.ktorm.expression
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.SqlType
+import org.ktorm.schema.VarcharSqlType
 
 /**
  * Root class of SQL expressions or statements.
@@ -124,13 +125,25 @@ public data class SelectExpression(
     val groupBy: List<ScalarExpression<*>> = emptyList(),
     val having: ScalarExpression<Boolean>? = null,
     val isDistinct: Boolean = false,
-    val forUpdate: Boolean = false,
+    val forUpdate: ForUpdateExpression? = null,
     override val orderBy: List<OrderByExpression> = emptyList(),
     override val offset: Int? = null,
     override val limit: Int? = null,
     override val tableAlias: String? = null,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : QueryExpression()
+
+/**
+ * For Update expression, implementations are in the MySql and Postgres Dialects.
+ */
+public abstract class ForUpdateExpression : ScalarExpression<String>() {
+    override val isLeafNode: Boolean
+        get() = true
+    override val extraProperties: Map<String, Any>
+        get() = emptyMap()
+    override val sqlType: SqlType<String>
+        get() = VarcharSqlType
+}
 
 /**
  * Union expression, represents a `union` statement of SQL.

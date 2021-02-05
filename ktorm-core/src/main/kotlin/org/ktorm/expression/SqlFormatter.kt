@@ -18,6 +18,7 @@ package org.ktorm.expression
 
 import org.ktorm.database.Database
 import org.ktorm.database.DialectFeatureNotSupportedException
+import org.ktorm.database.detectDialectImplementation
 
 /**
  * Subclass of [SqlExpressionVisitor], visiting SQL expression trees using visitor pattern. After the visit completes,
@@ -388,11 +389,16 @@ public abstract class SqlFormatter(
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
         }
-        if (expr.forUpdate) {
-            writeKeyword("for update ")
+        if (expr.forUpdate != null) {
+            visitForUpdate(expr.forUpdate)
         }
         return expr
     }
+
+    protected open fun visitForUpdate(expr: ForUpdateExpression): ForUpdateExpression =
+        throw DialectFeatureNotSupportedException(
+            "FOR UPDATE not supported in dialect ${detectDialectImplementation()::class.java.name}."
+        )
 
     override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         when (expr) {

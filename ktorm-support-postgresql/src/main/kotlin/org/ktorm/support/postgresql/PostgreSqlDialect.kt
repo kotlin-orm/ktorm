@@ -20,6 +20,9 @@ import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
+import org.ktorm.support.postgresql.PostgresForUpdateExpression.NoWait
+import org.ktorm.support.postgresql.PostgresForUpdateExpression.SkipLocked
+import org.ktorm.support.postgresql.PostgresForUpdateExpression.Wait
 
 /**
  * [SqlDialect] implementation for PostgreSQL database.
@@ -32,11 +35,31 @@ public open class PostgreSqlDialect : SqlDialect {
 }
 
 /**
+ * Postgres Specific ForUpdateExpressions.
+ */
+public sealed class PostgresForUpdateExpression : ForUpdateExpression() {
+    /** The generated SQL would be `select ... for update skip locked`. */
+    public object SkipLocked : PostgresForUpdateExpression()
+    /** The generated SQL would be `select ... for update nowait`. */
+    public object NoWait : PostgresForUpdateExpression()
+    /** The generated SQL would be `select ... for update wait <seconds>`. */
+    public data class Wait(val seconds: Int) : PostgresForUpdateExpression()
+}
+
+/**
  * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
  */
 public open class PostgreSqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
+    override fun visitForUpdate(forUpdate: ForUpdateExpression): ForUpdateExpression {
+        when (forUpdate) {
+            SkipLocked -> writeKeyword("for update skip locked ")
+            NoWait -> writeKeyword("for update nowait ")
+            is Wait -> writeKeyword("for update wait ${forUpdate.seconds} ")
+        }
+        return forUpdate
+    }
 
     override fun checkColumnName(name: String) {
         val maxLength = database.maxColumnNameLength

@@ -763,13 +763,13 @@ public fun Query.joinToString(
 }
 
 /**
- * Indicate that this query should aquire the record-lock, the generated SQL would be `select ... for update`.
+ * Indicate that this query should acquire an update-lock, the generated SQL will depend on the SqlDialect.
  *
  * @since 3.1.0
  */
-public fun Query.forUpdate(): Query {
+public fun Query.forUpdate(forUpdateExpression: ForUpdateExpression?): Query {
     val expr = when (expression) {
-        is SelectExpression -> expression.copy(forUpdate = true)
+        is SelectExpression -> expression.copy(forUpdate = forUpdateExpression)
         is UnionExpression -> throw IllegalStateException("SELECT FOR UPDATE is not supported in a union expression.")
     }
 

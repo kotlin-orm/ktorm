@@ -19,6 +19,7 @@ package org.ktorm.entity
 import org.ktorm.database.Database
 import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.dsl.*
+import org.ktorm.expression.ForUpdateExpression
 import org.ktorm.expression.OrderByExpression
 import org.ktorm.expression.SelectExpression
 import org.ktorm.schema.BaseTable
@@ -1505,10 +1506,11 @@ public fun <E : Any> EntitySequence<E, *>.joinToString(
 }
 
 /**
- * Indicate that this query should aquire the record-lock, the generated SQL would be `select ... for update`.
+ * Indicate that this query should acquire an update-lock, the generated SQL will depend on the SqlDialect.
  *
  * @since 3.1.0
  */
-public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
-    return this.withExpression(expression.copy(forUpdate = true))
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(
+    forUpdateExpression: ForUpdateExpression?): EntitySequence<E, T> {
+    return this.withExpression(expression.copy(forUpdate = forUpdateExpression))
 }

@@ -21,6 +21,11 @@ import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.VarcharSqlType
+import org.ktorm.support.mysql.MySqlForUpdateExpression.ForShare
+import org.ktorm.support.mysql.MySqlForUpdateExpression.ForUpdate
+import org.ktorm.support.mysql.Version.MySql5
+import org.ktorm.support.mysql.Version.MySql8
+import java.sql.DatabaseMetaData
 
 /**
  * [SqlDialect] implementation for MySQL database.
@@ -32,12 +37,43 @@ public open class MySqlDialect : SqlDialect {
     }
 }
 
+@Suppress("MagicNumber")
+private enum class Version(val majorVersion: Int) {
+    MySql5(5), MySql8(8)
+}
+
+/**
+ * Thrown to indicate that the MySql version is not supported by the current dialect.
+ *
+ * @param databaseMetaData used to format the exception's message.
+ */
+public class UnsupportedMySqlVersionException(databaseMetaData: DatabaseMetaData) :
+    UnsupportedOperationException(
+        "Unsupported SqlDialect for ${databaseMetaData.databaseProductName} v${databaseMetaData.databaseProductVersion}"
+    ) {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+}
+
 /**
  * [SqlFormatter] implementation for MySQL, formatting SQL expressions as strings with their execution arguments.
  */
 public open class MySqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
+    private val version: Version
+
+    init {
+        database.useConnection {
+            val metaData = it.metaData
+            version = when (metaData.databaseMajorVersion) {
+                MySql5.majorVersion -> MySql5
+                MySql8.majorVersion -> MySql8
+                else -> throw UnsupportedMySqlVersionException(metaData)
+            }
+        }
+    }
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
@@ -129,6 +165,28 @@ public open class MySqlFormatter(
         write(") ")
         return expr
     }
+
+    override fun visitForUpdate(expr: ForUpdateExpression): ForUpdateExpression {
+        when {
+            expr == ForUpdate -> writeKeyword("for update ")
+            expr == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
+            expr == ForShare && version == MySql8 -> writeKeyword("for share ")
+            else -> { /* no-op */ }
+        }
+        return expr
+    }
+}
+
+/**
+ * MySql Specific ForUpdateExpressions.
+ */
+public sealed class MySqlForUpdateExpression : ForUpdateExpression() {
+    /**
+     * The generated SQL would be `select ... lock in share mode` for MySql 5 and `select .. for share` for MySql 8.
+     **/
+    public object ForShare : MySqlForUpdateExpression()
+    /** The generated SQL would be `select ... for update`. */
+    public object ForUpdate : MySqlForUpdateExpression()
 }
 
 /**

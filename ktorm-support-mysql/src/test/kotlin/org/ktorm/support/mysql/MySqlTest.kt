@@ -417,12 +417,12 @@ class MySqlTest : BaseTest() {
     }
 
     @Test
-    fun testSelctForUpdate() {
+    fun testSelectForUpdate() {
         database.useTransaction {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .forUpdate()
+                .forUpdate(MySqlForUpdateExpression.ForUpdate)
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {

@@ -398,7 +398,7 @@ class PostgreSqlTest : BaseTest() {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .forUpdate()
+                .forUpdate(PostgresForUpdateExpression.NoWait)
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {
