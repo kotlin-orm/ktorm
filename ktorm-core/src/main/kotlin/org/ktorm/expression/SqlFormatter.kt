@@ -394,7 +394,7 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    protected abstract fun writeForUpdate(expr: ForUpdateOption)
+    protected abstract fun writeForUpdate(forUpdate: ForUpdateOption)
 
     override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         when (expr) {

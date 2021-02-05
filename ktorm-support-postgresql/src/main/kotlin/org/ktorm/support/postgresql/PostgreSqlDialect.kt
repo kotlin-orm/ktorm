@@ -17,6 +17,7 @@
 package org.ktorm.support.postgresql
 
 import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
@@ -52,12 +53,12 @@ public sealed class PostgresForUpdateOption : ForUpdateOption {
 public open class PostgreSqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
-    override fun writeForUpdate(expr: ForUpdateOption) {
-        when (expr) {
+    override fun writeForUpdate(forUpdate: ForUpdateOption) {
+        when (forUpdate) {
             SkipLocked -> writeKeyword("for update skip locked ")
             NoWait -> writeKeyword("for update nowait ")
-            is Wait -> writeKeyword("for update wait ${expr.seconds} ")
-            else -> { /* no-op */ }
+            is Wait -> writeKeyword("for update wait ${forUpdate.seconds} ")
+            else -> throw DialectFeatureNotSupportedException("Unsupported ForUpdateOption ${forUpdate::class.java.name}.")
         }
     }
 

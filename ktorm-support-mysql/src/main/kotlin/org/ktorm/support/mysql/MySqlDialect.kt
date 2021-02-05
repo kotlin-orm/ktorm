@@ -17,6 +17,7 @@
 package org.ktorm.support.mysql
 
 import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
@@ -166,12 +167,12 @@ public open class MySqlFormatter(
         return expr
     }
 
-    override fun writeForUpdate(expr: ForUpdateOption) {
+    override fun writeForUpdate(forUpdate: ForUpdateOption) {
         when {
-            expr == ForUpdate -> writeKeyword("for update ")
-            expr == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
-            expr == ForShare && version == MySql8 -> writeKeyword("for share ")
-            else -> { /* no-op */ }
+            forUpdate == ForUpdate -> writeKeyword("for update ")
+            forUpdate == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
+            forUpdate == ForShare && version == MySql8 -> writeKeyword("for share ")
+            else -> throw DialectFeatureNotSupportedException("Unsupported ForUpdateOption ${forUpdate::class.java.name}.")
         }
     }
 }
