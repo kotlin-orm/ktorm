@@ -184,7 +184,7 @@ public open class MySqlFormatter(
  */
 public sealed class MySqlForUpdateOption : ForUpdateOption {
     /**
-     * The generated SQL would be `select ... lock in share mode` for MySql 5 and `select .. for share` for MySql 8.
+     * The generated SQL would be `select ... lock in share mode` for MySql 5 and `select ... for share` for MySql 8.
      **/
     public object ForShare : MySqlForUpdateOption()
     /** The generated SQL would be `select ... for update`. */
