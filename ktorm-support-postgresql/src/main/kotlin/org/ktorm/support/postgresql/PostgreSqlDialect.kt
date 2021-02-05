@@ -21,9 +21,7 @@ import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
-import org.ktorm.support.postgresql.PostgresForUpdateOption.NoWait
-import org.ktorm.support.postgresql.PostgresForUpdateOption.SkipLocked
-import org.ktorm.support.postgresql.PostgresForUpdateOption.Wait
+import org.ktorm.schema.Table
 
 /**
  * [SqlDialect] implementation for PostgreSQL database.
@@ -36,15 +34,34 @@ public open class PostgreSqlDialect : SqlDialect {
 }
 
 /**
- * Postgres Specific ForUpdateOptions.
+ * Postgres Specific ForUpdateOption.
  */
-public sealed class PostgresForUpdateOption : ForUpdateOption {
-    /** The generated SQL would be `select ... for update skip locked`. */
-    public object SkipLocked : PostgresForUpdateOption()
-    /** The generated SQL would be `select ... for update nowait`. */
-    public object NoWait : PostgresForUpdateOption()
-    /** The generated SQL would be `select ... for update wait <seconds>`. */
-    public data class Wait(val seconds: Int) : PostgresForUpdateOption()
+public class PostgresForUpdateOption(
+    private val lockStrength: LockStrength,
+    private val onLock: OnLock,
+    private vararg val tables: Table<*> = emptyArray()
+) : ForUpdateOption {
+    public fun toLockingClause(): String {
+        val lockingClause = StringBuilder(lockStrength.keywords)
+        if (tables.isNotEmpty()) {
+            tables.joinTo(lockingClause, prefix = "of ", postfix = " ") { it.tableName }
+        }
+        onLock.keywords?.let { lockingClause.append(it) }
+        return lockingClause.toString()
+    }
+
+    public enum class LockStrength(public val keywords: String) {
+        Update("for update "),
+        NoKeyUpdate("for no key update "),
+        Share("for share "),
+        KeyShare("for key share ")
+    }
+
+    public enum class OnLock(public val keywords: String?) {
+        Wait(null),
+        NoWait("no wait "),
+        SkipLocked("skip locked ")
+    }
 }
 
 /**
@@ -55,9 +72,7 @@ public open class PostgreSqlFormatter(
 ) : SqlFormatter(database, beautifySql, indentSize) {
     override fun writeForUpdate(forUpdate: ForUpdateOption) {
         when (forUpdate) {
-            SkipLocked -> writeKeyword("for update skip locked ")
-            NoWait -> writeKeyword("for update nowait ")
-            is Wait -> writeKeyword("for update wait ${forUpdate.seconds} ")
+            is PostgresForUpdateOption -> writeKeyword(forUpdate.toLockingClause())
             else -> throw DialectFeatureNotSupportedException(
                 "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
             )

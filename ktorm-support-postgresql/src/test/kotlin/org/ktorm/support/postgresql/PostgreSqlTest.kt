@@ -16,6 +16,8 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import org.ktorm.support.postgresql.PostgresForUpdateOption.LockStrength.Update
+import org.ktorm.support.postgresql.PostgresForUpdateOption.OnLock.Wait
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 import java.util.concurrent.ExecutionException
@@ -393,12 +395,12 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testSelctForUpdate() {
+    fun testSelectForUpdate() {
         database.useTransaction {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .forUpdate(PostgresForUpdateOption.NoWait)
+                .forUpdate(PostgresForUpdateOption(lockStrength = Update, onLock = Wait))
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {
