@@ -172,13 +172,15 @@ public open class MySqlFormatter(
             forUpdate == ForUpdate -> writeKeyword("for update ")
             forUpdate == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
             forUpdate == ForShare && version == MySql8 -> writeKeyword("for share ")
-            else -> throw DialectFeatureNotSupportedException("Unsupported ForUpdateOption ${forUpdate::class.java.name}.")
+            else -> throw DialectFeatureNotSupportedException(
+                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
+            )
         }
     }
 }
 
 /**
- * MySql Specific ForUpdateExpressions.
+ * MySql Specific ForUpdateOptions.
  */
 public sealed class MySqlForUpdateOption : ForUpdateOption {
     /**

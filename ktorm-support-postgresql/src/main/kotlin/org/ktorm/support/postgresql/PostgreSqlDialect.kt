@@ -36,7 +36,7 @@ public open class PostgreSqlDialect : SqlDialect {
 }
 
 /**
- * Postgres Specific ForUpdateExpressions.
+ * Postgres Specific ForUpdateOptions.
  */
 public sealed class PostgresForUpdateOption : ForUpdateOption {
     /** The generated SQL would be `select ... for update skip locked`. */
@@ -58,7 +58,9 @@ public open class PostgreSqlFormatter(
             SkipLocked -> writeKeyword("for update skip locked ")
             NoWait -> writeKeyword("for update nowait ")
             is Wait -> writeKeyword("for update wait ${forUpdate.seconds} ")
-            else -> throw DialectFeatureNotSupportedException("Unsupported ForUpdateOption ${forUpdate::class.java.name}.")
+            else -> throw DialectFeatureNotSupportedException(
+                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
+            )
         }
     }
 

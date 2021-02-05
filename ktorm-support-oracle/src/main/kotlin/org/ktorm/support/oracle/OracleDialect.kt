@@ -21,6 +21,7 @@ import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
+import org.ktorm.support.oracle.OracleForUpdateOption.ForUpdate
 
 /**
  * [SqlDialect] implementation for Oracle database.
@@ -30,6 +31,14 @@ public open class OracleDialect : SqlDialect {
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return OracleFormatter(database, beautifySql, indentSize)
     }
+}
+
+/**
+ * Oracle Specific ForUpdateOptions.
+ */
+public sealed class OracleForUpdateOption : ForUpdateOption {
+    /** The generated SQL would be `select ... for update`. */
+    public object ForUpdate : OracleForUpdateOption()
 }
 
 /**
@@ -51,11 +60,20 @@ public open class OracleFormatter(
         return identifier.startsWith('_') || super.shouldQuote(identifier)
     }
 
+    override fun writeForUpdate(forUpdate: ForUpdateOption) {
+        when (forUpdate) {
+            ForUpdate -> writeKeyword("for update ")
+            else -> throw DialectFeatureNotSupportedException(
+                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
+            )
+        }
+    }
+
     override fun visitQuery(expr: QueryExpression): QueryExpression {
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
-        if (expr is SelectExpression && expr.forUpdate) {
+        if (expr is SelectExpression && expr.forUpdate != null) {
             throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
         }
 
