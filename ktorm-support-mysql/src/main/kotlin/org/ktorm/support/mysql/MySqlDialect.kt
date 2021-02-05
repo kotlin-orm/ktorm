@@ -43,13 +43,13 @@ private enum class Version(val majorVersion: Int) {
 }
 
 /**
- * Thrown to indicate that the MySql version is not supported by the current dialect.
+ * Thrown to indicate that the MySql version is not supported by the dialect.
  *
  * @param databaseMetaData used to format the exception's message.
  */
 public class UnsupportedMySqlVersionException(databaseMetaData: DatabaseMetaData) :
     UnsupportedOperationException(
-        "Unsupported SqlDialect for ${databaseMetaData.databaseProductName} v${databaseMetaData.databaseProductVersion}"
+        "Unsupported MySql version ${databaseMetaData.databaseProductVersion}."
     ) {
     private companion object {
         private const val serialVersionUID = 1L
