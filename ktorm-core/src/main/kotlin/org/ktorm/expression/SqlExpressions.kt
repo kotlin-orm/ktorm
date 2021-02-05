@@ -133,7 +133,7 @@ public data class SelectExpression(
 ) : QueryExpression()
 
 /**
- * ForUpdateOption, implementations are in the MySql and Postgres Dialects.
+ * ForUpdateOption, database-specific implementations are in support module for each database dialect.
  */
 public interface ForUpdateOption
 
