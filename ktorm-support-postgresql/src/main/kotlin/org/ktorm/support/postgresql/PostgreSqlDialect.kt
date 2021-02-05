@@ -52,13 +52,13 @@ public sealed class PostgresForUpdateExpression : ForUpdateExpression() {
 public open class PostgreSqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
-    override fun visitForUpdate(forUpdate: ForUpdateExpression): ForUpdateExpression {
-        when (forUpdate) {
+    override fun writeForUpdate(expr: ForUpdateExpression) {
+        when (expr) {
             SkipLocked -> writeKeyword("for update skip locked ")
             NoWait -> writeKeyword("for update nowait ")
-            is Wait -> writeKeyword("for update wait ${forUpdate.seconds} ")
+            is Wait -> writeKeyword("for update wait ${expr.seconds} ")
+            else -> { /* no-op */ }
         }
-        return forUpdate
     }
 
     override fun checkColumnName(name: String) {

@@ -166,14 +166,13 @@ public open class MySqlFormatter(
         return expr
     }
 
-    override fun visitForUpdate(expr: ForUpdateExpression): ForUpdateExpression {
+    override fun writeForUpdate(expr: ForUpdateExpression) {
         when {
             expr == ForUpdate -> writeKeyword("for update ")
             expr == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
             expr == ForShare && version == MySql8 -> writeKeyword("for share ")
             else -> { /* no-op */ }
         }
-        return expr
     }
 }
 
