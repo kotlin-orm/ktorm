@@ -21,8 +21,8 @@ import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.VarcharSqlType
-import org.ktorm.support.mysql.MySqlForUpdateExpression.ForShare
-import org.ktorm.support.mysql.MySqlForUpdateExpression.ForUpdate
+import org.ktorm.support.mysql.MySqlForUpdateOption.ForShare
+import org.ktorm.support.mysql.MySqlForUpdateOption.ForUpdate
 import org.ktorm.support.mysql.Version.MySql5
 import org.ktorm.support.mysql.Version.MySql8
 import java.sql.DatabaseMetaData
@@ -166,7 +166,7 @@ public open class MySqlFormatter(
         return expr
     }
 
-    override fun writeForUpdate(expr: ForUpdateExpression) {
+    override fun writeForUpdate(expr: ForUpdateOption) {
         when {
             expr == ForUpdate -> writeKeyword("for update ")
             expr == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
@@ -179,13 +179,13 @@ public open class MySqlFormatter(
 /**
  * MySql Specific ForUpdateExpressions.
  */
-public sealed class MySqlForUpdateExpression : ForUpdateExpression() {
+public sealed class MySqlForUpdateOption : ForUpdateOption {
     /**
      * The generated SQL would be `select ... lock in share mode` for MySql 5 and `select .. for share` for MySql 8.
      **/
-    public object ForShare : MySqlForUpdateExpression()
+    public object ForShare : MySqlForUpdateOption()
     /** The generated SQL would be `select ... for update`. */
-    public object ForUpdate : MySqlForUpdateExpression()
+    public object ForUpdate : MySqlForUpdateOption()
 }
 
 /**

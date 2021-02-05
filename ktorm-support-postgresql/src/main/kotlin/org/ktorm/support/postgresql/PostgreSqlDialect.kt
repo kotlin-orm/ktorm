@@ -20,9 +20,9 @@ import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
-import org.ktorm.support.postgresql.PostgresForUpdateExpression.NoWait
-import org.ktorm.support.postgresql.PostgresForUpdateExpression.SkipLocked
-import org.ktorm.support.postgresql.PostgresForUpdateExpression.Wait
+import org.ktorm.support.postgresql.PostgresForUpdateOption.NoWait
+import org.ktorm.support.postgresql.PostgresForUpdateOption.SkipLocked
+import org.ktorm.support.postgresql.PostgresForUpdateOption.Wait
 
 /**
  * [SqlDialect] implementation for PostgreSQL database.
@@ -37,13 +37,13 @@ public open class PostgreSqlDialect : SqlDialect {
 /**
  * Postgres Specific ForUpdateExpressions.
  */
-public sealed class PostgresForUpdateExpression : ForUpdateExpression() {
+public sealed class PostgresForUpdateOption : ForUpdateOption {
     /** The generated SQL would be `select ... for update skip locked`. */
-    public object SkipLocked : PostgresForUpdateExpression()
+    public object SkipLocked : PostgresForUpdateOption()
     /** The generated SQL would be `select ... for update nowait`. */
-    public object NoWait : PostgresForUpdateExpression()
+    public object NoWait : PostgresForUpdateOption()
     /** The generated SQL would be `select ... for update wait <seconds>`. */
-    public data class Wait(val seconds: Int) : PostgresForUpdateExpression()
+    public data class Wait(val seconds: Int) : PostgresForUpdateOption()
 }
 
 /**
@@ -52,7 +52,7 @@ public sealed class PostgresForUpdateExpression : ForUpdateExpression() {
 public open class PostgreSqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
-    override fun writeForUpdate(expr: ForUpdateExpression) {
+    override fun writeForUpdate(expr: ForUpdateOption) {
         when (expr) {
             SkipLocked -> writeKeyword("for update skip locked ")
             NoWait -> writeKeyword("for update nowait ")
