@@ -39,7 +39,7 @@ public open class PostgreSqlDialect : SqlDialect {
 public class PostgresForUpdateOption(
     private val lockStrength: LockStrength,
     private val onLock: OnLock,
-    private vararg val tables: Table<*> = emptyArray()
+    private vararg val tables: Table<*>
 ) : ForUpdateOption {
     public fun toLockingClause(): String {
         val lockingClause = StringBuilder(lockStrength.keywords)
