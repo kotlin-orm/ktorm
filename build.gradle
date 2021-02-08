@@ -2,7 +2,7 @@
 buildscript {
     ext {
         kotlinVersion = "1.4.21"
-        detektVersion = "1.12.0-RC1"
+        detektVersion = "1.15.0"
     }
     repositories {
         jcenter()

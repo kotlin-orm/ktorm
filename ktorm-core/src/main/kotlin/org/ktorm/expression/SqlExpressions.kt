@@ -125,7 +125,7 @@ public data class SelectExpression(
     val groupBy: List<ScalarExpression<*>> = emptyList(),
     val having: ScalarExpression<Boolean>? = null,
     val isDistinct: Boolean = false,
-    val forUpdate: ForUpdateOption? = null,
+    val forUpdate: ForUpdateOption = ForUpdateOption.None,
     override val orderBy: List<OrderByExpression> = emptyList(),
     override val offset: Int? = null,
     override val limit: Int? = null,
@@ -136,7 +136,11 @@ public data class SelectExpression(
 /**
  * ForUpdateOption, database-specific implementations are in support module for each database dialect.
  */
-public interface ForUpdateOption
+public interface ForUpdateOption {
+    public companion object {
+        public val None: ForUpdateOption = object : ForUpdateOption {}
+    }
+}
 
 /**
  * Union expression, represents a `union` statement of SQL.

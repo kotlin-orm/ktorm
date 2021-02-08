@@ -1511,6 +1511,6 @@ public fun <E : Any> EntitySequence<E, *>.joinToString(
  * @since 3.1.0
  */
 public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(
-    forUpdate: ForUpdateOption?): EntitySequence<E, T> {
+    forUpdate: ForUpdateOption): EntitySequence<E, T> {
     return this.withExpression(expression.copy(forUpdate = forUpdate))
 }

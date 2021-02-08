@@ -67,7 +67,7 @@ public open class SqlServerFormatter(
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
-        if (expr is SelectExpression && expr.forUpdate != null) {
+        if (expr is SelectExpression && expr.forUpdate != ForUpdateOption.None) {
             throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
         }
 

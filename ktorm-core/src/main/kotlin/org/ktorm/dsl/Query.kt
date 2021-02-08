@@ -767,7 +767,7 @@ public fun Query.joinToString(
  *
  * @since 3.1.0
  */
-public fun Query.forUpdate(forUpdate: ForUpdateOption?): Query {
+public fun Query.forUpdate(forUpdate: ForUpdateOption): Query {
     val expr = when (expression) {
         is SelectExpression -> expression.copy(forUpdate = forUpdate)
         is UnionExpression -> throw IllegalStateException("SELECT FOR UPDATE is not supported in a union expression.")

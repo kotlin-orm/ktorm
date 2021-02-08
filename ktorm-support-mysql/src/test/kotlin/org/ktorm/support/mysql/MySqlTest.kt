@@ -36,7 +36,7 @@ class MySqlTest : BaseTest() {
         const val ID_3 = 3
         const val ID_4 = 4
 
-        class KMySqlContainer : MySQLContainer<KMySqlContainer>()
+        class KMySqlContainer : MySQLContainer<KMySqlContainer>("mysql:8")
 
         @ClassRule
         @JvmField

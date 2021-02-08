@@ -388,7 +388,7 @@ public abstract class SqlFormatter(
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
         }
-        if (expr.forUpdate != null) {
+        if (expr.forUpdate != ForUpdateOption.None) {
             writeForUpdate(expr.forUpdate)
         }
         return expr

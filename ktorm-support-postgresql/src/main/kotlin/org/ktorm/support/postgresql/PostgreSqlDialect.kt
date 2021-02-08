@@ -34,13 +34,17 @@ public open class PostgreSqlDialect : SqlDialect {
 }
 
 /**
- * Postgres Specific ForUpdateOption.
+ * Postgres Specific ForUpdateOption. See docs: https://www.postgresql.org/docs/13/sql-select.html#SQL-FOR-UPDATE-SHARE
  */
 public class PostgresForUpdateOption(
     private val lockStrength: LockStrength,
     private val onLock: OnLock,
     private vararg val tables: Table<*>
 ) : ForUpdateOption {
+
+    /**
+     * Generates SQL locking clause.
+     */
     public fun toLockingClause(): String {
         val lockingClause = StringBuilder(lockStrength.keywords)
         if (tables.isNotEmpty()) {
@@ -50,6 +54,9 @@ public class PostgresForUpdateOption(
         return lockingClause.toString()
     }
 
+    /**
+     * Lock strength.
+     */
     public enum class LockStrength(public val keywords: String) {
         Update("for update "),
         NoKeyUpdate("for no key update "),
@@ -57,6 +64,9 @@ public class PostgresForUpdateOption(
         KeyShare("for key share ")
     }
 
+    /**
+     * Behavior when a lock is detected.
+     */
     public enum class OnLock(public val keywords: String?) {
         Wait(null),
         NoWait("no wait "),

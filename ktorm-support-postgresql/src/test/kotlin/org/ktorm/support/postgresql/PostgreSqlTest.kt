@@ -31,7 +31,7 @@ import java.util.concurrent.TimeoutException
 class PostgreSqlTest : BaseTest() {
 
     companion object {
-        class KPostgreSqlContainer : PostgreSQLContainer<KPostgreSqlContainer>()
+        class KPostgreSqlContainer : PostgreSQLContainer<KPostgreSqlContainer>("postgres:13-alpine")
 
         @ClassRule
         @JvmField
