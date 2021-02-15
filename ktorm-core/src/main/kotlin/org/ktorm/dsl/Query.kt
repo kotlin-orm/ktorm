@@ -763,7 +763,7 @@ public fun Query.joinToString(
 }
 
 /**
- * Indicate that this query should acquire an update-lock, the generated SQL will depend on the SqlDialect.
+ * Indicate that this query should acquire the record-lock, the generated SQL will depend on the SqlDialect.
  *
  * @since 3.1.0
  */

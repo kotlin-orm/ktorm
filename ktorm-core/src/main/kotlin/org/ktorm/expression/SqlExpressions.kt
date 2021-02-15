@@ -115,7 +115,7 @@ public sealed class QueryExpression : QuerySourceExpression() {
  * @property groupBy the grouping conditions, represents the `group by` clause of SQL.
  * @property having the having condition, represents the `having` clause of SQL.
  * @property isDistinct mark if this query is distinct, true means the SQL is `select distinct ...`.
- * @property forUpdate mark if this query should acquire an update-lock, non-null will generate a dialect-specific
+ * @property forUpdate mark if this query should acquire the record-lock, non-null will generate a dialect-specific
  * `for update` clause.
  */
 public data class SelectExpression(
