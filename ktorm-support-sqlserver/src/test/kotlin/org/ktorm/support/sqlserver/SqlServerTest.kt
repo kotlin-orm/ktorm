@@ -37,7 +37,7 @@ class SqlServerTest : BaseTest() {
         const val ID_3 = 3
         const val ID_4 = 4
 
-        class KSqlServerContainer : MSSQLServerContainer<KSqlServerContainer>()
+        class KSqlServerContainer : MSSQLServerContainer<KSqlServerContainer>("mcr.microsoft.com/mssql/server:2017-CU12")
 
         @ClassRule
         @JvmField

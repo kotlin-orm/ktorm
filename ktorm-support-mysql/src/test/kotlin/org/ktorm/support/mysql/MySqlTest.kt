@@ -36,7 +36,7 @@ class MySqlTest : BaseTest() {
         const val ID_3 = 3
         const val ID_4 = 4
 
-        class KMySqlContainer : MySQLContainer<KMySqlContainer>()
+        class KMySqlContainer : MySQLContainer<KMySqlContainer>("mysql:8")
 
         @ClassRule
         @JvmField
@@ -417,12 +417,12 @@ class MySqlTest : BaseTest() {
     }
 
     @Test
-    fun testSelctForUpdate() {
+    fun testSelectForUpdate() {
         database.useTransaction {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .forUpdate()
+                .forUpdate(MySqlForUpdateOption.ForUpdate)
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {

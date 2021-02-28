@@ -5,5 +5,5 @@ dependencies {
     testImplementation project(path: ":ktorm-core", configuration: "testOutput")
     testImplementation project(":ktorm-jackson")
     testImplementation "mysql:mysql-connector-java:8.0.13"
-    testImplementation "org.testcontainers:mysql:1.11.3"
+    testImplementation "org.testcontainers:mysql:1.15.1"
 }

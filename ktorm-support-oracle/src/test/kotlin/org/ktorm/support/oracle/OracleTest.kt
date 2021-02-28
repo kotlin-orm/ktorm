@@ -155,7 +155,7 @@ class OracleTest : BaseTest() {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .forUpdate()
+                .forUpdate(OracleForUpdateOption.ForUpdate)
                 .single()
 
             val future = Executors.newSingleThreadExecutor().submit {

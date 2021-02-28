@@ -17,9 +17,11 @@
 package org.ktorm.support.postgresql
 
 import org.ktorm.database.Database
+import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
+import org.ktorm.schema.Table
 
 /**
  * [SqlDialect] implementation for PostgreSQL database.
@@ -32,11 +34,60 @@ public open class PostgreSqlDialect : SqlDialect {
 }
 
 /**
+ * Postgres Specific ForUpdateOption. See docs: https://www.postgresql.org/docs/13/sql-select.html#SQL-FOR-UPDATE-SHARE
+ */
+public class PostgresForUpdateOption(
+    private val lockStrength: LockStrength,
+    private val onLock: OnLock,
+    private vararg val tables: Table<*>
+) : ForUpdateOption {
+
+    /**
+     * Generates SQL locking clause.
+     */
+    public fun toLockingClause(): String {
+        val lockingClause = StringBuilder(lockStrength.keywords)
+        if (tables.isNotEmpty()) {
+            tables.joinTo(lockingClause, prefix = "of ", postfix = " ") { it.tableName }
+        }
+        onLock.keywords?.let { lockingClause.append(it) }
+        return lockingClause.toString()
+    }
+
+    /**
+     * Lock strength.
+     */
+    public enum class LockStrength(public val keywords: String) {
+        Update("for update "),
+        NoKeyUpdate("for no key update "),
+        Share("for share "),
+        KeyShare("for key share ")
+    }
+
+    /**
+     * Behavior when a lock is detected.
+     */
+    public enum class OnLock(public val keywords: String?) {
+        Wait(null),
+        NoWait("no wait "),
+        SkipLocked("skip locked ")
+    }
+}
+
+/**
  * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
  */
 public open class PostgreSqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
+    override fun writeForUpdate(forUpdate: ForUpdateOption) {
+        when (forUpdate) {
+            is PostgresForUpdateOption -> writeKeyword(forUpdate.toLockingClause())
+            else -> throw DialectFeatureNotSupportedException(
+                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
+            )
+        }
+    }
 
     override fun checkColumnName(name: String) {
         val maxLength = database.maxColumnNameLength

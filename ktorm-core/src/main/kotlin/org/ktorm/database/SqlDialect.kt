@@ -17,6 +17,7 @@
 package org.ktorm.database
 
 import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.ForUpdateOption
 import org.ktorm.expression.QueryExpression
 import org.ktorm.expression.SqlFormatter
 import java.sql.Statement
@@ -50,6 +51,10 @@ public interface SqlDialect {
      */
     public fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return object : SqlFormatter(database, beautifySql, indentSize) {
+            override fun writeForUpdate(forUpdate: ForUpdateOption) {
+                throw DialectFeatureNotSupportedException("ForUpdate is not supported in Standard SQL.")
+            }
+
             override fun writePagination(expr: QueryExpression) {
                 throw DialectFeatureNotSupportedException("Pagination is not supported in Standard SQL.")
             }
