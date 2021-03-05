@@ -153,11 +153,25 @@ public open class PostgreSqlFormatter(
         writeKeyword("values ")
         writeInsertValues(expr.assignments)
 
-        if (expr.updateAssignments.isNotEmpty()) {
+        if (expr.conflictColumns != null) {
             writeKeyword("on conflict ")
             writeInsertColumnNames(expr.conflictColumns)
-            writeKeyword("do update set ")
-            visitColumnAssignments(expr.updateAssignments)
+
+            if (expr.updateAssignments.isNotEmpty()) {
+                writeKeyword("do update set ")
+                visitColumnAssignments(expr.updateAssignments)
+            } else {
+                writeKeyword("do nothing ")
+            }
+        }
+
+        if (expr.returningColumns.isNotEmpty()) {
+            writeKeyword(" returning ")
+            expr.returningColumns.forEachIndexed { i, column ->
+                if (i > 0) write(", ")
+                checkColumnName(column.name)
+                write(column.name.quoted)
+            }
         }
 
         return expr
@@ -177,11 +191,25 @@ public open class PostgreSqlFormatter(
             writeInsertValues(assignments)
         }
 
-        if (expr.updateAssignments.isNotEmpty()) {
+        if (expr.conflictColumns != null) {
             writeKeyword("on conflict ")
             writeInsertColumnNames(expr.conflictColumns)
-            writeKeyword("do update set ")
-            visitColumnAssignments(expr.updateAssignments)
+
+            if (expr.updateAssignments.isNotEmpty()) {
+                writeKeyword("do update set ")
+                visitColumnAssignments(expr.updateAssignments)
+            } else {
+                writeKeyword("do nothing ")
+            }
+        }
+
+        if (expr.returningColumns.isNotEmpty()) {
+            writeKeyword(" returning ")
+            expr.returningColumns.forEachIndexed { i, column ->
+                if (i > 0) write(", ")
+                checkColumnName(column.name)
+                write(column.name.quoted)
+            }
         }
 
         return expr
@@ -239,7 +267,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         val table = visitTable(expr.table)
         val assignments = visitColumnAssignments(expr.assignments)
-        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val conflictColumns = if (expr.conflictColumns != null) visitExpressionList(expr.conflictColumns) else null
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
 
         @Suppress("ComplexCondition")
@@ -262,7 +290,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         val table = expr.table
         val assignments = visitBulkInsertAssignments(expr.assignments)
-        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val conflictColumns = if (expr.conflictColumns != null) visitExpressionList(expr.conflictColumns) else null
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
 
         @Suppress("ComplexCondition")
