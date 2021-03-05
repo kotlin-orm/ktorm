@@ -92,6 +92,12 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
         throw IllegalStateException(msg)
     }
 
+    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
+        val msg = "You cannot leave a on-conflict clause empty! If you desire no update action at all" +
+            " you must explicitly invoke `doNothing()`"
+        throw IllegalStateException(msg)
+    }
+
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
@@ -346,6 +352,12 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
         val msg =
             "Table '$table' doesn't have a primary key, " +
                 "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+        throw IllegalStateException(msg)
+    }
+
+    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
+        val msg = "You cannot leave a on-conflict clause empty! If you desire no update action at all" +
+            " you must explicitly invoke `doNothing()`"
         throw IllegalStateException(msg)
     }
 
