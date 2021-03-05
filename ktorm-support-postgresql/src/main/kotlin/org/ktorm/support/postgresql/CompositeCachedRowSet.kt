@@ -20,22 +20,23 @@ import org.ktorm.database.CachedRowSet
 import java.util.*
 
 /**
- * To document.
+ * Utility class that stores the resulting CachedRowSet from
+ * multiple queries, but abstract their iteration as if they were
+ * a single CachedRowSet.
  */
 public class CompositeCachedRowSet {
     private val resultSets = LinkedList<CachedRowSet>()
 
     /**
-     * To document.
-     * @param rs todo
-     * @return todo
+     * Adds a CachedRowSet to the composite group.
+     * @param rs the new CachedRowSet
      */
     public fun add(rs: CachedRowSet) {
         resultSets.add(rs)
     }
 
     /**
-     * To document.
+     * Returns the iterator for this composite.
      */
     @Suppress("IteratorHasNextCallsNextMethod")
     public operator fun iterator(): Iterator<CachedRowSet> = object : Iterator<CachedRowSet> {
@@ -62,7 +63,7 @@ public class CompositeCachedRowSet {
     }
 
     /**
-     * To document.
+     * Returns the iterator for this composite.
      */
     public fun asIterable(): Iterable<CachedRowSet> {
         return Iterable { iterator() }
