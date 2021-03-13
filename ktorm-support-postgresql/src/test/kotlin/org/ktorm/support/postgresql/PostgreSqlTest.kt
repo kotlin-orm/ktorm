@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.math.roundToInt
 
 /**
  * Created by vince on Feb 13, 2019.
@@ -176,7 +177,7 @@ class PostgreSqlTest : BaseTest() {
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
 
-            onDuplicateKey {
+            onConflict {
                 set(it.salary, it.salary + 900)
             }
         }.let { createdId ->
@@ -197,7 +198,7 @@ class PostgreSqlTest : BaseTest() {
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
 
-            onDuplicateKey {
+            onConflict {
                 set(it.salary, it.salary + 900)
             }
         }.let { (createdId, createdName) ->
@@ -220,7 +221,7 @@ class PostgreSqlTest : BaseTest() {
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
 
-            onDuplicateKey(it.id) {
+            onConflict(it.id) {
                 set(it.salary, it.salary + 900)
             }
         }.let { (createdId, createdName, createdSalary) ->
@@ -267,6 +268,52 @@ class PostgreSqlTest : BaseTest() {
             assert(it.department.id == 2)
             assert(it.salary == 1000L)
         }
+    }
+
+    @Test
+    fun testBulkInsertWithUpdate() {
+        // Make sure we are creating new entries in the table (avoid colliding with existing test data)
+        val id1 = (Math.random() * 10000).roundToInt()
+        val id2 = (Math.random() * 10000).roundToInt()
+
+        val bulkInsertWithUpdate = { onDuplicateKeyDoNothing: Boolean ->
+            database.bulkInsertOrUpdate(Employees) {
+                item {
+                    set(it.id, id1)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+                item {
+                    set(it.id, id2)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+                onConflict(Employees.id) {
+                    if (!onDuplicateKeyDoNothing)
+                        set(it.salary, it.salary + 900)
+                    else
+                        doNothing()
+                }
+            }
+        }
+
+        bulkInsertWithUpdate(false)
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1000L)
+
+        bulkInsertWithUpdate(false)
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
+
+        bulkInsertWithUpdate(true)
+        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
     }
 
     @Test
@@ -360,8 +407,8 @@ class PostgreSqlTest : BaseTest() {
         }.let { created ->
             assert(
                 listOf(
-                    Triple(10003,"vince","trainee"),
-                    Triple(50003,"vince","engineer")
+                    Triple(10003, "vince", "trainee"),
+                    Triple(50003, "vince", "engineer")
                 ) == created
             )
         }

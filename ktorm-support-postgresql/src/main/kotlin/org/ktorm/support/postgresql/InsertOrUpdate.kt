@@ -40,7 +40,7 @@ import org.ktorm.schema.Column
 public data class InsertOrUpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
-    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
+    val conflictColumns: List<ColumnExpression<*>>? = null,
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
     val returningColumns: List<ColumnExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
@@ -88,7 +88,14 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-                    "you must specify the conflict columns when calling onConflict(col) { .. }"
+            "you must specify the conflict columns when calling onConflict(col) { .. }"
+        throw IllegalStateException(msg)
+    }
+
+    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
+        val msg =
+            "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
+            "you must explicitly invoke `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -96,7 +103,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = builder.updateAssignments
+        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
     )
 
     return executeUpdate(expression)
@@ -122,6 +129,8 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal val conflictColumns = ArrayList<Column<*>>()
 
+    internal var explicitlyDoNothing: Boolean = false
+
     /**
      * Specify the update assignments while any key conflict exists.
      */
@@ -136,14 +145,48 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    public fun onConflict(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder().apply(block)
+    public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
+        val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
+
+        explicitlyDoNothing = builder.explicitlyDoNothing
+
         updateAssignments += builder.assignments
+
         conflictColumns += columns
     }
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * DSL builder for insert or update on conflict clause.
+ */
+@KtormDsl
+public class InsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBuilder() {
+    internal var explicitlyDoNothing: Boolean = false
+
+    /**
+     * Explicitly tells ktorm to ignore any on-conflict errors and continue insertion.
+     */
+    public fun doNothing() {
+        this.explicitlyDoNothing = true
+    }
+
+    /**
+     * Reference the 'EXCLUDED' table in a ON CONFLICT clause.
+     */
+    public fun <T : Any> excluded(column: Column<T>): ColumnExpression<T> {
+        // excluded.name
+        return ColumnExpression(
+            table = TableExpression(name = "excluded"),
+            name = column.name,
+            sqlType = column.sqlType
+        )
+    }
+}
+
+/**
+>>>>>>> 0ee0f38d1fb1e28dbfa4832badc4f92ef8ad2802
  * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
  * performs an update if any conflict exists.
  *
@@ -180,7 +223,7 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
 public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
     table: T,
     returningColumn: Column<R>,
-    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+    block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): R? {
     val (_, rowSet) = this.insertOrUpdateReturningAux(
         table,
@@ -230,7 +273,7 @@ public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
 public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturning(
     table: T,
     returningColumns: Pair<Column<R1>, Column<R2>>,
-    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+    block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Pair<R1?, R2?> {
     val (_, rowSet) = this.insertOrUpdateReturningAux(
         table,
@@ -283,7 +326,7 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturni
 public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.insertOrUpdateReturning(
     table: T,
     returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,
-    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+    block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Triple<R1?, R2?, R3?> {
     val (_, rowSet) = this.insertOrUpdateReturningAux(
         table,
@@ -304,15 +347,22 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.insertOrUpd
 private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
     table: T,
     returningColumns: List<Column<*>>,
-    block: InsertOrUpdateReturningColumnsStatementBuilder.(T) -> Unit
+    block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Pair<Int, CachedRowSet> {
-    val builder = InsertOrUpdateReturningColumnsStatementBuilder().apply { block(table) }
+    val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
     val primaryKeys = table.primaryKeys
     if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-                    "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+            "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+        throw IllegalStateException(msg)
+    }
+
+    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
+        val msg =
+            "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
+            "you must explicitly invoke `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -320,27 +370,9 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
-        updateAssignments = builder.updateAssignments,
+        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
         returningColumns = returningColumns.map { it.asExpression() }
     )
 
     return executeUpdateAndRetrieveKeys(expression)
-}
-
-/**
- * DSL builder for insert or update statements that return columns.
- */
-@KtormDsl
-public class InsertOrUpdateReturningColumnsStatementBuilder : PostgreSqlAssignmentsBuilder() {
-    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-    internal val conflictColumns = ArrayList<Column<*>>()
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
-    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder().apply(block)
-        updateAssignments += builder.assignments
-        conflictColumns += columns
-    }
 }
