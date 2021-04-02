@@ -40,7 +40,7 @@ import kotlin.contracts.contract
  * The simplest way to create a database instance, using a JDBC URL:
  *
  * ```kotlin
- * val database = Database.connect("jdbc:mysql://localhost:3306/ktorm", user = "root", password = "***")
+ * val database = Database.connect("jdbc:mysql://localhost:3306/ktorm", user = "root", password = "123")
  * ```
  *
  * Easy to know what we do in the [connect] function. Just like any JDBC boilerplate code, Ktorm loads the MySQL
