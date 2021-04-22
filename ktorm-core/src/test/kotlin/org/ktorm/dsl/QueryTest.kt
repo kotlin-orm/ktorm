@@ -70,6 +70,60 @@ class QueryTest : BaseTest() {
     }
 
     @Test
+    fun testWhereCondition() {
+        val t = Employees.aliased("t")
+        val name = Employee().run {
+            salary = 200
+            database
+                .from(t)
+                .select(t.name)
+                .whereCondition {
+                    it[{ true }] = t.managerId.isNull()
+                    it[{ salary > 100 }] = t.salary eq salary or (t.departmentId eq 1)
+                }
+                .map { it.getString(1) }
+                .first()
+        }
+        assert(name == "vince")
+    }
+
+    @Test
+    fun whereConditionBuilder() {
+        val t = Employees.aliased("t")
+        val name = Employee().run {
+            salary = 200
+            database
+                .from(t)
+                .select(t.name)
+                .whereConditionBuilder()
+                    .ifTrueAdd({ salary != -1L }, (t.salary eq salary) or (t.managerId eq 2))
+                    .ifTrueAdd(value = t.managerId.isNull())
+                    .build()
+                .map { it.getString(1) }
+                .first()
+        }
+        assert(name == "tom")
+    }
+
+    @Test
+    fun whereConditionBuilderIsTrueZero() {
+        val t = Employees.aliased("t")
+        val name = Employee().run {
+            salary = -1
+            database
+                .from(t)
+                .select(t.name)
+                .whereConditionBuilder()
+                .ifTrueAdd({ salary != -1L }, t.salary eq salary)
+                .ifTrueAdd({ false }, t.managerId.isNull())
+                .build()
+                .map { it.getString(1) }
+                .first()
+        }
+        assert(name == "vince")
+    }
+
+    @Test
     fun testCombineConditions() {
         val t = Employees.aliased("t")
 

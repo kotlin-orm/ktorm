@@ -247,6 +247,76 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
 }
 
 /**
+ * where语句条件构造器
+ * 内置HashMap保存条件判断函数和对应列声明
+ * build后判断条件, true则添加到where子句中
+ * @param query 查询操作对象
+ * @property conditionMap 用于储存条件函数以及列声明
+ * @author DreamStar92
+ * */
+public class WhereConditionBuilder(private val query: Query) {
+
+    private val conditionMap = HashMap<() -> Boolean, ColumnDeclaring<Boolean>>()
+
+    /**
+     * 如果条件为true则将列定义加到where子句中
+     * @param condition 条件判断函数
+     * @param value 列定义
+     * @return where条件构造器
+     * @author DreamStar92
+     * */
+    public fun ifTrueAdd(condition: () -> Boolean = { true }, value: ColumnDeclaring<Boolean>): WhereConditionBuilder {
+        conditionMap += condition to value
+        return this
+    }
+
+    /**
+     * 遍历条件,将条件为true的列定义加入where子句中,如无条件为true,将不构造where子句
+     * @return 查询操作对象
+     * @author DreamStar92
+     * */
+    public fun build(): Query {
+        val conditions = conditionMap.filter { (condition, _) -> condition.invoke() }
+        return query.run {
+            if (conditions.isEmpty()) this
+            else where {
+                conditions.map { (_, value) -> value }
+                    .reduce { a, b -> a and b }
+            }
+        }
+    }
+}
+
+/**
+ * where条件构造器,
+ * 可以动态添加sql语句,
+ * 链式调用法
+ * @author DreamStar92
+ * */
+public fun Query.whereConditionBuilder(): WhereConditionBuilder {
+    return WhereConditionBuilder(this)
+}
+
+/**
+ * where条件构造器,
+ * 可以动态添加sql语句,
+ * 函数用法
+ * @author DreamStar92
+ * */
+public fun Query.whereCondition(conditionsApply: (conditionMap: HashMap<() -> Boolean, ColumnDeclaring<Boolean>>) -> Unit): Query {
+    val conditions = HashMap<() -> Boolean, ColumnDeclaring<Boolean>>()
+        .apply(conditionsApply)
+        .filter { (condition, _) -> condition.invoke() }
+    return this.run {
+        if (conditions.isEmpty()) this
+        else where {
+            conditions.map { (_, value) -> value }
+                .reduce { a, b -> a and b }
+        }
+    }
+}
+
+/**
  * Combine this iterable of boolean expressions with the [and] operator.
  *
  * If the iterable is empty, the param [ifEmpty] will be returned.

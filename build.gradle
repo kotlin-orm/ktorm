@@ -1,4 +1,3 @@
-
 buildscript {
     ext {
         kotlinVersion = "1.4.21"
@@ -42,8 +41,8 @@ subprojects { project ->
         kotlinOptions.jvmTarget = "1.6"
         kotlinOptions.allWarningsAsErrors = true
         kotlinOptions.freeCompilerArgs = [
-            "-Xexplicit-api=strict",
-            "-Xopt-in=kotlin.RequiresOptIn"
+                "-Xexplicit-api=strict",
+                "-Xopt-in=kotlin.RequiresOptIn"
         ]
     }
 
@@ -161,6 +160,11 @@ subprojects { project ->
                             id = "pedrod"
                             name = "Pedro Domingues"
                             email = "pedro.domingues.pt@gmail.com"
+                        }
+                        developer {
+                            id = "DreamStar92"
+                            name = "Soong"
+                            email = "dreamstar921314@gmail.com"
                         }
                     }
                     scm {
