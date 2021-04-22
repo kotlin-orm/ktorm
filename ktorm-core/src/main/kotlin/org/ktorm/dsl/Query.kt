@@ -247,11 +247,12 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
 }
 
 /**
- * where语句条件构造器
- * 内置HashMap保存条件判断函数和对应列声明
- * build后判断条件, true则添加到where子句中
- * @param query 查询操作对象
- * @property conditionMap 用于储存条件函数以及列声明
+ * where statement conditional builder.
+ * Built-in mutable map save condition judgment function and corresponding ColumnDeclaring.
+ * The condition is judged after the build, if it is true is added to the where clause.
+ * If there is no meeting the conditions, the where clause is not constructed.
+ * @param query query operation object
+ * @property conditionMap Used to store conditional functions and columnDeclarations
  * @author DreamStar92
  * */
 public class WhereConditionBuilder(private val query: Query) {
@@ -259,10 +260,10 @@ public class WhereConditionBuilder(private val query: Query) {
     private val conditionMap = HashMap<() -> Boolean, ColumnDeclaring<Boolean>>()
 
     /**
-     * 如果条件为true则将列定义加到where子句中
-     * @param condition 条件判断函数
-     * @param value 列定义
-     * @return where条件构造器
+     * If the condition is true, add the column definition to the where clause
+     * @param condition conditional judgment function
+     * @param value ColumnDeclaring
+     * @return where conditional builder
      * @author DreamStar92
      * */
     public fun ifTrueAdd(condition: () -> Boolean = { true }, value: ColumnDeclaring<Boolean>): WhereConditionBuilder {
@@ -271,8 +272,9 @@ public class WhereConditionBuilder(private val query: Query) {
     }
 
     /**
-     * 遍历条件,将条件为true的列定义加入where子句中,如无条件为true,将不构造where子句
-     * @return 查询操作对象
+     * Traverse the map and add the ColumnDeclaring whose conditions are true to the where clause.
+     * If unconditionally is true, the where clause will not be constructed.
+     * @return query operation object
      * @author DreamStar92
      * */
     public fun build(): Query {
@@ -288,9 +290,9 @@ public class WhereConditionBuilder(private val query: Query) {
 }
 
 /**
- * where条件构造器,
- * 可以动态添加sql语句,
- * 链式调用法
+ * where conditional constructor.
+ * you can add sql statements dynamically.
+ * chain call method.
  * @author DreamStar92
  * */
 public fun Query.whereConditionBuilder(): WhereConditionBuilder {
@@ -298,9 +300,9 @@ public fun Query.whereConditionBuilder(): WhereConditionBuilder {
 }
 
 /**
- * where条件构造器,
- * 可以动态添加sql语句,
- * 函数用法
+ * where conditional constructor.
+ * you can add sql statements dynamically.
+ * function usage.
  * @author DreamStar92
  * */
 public fun Query.whereCondition(conditionsApply: (conditionMap: HashMap<() -> Boolean, ColumnDeclaring<Boolean>>) -> Unit): Query {
