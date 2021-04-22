@@ -254,35 +254,14 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
  * */
 private typealias WhereConditionMap = HashMap<() -> Boolean, ColumnDeclaring<Boolean>>
 
-/**
- * filter out pairs whose condition is true.
- * @return filtered WhereConditionMap
- * @author DreamStar92
- * */
-private fun WhereConditionMap.verification(): WhereConditionMap =
+private fun WhereConditionMap.checkConditions(): WhereConditionMap =
     filter { (condition, _) -> condition.invoke() } as WhereConditionMap
 
-/**
- * combine the ColumnDeclaring in the map.
- * verify before building
- * @see verification
- * @return build complete ColumnDeclaring.
- * @author DreamStar92
- * */
-private fun WhereConditionMap.merge(): ColumnDeclaring<Boolean> =
+private fun WhereConditionMap.mergeColumnDeclaring(): ColumnDeclaring<Boolean> =
     map { (_, value) -> value }.reduce { a, b -> a and b }
 
-/**
- * build complete ColumnDeclaring.
- * filter out pairs whose condition is true.
- * combine the ColumnDeclaring in the map.
- * If unconditionally is true, the where clause will not be constructed.
- * @param query query operation object
- * @return build complete ColumnDeclaring.
- * @author DreamStar92
- * */
-private fun WhereConditionMap.createCompleteColumnDeclaring(query: Query) =
-    verification().let { query.run { if (it.isEmpty()) this else where { it.merge() } } }
+private fun WhereConditionMap.buildWhere(query: Query) =
+    checkConditions().let { query.run { if (it.isEmpty()) this else where { it.mergeColumnDeclaring() } } }
 
 /**
  * where statement conditional builder.
@@ -314,7 +293,7 @@ public class WhereConditionBuilder(private val query: Query) {
      * @return query operation object
      * @author DreamStar92
      * */
-    public fun build(): Query = conditionMap.createCompleteColumnDeclaring(query)
+    public fun build(): Query = conditionMap.buildWhere(query)
 }
 
 /**
@@ -332,7 +311,7 @@ public fun Query.whereConditionBuilder(): WhereConditionBuilder = WhereCondition
  * @author DreamStar92
  * */
 public fun Query.whereCondition(block: (conditionMap: WhereConditionMap) -> Unit): Query =
-    run { WhereConditionMap().apply(block).createCompleteColumnDeclaring(this) }
+    run { WhereConditionMap().apply(block).buildWhere(this) }
 
 /**
  * Combine this iterable of boolean expressions with the [and] operator.
