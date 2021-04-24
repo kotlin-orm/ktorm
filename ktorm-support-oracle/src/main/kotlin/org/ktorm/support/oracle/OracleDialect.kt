@@ -17,11 +17,9 @@
 package org.ktorm.support.oracle
 
 import org.ktorm.database.Database
-import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
-import org.ktorm.support.oracle.OracleForUpdateOption.ForUpdate
 
 /**
  * [SqlDialect] implementation for Oracle database.
@@ -31,14 +29,6 @@ public open class OracleDialect : SqlDialect {
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return OracleFormatter(database, beautifySql, indentSize)
     }
-}
-
-/**
- * Oracle Specific ForUpdateOptions.
- */
-public sealed class OracleForUpdateOption : ForUpdateOption {
-    /** The generated SQL would be `select ... for update`. */
-    public object ForUpdate : OracleForUpdateOption()
 }
 
 /**
@@ -60,22 +50,16 @@ public open class OracleFormatter(
         return identifier.startsWith('_') || super.shouldQuote(identifier)
     }
 
-    override fun writeForUpdate(forUpdate: ForUpdateOption) {
-        when (forUpdate) {
-            ForUpdate -> writeKeyword("for update ")
-            else -> throw DialectFeatureNotSupportedException(
-                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
-            )
-        }
-    }
-
     override fun visitQuery(expr: QueryExpression): QueryExpression {
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
-        if (expr is SelectExpression && expr.forUpdate != ForUpdateOption.None) {
-            throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
-        }
+
+        // forUpdate() function in the core lib was removed, uncomment the following lines
+        // when we add this feature back in the Oracle dialect.
+        // if (expr is SelectExpression && expr.forUpdate) {
+        //     throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
+        // }
 
         val offset = expr.offset ?: 0
         val minRowNum = offset + 1

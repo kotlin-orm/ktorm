@@ -1,24 +1,21 @@
 package org.ktorm.support.oracle
 
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
-import org.ktorm.database.TransactionIsolation
 import org.ktorm.database.use
 import org.ktorm.dsl.*
-import org.ktorm.entity.*
+import org.ktorm.entity.count
+import org.ktorm.entity.filter
+import org.ktorm.entity.mapTo
+import org.ktorm.entity.sequenceOf
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.OracleContainer
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /**
  * Created by vince at Aug 01, 2020.
@@ -145,34 +142,6 @@ class OracleTest : BaseTest() {
     fun testSequence() {
         for (employee in database.employees) {
             println(employee)
-        }
-    }
-
-    @Test
-    @Ignore
-    fun testSelectForUpdate() {
-        database.useTransaction(isolation = TransactionIsolation.SERIALIZABLE) {
-            val employee = database
-                .sequenceOf(Employees, withReferences = false)
-                .filter { it.id eq 1 }
-                .forUpdate(OracleForUpdateOption.ForUpdate)
-                .single()
-
-            val future = Executors.newSingleThreadExecutor().submit {
-                employee.name = "vince"
-                employee.flushChanges()
-            }
-
-            try {
-                future.get(5, TimeUnit.SECONDS)
-                throw AssertionError()
-            } catch (e: ExecutionException) {
-                // Expected, the record is locked.
-                e.printStackTrace()
-            } catch (e: TimeoutException) {
-                // Expected, the record is locked.
-                e.printStackTrace()
-            }
         }
     }
 

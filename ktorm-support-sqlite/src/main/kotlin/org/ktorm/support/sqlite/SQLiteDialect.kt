@@ -18,7 +18,6 @@ package org.ktorm.support.sqlite
 
 import org.ktorm.database.*
 import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.ForUpdateOption
 import org.ktorm.expression.QueryExpression
 import org.ktorm.expression.SqlFormatter
 import org.ktorm.schema.IntSqlType
@@ -63,9 +62,6 @@ public open class SQLiteDialect : SqlDialect {
 public open class SQLiteFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
-    override fun writeForUpdate(forUpdate: ForUpdateOption) {
-        throw DialectFeatureNotSupportedException("SQLite does not support SELECT ... FOR UPDATE.")
-    }
 
     override fun writePagination(expr: QueryExpression) {
         newLine(Indentation.SAME)

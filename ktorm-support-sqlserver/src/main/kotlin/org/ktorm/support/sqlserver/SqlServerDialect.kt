@@ -17,10 +17,8 @@
 package org.ktorm.support.sqlserver
 
 import org.ktorm.database.Database
-import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
-import org.ktorm.support.sqlserver.SqlServerForUpdateOption.ForUpdate
 
 /**
  * [SqlDialect] implementation for Microsoft SqlServer database.
@@ -30,14 +28,6 @@ public open class SqlServerDialect : SqlDialect {
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return SqlServerFormatter(database, beautifySql, indentSize)
     }
-}
-
-/**
- * SqlServer Specific ForUpdateOptions.
- */
-public sealed class SqlServerForUpdateOption : ForUpdateOption {
-    /** The generated SQL would be `select ... for update`. */
-    public object ForUpdate : SqlServerForUpdateOption()
 }
 
 /**
@@ -54,22 +44,16 @@ public open class SqlServerFormatter(
         }
     }
 
-    override fun writeForUpdate(forUpdate: ForUpdateOption) {
-        when (forUpdate) {
-            ForUpdate -> writeKeyword("for update ")
-            else -> throw DialectFeatureNotSupportedException(
-                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
-            )
-        }
-    }
-
     override fun visitQuery(expr: QueryExpression): QueryExpression {
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
         }
-        if (expr is SelectExpression && expr.forUpdate != ForUpdateOption.None) {
-            throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
-        }
+
+        // forUpdate() function in the core lib was removed, uncomment the following lines
+        // when we add this feature back in the SqlServer dialect.
+        // if (expr is SelectExpression && expr.forUpdate) {
+        //     throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
+        // }
 
         if (expr.orderBy.isEmpty()) {
             writePagingQuery(expr)
