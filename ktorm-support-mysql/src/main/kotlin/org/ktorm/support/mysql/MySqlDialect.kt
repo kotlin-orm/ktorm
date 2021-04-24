@@ -17,15 +17,10 @@
 package org.ktorm.support.mysql
 
 import org.ktorm.database.Database
-import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.SqlDialect
 import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.VarcharSqlType
-import org.ktorm.support.mysql.MySqlForUpdateOption.ForShare
-import org.ktorm.support.mysql.MySqlForUpdateOption.ForUpdate
-import org.ktorm.support.mysql.Version.MySql5
-import org.ktorm.support.mysql.Version.MySql8
 
 /**
  * [SqlDialect] implementation for MySQL database.
@@ -37,33 +32,12 @@ public open class MySqlDialect : SqlDialect {
     }
 }
 
-private enum class Version {
-    MySql5, MySql8
-}
-
-/**
- * Thrown to indicate that the MySql version is not supported by the dialect.
- *
- * @param databaseMetaData used to format the exception's message.
- */
-public class UnsupportedMySqlVersionException(productVersion: String) :
-    UnsupportedOperationException("Unsupported MySql version $productVersion.") {
-    private companion object {
-        private const val serialVersionUID = 1L
-    }
-}
-
 /**
  * [SqlFormatter] implementation for MySQL, formatting SQL expressions as strings with their execution arguments.
  */
 public open class MySqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
-    private val version: Version = when {
-        database.productVersion.startsWith("5") -> MySql5
-        database.productVersion.startsWith("8") -> MySql8
-        else -> throw UnsupportedMySqlVersionException(database.productVersion)
-    }
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = when (expr) {
@@ -91,6 +65,20 @@ public open class MySqlFormatter(
             is NaturalJoinExpression -> visitNaturalJoin(expr)
             else -> super.visitQuerySource(expr)
         }
+    }
+
+    override fun visitSelect(expr: SelectExpression): SelectExpression {
+        super.visitSelect(expr)
+
+        val lockMode = expr.extraProperties["lockMode"] as LockMode?
+        if (lockMode == LockMode.FOR_UPDATE) {
+            writeKeyword("for update ")
+        }
+        if (lockMode == LockMode.FOR_SHARE) {
+            writeKeyword("lock in share mode ")
+        }
+
+        return expr
     }
 
     override fun writePagination(expr: QueryExpression) {
@@ -155,30 +143,6 @@ public open class MySqlFormatter(
         write(") ")
         return expr
     }
-
-    override fun writeForUpdate(forUpdate: ForUpdateOption) {
-        when {
-            forUpdate == ForUpdate -> writeKeyword("for update ")
-            forUpdate == ForShare && version == MySql5 -> writeKeyword("lock in share mode ")
-            forUpdate == ForShare && version == MySql8 -> writeKeyword("for share ")
-            else -> throw DialectFeatureNotSupportedException(
-                "Unsupported ForUpdateOption ${forUpdate::class.java.name}."
-            )
-        }
-    }
-}
-
-/**
- * MySql Specific ForUpdateOptions.
- */
-public sealed class MySqlForUpdateOption : ForUpdateOption {
-    /**
-     * The generated SQL would be `select ... lock in share mode` for MySql 5 and `select ... for share` for MySql 8.
-     **/
-    public object ForShare : MySqlForUpdateOption()
-
-    /** The generated SQL would be `select ... for update`. */
-    public object ForUpdate : MySqlForUpdateOption()
 }
 
 /**
