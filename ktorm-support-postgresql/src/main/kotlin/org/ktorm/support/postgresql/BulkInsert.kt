@@ -180,14 +180,13 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onConflict(col) { .. }"
+                "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
     if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
-        val msg =
-            "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
-            "you must explicitly invoke doNothing()"
+        val msg = "You cannot leave a on-conflict clause empty! If you desire no update action at all" +
+            " you must explicitly invoke `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -672,14 +671,13 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onConflict(col) { .. }"
+                "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
     if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
-        val msg =
-            "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
-            "you must explicitly invoke `doNothing()`"
+        val msg = "You cannot leave a on-conflict clause empty! If you desire no update action at all" +
+            " you must explicitly invoke `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -717,16 +715,17 @@ private fun <T : BaseTable<*>> executeQueryInBatches(
                 )
             }
 
+            if (batchAssignmentCount + size >= MAX_SQL_EXPR_BATCH_SIZE) {
+                execute(currentBatch)
+                currentBatch.clear()
+                batchAssignmentCount = 0
+            }
+
             currentBatch.add(assignments)
             batchAssignmentCount += size
         }
-
-        if (batchAssignmentCount >= MAX_SQL_EXPR_BATCH_SIZE) {
-            execute(currentBatch)
-            currentBatch.clear()
-            batchAssignmentCount = 0
-        }
     }
+    // Flush the remaining
     if (currentBatch.isNotEmpty()) {
         execute(currentBatch)
     }
