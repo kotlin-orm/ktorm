@@ -388,13 +388,8 @@ public abstract class SqlFormatter(
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
         }
-        if (expr.forUpdate != ForUpdateOption.None) {
-            writeForUpdate(expr.forUpdate)
-        }
         return expr
     }
-
-    protected abstract fun writeForUpdate(forUpdate: ForUpdateOption)
 
     override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         when (expr) {
