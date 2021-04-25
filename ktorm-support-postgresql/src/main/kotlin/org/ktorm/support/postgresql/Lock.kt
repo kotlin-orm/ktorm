@@ -32,7 +32,7 @@ public enum class LockingWait {
 }
 
 /**
- * PostgreSQL locking clause.
+ * PostgreSQL locking clause. See https://www.postgresql.org/docs/13/sql-select.html#SQL-FOR-UPDATE-SHARE
  *
  * @since 3.4.0
  */

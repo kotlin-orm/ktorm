@@ -90,11 +90,11 @@ public open class PostgreSqlFormatter(
 
         val locking = expr.extraProperties["locking"] as LockingClause?
         if (locking != null) {
-            when (locking.strength) {
-                LockingStrength.FOR_UPDATE -> writeKeyword("for update ")
-                LockingStrength.FOR_NO_KEY_UPDATE -> writeKeyword("for no key update ")
-                LockingStrength.FOR_SHARE -> writeKeyword("for share ")
-                LockingStrength.FOR_KEY_SHARE -> writeKeyword("for key share ")
+            when (locking.mode) {
+                LockingMode.FOR_UPDATE -> writeKeyword("for update ")
+                LockingMode.FOR_NO_KEY_UPDATE -> writeKeyword("for no key update ")
+                LockingMode.FOR_SHARE -> writeKeyword("for share ")
+                LockingMode.FOR_KEY_SHARE -> writeKeyword("for key share ")
             }
 
             if (locking.tables.isNotEmpty()) {
