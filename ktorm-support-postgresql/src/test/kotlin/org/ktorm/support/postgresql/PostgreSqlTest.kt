@@ -649,7 +649,7 @@ class PostgreSqlTest : BaseTest() {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .locking(strength = LockingStrength.FOR_UPDATE)
+                .locking(LockingMode.FOR_UPDATE)
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {

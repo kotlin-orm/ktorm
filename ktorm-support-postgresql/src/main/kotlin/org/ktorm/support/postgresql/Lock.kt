@@ -5,15 +5,15 @@ import org.ktorm.entity.EntitySequence
 import org.ktorm.expression.SelectExpression
 import org.ktorm.expression.UnionExpression
 import org.ktorm.schema.BaseTable
-import org.ktorm.support.postgresql.LockingStrength.*
+import org.ktorm.support.postgresql.LockingMode.*
 import org.ktorm.support.postgresql.LockingWait.*
 
 /**
- * PostgreSQL lock strength.
+ * PostgreSQL lock mode.
  *
  * @since 3.4.0
  */
-public enum class LockingStrength {
+public enum class LockingMode {
     FOR_UPDATE,
     FOR_NO_KEY_UPDATE,
     FOR_SHARE,
@@ -37,7 +37,7 @@ public enum class LockingWait {
  * @since 3.4.0
  */
 public data class LockingClause(
-    val strength: LockingStrength,
+    val mode: LockingMode,
     val tables: List<String>,
     val wait: LockingWait
 )
@@ -47,15 +47,15 @@ public data class LockingClause(
  *
  * `select ... for update of table_name nowait`
  *
- * @param strength locking strength, one of [FOR_UPDATE], [FOR_NO_KEY_UPDATE], [FOR_SHARE], [FOR_KEY_SHARE].
+ * @param mode locking mode, one of [FOR_UPDATE], [FOR_NO_KEY_UPDATE], [FOR_SHARE], [FOR_KEY_SHARE].
  * @param tables specific the tables, then only rows coming from those tables would be locked.
  * @param wait waiting strategy, one of [BLOCK], [NOWAIT], [SKIP_LOCKED].
  * @since 3.4.0
  */
 public fun Query.locking(
-    strength: LockingStrength, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = BLOCK
+    mode: LockingMode, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = BLOCK
 ): Query {
-    val locking = LockingClause(strength, tables.map { it.tableName }, wait)
+    val locking = LockingClause(mode, tables.map { it.tableName }, wait)
 
     val expr = when (val e = this.expression) {
         is SelectExpression -> e.copy(extraProperties = e.extraProperties + Pair("locking", locking))
@@ -70,15 +70,15 @@ public fun Query.locking(
  *
  * `select ... for update of table_name nowait`
  *
- * @param strength locking strength, one of [FOR_UPDATE], [FOR_NO_KEY_UPDATE], [FOR_SHARE], [FOR_KEY_SHARE].
+ * @param mode locking mode, one of [FOR_UPDATE], [FOR_NO_KEY_UPDATE], [FOR_SHARE], [FOR_KEY_SHARE].
  * @param tables specific the tables, then only rows coming from those tables would be locked.
  * @param wait waiting strategy, one of [BLOCK], [NOWAIT], [SKIP_LOCKED].
  * @since 3.4.0
  */
 public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.locking(
-    strength: LockingStrength, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = BLOCK
+    mode: LockingMode, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = BLOCK
 ): EntitySequence<E, T> {
-    val locking = LockingClause(strength, tables.map { it.tableName }, wait)
+    val locking = LockingClause(mode, tables.map { it.tableName }, wait)
 
     return this.withExpression(
         expression.copy(extraProperties = expression.extraProperties + Pair("locking", locking))
