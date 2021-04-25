@@ -110,7 +110,7 @@ public open class PostgreSqlFormatter(
             }
 
             when (locking.wait) {
-                LockingWait.BLOCK -> { /* do nothing */ }
+                LockingWait.WAIT -> { /* do nothing */ }
                 LockingWait.NOWAIT -> writeKeyword("nowait ")
                 LockingWait.SKIP_LOCKED -> writeKeyword("skip locked ")
             }

@@ -422,7 +422,7 @@ class MySqlTest : BaseTest() {
             val employee = database
                 .sequenceOf(Employees, withReferences = false)
                 .filter { it.id eq 1 }
-                .forUpdate()
+                .locking(LockingMode.FOR_UPDATE, wait = LockingWait.SKIP_LOCKED)
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {

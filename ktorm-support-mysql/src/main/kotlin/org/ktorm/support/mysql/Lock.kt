@@ -5,61 +5,81 @@ import org.ktorm.entity.EntitySequence
 import org.ktorm.expression.SelectExpression
 import org.ktorm.expression.UnionExpression
 import org.ktorm.schema.BaseTable
-
-internal enum class LockMode {
-    FOR_UPDATE, FOR_SHARE
-}
+import org.ktorm.support.mysql.LockingMode.*
+import org.ktorm.support.mysql.LockingWait.*
 
 /**
- * Indicate that this query should acquire the record-lock,
- * the generated SQL would be `select ... for update`.
+ * MySQL locking mode.
  *
  * @since 3.4.0
  */
-public fun Query.forUpdate(): Query {
+public enum class LockingMode {
+    FOR_UPDATE,
+    FOR_SHARE,
+    LOCK_IN_SHARE_MODE
+}
+
+/**
+ * MySQL wait strategy for locked records.
+ *
+ * @since 3.4.0
+ */
+public enum class LockingWait {
+    WAIT,
+    NOWAIT,
+    SKIP_LOCKED
+}
+
+/**
+ * MySQL locking clause, See https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html
+ *
+ * @since 3.4.0
+ */
+public data class LockingClause(
+    val mode: LockingMode,
+    val tables: List<String>,
+    val wait: LockingWait
+)
+
+/**
+ * Specify the locking clause of this query, an example generated SQL could be:
+ *
+ * `select ... for update of table_name nowait`
+ *
+ * @param mode locking mode, one of [FOR_UPDATE], [FOR_SHARE], [LOCK_IN_SHARE_MODE].
+ * @param tables specific the tables, only rows coming from those tables would be locked.
+ * @param wait waiting strategy, one of [WAIT], [NOWAIT], [SKIP_LOCKED].
+ * @since 3.4.0
+ */
+public fun Query.locking(
+    mode: LockingMode, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = WAIT
+): Query {
+    val locking = LockingClause(mode, tables.map { it.tableName }, wait)
+
     val expr = when (val e = this.expression) {
-        is SelectExpression -> e.copy(extraProperties = e.extraProperties + Pair("lockMode", LockMode.FOR_UPDATE))
-        is UnionExpression -> throw IllegalStateException("forUpdate() is not supported in a union expression.")
+        is SelectExpression -> e.copy(extraProperties = e.extraProperties + Pair("locking", locking))
+        is UnionExpression -> throw IllegalStateException("Locking clause is not supported for a union expression.")
     }
 
     return this.withExpression(expr)
 }
 
 /**
- * Indicate that this query should acquire the record-lock,
- * the generated SQL would be `select ... for update`.
+ * Specify the locking clause of this query, an example generated SQL could be:
  *
+ * `select ... for update of table_name nowait`
+ *
+ * @param mode locking mode, one of [FOR_UPDATE], [FOR_SHARE], [LOCK_IN_SHARE_MODE].
+ * @param tables specific the tables, only rows coming from those tables would be locked.
+ * @param wait waiting strategy, one of [WAIT], [NOWAIT], [SKIP_LOCKED].
  * @since 3.4.0
  */
-public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.locking(
+    mode: LockingMode, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = WAIT
+): EntitySequence<E, T> {
+    val locking = LockingClause(mode, tables.map { it.tableName }, wait)
+
     return this.withExpression(
-        expression.copy(extraProperties = expression.extraProperties + Pair("lockMode", LockMode.FOR_UPDATE))
-    )
-}
-
-/**
- * Indicate that this query should acquire the record-lock in share mode,
- * the generated SQL would be `select ... lock in share mode`.
- *
- * @since 3.4.0
- */
-public fun Query.lockInShareMode(): Query {
-    val expr = when (val e = this.expression) {
-        is SelectExpression -> e.copy(extraProperties = e.extraProperties + Pair("lockMode", LockMode.FOR_SHARE))
-        is UnionExpression -> throw IllegalStateException("lockInShareMode() is not supported in a union expression.")
-    }
-
-    return this.withExpression(expr)
-}
-
-/**
- * Indicate that this query should acquire the record-lock in share mode,
- * the generated SQL would be `select ... lock in share mode`.
- *
- * @since 3.4.0
- */
-public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.lockInShareMode(): EntitySequence<E, T> {
-    return this.withExpression(
-        expression.copy(extraProperties = expression.extraProperties + Pair("lockMode", LockMode.FOR_SHARE))
+        expression.copy(extraProperties = expression.extraProperties + Pair("locking", locking))
     )
 }

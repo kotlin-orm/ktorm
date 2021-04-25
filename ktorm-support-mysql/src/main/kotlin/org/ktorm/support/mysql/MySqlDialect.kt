@@ -70,12 +70,31 @@ public open class MySqlFormatter(
     override fun visitSelect(expr: SelectExpression): SelectExpression {
         super.visitSelect(expr)
 
-        val lockMode = expr.extraProperties["lockMode"] as LockMode?
-        if (lockMode == LockMode.FOR_UPDATE) {
-            writeKeyword("for update ")
-        }
-        if (lockMode == LockMode.FOR_SHARE) {
-            writeKeyword("lock in share mode ")
+        val locking = expr.extraProperties["locking"] as LockingClause?
+        if (locking != null) {
+            when (locking.mode) {
+                LockingMode.FOR_UPDATE -> writeKeyword("for update ")
+                LockingMode.FOR_SHARE -> writeKeyword("for share ")
+                LockingMode.LOCK_IN_SHARE_MODE -> writeKeyword("lock in share mode ")
+            }
+
+            if (locking.tables.isNotEmpty()) {
+                writeKeyword("of ")
+
+                for ((i, table) in locking.tables.withIndex()) {
+                    if (i > 0) {
+                        removeLastBlank()
+                        write(", ")
+                    }
+                    write("${table.quoted} ")
+                }
+            }
+
+            when (locking.wait) {
+                LockingWait.WAIT -> { /* do nothing */ }
+                LockingWait.NOWAIT -> writeKeyword("nowait ")
+                LockingWait.SKIP_LOCKED -> writeKeyword("skip locked ")
+            }
         }
 
         return expr
