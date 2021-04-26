@@ -219,15 +219,20 @@ internal class EntityImplementation(
     }
 
     override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+
         return when (other) {
-            is EntityImplementation -> values == other.values && entityClass == other.entityClass
-            is Entity<*> -> values == other.implementation.values && entityClass == other.implementation.entityClass
+            is EntityImplementation -> entityClass == other.entityClass && values == other.values
+            is Entity<*> -> entityClass == other.implementation.entityClass && values == other.implementation.values
             else -> false
         }
     }
 
     override fun hashCode(): Int {
-        return values.hashCode() + 13 * entityClass.hashCode()
+        var result = 1
+        result = 31 * result + entityClass.hashCode()
+        result = 31 * result + values.hashCode()
+        return result
     }
 
     override fun toString(): String {

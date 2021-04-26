@@ -17,6 +17,7 @@
 package org.ktorm.entity
 
 import org.ktorm.schema.*
+import java.lang.reflect.Proxy
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 
@@ -139,5 +140,5 @@ internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
 }
 
 internal val Entity<*>.implementation: EntityImplementation get() {
-    return java.lang.reflect.Proxy.getInvocationHandler(this) as EntityImplementation
+    return Proxy.getInvocationHandler(this) as EntityImplementation
 }
