@@ -388,6 +388,10 @@ public abstract class SqlFormatter(
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
         }
+        @Suppress("DEPRECATION")
+        if (expr.forUpdate) {
+            writeKeyword("for update ")
+        }
         return expr
     }
 
