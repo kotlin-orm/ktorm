@@ -19,6 +19,7 @@ package org.ktorm.support.mysql
 import org.ktorm.dsl.Query
 import org.ktorm.entity.EntitySequence
 import org.ktorm.expression.SelectExpression
+import org.ktorm.expression.TableExpression
 import org.ktorm.expression.UnionExpression
 import org.ktorm.schema.BaseTable
 import org.ktorm.support.mysql.LockingMode.*
@@ -53,7 +54,7 @@ public enum class LockingWait {
  */
 public data class LockingClause(
     val mode: LockingMode,
-    val tables: List<String>,
+    val tables: List<TableExpression>,
     val wait: LockingWait
 )
 
@@ -70,7 +71,7 @@ public data class LockingClause(
 public fun Query.locking(
     mode: LockingMode, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = WAIT
 ): Query {
-    val locking = LockingClause(mode, tables.map { it.tableName }, wait)
+    val locking = LockingClause(mode, tables.map { it.asExpression() }, wait)
 
     val expr = when (val e = this.expression) {
         is SelectExpression -> e.copy(extraProperties = e.extraProperties + Pair("locking", locking))
@@ -93,7 +94,7 @@ public fun Query.locking(
 public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.locking(
     mode: LockingMode, tables: List<BaseTable<*>> = emptyList(), wait: LockingWait = WAIT
 ): EntitySequence<E, T> {
-    val locking = LockingClause(mode, tables.map { it.tableName }, wait)
+    val locking = LockingClause(mode, tables.map { it.asExpression() }, wait)
 
     return this.withExpression(
         expression.copy(extraProperties = expression.extraProperties + Pair("locking", locking))

@@ -419,10 +419,12 @@ class MySqlTest : BaseTest() {
     @Test
     fun testSelectForUpdate() {
         database.useTransaction {
+            val emp = Employees.aliased("emp")
+
             val employee = database
-                .sequenceOf(Employees, withReferences = false)
+                .sequenceOf(emp, withReferences = false)
                 .filter { it.id eq 1 }
-                .locking(LockingMode.FOR_UPDATE, wait = LockingWait.SKIP_LOCKED)
+                .locking(LockingMode.FOR_UPDATE, tables = listOf(emp), wait = LockingWait.SKIP_LOCKED)
                 .first()
 
             val future = Executors.newSingleThreadExecutor().submit {
