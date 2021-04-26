@@ -16,7 +16,9 @@
 
 package org.ktorm.support.postgresql
 
+import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
+import org.ktorm.database.asIterable
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.dsl.batchInsert
@@ -26,14 +28,6 @@ import org.ktorm.expression.SqlExpression
 import org.ktorm.expression.TableExpression
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
-import java.util.*
-import kotlin.collections.ArrayList
-
-// We leave some prepared statement parameters reserved for the query dialect building process
-private const val RESERVED_SQL_EXPR_BATCH_SIZE = 100
-
-// Max number of assignments we allow per batch in Postgresql (Max size as defined by Postgresql - reserved)
-private const val MAX_SQL_EXPR_BATCH_SIZE = Short.MAX_VALUE - RESERVED_SQL_EXPR_BATCH_SIZE
 
 /**
  * Bulk insert expression, represents a bulk insert statement in PostgreSQL.
@@ -101,24 +95,14 @@ public data class BulkInsertExpression(
 public fun <T : BaseTable<*>> Database.bulkInsert(
     table: T, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): Int {
-    var affectedTotal = 0
-
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
-    if (builder.assignments.isEmpty()) return 0
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments
+    )
 
-    executeQueryInBatches(builder) { assignments ->
-        val expression = BulkInsertExpression(
-            table = table.asExpression(),
-            assignments = assignments
-        )
-
-        val total = executeUpdate(expression)
-
-        affectedTotal += total
-    }
-
-    return affectedTotal
+    return executeUpdate(expression)
 }
 
 /**
@@ -168,11 +152,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): Int {
-    var affectedTotal = 0
-
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
-
-    if (builder.assignments.isEmpty()) return 0
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
     if (conflictColumns.isEmpty()) {
@@ -188,20 +168,15 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    executeQueryInBatches(builder) { assignments ->
-        val expression = BulkInsertExpression(
-            table = table.asExpression(),
-            assignments = assignments,
-            conflictColumns = conflictColumns.map { it.asExpression() },
-            updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
-        )
 
-        val total = executeUpdate(expression)
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        conflictColumns = conflictColumns.map { it.asExpression() },
+        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
+    )
 
-        affectedTotal += total
-    }
-
-    return affectedTotal
+    return executeUpdate(expression)
 }
 
 /**
@@ -431,28 +406,16 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningAux(
     table: T,
     returningColumns: List<Column<*>>,
     block: BulkInsertStatementBuilder<T>.(T) -> Unit
-): Pair<Int, CompositeCachedRowSet> {
-    var affectedTotal = 0
-    val cachedRowSets = CompositeCachedRowSet()
-
+): Pair<Int, CachedRowSet> {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
-    if (builder.assignments.isEmpty()) return Pair(0, CompositeCachedRowSet())
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        returningColumns = returningColumns.map { it.asExpression() }
+    )
 
-    executeQueryInBatches(builder) { assignments ->
-        val expression = BulkInsertExpression(
-            table.asExpression(),
-            assignments,
-            returningColumns = returningColumns.map { it.asExpression() }
-        )
-
-        val (total, rows) = executeUpdateAndRetrieveKeys(expression)
-
-        affectedTotal += total
-        cachedRowSets.add(rows)
-    }
-
-    return Pair(affectedTotal, cachedRowSets)
+    return executeUpdateAndRetrieveKeys(expression)
 }
 
 /**
@@ -653,13 +616,8 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
     table: T,
     returningColumns: List<Column<*>>,
     block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): Pair<Int, CompositeCachedRowSet> {
-    var affectedTotal = 0
-    val cachedRowSets = CompositeCachedRowSet()
-
+): Pair<Int, CachedRowSet> {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
-
-    if (builder.assignments.isEmpty()) return Pair(0, CompositeCachedRowSet())
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
     if (conflictColumns.isEmpty()) {
@@ -675,50 +633,13 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
         throw IllegalStateException(msg)
     }
 
-    executeQueryInBatches(builder) { assignments ->
-        val expression = BulkInsertExpression(
-            table = table.asExpression(),
-            assignments = assignments,
-            conflictColumns = conflictColumns.map { it.asExpression() },
-            updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
-            returningColumns = returningColumns.map { it.asExpression() }
-        )
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        conflictColumns = conflictColumns.map { it.asExpression() },
+        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
+        returningColumns = returningColumns.map { it.asExpression() }
+    )
 
-        val (total, rows) = executeUpdateAndRetrieveKeys(expression)
-
-        affectedTotal += total
-        cachedRowSets.add(rows)
-    }
-
-    return Pair(affectedTotal, cachedRowSets)
-}
-
-private fun <T : BaseTable<*>> executeQueryInBatches(
-    builder: BulkInsertStatementBuilder<T>,
-    execute: (List<List<ColumnAssignmentExpression<*>>>) -> Unit
-) {
-    var batchAssignmentCount = 0
-    val currentBatch = LinkedList<List<ColumnAssignmentExpression<*>>>()
-    builder.assignments.forEach { assignments ->
-        assignments.size.let { size ->
-            if (size > MAX_SQL_EXPR_BATCH_SIZE) {
-                throw IllegalArgumentException(
-                    "The maximum number of assignments per item is $MAX_SQL_EXPR_BATCH_SIZE, but $size detected!"
-                )
-            }
-
-            if (batchAssignmentCount + size >= MAX_SQL_EXPR_BATCH_SIZE) {
-                execute(currentBatch)
-                currentBatch.clear()
-                batchAssignmentCount = 0
-            }
-
-            currentBatch.add(assignments)
-            batchAssignmentCount += size
-        }
-    }
-    // Flush the remaining
-    if (currentBatch.isNotEmpty()) {
-        execute(currentBatch)
-    }
+    return executeUpdateAndRetrieveKeys(expression)
 }
