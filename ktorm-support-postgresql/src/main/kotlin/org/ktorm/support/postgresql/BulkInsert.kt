@@ -107,7 +107,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 
     if (builder.assignments.isEmpty()) return 0
 
-    val execute: (List<List<ColumnAssignmentExpression<*>>>) -> Unit = { assignments ->
+    executeQueryInBatches(builder) { assignments ->
         val expression = BulkInsertExpression(
             table = table.asExpression(),
             assignments = assignments
@@ -117,8 +117,6 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 
         affectedTotal += total
     }
-
-    executeQueryInBatches(builder, execute)
 
     return affectedTotal
 }
@@ -180,7 +178,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-                "you must specify the conflict columns when calling onConflict(col) { .. }"
+            "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
@@ -190,7 +188,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    val execute: (List<List<ColumnAssignmentExpression<*>>>) -> Unit = { assignments ->
+    executeQueryInBatches(builder) { assignments ->
         val expression = BulkInsertExpression(
             table = table.asExpression(),
             assignments = assignments,
@@ -202,8 +200,6 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
 
         affectedTotal += total
     }
-
-    executeQueryInBatches(builder, execute)
 
     return affectedTotal
 }
@@ -443,7 +439,7 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningAux(
 
     if (builder.assignments.isEmpty()) return Pair(0, CompositeCachedRowSet())
 
-    val execute: (List<List<ColumnAssignmentExpression<*>>>) -> Unit = { assignments ->
+    executeQueryInBatches(builder) { assignments ->
         val expression = BulkInsertExpression(
             table.asExpression(),
             assignments,
@@ -455,8 +451,6 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningAux(
         affectedTotal += total
         cachedRowSets.add(rows)
     }
-
-    executeQueryInBatches(builder, execute)
 
     return Pair(affectedTotal, cachedRowSets)
 }
@@ -681,7 +675,7 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
         throw IllegalStateException(msg)
     }
 
-    val execute: (List<List<ColumnAssignmentExpression<*>>>) -> Unit = { assignments ->
+    executeQueryInBatches(builder) { assignments ->
         val expression = BulkInsertExpression(
             table = table.asExpression(),
             assignments = assignments,
@@ -695,8 +689,6 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
         affectedTotal += total
         cachedRowSets.add(rows)
     }
-
-    executeQueryInBatches(builder, execute)
 
     return Pair(affectedTotal, cachedRowSets)
 }
