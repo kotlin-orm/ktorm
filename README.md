@@ -82,7 +82,7 @@ Then, connect to your database and write a simple query:
 
 ```kotlin
 fun main() {
-    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
+    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm", user = "root", password = "***")
 
     for (row in database.from(Employees).select()) {
         println(row[Employees.name])
