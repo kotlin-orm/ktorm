@@ -208,15 +208,6 @@ public open class PostgreSqlFormatter(
             }
         }
 
-        if (expr.returningColumns.isNotEmpty()) {
-            writeKeyword(" returning ")
-            expr.returningColumns.forEachIndexed { i, column ->
-                if (i > 0) write(", ")
-                checkColumnName(column.name)
-                write(column.name.quoted)
-            }
-        }
-
         return expr
     }
 
@@ -243,15 +234,6 @@ public open class PostgreSqlFormatter(
                 visitColumnAssignments(expr.updateAssignments)
             } else {
                 writeKeyword("do nothing ")
-            }
-        }
-
-        if (expr.returningColumns.isNotEmpty()) {
-            writeKeyword(" returning ")
-            expr.returningColumns.forEachIndexed { i, column ->
-                if (i > 0) write(", ")
-                checkColumnName(column.name)
-                write(column.name.quoted)
             }
         }
 

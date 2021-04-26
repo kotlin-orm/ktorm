@@ -2,15 +2,7 @@ package org.ktorm.dsl
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.entity.filter
-import org.ktorm.entity.first
-import org.ktorm.entity.forUpdate
-import org.ktorm.entity.sequenceOf
 import org.ktorm.expression.ScalarExpression
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /**
  * Created by vince on Dec 07, 2018.

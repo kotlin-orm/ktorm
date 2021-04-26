@@ -52,7 +52,7 @@ public open class SqlServerFormatter(
         // forUpdate() function in the core lib was removed, uncomment the following lines
         // when we add this feature back in the SqlServer dialect.
         // if (expr is SelectExpression && expr.forUpdate) {
-        //     throw DialectFeatureNotSupportedException("SELECT FOR UPDATE not supported when using offset/limit params.")
+        //     throw DialectFeatureNotSupportedException("Locking is not supported when using offset/limit params.")
         // }
 
         if (expr.orderBy.isEmpty()) {
