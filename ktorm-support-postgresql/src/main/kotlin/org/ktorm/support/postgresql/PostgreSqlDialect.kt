@@ -105,7 +105,12 @@ public open class PostgreSqlFormatter(
                         removeLastBlank()
                         write(", ")
                     }
-                    write("${table.quoted} ")
+
+                    if (table.tableAlias != null && table.tableAlias!!.isNotBlank()) {
+                        write("${table.tableAlias!!.quoted} ")
+                    } else {
+                        write("${table.name.quoted} ")
+                    }
                 }
             }
 
