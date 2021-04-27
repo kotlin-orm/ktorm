@@ -41,14 +41,17 @@ import org.ktorm.schema.Column
  *
  * @property table the table to be inserted.
  * @property assignments column assignments of the bulk insert statement.
- * @property conflictColumns the index columns on which the conflict may happens.
+ * @property conflictColumns the index columns on which the conflict may happen.
  * @property updateAssignments the updated column assignments while key conflict exists.
+ * @property doNothing whether we should ignore errors and do nothing when conflict happens.
+ * @property returningColumns the returning columns.
  */
 public data class BulkInsertExpression(
     val table: TableExpression,
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
-    val conflictColumns: List<ColumnExpression<*>>? = null,
+    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val doNothing: Boolean = false,
     val returningColumns: List<ColumnExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
@@ -96,12 +99,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
     table: T, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): Int {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
-
-    val expression = BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments
-    )
-
+    val expression = BulkInsertExpression(table.asExpression(), builder.assignments)
     return executeUpdate(expression)
 }
 
@@ -162,18 +160,19 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
-        val msg = "You cannot leave a on-conflict clause empty! If you desire no update action at all" +
-            " you must explicitly invoke `doNothing()`"
+    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
+        val msg =
+            "Cannot leave the onConflict clause empty! " +
+            "If you desire no update action at all please explicitly call `doNothing()`"
         throw IllegalStateException(msg)
     }
-
 
     val expression = BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
+        updateAssignments = builder.updateAssignments,
+        doNothing = builder.doNothing
     )
 
     return executeUpdate(expression)
@@ -207,22 +206,18 @@ public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val tabl
  */
 @KtormDsl
 public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertStatementBuilder<T>(table) {
-    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal val conflictColumns = ArrayList<Column<*>>()
-
-    internal var explicitlyDoNothing: Boolean = false
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal var doNothing: Boolean = false
 
     /**
      * Specify the update assignments while any key conflict exists.
      */
     public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
-
-        explicitlyDoNothing = builder.explicitlyDoNothing
-
-        updateAssignments += builder.assignments
-
-        conflictColumns += columns
+        this.conflictColumns += columns
+        this.updateAssignments += builder.assignments
+        this.doNothing = builder.doNothing
     }
 }
 
@@ -623,13 +618,14 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-                "you must specify the conflict columns when calling onConflict(col) { .. }"
+            "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
-    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
-        val msg = "You cannot leave a on-conflict clause empty! If you desire no update action at all" +
-            " you must explicitly invoke `doNothing()`"
+    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
+        val msg =
+            "Cannot leave the onConflict clause empty! " +
+            "If you desire no update action at all please explicitly call `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -637,7 +633,8 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
+        updateAssignments = builder.updateAssignments,
+        doNothing = builder.doNothing,
         returningColumns = returningColumns.map { it.asExpression() }
     )
 
