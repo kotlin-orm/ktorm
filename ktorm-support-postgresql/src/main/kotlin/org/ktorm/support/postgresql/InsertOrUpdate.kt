@@ -101,7 +101,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  *     set(it.salary, 1000)
  *     set(it.hireDate, LocalDate.now())
  *     set(it.departmentId, 1)
- *     onDuplicateKey {
+ *     onConflict {
  *         set(it.salary, it.salary + 900)
  *     }
  * }
@@ -150,7 +150,7 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
  *     set(it.salary, 1000)
  *     set(it.hireDate, LocalDate.now())
  *     set(it.departmentId, 1)
- *     onDuplicateKey {
+ *     onConflict {
  *         set(it.salary, it.salary + 900)
  *     }
  * }
@@ -201,7 +201,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
  *     set(it.salary, 1000)
  *     set(it.hireDate, LocalDate.now())
  *     set(it.departmentId, 1)
- *     onDuplicateKey {
+ *     onConflict {
  *         set(it.salary, it.salary + 900)
  *     }
  * }
@@ -241,6 +241,9 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
     }
 }
 
+/**
+ * Build an insert or update expression.
+ */
 private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): InsertOrUpdateExpression {
@@ -269,6 +272,166 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
         doNothing = builder.doNothing,
         returningColumns = returning.map { it.asExpression() }
     )
+}
+
+/**
+ * Insert a record to the table and return the specific column.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val id = database.insertReturning(Employees, Employees.id) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * returning id
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returning the column to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning column's value.
+ */
+public fun <T : BaseTable<*>, C : Any> Database.insertReturning(
+    table: T, returning: Column<C>, block: AssignmentsBuilder.(T) -> Unit
+): C? {
+    val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
+
+    val expression = InsertOrUpdateExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        returningColumns = listOf(returning.asExpression())
+    )
+
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+
+    if (rowSet.size() == 1) {
+        check(rowSet.next())
+        return returning.sqlType.getResult(rowSet, 1)
+    } else {
+        val (sql, _) = formatExpression(expression, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
+}
+
+/**
+ * Insert a record to the table and return the specific columns.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val (id, job) = database.insertReturning(Employees, Pair(Employees.id, Employees.job)) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * returning id, job
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returning the columns to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning columns' values.
+ */
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertReturning(
+    table: T, returning: Pair<Column<C1>, Column<C2>>, block: AssignmentsBuilder.(T) -> Unit
+): Pair<C1?, C2?> {
+    val (c1, c2) = returning
+    val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
+
+    val expression = InsertOrUpdateExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        returningColumns = listOf(c1, c2).map { it.asExpression() }
+    )
+
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+
+    if (rowSet.size() == 1) {
+        check(rowSet.next())
+        return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
+    } else {
+        val (sql, _) = formatExpression(expression, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
+}
+
+/**
+ * Insert a record to the table and return the specific columns.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val (id, job, salary) =
+ * database.insertReturning(Employees, Triple(Employees.id, Employees.job, Employees.salary)) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * returning id, job, salary
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returning the columns to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning columns' values.
+ */
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertReturning(
+    table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: AssignmentsBuilder.(T) -> Unit
+): Triple<C1?, C2?, C3?> {
+    val (c1, c2, c3) = returning
+    val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
+
+    val expression = InsertOrUpdateExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        returningColumns = listOf(c1, c2, c3).map { it.asExpression() }
+    )
+
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+
+    if (rowSet.size() == 1) {
+        check(rowSet.next())
+        return Triple(
+            c1.sqlType.getResult(rowSet, 1),
+            c2.sqlType.getResult(rowSet, 2),
+            c3.sqlType.getResult(rowSet, 3)
+        )
+    } else {
+        val (sql, _) = formatExpression(expression, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
 }
 
 /**
