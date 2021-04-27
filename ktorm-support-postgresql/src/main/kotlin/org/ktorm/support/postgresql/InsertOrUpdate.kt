@@ -119,7 +119,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  * @param table the table to be inserted.
  * @param returning the column to return
  * @param block the DSL block used to construct the expression.
- * @return the returning column value.
+ * @return the returning column's value.
  */
 public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
     table: T, returning: Column<C>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
