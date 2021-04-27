@@ -114,76 +114,6 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
 }
 
 /**
- * Base class of PostgreSQL DSL builders, provide basic functions used to build assignments for insert or update DSL.
- */
-@KtormDsl
-public open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
-
-    /**
-     * A getter that returns the readonly view of the built assignments list.
-     */
-    internal val assignments: List<ColumnAssignmentExpression<*>> get() = _assignments
-}
-
-/**
- * DSL builder for insert or update statements.
- */
-@KtormDsl
-public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
-    internal val conflictColumns = ArrayList<Column<*>>()
-    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-    internal var doNothing = false
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future, please use onConflict { } instead",
-        replaceWith = ReplaceWith("onConflict(columns, block)")
-    )
-    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        onConflict(*columns, block = block)
-    }
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
-    public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
-        val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
-        this.conflictColumns += columns
-        this.updateAssignments += builder.assignments
-        this.doNothing = builder.doNothing
-    }
-}
-
-/**
- * DSL builder for insert or update on conflict clause.
- */
-@KtormDsl
-public class InsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBuilder() {
-    internal var doNothing = false
-
-    /**
-     * Explicitly tells ktorm to ignore any on-conflict errors and continue insertion.
-     */
-    public fun doNothing() {
-        this.doNothing = true
-    }
-
-    /**
-     * Reference the 'EXCLUDED' table in a ON CONFLICT clause.
-     */
-    public fun <T : Any> excluded(column: Column<T>): ColumnExpression<T> {
-        // excluded.name
-        return ColumnExpression(
-            table = TableExpression(name = "excluded"),
-            name = column.name,
-            sqlType = column.sqlType
-        )
-    }
-}
-
-/**
  * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
  * performs an update if any conflict exists.
  *
@@ -352,14 +282,14 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
     if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+                "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
         throw IllegalStateException(msg)
     }
 
     if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
         val msg =
             "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
-            "you must explicitly invoke `doNothing()`"
+                "you must explicitly invoke `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -372,4 +302,74 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
     )
 
     return executeUpdateAndRetrieveKeys(expression)
+}
+
+/**
+ * Base class of PostgreSQL DSL builders, provide basic functions used to build assignments for insert or update DSL.
+ */
+@KtormDsl
+public open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
+
+    /**
+     * A getter that returns the readonly view of the built assignments list.
+     */
+    internal val assignments: List<ColumnAssignmentExpression<*>> get() = _assignments
+}
+
+/**
+ * DSL builder for insert or update statements.
+ */
+@KtormDsl
+public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
+    internal val conflictColumns = ArrayList<Column<*>>()
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal var doNothing = false
+
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
+    @Deprecated(
+        message = "This function will be removed in the future, please use onConflict { } instead",
+        replaceWith = ReplaceWith("onConflict(columns, block)")
+    )
+    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
+        onConflict(*columns, block = block)
+    }
+
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
+    public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
+        val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
+        this.conflictColumns += columns
+        this.updateAssignments += builder.assignments
+        this.doNothing = builder.doNothing
+    }
+}
+
+/**
+ * DSL builder for insert or update on conflict clause.
+ */
+@KtormDsl
+public class InsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBuilder() {
+    internal var doNothing = false
+
+    /**
+     * Explicitly tells ktorm to ignore any on-conflict errors and continue insertion.
+     */
+    public fun doNothing() {
+        this.doNothing = true
+    }
+
+    /**
+     * Reference the 'EXCLUDED' table in a ON CONFLICT clause.
+     */
+    public fun <T : Any> excluded(column: Column<T>): ColumnExpression<T> {
+        // excluded.name
+        return ColumnExpression(
+            table = TableExpression(name = "excluded"),
+            name = column.name,
+            sqlType = column.sqlType
+        )
+    }
 }
