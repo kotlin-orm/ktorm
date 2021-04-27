@@ -16,9 +16,7 @@
 
 package org.ktorm.support.postgresql
 
-import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
-import org.ktorm.database.asIterable
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.expression.ColumnAssignmentExpression
@@ -85,42 +83,18 @@ public data class InsertOrUpdateExpression(
 public fun <T : BaseTable<*>> Database.insertOrUpdate(
     table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
-    val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
-
-    val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
-    if (conflictColumns.isEmpty()) {
-        val msg =
-            "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onConflict(col) { .. }"
-        throw IllegalStateException(msg)
-    }
-
-    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
-        val msg =
-            "Cannot leave the onConflict clause empty! " +
-            "If you desire no update action at all please explicitly call `doNothing()`"
-        throw IllegalStateException(msg)
-    }
-
-    val expression = InsertOrUpdateExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = builder.updateAssignments,
-        doNothing = builder.doNothing
-    )
-
+    val expression = buildInsertOrUpdateExpression(table, returning = emptyList(), block = block)
     return executeUpdate(expression)
 }
 
 /**
- * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
- * performs an update if any conflict exists.
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, automatically
+ * performs an update if any conflict exists, and finally returns the specific column.
  *
  * Usage:
  *
  * ```kotlin
- * database.insertOrUpdateReturning(Employees, Employees.id) {
+ * val id = database.insertOrUpdateReturning(Employees, Employees.id) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -143,34 +117,33 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  *
  * @since 3.4.0
  * @param table the table to be inserted.
- * @param returningColumn the column to return
+ * @param returning the column to return
  * @param block the DSL block used to construct the expression.
  * @return the returning column value.
  */
-public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
-    table: T,
-    returningColumn: Column<R>,
-    block: InsertOrUpdateStatementBuilder.(T) -> Unit
-): R? {
-    val (_, rowSet) = this.insertOrUpdateReturningAux(
-        table,
-        listOfNotNull(returningColumn),
-        block
-    )
+public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
+    table: T, returning: Column<C>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): C? {
+    val expression = buildInsertOrUpdateExpression(table, listOf(returning), block)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
-    return rowSet.asIterable().map { row ->
-        returningColumn.sqlType.getResult(row, 1)
-    }.first()
+    if (rowSet.size() == 1) {
+        check(rowSet.next())
+        return returning.sqlType.getResult(rowSet, 1)
+    } else {
+        val (sql, _) = formatExpression(expression, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
 }
 
 /**
- * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
- * performs an update if any conflict exists.
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, automatically
+ * performs an update if any conflict exists, and finally returns the specific columns.
  *
  * Usage:
  *
  * ```kotlin
- * database.insertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
+ * val (id, job) = database.insertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -193,36 +166,34 @@ public fun <T : BaseTable<*>, R : Any> Database.insertOrUpdateReturning(
  *
  * @since 3.4.0
  * @param table the table to be inserted.
- * @param returningColumns the columns to return
+ * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
  * @return the returning columns' values.
  */
-public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturning(
-    table: T,
-    returningColumns: Pair<Column<R1>, Column<R2>>,
-    block: InsertOrUpdateStatementBuilder.(T) -> Unit
-): Pair<R1?, R2?> {
-    val (_, rowSet) = this.insertOrUpdateReturningAux(
-        table,
-        returningColumns.toList(),
-        block
-    )
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturning(
+    table: T, returning: Pair<Column<C1>, Column<C2>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): Pair<C1?, C2?> {
+    val (c1, c2) = returning
+    val expression = buildInsertOrUpdateExpression(table, listOf(c1, c2), block)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
-    return rowSet.asIterable().map { row ->
-        Pair(
-            returningColumns.first.sqlType.getResult(row, 1),
-            returningColumns.second.sqlType.getResult(row, 2)
-        )
-    }.first()
+    if (rowSet.size() == 1) {
+        check(rowSet.next())
+        return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
+    } else {
+        val (sql, _) = formatExpression(expression, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
 }
 
 /**
- * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
- * performs an update if any conflict exists.
+ * Insert a record to the table, determining if there is a key conflict while it's being inserted, automatically
+ * performs an update if any conflict exists, and finally returns the specific columns.
  *
  * Usage:
  *
  * ```kotlin
+ * val (id, job, salary) =
  * database.insertOrUpdateReturning(Employees, Triple(Employees.id, Employees.job, Employees.salary)) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
@@ -246,62 +217,58 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.insertOrUpdateReturni
  *
  * @since 3.4.0
  * @param table the table to be inserted.
- * @param returningColumns the columns to return
+ * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
  * @return the returning columns' values.
  */
-public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.insertOrUpdateReturning(
-    table: T,
-    returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,
-    block: InsertOrUpdateStatementBuilder.(T) -> Unit
-): Triple<R1?, R2?, R3?> {
-    val (_, rowSet) = this.insertOrUpdateReturningAux(
-        table,
-        returningColumns.toList(),
-        block
-    )
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpdateReturning(
+    table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): Triple<C1?, C2?, C3?> {
+    val (c1, c2, c3) = returning
+    val expression = buildInsertOrUpdateExpression(table, listOf(c1, c2, c3), block)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
-    return rowSet.asIterable().map { row ->
-        var i = 0
-        Triple(
-            returningColumns.first.sqlType.getResult(row, ++i),
-            returningColumns.second.sqlType.getResult(row, ++i),
-            returningColumns.third.sqlType.getResult(row, ++i)
+    if (rowSet.size() == 1) {
+        check(rowSet.next())
+        return Triple(
+            c1.sqlType.getResult(rowSet, 1),
+            c2.sqlType.getResult(rowSet, 2),
+            c3.sqlType.getResult(rowSet, 3)
         )
-    }.first()
+    } else {
+        val (sql, _) = formatExpression(expression, beautifySql = true)
+        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
+    }
 }
 
-private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
-    table: T,
-    returningColumns: List<Column<*>>,
-    block: InsertOrUpdateStatementBuilder.(T) -> Unit
-): Pair<Int, CachedRowSet> {
+private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
+    table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): InsertOrUpdateExpression {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
-    val primaryKeys = table.primaryKeys
-    if (primaryKeys.isEmpty() && builder.conflictColumns.isEmpty()) {
+    val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
+    if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-                "you must specify the conflict columns when calling onDuplicateKey(col) { .. }"
+            "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
     if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
         val msg =
-            "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
-                "you must explicitly invoke `doNothing()`"
+            "Cannot leave the onConflict clause empty! " +
+            "If you desire no update action at all please explicitly call `doNothing()`"
         throw IllegalStateException(msg)
     }
 
-    val expression = InsertOrUpdateExpression(
+    return InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
-        conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
-        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
-        returningColumns = returningColumns.map { it.asExpression() }
+        conflictColumns = conflictColumns.map { it.asExpression() },
+        updateAssignments = builder.updateAssignments,
+        doNothing = builder.doNothing,
+        returningColumns = returning.map { it.asExpression() }
     )
-
-    return executeUpdateAndRetrieveKeys(expression)
 }
 
 /**
