@@ -104,124 +104,6 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 }
 
 /**
- * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
- * and automatically performs updates if any conflict exists.
- *
- * Usage:
- *
- * ```kotlin
- * database.bulkInsertOrUpdate(Employees) {
- *     item {
- *         set(it.id, 1)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     item {
- *         set(it.id, 5)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     onConflict {
- *         set(it.salary, it.salary + 900)
- *     }
- * }
- * ```
- *
- * Generated SQL:
- *
- * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id)
- * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
- * ```
- *
- * @since 3.3.0
- * @param table the table to be inserted.
- * @param block the DSL block used to construct the expression.
- * @return the effected row count.
- * @see bulkInsert
- */
-public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
-    table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): Int {
-    val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
-
-    val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
-    if (conflictColumns.isEmpty()) {
-        val msg =
-            "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onConflict(col) { .. }"
-        throw IllegalStateException(msg)
-    }
-
-    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
-        val msg =
-            "Cannot leave the onConflict clause empty! " +
-            "If you desire no update action at all please explicitly call `doNothing()`"
-        throw IllegalStateException(msg)
-    }
-
-    val expression = BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = builder.updateAssignments,
-        doNothing = builder.doNothing
-    )
-
-    return executeUpdate(expression)
-}
-
-/**
- * DSL builder for bulk insert statements.
- */
-@KtormDsl
-public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
-    internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
-
-    /**
-     * Add the assignments of a new row to the bulk insert.
-     */
-    public fun item(block: AssignmentsBuilder.() -> Unit) {
-        val builder = PostgreSqlAssignmentsBuilder().apply(block)
-
-        if (assignments.isEmpty()
-            || assignments[0].map { it.column.name } == builder.assignments.map { it.column.name }
-        ) {
-            assignments += builder.assignments
-        } else {
-            throw IllegalArgumentException("Every item in a batch operation must be the same.")
-        }
-    }
-}
-
-/**
- * DSL builder for bulk insert or update statements.
- */
-@KtormDsl
-public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertStatementBuilder<T>(table) {
-    internal val conflictColumns = ArrayList<Column<*>>()
-    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-    internal var doNothing: Boolean = false
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
-    public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
-        val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
-        this.conflictColumns += columns
-        this.updateAssignments += builder.assignments
-        this.doNothing = builder.doNothing
-    }
-}
-
-/**
  * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
@@ -411,6 +293,81 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningAux(
     )
 
     return executeUpdateAndRetrieveKeys(expression)
+}
+
+/**
+ * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
+ * and automatically performs updates if any conflict exists.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdate(Employees) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * ```
+ *
+ * @since 3.3.0
+ * @param table the table to be inserted.
+ * @param block the DSL block used to construct the expression.
+ * @return the effected row count.
+ * @see bulkInsert
+ */
+public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
+    table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
+): Int {
+    val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
+
+    val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
+    if (conflictColumns.isEmpty()) {
+        val msg =
+            "Table '$table' doesn't have a primary key, " +
+            "you must specify the conflict columns when calling onConflict(col) { .. }"
+        throw IllegalStateException(msg)
+    }
+
+    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
+        val msg =
+            "Cannot leave the onConflict clause empty! " +
+            "If you desire no update action at all please explicitly call `doNothing()`"
+        throw IllegalStateException(msg)
+    }
+
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        conflictColumns = conflictColumns.map { it.asExpression() },
+        updateAssignments = builder.updateAssignments,
+        doNothing = builder.doNothing
+    )
+
+    return executeUpdate(expression)
 }
 
 /**
@@ -618,14 +575,14 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
     if (conflictColumns.isEmpty()) {
         val msg =
             "Table '$table' doesn't have a primary key, " +
-            "you must specify the conflict columns when calling onConflict(col) { .. }"
+                "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
     if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
         val msg =
             "Cannot leave the onConflict clause empty! " +
-            "If you desire no update action at all please explicitly call `doNothing()`"
+                "If you desire no update action at all please explicitly call `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -639,4 +596,47 @@ private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
     )
 
     return executeUpdateAndRetrieveKeys(expression)
+}
+
+/**
+ * DSL builder for bulk insert statements.
+ */
+@KtormDsl
+public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+    internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
+
+    /**
+     * Add the assignments of a new row to the bulk insert.
+     */
+    public fun item(block: AssignmentsBuilder.() -> Unit) {
+        val builder = PostgreSqlAssignmentsBuilder().apply(block)
+
+        if (assignments.isEmpty()
+            || assignments[0].map { it.column.name } == builder.assignments.map { it.column.name }
+        ) {
+            assignments += builder.assignments
+        } else {
+            throw IllegalArgumentException("Every item in a batch operation must be the same.")
+        }
+    }
+}
+
+/**
+ * DSL builder for bulk insert or update statements.
+ */
+@KtormDsl
+public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertStatementBuilder<T>(table) {
+    internal val conflictColumns = ArrayList<Column<*>>()
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal var doNothing: Boolean = false
+
+    /**
+     * Specify the update assignments while any key conflict exists.
+     */
+    public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
+        val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
+        this.conflictColumns += columns
+        this.updateAssignments += builder.assignments
+        this.doNothing = builder.doNothing
+    }
 }
