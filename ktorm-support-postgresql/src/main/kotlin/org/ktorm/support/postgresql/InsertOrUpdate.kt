@@ -34,14 +34,17 @@ import org.ktorm.schema.Column
  *
  * @property table the table to be inserted.
  * @property assignments the inserted column assignments.
- * @property conflictColumns the index columns on which the conflict may happens.
+ * @property conflictColumns the index columns on which the conflict may happen.
  * @property updateAssignments the updated column assignments while any key conflict exists.
+ * @property doNothing whether we should ignore errors and do nothing when conflict happens.
+ * @property returningColumns the returning columns.
  */
 public data class InsertOrUpdateExpression(
     val table: TableExpression,
     val assignments: List<ColumnAssignmentExpression<*>>,
-    val conflictColumns: List<ColumnExpression<*>>? = null,
+    val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val doNothing: Boolean = false,
     val returningColumns: List<ColumnExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
@@ -92,10 +95,10 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
+    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
         val msg =
-            "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
-            "you must explicitly invoke `doNothing()`"
+            "Cannot leave the onConflict clause empty! " +
+            "If you desire no update action at all please explicitly call `doNothing()`"
         throw IllegalStateException(msg)
     }
 
@@ -103,7 +106,8 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
+        updateAssignments = builder.updateAssignments,
+        doNothing = builder.doNothing
     )
 
     return executeUpdate(expression)
@@ -126,10 +130,9 @@ public open class PostgreSqlAssignmentsBuilder : AssignmentsBuilder() {
  */
 @KtormDsl
 public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
-    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal val conflictColumns = ArrayList<Column<*>>()
-
-    internal var explicitlyDoNothing: Boolean = false
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal var doNothing = false
 
     /**
      * Specify the update assignments while any key conflict exists.
@@ -147,29 +150,24 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
      */
     public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
-
-        explicitlyDoNothing = builder.explicitlyDoNothing
-
-        updateAssignments += builder.assignments
-
-        conflictColumns += columns
+        this.conflictColumns += columns
+        this.updateAssignments += builder.assignments
+        this.doNothing = builder.doNothing
     }
 }
 
 /**
-<<<<<<< HEAD
-=======
  * DSL builder for insert or update on conflict clause.
  */
 @KtormDsl
 public class InsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBuilder() {
-    internal var explicitlyDoNothing: Boolean = false
+    internal var doNothing = false
 
     /**
      * Explicitly tells ktorm to ignore any on-conflict errors and continue insertion.
      */
     public fun doNothing() {
-        this.explicitlyDoNothing = true
+        this.doNothing = true
     }
 
     /**
@@ -186,7 +184,6 @@ public class InsertOrUpdateOnConflictClauseBuilder : PostgreSqlAssignmentsBuilde
 }
 
 /**
->>>>>>> 0ee0f38d1fb1e28dbfa4832badc4f92ef8ad2802
  * Insert a record to the table, determining if there is a key conflict while it's being inserted, and automatically
  * performs an update if any conflict exists.
  *
@@ -359,7 +356,7 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
         throw IllegalStateException(msg)
     }
 
-    if (!builder.explicitlyDoNothing && builder.updateAssignments.isEmpty()) {
+    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
         val msg =
             "You cannot leave a on-conflict clause empty! If you desire no update action at all " +
             "you must explicitly invoke `doNothing()`"
@@ -370,7 +367,7 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningAux(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = builder.conflictColumns.ifEmpty { primaryKeys }.map { it.asExpression() },
-        updateAssignments = if (builder.explicitlyDoNothing) emptyList() else builder.updateAssignments,
+        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
         returningColumns = returningColumns.map { it.asExpression() }
     )
 
