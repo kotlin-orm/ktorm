@@ -44,7 +44,6 @@ import org.ktorm.schema.Column
  * @property assignments column assignments of the bulk insert statement.
  * @property conflictColumns the index columns on which the conflict may happen.
  * @property updateAssignments the updated column assignments while key conflict exists.
- * @property doNothing whether we should ignore errors and do nothing when conflict happens.
  * @property returningColumns the returning columns.
  */
 public data class BulkInsertExpression(
@@ -52,7 +51,6 @@ public data class BulkInsertExpression(
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
     val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
-    val doNothing: Boolean = false,
     val returningColumns: List<ColumnExpression<*>> = emptyList(),
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
@@ -509,8 +507,7 @@ private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = builder.updateAssignments,
-        doNothing = builder.doNothing,
+        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
         returningColumns = returning.map { it.asExpression() }
     )
 }
