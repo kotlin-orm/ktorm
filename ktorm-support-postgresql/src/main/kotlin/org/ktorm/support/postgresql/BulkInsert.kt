@@ -195,9 +195,9 @@ public fun <T : BaseTable<*>, C : Any> Database.bulkInsertReturning(
  *
  * @since 3.4.0
  * @param table the table to be inserted.
- * @param returning the column to return
+ * @param returning the columns to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
- * @return the returning column's values.
+ * @return the returning columns' values.
  */
 public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertReturning(
     table: T, returning: Pair<Column<C1>, Column<C2>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
@@ -256,9 +256,9 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertReturning(
  *
  * @since 3.4.0
  * @param table the table to be inserted.
- * @param returning the column to return
+ * @param returning the columns to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
- * @return the returning column's values.
+ * @return the returning columns' values.
  */
 public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertReturning(
     table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
