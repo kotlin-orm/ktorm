@@ -16,6 +16,7 @@
 
 package org.ktorm.support.postgresql
 
+import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
@@ -126,16 +127,8 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
 public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
     table: T, returning: Column<C>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): C? {
-    val expression = buildInsertOrUpdateExpression(table, listOf(returning), block)
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-
-    if (rowSet.size() == 1) {
-        check(rowSet.next())
-        return returning.sqlType.getResult(rowSet, 1)
-    } else {
-        val (sql, _) = formatExpression(expression, beautifySql = true)
-        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
-    }
+    val row = insertOrUpdateReturningRow(table, listOf(returning), block)
+    return returning.sqlType.getResult(row, 1)
 }
 
 /**
@@ -177,16 +170,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
     table: T, returning: Pair<Column<C1>, Column<C2>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Pair<C1?, C2?> {
     val (c1, c2) = returning
-    val expression = buildInsertOrUpdateExpression(table, listOf(c1, c2), block)
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-
-    if (rowSet.size() == 1) {
-        check(rowSet.next())
-        return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
-    } else {
-        val (sql, _) = formatExpression(expression, beautifySql = true)
-        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
-    }
+    val row = insertOrUpdateReturningRow(table, listOf(c1, c2), block)
+    return Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2))
 }
 
 /**
@@ -229,16 +214,22 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
     table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Triple<C1?, C2?, C3?> {
     val (c1, c2, c3) = returning
-    val expression = buildInsertOrUpdateExpression(table, listOf(c1, c2, c3), block)
+    val row = insertOrUpdateReturningRow(table, listOf(c1, c2, c3), block)
+    return Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
+}
+
+/**
+ * Insert or update, returning one row.
+ */
+private fun <T : BaseTable<*>> Database.insertOrUpdateReturningRow(
+    table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
+): CachedRowSet {
+    val expression = buildInsertOrUpdateExpression(table, returning, block)
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
     if (rowSet.size() == 1) {
         check(rowSet.next())
-        return Triple(
-            c1.sqlType.getResult(rowSet, 1),
-            c2.sqlType.getResult(rowSet, 2),
-            c3.sqlType.getResult(rowSet, 3)
-        )
+        return rowSet
     } else {
         val (sql, _) = formatExpression(expression, beautifySql = true)
         throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
