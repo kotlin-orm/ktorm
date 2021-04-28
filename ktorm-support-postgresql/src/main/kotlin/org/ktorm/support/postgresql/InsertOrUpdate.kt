@@ -71,7 +71,8 @@ public data class InsertOrUpdateExpression(
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
@@ -110,7 +111,8 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
  * returning id
  * ```
@@ -159,7 +161,8 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
  * returning id, job
  * ```
@@ -210,7 +213,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
  * returning id, job, salary
  * ```
@@ -293,7 +297,8 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * returning id
  * ```
  *
@@ -344,7 +349,8 @@ public fun <T : BaseTable<*>, C : Any> Database.insertReturning(
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * returning id, job
  * ```
  *
@@ -397,7 +403,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertReturning(
  * Generated SQL:
  *
  * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id) values (?, ?, ?, ?, ?, ?)
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
  * returning id, job, salary
  * ```
  *

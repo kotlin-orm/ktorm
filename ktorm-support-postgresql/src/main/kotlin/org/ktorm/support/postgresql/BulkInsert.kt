@@ -35,7 +35,8 @@ import org.ktorm.schema.Column
  * For example:
  *
  * ```sql
- * insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...
+ * insert into table (column1, column2)
+ * values (?, ?), (?, ?), (?, ?)...
  * on conflict (...) do update set ...`
  * ```
  *
@@ -58,7 +59,7 @@ public data class BulkInsertExpression(
 ) : SqlExpression()
 
 /**
- * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
+ * Bulk insert records to the table and return the effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
  * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
@@ -104,14 +105,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 }
 
 /**
- * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
- *
- * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
- * is much better than [batchInsert].
- *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...
- * returning id`.
+ * Bulk insert records to the table and return the specific column's values.
  *
  * Usage:
  *
@@ -136,38 +130,37 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * }
  * ```
  *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into table (name, job, manager_id, hire_date, salary, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)...
+ * returning id
+ * ```
+ *
  * @since 3.4.0
  * @param table the table to be inserted.
+ * @param returning the column to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
- * @param returningColumn the column to return
- * @return the returning column value.
- * @see batchInsert
+ * @return the returning column's values.
  */
-public fun <T : BaseTable<*>, R : Any> Database.bulkInsertReturning(
-    table: T,
-    returningColumn: Column<R>,
-    block: BulkInsertStatementBuilder<T>.(T) -> Unit
-): List<R?> {
-    val (_, rowSet) = this.bulkInsertReturningAux(
-        table,
-        listOf(returningColumn),
-        block
+public fun <T : BaseTable<*>, C : Any> Database.bulkInsertReturning(
+    table: T, returning: Column<C>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
+): List<C?> {
+    val builder = BulkInsertStatementBuilder(table).apply { block(table) }
+
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        returningColumns = listOf(returning.asExpression())
     )
 
-    return rowSet.asIterable().map { row ->
-        returningColumn.sqlType.getResult(row, 1)
-    }
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    return rowSet.asIterable().map { row -> returning.sqlType.getResult(row, 1) }
 }
 
 /**
- * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
- *
- * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
- * is much better than [batchInsert].
- *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...
- * returning id, job`.
+ * Bulk insert records to the table and return the specific columns' values.
  *
  * Usage:
  *
@@ -192,41 +185,43 @@ public fun <T : BaseTable<*>, R : Any> Database.bulkInsertReturning(
  * }
  * ```
  *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into table (name, job, manager_id, hire_date, salary, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)...
+ * returning id, job
+ * ```
+ *
  * @since 3.4.0
  * @param table the table to be inserted.
+ * @param returning the column to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
- * @param returningColumns the columns to return
- * @return the returning columns' values.
- * @see batchInsert
+ * @return the returning column's values.
  */
-public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.bulkInsertReturning(
-    table: T,
-    returningColumns: Pair<Column<R1>, Column<R2>>,
-    block: BulkInsertStatementBuilder<T>.(T) -> Unit
-): List<Pair<R1?, R2?>> {
-    val (_, rowSet) = this.bulkInsertReturningAux(
-        table,
-        returningColumns.toList(),
-        block
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertReturning(
+    table: T, returning: Pair<Column<C1>, Column<C2>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
+): List<Pair<C1?, C2?>> {
+    val (c1, c2) = returning
+    val builder = BulkInsertStatementBuilder(table).apply { block(table) }
+
+    val expression = BulkInsertExpression(
+        table = table.asExpression(),
+        assignments = builder.assignments,
+        returningColumns = listOf(c1, c2).map { it.asExpression() }
     )
 
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
     return rowSet.asIterable().map { row ->
         Pair(
-            returningColumns.first.sqlType.getResult(row, 1),
-            returningColumns.second.sqlType.getResult(row, 2)
+            c1.sqlType.getResult(row, 1),
+            c2.sqlType.getResult(row, 2)
         )
     }
 }
 
 /**
- * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
- *
- * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
- * is much better than [batchInsert].
- *
- * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...
- * returning id, job, salary`.
+ * Bulk insert records to the table and return the specific columns' values.
  *
  * Usage:
  *
@@ -251,48 +246,40 @@ public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.bulkInsertReturning(
  * }
  * ```
  *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into table (name, job, manager_id, hire_date, salary, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)...
+ * returning id, job, salary
+ * ```
+ *
  * @since 3.4.0
  * @param table the table to be inserted.
+ * @param returning the column to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
- * @param returningColumns the columns to return
- * @return the returning columns' values.
- * @see batchInsert
+ * @return the returning column's values.
  */
-public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.bulkInsertReturning(
-    table: T,
-    returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,
-    block: BulkInsertStatementBuilder<T>.(T) -> Unit
-): List<Triple<R1?, R2?, R3?>> {
-    val (_, rowSet) = this.bulkInsertReturningAux(
-        table,
-        returningColumns.toList(),
-        block
-    )
-
-    return rowSet.asIterable().map { row ->
-        var i = 0
-        Triple(
-            returningColumns.first.sqlType.getResult(row, ++i),
-            returningColumns.second.sqlType.getResult(row, ++i),
-            returningColumns.third.sqlType.getResult(row, ++i)
-        )
-    }
-}
-
-private fun <T : BaseTable<*>> Database.bulkInsertReturningAux(
-    table: T,
-    returningColumns: List<Column<*>>,
-    block: BulkInsertStatementBuilder<T>.(T) -> Unit
-): Pair<Int, CachedRowSet> {
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertReturning(
+    table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
+): List<Triple<C1?, C2?, C3?>> {
+    val (c1, c2, c3) = returning
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
     val expression = BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
-        returningColumns = returningColumns.map { it.asExpression() }
+        returningColumns = listOf(c1, c2, c3).map { it.asExpression() }
     )
 
-    return executeUpdateAndRetrieveKeys(expression)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    return rowSet.asIterable().map { row ->
+        Triple(
+            c1.sqlType.getResult(row, 1),
+            c2.sqlType.getResult(row, 2),
+            c3.sqlType.getResult(row, 3)
+        )
+    }
 }
 
 /**
