@@ -16,6 +16,7 @@
 
 package org.ktorm.support.postgresql
 
+import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.database.asIterable
 import org.ktorm.dsl.AssignmentsBuilder
@@ -146,15 +147,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 public fun <T : BaseTable<*>, C : Any> Database.bulkInsertReturning(
     table: T, returning: Column<C>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): List<C?> {
-    val builder = BulkInsertStatementBuilder(table).apply { block(table) }
-
-    val expression = BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        returningColumns = listOf(returning.asExpression())
-    )
-
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    val rowSet = bulkInsertReturningRowSet(table, listOf(returning), block)
     return rowSet.asIterable().map { row -> returning.sqlType.getResult(row, 1) }
 }
 
@@ -202,21 +195,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertReturning(
     table: T, returning: Pair<Column<C1>, Column<C2>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): List<Pair<C1?, C2?>> {
     val (c1, c2) = returning
-    val builder = BulkInsertStatementBuilder(table).apply { block(table) }
-
-    val expression = BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        returningColumns = listOf(c1, c2).map { it.asExpression() }
-    )
-
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-    return rowSet.asIterable().map { row ->
-        Pair(
-            c1.sqlType.getResult(row, 1),
-            c2.sqlType.getResult(row, 2)
-        )
-    }
+    val rowSet = bulkInsertReturningRowSet(table, listOf(c1, c2), block)
+    return rowSet.asIterable().map { row -> Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2)) }
 }
 
 /**
@@ -263,22 +243,28 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertR
     table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): List<Triple<C1?, C2?, C3?>> {
     val (c1, c2, c3) = returning
+    val rowSet = bulkInsertReturningRowSet(table, listOf(c1, c2, c3), block)
+    return rowSet.asIterable().map { row ->
+        Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
+    }
+}
+
+/**
+ * Bulk insert records to the table, returning row set.
+ */
+private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
+    table: T, returning: List<Column<*>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
+): CachedRowSet {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
     val expression = BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
-        returningColumns = listOf(c1, c2, c3).map { it.asExpression() }
+        returningColumns = returning.map { it.asExpression() }
     )
 
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-    return rowSet.asIterable().map { row ->
-        Triple(
-            c1.sqlType.getResult(row, 1),
-            c2.sqlType.getResult(row, 2),
-            c3.sqlType.getResult(row, 3)
-        )
-    }
+    return rowSet
 }
 
 /**
