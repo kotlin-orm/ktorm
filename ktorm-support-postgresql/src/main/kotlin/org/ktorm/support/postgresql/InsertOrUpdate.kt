@@ -302,23 +302,8 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
 public fun <T : BaseTable<*>, C : Any> Database.insertReturning(
     table: T, returning: Column<C>, block: AssignmentsBuilder.(T) -> Unit
 ): C? {
-    val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
-
-    val expression = InsertOrUpdateExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        returningColumns = listOf(returning.asExpression())
-    )
-
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-
-    if (rowSet.size() == 1) {
-        check(rowSet.next())
-        return returning.sqlType.getResult(rowSet, 1)
-    } else {
-        val (sql, _) = formatExpression(expression, beautifySql = true)
-        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
-    }
+    val row = insertReturningRow(table, listOf(returning), block)
+    return returning.sqlType.getResult(row, 1)
 }
 
 /**
@@ -355,23 +340,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertReturning(
     table: T, returning: Pair<Column<C1>, Column<C2>>, block: AssignmentsBuilder.(T) -> Unit
 ): Pair<C1?, C2?> {
     val (c1, c2) = returning
-    val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
-
-    val expression = InsertOrUpdateExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        returningColumns = listOf(c1, c2).map { it.asExpression() }
-    )
-
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-
-    if (rowSet.size() == 1) {
-        check(rowSet.next())
-        return Pair(c1.sqlType.getResult(rowSet, 1), c2.sqlType.getResult(rowSet, 2))
-    } else {
-        val (sql, _) = formatExpression(expression, beautifySql = true)
-        throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
-    }
+    val row = insertReturningRow(table, listOf(c1, c2), block)
+    return Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2))
 }
 
 /**
@@ -409,23 +379,29 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertRetur
     table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: AssignmentsBuilder.(T) -> Unit
 ): Triple<C1?, C2?, C3?> {
     val (c1, c2, c3) = returning
+    val row = insertReturningRow(table, listOf(c1, c2, c3), block)
+    return Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
+}
+
+/**
+ * Insert and returning one row.
+ */
+private fun <T : BaseTable<*>> Database.insertReturningRow(
+    table: T, returning: List<Column<*>>, block: AssignmentsBuilder.(T) -> Unit
+): CachedRowSet {
     val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
 
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
-        returningColumns = listOf(c1, c2, c3).map { it.asExpression() }
+        returningColumns = returning.map { it.asExpression() }
     )
 
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
     if (rowSet.size() == 1) {
         check(rowSet.next())
-        return Triple(
-            c1.sqlType.getResult(rowSet, 1),
-            c2.sqlType.getResult(rowSet, 2),
-            c3.sqlType.getResult(rowSet, 3)
-        )
+        return rowSet
     } else {
         val (sql, _) = formatExpression(expression, beautifySql = true)
         throw IllegalStateException("Expected 1 row but ${rowSet.size()} returned from sql: \n\n$sql")
