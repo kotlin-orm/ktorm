@@ -421,12 +421,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertOrUpdateRet
     val (c1, c2) = returning
     val expression = buildBulkInsertOrUpdateExpression(table, listOf(c1, c2), block)
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-    return rowSet.asIterable().map { row ->
-        Pair(
-            c1.sqlType.getResult(row, 1),
-            c2.sqlType.getResult(row, 2)
-        )
-    }
+    return rowSet.asIterable().map { row -> Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2)) }
 }
 
 /**
@@ -483,11 +478,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertO
     val expression = buildBulkInsertOrUpdateExpression(table, listOf(c1, c2, c3), block)
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
     return rowSet.asIterable().map { row ->
-        Triple(
-            c1.sqlType.getResult(row, 1),
-            c2.sqlType.getResult(row, 2),
-            c3.sqlType.getResult(row, 3)
-        )
+        Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
     }
 }
 
