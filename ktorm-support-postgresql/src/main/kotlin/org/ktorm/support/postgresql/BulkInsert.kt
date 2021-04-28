@@ -16,7 +16,6 @@
 
 package org.ktorm.support.postgresql
 
-import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.database.asIterable
 import org.ktorm.dsl.AssignmentsBuilder
@@ -324,11 +323,194 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertR
  * @param table the table to be inserted.
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
- * @see bulkInsert
  */
 public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): Int {
+    val expression = buildBulkInsertOrUpdateExpression(table, returning = emptyList(), block = block)
+    return executeUpdate(expression)
+}
+
+/**
+ * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
+ * automatically performs updates if any conflict exists, and finally returns the specific column.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdateReturning(Employees, Employees.id) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returning the column to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning column's values.
+ */
+public fun <T : BaseTable<*>, C : Any> Database.bulkInsertOrUpdateReturning(
+    table: T, returning: Column<C>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
+): List<C?> {
+    val expression = buildBulkInsertOrUpdateExpression(table, listOf(returning), block)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    return rowSet.asIterable().map { row -> returning.sqlType.getResult(row, 1) }
+}
+
+/**
+ * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
+ * automatically performs updates if any conflict exists, and finally returns the specific columns.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id, job
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returning the columns to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning columns' values.
+ */
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertOrUpdateReturning(
+    table: T, returning: Pair<Column<C1>, Column<C2>>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
+): List<Pair<C1?, C2?>> {
+    val (c1, c2) = returning
+    val expression = buildBulkInsertOrUpdateExpression(table, listOf(c1, c2), block)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    return rowSet.asIterable().map { row ->
+        Pair(
+            c1.sqlType.getResult(row, 1),
+            c2.sqlType.getResult(row, 2)
+        )
+    }
+}
+
+/**
+ * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
+ * automatically performs updates if any conflict exists, and finally returns the specific columns.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdateReturning(Employees, Triple(Employees.id, Employees.job, Employees.salary)) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id, job, salary
+ * ```
+ *
+ * @since 3.4.0
+ * @param table the table to be inserted.
+ * @param returning the columns to return
+ * @param block the DSL block used to construct the expression.
+ * @return the returning columns' values.
+ */
+public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertOrUpdateReturning(
+    table: T,
+    returning: Triple<Column<C1>, Column<C2>, Column<C3>>,
+    block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
+): List<Triple<C1?, C2?, C3?>> {
+    val (c1, c2, c3) = returning
+    val expression = buildBulkInsertOrUpdateExpression(table, listOf(c1, c2, c3), block)
+    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    return rowSet.asIterable().map { row ->
+        Triple(
+            c1.sqlType.getResult(row, 1),
+            c2.sqlType.getResult(row, 2),
+            c3.sqlType.getResult(row, 3)
+        )
+    }
+}
+
+/**
+ * Build a bulk insert or update expression.
+ */
+private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
+    table: T, returning: List<Column<*>>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
+): BulkInsertExpression {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
@@ -346,243 +528,14 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
         throw IllegalStateException(msg)
     }
 
-    val expression = BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = builder.updateAssignments,
-        doNothing = builder.doNothing
-    )
-
-    return executeUpdate(expression)
-}
-
-/**
- * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
- * and automatically performs updates if any conflict exists.
- *
- * Usage:
- *
- * ```kotlin
- * database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.name)) {
- *     item {
- *         set(it.id, 1)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     item {
- *         set(it.id, 5)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     onConflict {
- *         set(it.salary, it.salary + 900)
- *     }
- * }
- * ```
- *
- * Generated SQL:
- *
- * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id)
- * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
- * returning id, job, ...
- * ```
- *
- * @since 3.4.0
- * @param table the table to be inserted.
- * @param block the DSL block used to construct the expression.
- * @param returningColumn the column to return
- * @return the returning column value.
- * @see bulkInsert
- */
-public fun <T : BaseTable<*>, R : Any> Database.bulkInsertOrUpdateReturning(
-    table: T,
-    returningColumn: Column<R>,
-    block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): List<R?> {
-    val (_, rowSet) = this.bulkInsertOrUpdateReturningAux(
-        table,
-        listOf(returningColumn),
-        block
-    )
-
-    return rowSet.asIterable().map { row ->
-        returningColumn.sqlType.getResult(row, 1)
-    }
-}
-
-/**
- * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
- * and automatically performs updates if any conflict exists.
- *
- * Usage:
- *
- * ```kotlin
- * database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.name)) {
- *     item {
- *         set(it.id, 1)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     item {
- *         set(it.id, 5)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     onConflict {
- *         set(it.salary, it.salary + 900)
- *     }
- * }
- * ```
- *
- * Generated SQL:
- *
- * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id)
- * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
- * returning id, job, ...
- * ```
- *
- * @since 3.4.0
- * @param table the table to be inserted.
- * @param block the DSL block used to construct the expression.
- * @param returningColumns the column to return
- * @return the returning columns' values.
- * @see bulkInsert
- */
-public fun <T : BaseTable<*>, R1 : Any, R2 : Any> Database.bulkInsertOrUpdateReturning(
-    table: T,
-    returningColumns: Pair<Column<R1>, Column<R2>>,
-    block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): List<Pair<R1?, R2?>> {
-    val (_, rowSet) = this.bulkInsertOrUpdateReturningAux(
-        table,
-        returningColumns.toList(),
-        block
-    )
-
-    return rowSet.asIterable().map { row ->
-        Pair(
-            returningColumns.first.sqlType.getResult(row, 1),
-            returningColumns.second.sqlType.getResult(row, 2)
-        )
-    }
-}
-
-/**
- * Bulk insert records to the table, determining if there is a key conflict while inserting each of them,
- * and automatically performs updates if any conflict exists.
- *
- * Usage:
- *
- * ```kotlin
- * database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.name, Employees.salary)) {
- *     item {
- *         set(it.id, 1)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     item {
- *         set(it.id, 5)
- *         set(it.name, "vince")
- *         set(it.job, "engineer")
- *         set(it.salary, 1000)
- *         set(it.hireDate, LocalDate.now())
- *         set(it.departmentId, 1)
- *     }
- *     onConflict {
- *         set(it.salary, it.salary + 900)
- *     }
- * }
- * ```
- *
- * Generated SQL:
- *
- * ```sql
- * insert into t_employee (id, name, job, salary, hire_date, department_id)
- * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
- * on conflict (id) do update set salary = t_employee.salary + ?
- * returning id, job, ...
- * ```
- *
- * @since 3.4.0
- * @param table the table to be inserted.
- * @param block the DSL block used to construct the expression.
- * @param returningColumns the column to return
- * @return the returning columns' values.
- * @see bulkInsert
- */
-public fun <T : BaseTable<*>, R1 : Any, R2 : Any, R3 : Any> Database.bulkInsertOrUpdateReturning(
-    table: T,
-    returningColumns: Triple<Column<R1>, Column<R2>, Column<R3>>,
-    block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): List<Triple<R1?, R2?, R3?>> {
-    val (_, rowSet) = this.bulkInsertOrUpdateReturningAux(
-        table,
-        returningColumns.toList(),
-        block
-    )
-
-    return rowSet.asIterable().map { row ->
-        var i = 0
-        Triple(
-            returningColumns.first.sqlType.getResult(row, ++i),
-            returningColumns.second.sqlType.getResult(row, ++i),
-            returningColumns.third.sqlType.getResult(row, ++i)
-        )
-    }
-}
-
-private fun <T : BaseTable<*>> Database.bulkInsertOrUpdateReturningAux(
-    table: T,
-    returningColumns: List<Column<*>>,
-    block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): Pair<Int, CachedRowSet> {
-    val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
-
-    val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
-    if (conflictColumns.isEmpty()) {
-        val msg =
-            "Table '$table' doesn't have a primary key, " +
-                "you must specify the conflict columns when calling onConflict(col) { .. }"
-        throw IllegalStateException(msg)
-    }
-
-    if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
-        val msg =
-            "Cannot leave the onConflict clause empty! " +
-                "If you desire no update action at all please explicitly call `doNothing()`"
-        throw IllegalStateException(msg)
-    }
-
-    val expression = BulkInsertExpression(
+    return BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
         updateAssignments = builder.updateAssignments,
         doNothing = builder.doNothing,
-        returningColumns = returningColumns.map { it.asExpression() }
+        returningColumns = returning.map { it.asExpression() }
     )
-
-    return executeUpdateAndRetrieveKeys(expression)
 }
 
 /**
