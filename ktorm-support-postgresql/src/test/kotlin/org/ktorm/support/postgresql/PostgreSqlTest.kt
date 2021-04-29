@@ -141,6 +141,89 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
+    fun testInsertOrUpdateReturning() {
+        database.insertOrUpdateReturning(Employees, Employees.id) {
+            set(it.name, "pedro")
+            set(it.job, "engineer")
+            set(it.salary, 1500)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict {
+                set(it.salary, it.salary + 900)
+            }
+        }.let { id ->
+            assert(id == 5)
+        }
+
+        database.insertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict {
+                set(it.salary, it.salary + 900)
+            }
+        }.let { (id, job) ->
+            assert(id == 6)
+            assert(job == "engineer")
+        }
+
+        val t = Employees.aliased("t")
+        database.insertOrUpdateReturning(t, Triple(t.id, t.job, t.salary)) {
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict(it.id) {
+                set(it.salary, it.salary + 900)
+            }
+        }.let { (id, job, salary) ->
+            assert(id == 7)
+            assert(job == "engineer")
+            assert(salary == 1000L)
+        }
+    }
+
+    @Test
+    fun testInsertReturning() {
+        database.insertReturning(Employees, Employees.id) {
+            set(it.name, "pedro")
+            set(it.job, "engineer")
+            set(it.salary, 1500)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+        }.let { id ->
+            assert(id == 5)
+        }
+
+        database.insertReturning(Employees, Pair(Employees.id, Employees.job)) {
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+        }.let { (id, job) ->
+            assert(id == 6)
+            assert(job == "engineer")
+        }
+
+        val t = Employees.aliased("t")
+        database.insertReturning(t, Triple(t.id, t.job, t.salary)) {
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+        }.let { (id, job, salary) ->
+            assert(id == 7)
+            assert(job == "engineer")
+            assert(salary == 1000L)
+        }
+    }
+
+    @Test
     fun testBulkInsert() {
         database.bulkInsert(Employees) {
             item {
@@ -163,69 +246,66 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testInsertOrUpdateReturning() {
-        database.insertOrUpdateReturning(
-            Employees,
-            Employees.id
-        ) {
-            set(it.id, 1009)
-            set(it.name, "pedro")
-            set(it.job, "engineer")
-            set(it.salary, 1500)
-            set(it.hireDate, LocalDate.now())
-            set(it.departmentId, 1)
-
-            onConflict {
-                set(it.salary, it.salary + 900)
+    fun testBulkInsertReturning() {
+        database.bulkInsertReturning(Employees, Employees.id) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
             }
-        }.let { createdId ->
-            assert(createdId == 1009)
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+        }.let { results ->
+            assert(results.size == 2)
+            assert(results == listOf(5, 6))
         }
 
-        database.insertOrUpdateReturning(
-            Employees,
-            Pair(
-                Employees.id,
-                Employees.name
-            )
-        ) {
-            set(it.id, 1001)
-            set(it.name, "vince")
-            set(it.job, "engineer")
-            set(it.salary, 1000)
-            set(it.hireDate, LocalDate.now())
-            set(it.departmentId, 1)
-
-            onConflict {
-                set(it.salary, it.salary + 900)
+        database.bulkInsertReturning(Employees, Pair(Employees.id, Employees.job)) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
             }
-        }.let { (createdId, createdName) ->
-            assert(createdId == 1001)
-            assert(createdName == "vince")
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+        }.let { results ->
+            assert(results.size == 2)
+            assert(results == listOf(Pair(7, "trainee"), Pair(8, "engineer")))
         }
 
-        database.insertOrUpdateReturning(
-            Employees,
-            Triple(
-                Employees.id,
-                Employees.name,
-                Employees.salary
-            )
-        ) {
-            set(it.id, 1001)
-            set(it.name, "vince")
-            set(it.job, "engineer")
-            set(it.salary, 1000)
-            set(it.hireDate, LocalDate.now())
-            set(it.departmentId, 1)
-
-            onConflict(it.id) {
-                set(it.salary, it.salary + 900)
+        val t = Employees.aliased("t")
+        database.bulkInsertReturning(t, Triple(t.id, t.job, t.salary)) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
             }
-        }.let { (createdId, createdName, createdSalary) ->
-            assert(createdId == 1001)
-            assert(createdName == "vince")
-            assert(createdSalary == 1900L)
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+        }.let { results ->
+            assert(results.size == 2)
+            assert(results == listOf(Triple(9, "trainee", 1000L), Triple(10, "engineer", 1000L)))
         }
     }
 
@@ -269,15 +349,11 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testBulkInsertWithUpdate() {
-        // Make sure we are creating new entries in the table (avoid colliding with existing test data)
-        val id1 = (Math.random() * 10000).roundToInt()
-        val id2 = (Math.random() * 10000).roundToInt()
-
-        val bulkInsertWithUpdate = { onDuplicateKeyDoNothing: Boolean ->
+    fun testBulkInsertOrUpdate1() {
+        val bulkInsertWithUpdate = { ignoreErrors: Boolean ->
             database.bulkInsertOrUpdate(Employees) {
                 item {
-                    set(it.id, id1)
+                    set(it.id, 5)
                     set(it.name, "vince")
                     set(it.job, "engineer")
                     set(it.salary, 1000)
@@ -285,144 +361,36 @@ class PostgreSqlTest : BaseTest() {
                     set(it.departmentId, 1)
                 }
                 item {
-                    set(it.id, id2)
+                    set(it.id, 6)
                     set(it.name, "vince")
                     set(it.job, "engineer")
                     set(it.salary, 1000)
                     set(it.hireDate, LocalDate.now())
                     set(it.departmentId, 1)
                 }
-                onConflict(Employees.id) {
-                    if (!onDuplicateKeyDoNothing)
-                        set(it.salary, it.salary + 900)
-                    else
-                        doNothing()
+                onConflict {
+                    if (ignoreErrors) doNothing() else set(it.salary, it.salary + 900)
                 }
             }
         }
 
         bulkInsertWithUpdate(false)
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1000L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 6 }!!.salary == 1000L)
 
         bulkInsertWithUpdate(false)
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 6 }!!.salary == 1900L)
 
         bulkInsertWithUpdate(true)
-        assert(database.employees.find { it.id eq id1 }!!.salary == 1900L)
-        assert(database.employees.find { it.id eq id2 }!!.salary == 1900L)
-    }
-
-    @Test
-    fun testBulkInsertReturning() {
-        database.bulkInsertReturning(
-            Employees,
-            Employees.id
-        ) {
-            item {
-                set(it.id, 10001)
-                set(it.name, "vince")
-                set(it.job, "trainee")
-                set(it.salary, 1000)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 2)
-            }
-            item {
-                set(it.id, 50001)
-                set(it.name, "vince")
-                set(it.job, "engineer")
-                set(it.salary, 1000)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 2)
-            }
-        }.let { createdIds ->
-            assert(createdIds.size == 2)
-            assert(
-                listOf(
-                    10001,
-                    50001
-                ) == createdIds
-            )
-        }
-
-        database.bulkInsertReturning(
-            Employees,
-            Pair(
-                Employees.id,
-                Employees.name
-            )
-        ) {
-            item {
-                set(it.id, 10002)
-                set(it.name, "vince")
-                set(it.job, "trainee")
-                set(it.salary, 1000)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 2)
-            }
-            item {
-                set(it.id, 50002)
-                set(it.name, "vince")
-                set(it.job, "engineer")
-                set(it.salary, 1000)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 2)
-            }
-        }.let { created ->
-            assert(
-                listOf(
-                    (10002 to "vince"),
-                    (50002 to "vince")
-                ) == created
-            )
-        }
-
-        database.bulkInsertReturning(
-            Employees,
-            Triple(
-                Employees.id,
-                Employees.name,
-                Employees.job
-            )
-        ) {
-            item {
-                set(it.id, 10003)
-                set(it.name, "vince")
-                set(it.job, "trainee")
-                set(it.salary, 1000)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 2)
-            }
-            item {
-                set(it.id, 50003)
-                set(it.name, "vince")
-                set(it.job, "engineer")
-                set(it.salary, 1000)
-                set(it.hireDate, LocalDate.now())
-                set(it.departmentId, 2)
-            }
-        }.let { created ->
-            assert(
-                listOf(
-                    Triple(10003, "vince", "trainee"),
-                    Triple(50003, "vince", "engineer")
-                ) == created
-            )
-        }
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 6 }!!.salary == 1900L)
     }
 
     @Test
     fun testBulkInsertOrUpdateReturning() {
-        database.bulkInsertOrUpdateReturning(
-            Employees,
-            Pair(
-                Employees.id,
-                Employees.job
-            )
-        ) {
+        database.bulkInsertOrUpdateReturning(Employees, Employees.id) {
             item {
-                set(it.id, 1000)
                 set(it.name, "vince")
                 set(it.job, "trainee")
                 set(it.salary, 1000)
@@ -430,24 +398,65 @@ class PostgreSqlTest : BaseTest() {
                 set(it.departmentId, 2)
             }
             item {
-                set(it.id, 5000)
                 set(it.name, "vince")
                 set(it.job, "engineer")
                 set(it.salary, 1000)
                 set(it.hireDate, LocalDate.now())
                 set(it.departmentId, 2)
             }
-            onConflict(it.id) {
-                set(it.departmentId, excluded(it.departmentId))
-                set(it.salary, it.salary + 1000)
+            onConflict {
+                doNothing()
             }
-        }.let { created ->
-            assert(
-                listOf(
-                    Pair(1000, "trainee"),
-                    Pair(5000, "engineer")
-                ) == created
-            )
+        }.let { results ->
+            assert(results.size == 2)
+            assert(results == listOf(5, 6))
+        }
+
+        database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            onConflict {
+                doNothing()
+            }
+        }.let { results ->
+            assert(results.size == 2)
+            assert(results == listOf(Pair(7, "trainee"), Pair(8, "engineer")))
+        }
+
+        val t = Employees.aliased("t")
+        database.bulkInsertOrUpdateReturning(t, Triple(t.id, t.job, t.salary)) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            onConflict {
+                doNothing()
+            }
+        }.let { results ->
+            assert(results.size == 2)
+            assert(results == listOf(Triple(9, "trainee", 1000L), Triple(10, "engineer", 1000L)))
         }
     }
 
