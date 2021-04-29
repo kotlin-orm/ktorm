@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import kotlin.math.roundToInt
 
 /**
  * Created by vince on Feb 13, 2019.
@@ -171,6 +170,7 @@ class PostgreSqlTest : BaseTest() {
 
         val t = Employees.aliased("t")
         database.insertOrUpdateReturning(t, Triple(t.id, t.job, t.salary)) {
+            set(it.id, 6)
             set(it.name, "vince")
             set(it.job, "engineer")
             set(it.salary, 1000)
@@ -180,9 +180,25 @@ class PostgreSqlTest : BaseTest() {
                 set(it.salary, it.salary + 900)
             }
         }.let { (id, job, salary) ->
-            assert(id == 7)
+            assert(id == 6)
             assert(job == "engineer")
-            assert(salary == 1000L)
+            assert(salary == 1900L)
+        }
+
+        database.insertOrUpdateReturning(t, Triple(t.id, t.job, t.salary)) {
+            set(it.id, 6)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict(it.id) {
+                doNothing()
+            }
+        }.let { (id, job, salary) ->
+            assert(id == null)
+            assert(job == null)
+            assert(salary == null)
         }
     }
 
@@ -457,6 +473,31 @@ class PostgreSqlTest : BaseTest() {
         }.let { results ->
             assert(results.size == 2)
             assert(results == listOf(Triple(9, "trainee", 1000L), Triple(10, "engineer", 1000L)))
+        }
+
+        database.bulkInsertOrUpdateReturning(t, Triple(t.id, t.job, t.salary)) {
+            item {
+                set(it.id, 10)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 11)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            onConflict {
+                doNothing()
+            }
+        }.let { results ->
+            assert(results.size == 1)
+            assert(results == listOf(Triple(11, "engineer", 1000L)))
         }
     }
 

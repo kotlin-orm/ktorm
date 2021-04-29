@@ -126,7 +126,11 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
     table: T, returning: Column<C>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): C? {
     val row = insertOrUpdateReturningRow(table, listOf(returning), block)
-    return returning.sqlType.getResult(row, 1)
+    if (row == null) {
+        return null
+    } else {
+        return returning.sqlType.getResult(row, 1)
+    }
 }
 
 /**
@@ -169,7 +173,11 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
 ): Pair<C1?, C2?> {
     val (c1, c2) = returning
     val row = insertOrUpdateReturningRow(table, listOf(c1, c2), block)
-    return Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2))
+    if (row == null) {
+        return Pair(null, null)
+    } else {
+        return Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2))
+    }
 }
 
 /**
@@ -213,7 +221,11 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
 ): Triple<C1?, C2?, C3?> {
     val (c1, c2, c3) = returning
     val row = insertOrUpdateReturningRow(table, listOf(c1, c2, c3), block)
-    return Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
+    if (row == null) {
+        return Triple(null, null, null)
+    } else {
+        return Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
+    }
 }
 
 /**
@@ -221,9 +233,14 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
  */
 private fun <T : BaseTable<*>> Database.insertOrUpdateReturningRow(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
-): CachedRowSet {
+): CachedRowSet? {
     val expression = buildInsertOrUpdateExpression(table, returning, block)
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+
+    if (rowSet.size() == 0) {
+        // Possible when using onConflict { doNothing() }
+        return null
+    }
 
     if (rowSet.size() == 1) {
         check(rowSet.next())
