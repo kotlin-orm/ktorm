@@ -32,6 +32,7 @@ import kotlin.reflect.jvm.javaSetter
 import kotlin.reflect.jvm.jvmErasure
 
 @PublishedApi
+@OptIn(ExperimentalUnsignedTypes::class)
 internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>>) : InvocationHandler {
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
@@ -54,6 +55,10 @@ internal class ColumnBindingHandler(val properties: MutableList<KProperty1<*, *>
                 return when {
                     returnType.isSubclassOf(Entity::class) -> createProxy(returnType, properties)
                     returnType.java.isPrimitive -> returnType.defaultValue
+                    returnType == UByte::class -> 0.toByte()
+                    returnType == UShort::class -> 0.toShort()
+                    returnType == UInt::class -> 0
+                    returnType == ULong::class -> 0L
                     else -> null
                 }
             }
@@ -85,6 +90,7 @@ internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
     return null
 }
 
+// should use java Class instead of KClass to avoid inline class issues.
 internal val KClass<*>.defaultValue: Any get() {
     val value = when {
         this == Boolean::class -> false
