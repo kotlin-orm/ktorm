@@ -24,11 +24,7 @@ import java.net.URL
 import java.sql.*
 import java.sql.Date
 import java.sql.ResultSet.*
-import java.text.DateFormat
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.*
 import java.util.*
 import javax.sql.rowset.serial.*
 
@@ -71,7 +67,28 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
      * as a [java.time.LocalDate] object in the Java programming language.
      */
     public fun getLocalDate(columnIndex: Int): LocalDate? {
-        return getDate(columnIndex)?.toLocalDate()
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Date -> value.toLocalDate()
+            is java.util.Date -> Date(value.time).toLocalDate()
+            is LocalDate -> value
+            is LocalDateTime -> value.toLocalDate()
+            is ZonedDateTime -> value.toLocalDate()
+            is OffsetDateTime -> value.toLocalDate()
+            is Instant -> Date(value.toEpochMilli()).toLocalDate()
+            is Number -> Date(value.toLong()).toLocalDate()
+            is String -> {
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Date(number).toLocalDate()
+                } else {
+                    Date.valueOf(value).toLocalDate()
+                }
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to LocalDate.")
+            }
+        }
     }
 
     /**
@@ -87,7 +104,28 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
      * as a [java.time.LocalTime] object in the Java programming language.
      */
     public fun getLocalTime(columnIndex: Int): LocalTime? {
-        return getTime(columnIndex)?.toLocalTime()
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Time -> value.toLocalTime()
+            is java.util.Date -> Time(value.time).toLocalTime()
+            is LocalTime -> value
+            is LocalDateTime -> value.toLocalTime()
+            is ZonedDateTime -> value.toLocalTime()
+            is OffsetDateTime -> value.toLocalTime()
+            is Instant -> Time(value.toEpochMilli()).toLocalTime()
+            is Number -> Time(value.toLong()).toLocalTime()
+            is String -> {
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Time(number).toLocalTime()
+                } else {
+                    Time.valueOf(value).toLocalTime()
+                }
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to LocalTime.")
+            }
+        }
     }
 
     /**
@@ -103,7 +141,28 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
      * as a [java.time.LocalDateTime] object in the Java programming language.
      */
     public fun getLocalDateTime(columnIndex: Int): LocalDateTime? {
-        return getTimestamp(columnIndex)?.toLocalDateTime()
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Timestamp -> value.toLocalDateTime()
+            is java.util.Date -> Timestamp(value.time).toLocalDateTime()
+            is LocalDate -> value.atStartOfDay()
+            is LocalDateTime -> value
+            is ZonedDateTime -> value.toLocalDateTime()
+            is OffsetDateTime -> value.toLocalDateTime()
+            is Instant -> Timestamp.from(value).toLocalDateTime()
+            is Number -> Timestamp(value.toLong()).toLocalDateTime()
+            is String -> {
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Timestamp(number).toLocalDateTime()
+                } else {
+                    Timestamp.valueOf(value).toLocalDateTime()
+                }
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to LocalDateTime.")
+            }
+        }
     }
 
     /**
@@ -119,7 +178,28 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
      * as a [java.time.Instant] object in the Java programming language.
      */
     public fun getInstant(columnIndex: Int): Instant? {
-        return getTimestamp(columnIndex)?.toInstant()
+        return when (val value = getColumnValue(columnIndex)) {
+            null -> null
+            is Timestamp -> value.toInstant()
+            is java.util.Date -> value.toInstant()
+            is Instant -> value
+            is LocalDate -> Timestamp.valueOf(value.atStartOfDay()).toInstant()
+            is LocalDateTime -> Timestamp.valueOf(value).toInstant()
+            is ZonedDateTime -> value.toInstant()
+            is OffsetDateTime -> value.toInstant()
+            is Number -> Instant.ofEpochMilli(value.toLong())
+            is String -> {
+                val number = value.toLongOrNull()
+                if (number != null) {
+                    Instant.ofEpochMilli(number)
+                } else {
+                    Timestamp.valueOf(value).toInstant()
+                }
+            }
+            else -> {
+                throw SQLException("Cannot convert ${value.javaClass.name} value to LocalDateTime.")
+            }
+        }
     }
 
     /**
@@ -326,14 +406,18 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
             null -> null
             is Date -> value.clone() as Date
             is java.util.Date -> Date(value.time)
+            is Instant -> Date(value.toEpochMilli())
+            is LocalDate -> Date.valueOf(value)
+            is LocalDateTime -> Date.valueOf(value.toLocalDate())
+            is ZonedDateTime -> Date.valueOf(value.toLocalDate())
+            is OffsetDateTime -> Date.valueOf(value.toLocalDate())
             is Number -> Date(value.toLong())
             is String -> {
                 val number = value.toLongOrNull()
                 if (number != null) {
                     Date(number)
                 } else {
-                    val date = DateFormat.getDateInstance().parse(value)
-                    Date(date.time)
+                    Date.valueOf(value)
                 }
             }
             else -> {
@@ -347,14 +431,18 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
             null -> null
             is Time -> value.clone() as Time
             is java.util.Date -> Time(value.time)
+            is Instant -> Time(value.toEpochMilli())
+            is LocalTime -> Time.valueOf(value)
+            is LocalDateTime -> Time.valueOf(value.toLocalTime())
+            is ZonedDateTime -> Time.valueOf(value.toLocalTime())
+            is OffsetDateTime -> Time.valueOf(value.toLocalTime())
             is Number -> Time(value.toLong())
             is String -> {
                 val number = value.toLongOrNull()
                 if (number != null) {
                     Time(number)
                 } else {
-                    val date = DateFormat.getTimeInstance().parse(value)
-                    Time(date.time)
+                    Time.valueOf(value)
                 }
             }
             else -> {
@@ -368,14 +456,18 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
             null -> null
             is Timestamp -> value.clone() as Timestamp
             is java.util.Date -> Timestamp(value.time)
+            is Instant -> Timestamp.from(value)
+            is LocalDate -> Timestamp.valueOf(value.atStartOfDay())
+            is LocalDateTime -> Timestamp.valueOf(value)
+            is ZonedDateTime -> Timestamp.from(value.toInstant())
+            is OffsetDateTime -> Timestamp.from(value.toInstant())
             is Number -> Timestamp(value.toLong())
             is String -> {
                 val number = value.toLongOrNull()
                 if (number != null) {
                     Timestamp(number)
                 } else {
-                    val date = DateFormat.getDateTimeInstance().parse(value)
-                    Timestamp(date.time)
+                    Timestamp.valueOf(value)
                 }
             }
             else -> {

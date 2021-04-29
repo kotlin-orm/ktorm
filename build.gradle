@@ -5,7 +5,9 @@ buildscript {
         detektVersion = "1.15.0"
     }
     repositories {
-        jcenter()
+        maven {
+            url 'https://maven.aliyun.com/repository/public/'
+        }
         gradlePluginPortal()
     }
     dependencies {
@@ -28,7 +30,9 @@ subprojects { project ->
     apply from: "${project.rootDir}/check-source-header.gradle"
 
     repositories {
-        jcenter()
+        maven {
+            url 'https://maven.aliyun.com/repository/public/'
+        }
     }
 
     dependencies {
