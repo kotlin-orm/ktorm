@@ -28,9 +28,9 @@ console-reports:
 comments:
   active: true
   CommentOverPrivateFunction:
-    active: true
+    active: false
   CommentOverPrivateProperty:
-    active: true
+    active: false
   EndOfSentenceFormat:
     active: true
     endOfSentenceFormat: ([.?!][ \t\n\r\f<])|([.?!]$)
@@ -411,7 +411,7 @@ style:
     maxJumpCount: 2
   MagicNumber:
     active: true
-    ignoreNumbers: '-1,0,1,2'
+    ignoreNumbers: '-1,0,1,2,3'
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
     ignoreConstantDeclaration: true
