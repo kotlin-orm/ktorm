@@ -192,8 +192,7 @@ formatting:
   ImportOrdering:
     active: false
   Indentation:
-    # Temporarily disable the indentation rule as it doesn't work after upgrading detekt. https://github.com/detekt/detekt/issues/2970
-    active: false
+    active: true
     autoCorrect: false
     indentSize: 4
     continuationIndentSize: 4
@@ -242,7 +241,6 @@ formatting:
     active: true
     autoCorrect: false
   ParameterListWrapping:
-    # Temporarily disable this rule as it doesn't work after upgrading detekt. https://github.com/detekt/detekt/issues/2970
     active: false
     autoCorrect: false
     indentSize: 4

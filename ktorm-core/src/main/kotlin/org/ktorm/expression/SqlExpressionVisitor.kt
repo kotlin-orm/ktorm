@@ -206,7 +206,8 @@ public open class SqlExpressionVisitor {
             && where === expr.where
             && orderBy === expr.orderBy
             && groupBy === expr.groupBy
-            && having === expr.having) {
+            && having === expr.having
+        ) {
             return expr
         } else {
             return expr.copy(

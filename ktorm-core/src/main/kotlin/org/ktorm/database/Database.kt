@@ -269,8 +269,8 @@ public class Database(
         }
 
         if (logger.isInfoEnabled()) {
-            logger.info("Connected to $url, productName: $productName, " +
-                "productVersion: $productVersion, logger: $logger, dialect: $dialect")
+            val msg = "Connected to %s, productName: %s, productVersion: %s, logger: %s, dialect: %s"
+            logger.info(msg.format(url, productName, productVersion, logger, dialect))
         }
     }
 

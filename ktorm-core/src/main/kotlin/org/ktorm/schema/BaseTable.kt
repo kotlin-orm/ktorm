@@ -233,17 +233,19 @@ public abstract class BaseTable<E : Any>(
     private fun <C : Any> Column<C>.checkConflictBinding(binding: ColumnBinding) {
         for (column in _columns.values) {
             val hasConflict = when (binding) {
-                is NestedBinding -> column.allBindings
-                    .filterIsInstance<NestedBinding>()
-                    .filter { it.properties == binding.properties }
-                    .any()
-                is ReferenceBinding -> column.allBindings
-                    .filterIsInstance<ReferenceBinding>()
-                    .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
-                    .filter { it.referenceTable.catalog == binding.referenceTable.catalog }
-                    .filter { it.referenceTable.schema == binding.referenceTable.schema }
-                    .filter { it.onProperty == binding.onProperty }
-                    .any()
+                is NestedBinding ->
+                    column.allBindings
+                        .filterIsInstance<NestedBinding>()
+                        .filter { it.properties == binding.properties }
+                        .any()
+                is ReferenceBinding ->
+                    column.allBindings
+                        .filterIsInstance<ReferenceBinding>()
+                        .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
+                        .filter { it.referenceTable.catalog == binding.referenceTable.catalog }
+                        .filter { it.referenceTable.schema == binding.referenceTable.schema }
+                        .filter { it.onProperty == binding.onProperty }
+                        .any()
             }
 
             if (hasConflict) {

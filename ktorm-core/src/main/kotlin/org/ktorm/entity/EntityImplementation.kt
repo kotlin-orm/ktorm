@@ -110,7 +110,7 @@ internal class EntityImplementation(
         try {
             return returnType.jvmErasure.defaultValue
         } catch (e: Throwable) {
-            val msg =
+            val msg = "" +
                 "The value of non-null property [$this] doesn't exist, " +
                 "an error occurred while trying to create a default one. " +
                 "Please ensure its value exists, or you can mark the return type nullable [${this.returnType}?]"

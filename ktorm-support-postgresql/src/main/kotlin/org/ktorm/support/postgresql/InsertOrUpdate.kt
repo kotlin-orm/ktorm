@@ -261,14 +261,14 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
     if (conflictColumns.isEmpty()) {
-        val msg =
+        val msg = "" +
             "Table '$table' doesn't have a primary key, " +
             "you must specify the conflict columns when calling onConflict(col) { .. }"
         throw IllegalStateException(msg)
     }
 
     if (!builder.doNothing && builder.updateAssignments.isEmpty()) {
-        val msg =
+        val msg = "" +
             "Cannot leave the onConflict clause empty! " +
             "If you desire no update action at all please explicitly call `doNothing()`"
         throw IllegalStateException(msg)

@@ -104,7 +104,9 @@ public abstract class SqlFormatter(
             return true
         }
         if (identifier.isMixedCase
-            && !database.supportsMixedCaseIdentifiers && database.supportsMixedCaseQuotedIdentifiers) {
+            && !database.supportsMixedCaseIdentifiers
+            && database.supportsMixedCaseQuotedIdentifiers
+        ) {
             return true
         }
         return false

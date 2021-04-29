@@ -107,7 +107,8 @@ public fun detectDialectImplementation(): SqlDialect {
     return when (dialects.size) {
         0 -> object : SqlDialect { }
         1 -> dialects[0]
-        else -> error("More than one dialect implementations found in the classpath, " +
-            "please choose one manually, they are: $dialects")
+        else -> error(
+            "More than one dialect implementations found in the classpath, please choose one manually: $dialects"
+        )
     }
 }
