@@ -11,10 +11,12 @@ import org.ktorm.jackson.json
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
+import org.ktorm.schema.datetime
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.MySQLContainer
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -472,5 +474,30 @@ class MySqlTest : BaseTest() {
 
         val name = database.from(t).select(t.col).map { it[t.col] }.first()
         assert(name == "test")
+    }
+
+    @Test
+    fun testDateTime() {
+        val t = object : Table<Nothing>("t_test_datetime") {
+            val id = int("id").primaryKey()
+            val d = datetime("d")
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_test_datetime(id int not null primary key auto_increment, d datetime not null)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        val now = LocalDateTime.now().withNano(0)
+
+        database.insert(t) {
+            set(it.d, now)
+        }
+
+        val d = database.sequenceOf(t).mapColumns { it.d }.first()
+        println(d)
+        assert(d == now)
     }
 }
