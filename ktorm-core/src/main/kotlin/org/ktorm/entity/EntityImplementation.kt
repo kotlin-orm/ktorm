@@ -29,6 +29,7 @@ import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
@@ -65,8 +66,8 @@ internal class EntityImplementation(
                     "flushChanges" -> this.doFlushChanges()
                     "discardChanges" -> this.doDiscardChanges()
                     "delete" -> this.doDelete()
-                    "get" -> this.getProperty(args!![0] as String)
-                    "set" -> this.setProperty(args!![0] as String, args[1])
+                    "get" -> this.doGetProperty(args!![0] as String)
+                    "set" -> this.doSetProperty(args!![0] as String, args[1])
                     "copy" -> this.copy()
                     else -> throw IllegalStateException("Unrecognized method: $method")
                 }
@@ -83,14 +84,14 @@ internal class EntityImplementation(
             val (prop, isGetter) = ktProp
             if (prop.isAbstract) {
                 if (isGetter) {
-                    val result = this.getProperty(prop.name)
+                    val result = this.getProperty(prop, unboxInlineValues = true)
                     if (result != null || prop.returnType.isMarkedNullable) {
                         return result
                     } else {
-                        return prop.defaultValue.also { cacheDefaultValue(prop, it) }
+                        return method.defaultReturnValue.also { cacheDefaultValue(prop, it) }
                     }
                 } else {
-                    this.setProperty(prop.name, args!![0])
+                    this.setProperty(prop, args!![0])
                     return null
                 }
             } else {
@@ -106,9 +107,9 @@ internal class EntityImplementation(
         }
     }
 
-    private val KProperty1<*, *>.defaultValue: Any get() {
+    private val Method.defaultReturnValue: Any get() {
         try {
-            return returnType.jvmErasure.defaultValue
+            return returnType.defaultValue
         } catch (e: Throwable) {
             val msg = "" +
                 "The value of non-null property [$this] doesn't exist, " +
@@ -119,19 +120,19 @@ internal class EntityImplementation(
     }
 
     private fun cacheDefaultValue(prop: KProperty1<*, *>, value: Any) {
-        val type = prop.returnType.jvmErasure
+        val type = prop.javaGetter!!.returnType
 
         // Skip for primitive types, enums and string, because their default values always share the same instance.
-        if (type == Boolean::class) return
-        if (type == Char::class) return
-        if (type == Byte::class) return
-        if (type == Short::class) return
-        if (type == Int::class) return
-        if (type == Long::class) return
-        if (type == String::class) return
-        if (type.java.isEnum) return
+        if (type == Boolean::class.javaPrimitiveType) return
+        if (type == Char::class.javaPrimitiveType) return
+        if (type == Byte::class.javaPrimitiveType) return
+        if (type == Short::class.javaPrimitiveType) return
+        if (type == Int::class.javaPrimitiveType) return
+        if (type == Long::class.javaPrimitiveType) return
+        if (type == String::class.java) return
+        if (type.isEnum) return
 
-        setProperty(prop.name, value)
+        setProperty(prop, value)
     }
 
     @Suppress("SwallowedException")
@@ -152,11 +153,58 @@ internal class EntityImplementation(
         }
     }
 
-    fun getProperty(name: String): Any? {
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun getProperty(prop: KProperty1<*, *>, unboxInlineValues: Boolean = false): Any? {
+        if (!unboxInlineValues) {
+            return doGetProperty(prop.name)
+        }
+
+        val returnType = prop.javaGetter!!.returnType
+        val value = doGetProperty(prop.name)
+
+        // Unbox inline class values if necessary.
+        // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
+        // whether a class is inline, so as a workaround, we have to enumerate some common-used types here.
+        return when {
+            value is UByte && returnType == Byte::class.javaPrimitiveType -> value.toByte()
+            value is UShort && returnType == Short::class.javaPrimitiveType -> value.toShort()
+            value is UInt && returnType == Int::class.javaPrimitiveType -> value.toInt()
+            value is ULong && returnType == Long::class.javaPrimitiveType -> value.toLong()
+            value is UByteArray && returnType == ByteArray::class.java -> value.toByteArray()
+            value is UShortArray && returnType == ShortArray::class.java -> value.toShortArray()
+            value is UIntArray && returnType == IntArray::class.java -> value.toIntArray()
+            value is ULongArray && returnType == LongArray::class.java -> value.toLongArray()
+            else -> value
+        }
+    }
+
+    private fun doGetProperty(name: String): Any? {
         return values[name]
     }
 
-    fun setProperty(name: String, value: Any?, forceSet: Boolean = false) {
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun setProperty(prop: KProperty1<*, *>, value: Any?, forceSet: Boolean = false) {
+        val propType = prop.returnType.jvmErasure
+
+        // For inline classes, always box the underlying values as wrapper types.
+        // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
+        // whether a class is inline, so as a workaround, we have to enumerate some common-used types here.
+        val boxedValue = when {
+            propType == UByte::class && value is Byte -> value.toUByte()
+            propType == UShort::class && value is Short -> value.toUShort()
+            propType == UInt::class && value is Int -> value.toUInt()
+            propType == ULong::class && value is Long -> value.toULong()
+            propType == UByteArray::class && value is ByteArray -> value.toUByteArray()
+            propType == UShortArray::class && value is ShortArray -> value.toUShortArray()
+            propType == UIntArray::class && value is IntArray -> value.toUIntArray()
+            propType == ULongArray::class && value is LongArray -> value.toULongArray()
+            else -> value
+        }
+
+        doSetProperty(prop.name, boxedValue, forceSet)
+    }
+
+    private fun doSetProperty(name: String, value: Any?, forceSet: Boolean = false) {
         if (!forceSet && isPrimaryKey(name) && name in values) {
             val msg = "Cannot modify the primary key `$name` because it's already set to ${values[name]}"
             throw UnsupportedOperationException(msg)

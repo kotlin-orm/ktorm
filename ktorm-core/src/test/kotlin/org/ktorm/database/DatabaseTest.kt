@@ -3,10 +3,7 @@ package org.ktorm.database
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.dsl.*
-import org.ktorm.entity.Entity
-import org.ktorm.entity.count
-import org.ktorm.entity.mapColumns
-import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.*
 import org.ktorm.schema.*
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -108,21 +105,90 @@ class DatabaseTest : BaseTest() {
         })
     }
 
-    interface Emp : Entity<Emp> {
-        companion object : Entity.Factory<Emp>()
-        val id: ULong
+    interface TestUnsigned : Entity<TestUnsigned> {
+        companion object : Entity.Factory<TestUnsigned>()
+        var id: ULong
     }
 
     @Test
-    fun testULong() {
-        val t = object : Table<Emp>("t_employee") {
-            val id = ulong("id").primaryKey().bindTo { it.id }
+    fun testUnsigned() {
+        val t = object : Table<TestUnsigned>("T_TEST_UNSIGNED") {
+            val id = ulong("ID").primaryKey().bindTo { it.id }
         }
 
-        val ids = database.sequenceOf(t).mapColumns { it.id }
-        println(ids)
-        assert(ids == listOf(1.toULong(), 2.toULong(), 3.toULong(), 4.toULong()))
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """CREATE TABLE T_TEST_UNSIGNED(ID BIGINT UNSIGNED NOT NULL PRIMARY KEY)"""
+                statement.executeUpdate(sql)
+            }
+        }
 
-        assert(Emp().id == 0.toULong())
+        val unsigned = TestUnsigned { id = 5UL }
+        assert(unsigned.id == 5UL)
+        database.sequenceOf(t).add(unsigned)
+
+        val ids = database.sequenceOf(t).toList().map { it.id }
+        println(ids)
+        assert(ids == listOf(5UL))
+
+        database.insert(t) {
+            set(it.id, 6UL)
+        }
+
+        val ids2 = database.from(t).select(t.id).map { row -> row[t.id] }
+        println(ids2)
+        assert(ids2 == listOf(5UL, 6UL))
+
+        assert(TestUnsigned().id == 0UL)
+    }
+
+    interface TestUnsignedNullable : Entity<TestUnsignedNullable> {
+        companion object : Entity.Factory<TestUnsignedNullable>()
+        var id: ULong?
+    }
+
+    @Test
+    fun testUnsignedNullable() {
+        val t = object : Table<TestUnsignedNullable>("T_TEST_UNSIGNED_NULLABLE") {
+            val id = ulong("ID").primaryKey().bindTo { it.id }
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """CREATE TABLE T_TEST_UNSIGNED_NULLABLE(ID BIGINT UNSIGNED NOT NULL PRIMARY KEY)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        val unsigned = TestUnsignedNullable { id = 5UL }
+        assert(unsigned.id == 5UL)
+        database.sequenceOf(t).add(unsigned)
+
+        val ids = database.sequenceOf(t).toList().map { it.id }
+        println(ids)
+        assert(ids == listOf(5UL))
+
+        assert(TestUnsignedNullable().id == null)
+    }
+
+    @Test
+    fun testDefaultValueReferenceEquality() {
+        assert(Boolean::class.javaPrimitiveType!!.defaultValue === Boolean::class.javaPrimitiveType!!.defaultValue)
+        assert(Char::class.javaPrimitiveType!!.defaultValue === Char::class.javaPrimitiveType!!.defaultValue)
+        assert(Byte::class.javaPrimitiveType!!.defaultValue === Byte::class.javaPrimitiveType!!.defaultValue)
+        assert(Short::class.javaPrimitiveType!!.defaultValue === Short::class.javaPrimitiveType!!.defaultValue)
+        assert(Int::class.javaPrimitiveType!!.defaultValue === Int::class.javaPrimitiveType!!.defaultValue)
+        assert(Long::class.javaPrimitiveType!!.defaultValue === Long::class.javaPrimitiveType!!.defaultValue)
+        assert(Float::class.javaPrimitiveType!!.defaultValue !== Float::class.javaPrimitiveType!!.defaultValue)
+        assert(Double::class.javaPrimitiveType!!.defaultValue !== Double::class.javaPrimitiveType!!.defaultValue)
+        assert(String::class.java.defaultValue === String::class.java.defaultValue)
+        assert(UByte::class.java.defaultValue !== UByte::class.java.defaultValue)
+        assert(UShort::class.java.defaultValue !== UShort::class.java.defaultValue)
+        assert(UInt::class.java.defaultValue !== UInt::class.java.defaultValue)
+        assert(ULong::class.java.defaultValue !== ULong::class.java.defaultValue)
+        assert(UByteArray::class.java.defaultValue !== UByteArray::class.java.defaultValue)
+        assert(UShortArray::class.java.defaultValue !== UShortArray::class.java.defaultValue)
+        assert(UIntArray::class.java.defaultValue !== UIntArray::class.java.defaultValue)
+        assert(ULongArray::class.java.defaultValue !== ULongArray::class.java.defaultValue)
     }
 }

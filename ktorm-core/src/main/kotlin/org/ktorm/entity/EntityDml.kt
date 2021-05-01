@@ -246,7 +246,7 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
         when (binding) {
             is ReferenceBinding -> {
                 if (binding.onProperty.name in changedProperties) {
-                    val child = this.getProperty(binding.onProperty.name) as Entity<*>?
+                    val child = this.getProperty(binding.onProperty) as Entity<*>?
                     assignments[column] = child?.implementation?.getPrimaryKeyValue(binding.referenceTable as Table<*>)
                 }
             }
@@ -265,7 +265,7 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
                         anyChanged = true
                     }
 
-                    curr = curr?.getProperty(prop.name)
+                    curr = curr?.getProperty(prop)
                 }
 
                 if (anyChanged) {
@@ -302,7 +302,7 @@ internal fun EntityImplementation.doDiscardChanges() {
 
                     check(curr is EntityImplementation)
                     curr.changedProperties.remove(prop.name)
-                    curr = curr.getProperty(prop.name)
+                    curr = curr.getProperty(prop)
                 }
             }
         }
@@ -334,7 +334,7 @@ private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) 
                 }
             }
 
-            curr = curr.getProperty(prop.name)
+            curr = curr.getProperty(prop)
         }
     }
 }

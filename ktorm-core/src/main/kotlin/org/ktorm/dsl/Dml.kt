@@ -352,7 +352,7 @@ public open class AssignmentsBuilder {
             if (method.returnType == Void.TYPE || !method.returnType.isPrimitive) {
                 null
             } else {
-                method.returnType.kotlin.defaultValue
+                method.returnType.defaultValue
             }
         }
 

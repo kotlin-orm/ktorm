@@ -33,18 +33,18 @@ internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? 
 internal fun EntityImplementation.getColumnValue(binding: ColumnBinding): Any? {
     when (binding) {
         is ReferenceBinding -> {
-            val child = this.getProperty(binding.onProperty.name) as Entity<*>?
+            val child = this.getProperty(binding.onProperty) as Entity<*>?
             return child?.implementation?.getPrimaryKeyValue(binding.referenceTable as Table<*>)
         }
         is NestedBinding -> {
             var curr: EntityImplementation? = this
             for ((i, prop) in binding.properties.withIndex()) {
                 if (i != binding.properties.lastIndex) {
-                    val child = curr?.getProperty(prop.name) as Entity<*>?
+                    val child = curr?.getProperty(prop) as Entity<*>?
                     curr = child?.implementation
                 }
             }
-            return curr?.getProperty(binding.properties.last().name)
+            return curr?.getProperty(binding.properties.last())
         }
     }
 }
@@ -72,14 +72,14 @@ internal fun EntityImplementation.setPrimaryKeyValue(
 internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: Any?, forceSet: Boolean = false) {
     when (binding) {
         is ReferenceBinding -> {
-            var child = this.getProperty(binding.onProperty.name) as Entity<*>?
+            var child = this.getProperty(binding.onProperty) as Entity<*>?
             if (child == null) {
                 child = Entity.create(
                     entityClass = binding.onProperty.returnType.jvmErasure,
                     fromDatabase = this.fromDatabase,
                     fromTable = binding.referenceTable as Table<*>
                 )
-                this.setProperty(binding.onProperty.name, child, forceSet)
+                this.setProperty(binding.onProperty, child, forceSet)
             }
 
             val refTable = binding.referenceTable as Table<*>
@@ -89,17 +89,17 @@ internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: 
             var curr: EntityImplementation = this
             for ((i, prop) in binding.properties.withIndex()) {
                 if (i != binding.properties.lastIndex) {
-                    var child = curr.getProperty(prop.name) as Entity<*>?
+                    var child = curr.getProperty(prop) as Entity<*>?
                     if (child == null) {
                         child = Entity.create(prop.returnType.jvmErasure, parent = curr)
-                        curr.setProperty(prop.name, child, forceSet)
+                        curr.setProperty(prop, child, forceSet)
                     }
 
                     curr = child.implementation
                 }
             }
 
-            curr.setProperty(binding.properties.last().name, value, forceSet)
+            curr.setProperty(binding.properties.last(), value, forceSet)
         }
     }
 }
