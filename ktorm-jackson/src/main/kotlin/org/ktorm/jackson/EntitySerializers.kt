@@ -98,8 +98,6 @@ internal class EntitySerializers : SimpleSerializers() {
             }
         }
 
-
-
         override fun serializeWithType(
             entity: Entity<*>,
             gen: JsonGenerator,
