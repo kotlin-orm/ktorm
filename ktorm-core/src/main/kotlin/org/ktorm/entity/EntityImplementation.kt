@@ -88,7 +88,7 @@ internal class EntityImplementation(
                     if (result != null || prop.returnType.isMarkedNullable) {
                         return result
                     } else {
-                        return method.defaultReturnValue.also { cacheDefaultValue(prop, it) }
+                        return prop.defaultValue.also { cacheDefaultValue(prop, it) }
                     }
                 } else {
                     this.setProperty(prop, args!![0])
@@ -107,9 +107,9 @@ internal class EntityImplementation(
         }
     }
 
-    private val Method.defaultReturnValue: Any get() {
+    private val KProperty1<*, *>.defaultValue: Any get() {
         try {
-            return returnType.defaultValue
+            return javaGetter!!.returnType.defaultValue
         } catch (e: Throwable) {
             val msg = "" +
                 "The value of non-null property [$this] doesn't exist, " +
