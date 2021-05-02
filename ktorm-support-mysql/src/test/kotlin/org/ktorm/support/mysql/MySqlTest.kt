@@ -1,5 +1,7 @@
 package org.ktorm.support.mysql
 
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
 import org.junit.ClassRule
 import org.junit.Test
 import org.ktorm.BaseTest
@@ -10,10 +12,7 @@ import org.ktorm.entity.*
 import org.ktorm.jackson.json
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.logging.LogLevel
-import org.ktorm.schema.Table
-import org.ktorm.schema.datetime
-import org.ktorm.schema.int
-import org.ktorm.schema.varchar
+import org.ktorm.schema.*
 import org.testcontainers.containers.MySQLContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -499,5 +498,38 @@ class MySqlTest : BaseTest() {
         val d = database.sequenceOf(t).mapColumns { it.d }.first()
         println(d)
         assert(d == now)
+    }
+
+    enum class Mood {
+        HAPPY,
+        SAD
+    }
+
+    object TableWithEnum : Table<Nothing>("t_enum") {
+        val id = int("id").primaryKey()
+        val current_mood = enum<Mood>("current_mood")
+    }
+
+    @Test
+    fun testEnum() {
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_enum(id int not null primary key auto_increment, current_mood text)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(TableWithEnum) {
+            set(it.current_mood, Mood.SAD)
+        }
+
+        val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
+
+        MatcherAssert.assertThat(count, CoreMatchers.equalTo(1))
+
+        val currentMood =
+            database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+
+        MatcherAssert.assertThat(currentMood, CoreMatchers.equalTo(Mood.SAD))
     }
 }
