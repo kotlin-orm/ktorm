@@ -11,16 +11,18 @@ import java.math.BigInteger
 /**
  * Created by vince on Dec 09, 2018.
  */
+@ExperimentalUnsignedTypes
 class JacksonTest {
 
     private val objectMapper = ObjectMapper()
         .configure(SerializationFeature.INDENT_OUTPUT, true)
         .findAndRegisterModules()
 
-    private val typedObjectMapper = ObjectMapper()
-        .enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY)
-        .configure(SerializationFeature.INDENT_OUTPUT, true)
-        .findAndRegisterModules()
+    private val typedObjectMapper = ObjectMapper().apply {
+        activateDefaultTyping(polymorphicTypeValidator, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY)
+        configure(SerializationFeature.INDENT_OUTPUT, true)
+        findAndRegisterModules()
+    }
 
     private val separator = "$"
 
@@ -30,6 +32,8 @@ class JacksonTest {
         short = 2
         int = 3
         long = 4
+        ulong = 123U
+        ulong0 = 1230U
         float = 5.0F
         double = 6.0
         bigInteger = BigInteger("7")
@@ -93,6 +97,8 @@ class JacksonTest {
         assert(f.short == foo.short)
         assert(f.int == foo.int)
         assert(f.long == foo.long)
+        assert(f.ulong == foo.ulong)
+        assert(f.ulong0 == foo.ulong0)
         assert(f.float == foo.float)
         assert(f.double == foo.double)
         assert(f.bigInteger == foo.bigInteger)
@@ -135,6 +141,8 @@ class JacksonTest {
               "short" : 2,
               "int" : 3,
               "long" : 4,
+              "ulong" : 123,
+              "ulong0" : 1230,
               "float" : 5.0,
               "double" : 6.0,
               "bigInteger" : 7,
@@ -199,6 +207,8 @@ class JacksonTest {
               "short" : 2,
               "int" : 3,
               "long" : 4,
+              "ulong" : 123,
+              "ulong0" : 1230,
               "float" : 5.0,
               "double" : 6.0,
               "bigInteger" : [ "java.math.BigInteger", 7 ],
@@ -333,6 +343,8 @@ class JacksonTest {
         var short: Short
         var int: Int
         var long: Long
+        var ulong: ULong
+        var ulong0: ULong?
         var float: Float
         var double: Double
         var bigInteger: BigInteger

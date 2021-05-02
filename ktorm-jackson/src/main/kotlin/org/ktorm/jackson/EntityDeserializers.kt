@@ -29,7 +29,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.javaGetter
 
 /**
  * Created by vince on Aug 13, 2018.
@@ -97,7 +96,7 @@ internal class EntityDeserializers : SimpleDeserializers() {
                 parser.nextToken() // skip to field value
 
                 if (prop != null) {
-                    val propType = ctxt.constructType(prop.javaGetter!!.genericReturnType)
+                    val propType = ctxt.constructType(prop.getPropertyType())
                     intoValue[prop.name] = parser.codec.readValue(parser, propType)
                 } else {
                     if (parser.currentToken.isStructStart) {

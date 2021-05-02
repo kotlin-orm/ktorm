@@ -17,7 +17,7 @@ compileKotlin.dependsOn(generatePackageVersion)
 
 dependencies {
     api project(":ktorm-core")
-    api "com.fasterxml.jackson.core:jackson-databind:2.9.7"
-    api "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7"
-    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.7"
+    api "com.fasterxml.jackson.core:jackson-databind:2.12.3"
+    api "com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3"
+    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3"
 }

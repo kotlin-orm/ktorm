@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.module.SimpleSerializers
 import org.ktorm.entity.Entity
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.javaGetter
 
 /**
  * Created by vince on Aug 13, 2018.
@@ -92,12 +91,14 @@ internal class EntitySerializers : SimpleSerializers() {
                 if (value == null) {
                     gen.writeNull()
                 } else {
-                    val propType = serializers.constructType(prop.javaGetter!!.genericReturnType)
+                    val propType = serializers.constructType(prop.getPropertyType())
                     val ser = serializers.findTypedValueSerializer(propType, true, null)
                     ser.serialize(value, gen, serializers)
                 }
             }
         }
+
+
 
         override fun serializeWithType(
             entity: Entity<*>,

@@ -66,7 +66,7 @@ internal class EntityImplementation(
                     "flushChanges" -> this.doFlushChanges()
                     "discardChanges" -> this.doDiscardChanges()
                     "delete" -> this.doDelete()
-                    "get" -> this.doGetProperty(args!![0] as String)
+                    "get" -> this.values[args!![0] as String]
                     "set" -> this.doSetProperty(args!![0] as String, args[1])
                     "copy" -> this.copy()
                     else -> throw IllegalStateException("Unrecognized method: $method")
@@ -156,11 +156,11 @@ internal class EntityImplementation(
     @OptIn(ExperimentalUnsignedTypes::class)
     fun getProperty(prop: KProperty1<*, *>, unboxInlineValues: Boolean = false): Any? {
         if (!unboxInlineValues) {
-            return doGetProperty(prop.name)
+            return values[prop.name]
         }
 
         val returnType = prop.javaGetter!!.returnType
-        val value = doGetProperty(prop.name)
+        val value = values[prop.name]
 
         // Unbox inline class values if necessary.
         // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
@@ -176,10 +176,6 @@ internal class EntityImplementation(
             value is ULongArray && returnType == LongArray::class.java -> value.toLongArray()
             else -> value
         }
-    }
-
-    private fun doGetProperty(name: String): Any? {
-        return values[name]
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)
