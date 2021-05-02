@@ -24,6 +24,7 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.javaGetter
@@ -113,7 +114,7 @@ internal val Class<*>.defaultValue: Any get() {
         this.isEnum -> this.enumConstants[0]
         this.isArray -> java.lang.reflect.Array.newInstance(this.componentType, 0)
         this.kotlin.isSubclassOf(Entity::class) -> Entity.create(this.kotlin)
-        else -> this.newInstance()
+        else -> this.kotlin.createInstance()
     }
 
     if (this.kotlin.isInstance(value)) {
