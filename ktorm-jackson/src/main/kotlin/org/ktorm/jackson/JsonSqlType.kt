@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.ktorm.schema.*
+import org.postgresql.PGStatement
+import org.postgresql.util.PGobject
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
@@ -78,8 +80,19 @@ public class JsonSqlType<T : Any>(
     public val javaType: JavaType
 ) : SqlType<T>(Types.VARCHAR, "json") {
 
+    private val hasPostgresqlDriver by lazy {
+        runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
+    }
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
-        ps.setString(index, objectMapper.writeValueAsString(parameter))
+        if (hasPostgresqlDriver && ps is PGStatement) {
+            val obj = PGobject()
+            obj.type = "json"
+            obj.value = objectMapper.writeValueAsString(parameter)
+            ps.setObject(index, obj)
+        } else {
+            ps.setString(index, objectMapper.writeValueAsString(parameter))
+        }
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): T? {

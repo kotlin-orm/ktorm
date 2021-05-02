@@ -2,7 +2,7 @@ package org.ktorm.support.postgresql
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.ClassRule
 import org.junit.Test
 import org.ktorm.BaseTest
@@ -10,6 +10,7 @@ import org.ktorm.database.Database
 import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
+import org.ktorm.jackson.json
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.logging.LogLevel
 import org.ktorm.schema.ColumnDeclaring
@@ -795,5 +796,33 @@ class PostgreSqlTest : BaseTest() {
         val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
 
         assertThat(count, equalTo(1))
+    }
+
+
+    @Test
+    fun testJson() {
+        val t = object : Table<Nothing>("t_json") {
+            val obj = json<Employee>("obj")
+            val arr = json<List<Int>>("arr")
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """create table t_json (obj json, arr json)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(t) {
+            set(it.obj, Employee { name = "vince"; salary = 100 })
+            set(it.arr, listOf(1, 2, 3))
+        }
+
+        database
+            .from(t)
+            .select(t.obj, t.arr)
+            .forEach { row ->
+                println("${row.getString(1)}:${row.getString(2)}")
+            }
     }
 }
