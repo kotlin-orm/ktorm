@@ -13,10 +13,7 @@ import org.ktorm.entity.*
 import org.ktorm.jackson.json
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.logging.LogLevel
-import org.ktorm.schema.ColumnDeclaring
-import org.ktorm.schema.Table
-import org.ktorm.schema.int
-import org.ktorm.schema.varchar
+import org.ktorm.schema.*
 import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDate
 import java.util.concurrent.ExecutionException
@@ -776,19 +773,11 @@ class PostgreSqlTest : BaseTest() {
 
     object TableWithEnum : Table<Nothing>("t_enum") {
         val id = int("id").primaryKey()
-        val current_mood = pgEnum<Mood>("current_mood")
+        val current_mood = enum<Mood>("current_mood")
     }
 
     @Test
-    fun testCanParseEnum() {
-        val currentMood =
-            database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
-
-        assertThat(currentMood, equalTo(Mood.HAPPY))
-    }
-
-    @Test
-    fun testCanSetEnum() {
+    fun testEnum() {
         database.insert(TableWithEnum) {
             set(it.current_mood, Mood.SAD)
         }
@@ -796,8 +785,12 @@ class PostgreSqlTest : BaseTest() {
         val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
 
         assertThat(count, equalTo(1))
-    }
 
+        val currentMood =
+            database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+
+        assertThat(currentMood, equalTo(Mood.HAPPY))
+    }
 
     @Test
     fun testJson() {

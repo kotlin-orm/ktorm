@@ -89,6 +89,11 @@ public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
  * @param name the column's name.
  * @return the registered column.
  */
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "Will remove in the future, please use `enum` instead",
+    replaceWith = ReplaceWith(expression = "enum<C>(name)", imports = ["org.ktorm.schema.enum"])
+)
 public inline fun <reified C : Enum<C>> BaseTable<*>.pgEnum(name: String): Column<C> {
     return registerColumn(name, PgEnumType(C::class.java))
 }
@@ -97,6 +102,10 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.pgEnum(name: String): Colum
  * [SqlType] implementation represents PostgreSQL `enum` type.
  * @see <a href="https://www.postgresql.org/docs/current/datatype-enum.html">datatype-enum</a>
  */
+@Deprecated(
+    message = "Will remove in the future, please use `EnumSqlType` instead",
+    replaceWith = ReplaceWith(expression = "EnumSqlType", imports = ["org.ktorm.schema.EnumSqlType"])
+)
 public class PgEnumType<C : Enum<C>>(private val enumClass: Class<C>) : SqlType<C>(Types.OTHER, enumClass.name) {
     private val valueOf = enumClass.getDeclaredMethod("valueOf", String::class.java)
 
