@@ -260,6 +260,7 @@ class QueryTest : BaseTest() {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testSelectForUpdate() {
         database.useTransaction {
             val employee = database

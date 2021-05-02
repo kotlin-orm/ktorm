@@ -58,7 +58,7 @@ class GlobalEntityTest : BaseGlobalTest() {
         employee.id = 2
         employee.job = "engineer"
         employee.salary = 100
-        employee.manager = null
+        // employee.manager = null
         Employees.updateEntity(employee)
 
         employee = Employees.findOne { it.id eq 2 } ?: throw AssertionError()

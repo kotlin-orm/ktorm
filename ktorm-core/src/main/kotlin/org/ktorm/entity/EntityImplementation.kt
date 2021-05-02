@@ -153,6 +153,10 @@ internal class EntityImplementation(
         }
     }
 
+    fun hasProperty(prop: KProperty1<*, *>): Boolean {
+        return prop.name in values
+    }
+
     @OptIn(ExperimentalUnsignedTypes::class)
     fun getProperty(prop: KProperty1<*, *>, unboxInlineValues: Boolean = false): Any? {
         if (!unboxInlineValues) {

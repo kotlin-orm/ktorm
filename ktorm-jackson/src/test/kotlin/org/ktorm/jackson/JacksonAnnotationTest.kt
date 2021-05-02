@@ -18,10 +18,7 @@ package org.ktorm.jackson
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.junit.Test
 import org.ktorm.entity.Entity
@@ -534,7 +531,7 @@ class JacksonAnnotationTest {
     fun testDeserializeAliasName2() {
         val mapper = ObjectMapper().findAndRegisterModules()
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .setPropertyNamingStrategy(PropertyNamingStrategy.SnakeCaseStrategy())
+                .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy())
         val json = """
             {
               "name" : "alias",

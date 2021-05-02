@@ -22,8 +22,7 @@ import org.ktorm.expression.*
 import org.ktorm.schema.*
 
 /**
- * Insert the given entity into this sequence and return the affected record number. Only non-null properties
- * are inserted.
+ * Insert the given entity into this sequence and return the affected record number.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
  * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
@@ -60,7 +59,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
 
     val ignoreGeneratedKeys = primaryKeys.size != 1
         || primaryKeys[0].binding == null
-        || entity.implementation.getColumnValue(primaryKeys[0].binding!!) != null
+        || entity.implementation.hasColumnValue(primaryKeys[0].binding!!)
 
     if (ignoreGeneratedKeys) {
         val effects = database.executeUpdate(expression)
@@ -90,7 +89,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
 }
 
 /**
- * Update the non-null properties of the given entity to the database and return the affected record number.
+ * Update properties of the given entity to the database and return the affected record number.
  *
  * Note that after calling this function, the [entity] will **be associated with the current table**.
  *
@@ -211,11 +210,8 @@ private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
     for (column in table.columns) {
-        if (column.binding != null) {
-            val value = implementation.getColumnValue(column.binding)
-            if (value != null) {
-                assignments[column] = value
-            }
+        if (column.binding != null && implementation.hasColumnValue(column.binding)) {
+            assignments[column] = implementation.getColumnValue(column.binding)
         }
     }
 
@@ -226,11 +222,8 @@ private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
     for (column in table.columns - table.primaryKeys) {
-        if (column.binding != null) {
-            val value = implementation.getColumnValue(column.binding)
-            if (value != null) {
-                assignments[column] = value
-            }
+        if (column.binding != null && implementation.hasColumnValue(column.binding)) {
+            assignments[column] = implementation.getColumnValue(column.binding)
         }
     }
 

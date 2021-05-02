@@ -21,6 +21,54 @@ import java.lang.reflect.Proxy
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
 
+internal fun EntityImplementation.hasPrimaryKeyValue(fromTable: Table<*>): Boolean {
+    val pk = fromTable.singlePrimaryKey { "Table '$fromTable' has compound primary keys." }
+    if (pk.binding == null) {
+        error("Primary column $pk has no bindings to any entity field.")
+    } else {
+        return hasColumnValue(pk.binding)
+    }
+}
+
+internal fun EntityImplementation.hasColumnValue(binding: ColumnBinding): Boolean {
+    when (binding) {
+        is ReferenceBinding -> {
+            if (!this.hasProperty(binding.onProperty)) {
+                return false
+            }
+
+            val child = this.getProperty(binding.onProperty) as Entity<*>?
+            if (child == null) {
+                // null is also a legal column value.
+                return true
+            }
+
+            return child.implementation.hasPrimaryKeyValue(binding.referenceTable as Table<*>)
+        }
+        is NestedBinding -> {
+            var curr: EntityImplementation = this
+
+            for ((i, prop) in binding.properties.withIndex()) {
+                if (i != binding.properties.lastIndex) {
+                    if (!curr.hasProperty(prop)) {
+                        return false
+                    }
+
+                    val child = curr.getProperty(prop) as Entity<*>?
+                    if (child == null) {
+                        // null is also a legal column value.
+                        return true
+                    }
+
+                    curr = child.implementation
+                }
+            }
+
+            return curr.hasProperty(binding.properties.last())
+        }
+    }
+}
+
 internal fun EntityImplementation.getPrimaryKeyValue(fromTable: Table<*>): Any? {
     val pk = fromTable.singlePrimaryKey { "Table '$fromTable' has compound primary keys." }
     if (pk.binding == null) {

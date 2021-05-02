@@ -153,7 +153,7 @@ class EntityTest : BaseTest() {
         employee.id = 2
         employee.job = "engineer"
         employee.salary = 100
-        employee.manager = null
+        // employee.manager = null
         database.employees.update(employee)
 
         employee = database.employees.find { it.id eq 2 } ?: throw AssertionError()
@@ -190,7 +190,7 @@ class EntityTest : BaseTest() {
         var employee = Employee {
             name = "jerry"
             job = "trainee"
-            manager = database.employees.find { it.name eq "vince" }
+            manager = null
             hireDate = LocalDate.now()
             salary = 50
             department = database.departments.find { it.name eq "tech" } ?: throw AssertionError()
@@ -224,28 +224,86 @@ class EntityTest : BaseTest() {
     }
 
     interface Parent : Entity<Parent> {
-        var child: Child
+        companion object : Entity.Factory<Parent>()
+        var child: Child?
     }
 
     interface Child : Entity<Child> {
-        var grandChild: GrandChild
+        companion object : Entity.Factory<Child>()
+        var grandChild: GrandChild?
     }
 
     interface GrandChild : Entity<GrandChild> {
-        var id: Int
+        companion object : Entity.Factory<GrandChild>()
+        var id: Int?
     }
 
     object Parents : Table<Parent>("t_employee") {
-        val id = int("id").primaryKey().bindTo { it.child.grandChild.id }
+        val id = int("id").primaryKey().bindTo { it.child?.grandChild?.id }
+    }
+
+    @Test
+    fun testHasColumnValue() {
+        val p1 = Parent()
+        assert(!p1.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p1.implementation.getColumnValue(Parents.id.binding!!) == null)
+
+        val p2 = Parent {
+            child = null
+        }
+        assert(p2.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p2.implementation.getColumnValue(Parents.id.binding!!) == null)
+
+        val p3 = Parent {
+            child = Child()
+        }
+        assert(!p3.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p3.implementation.getColumnValue(Parents.id.binding!!) == null)
+
+        val p4 = Parent {
+            child = Child {
+                grandChild = null
+            }
+        }
+        assert(p4.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p4.implementation.getColumnValue(Parents.id.binding!!) == null)
+
+        val p5 = Parent {
+            child = Child {
+                grandChild = GrandChild()
+            }
+        }
+        assert(!p5.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p5.implementation.getColumnValue(Parents.id.binding!!) == null)
+
+        val p6 = Parent {
+            child = Child {
+                grandChild = GrandChild {
+                    id = null
+                }
+            }
+        }
+        assert(p6.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p6.implementation.getColumnValue(Parents.id.binding!!) == null)
+
+        val p7 = Parent {
+            child = Child {
+                grandChild = GrandChild {
+                    id = 6
+                }
+            }
+        }
+        assert(p7.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(p7.implementation.getColumnValue(Parents.id.binding!!) == 6)
     }
 
     @Test
     fun testUpdatePrimaryKey() {
         try {
             val parent = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
-            assert(parent.child.grandChild.id == 1)
+            assert(parent.child?.grandChild?.id == 1)
 
-            parent.child.grandChild.id = 2
+            parent.child?.grandChild?.id = 2
             throw AssertionError()
 
         } catch (e: UnsupportedOperationException) {
