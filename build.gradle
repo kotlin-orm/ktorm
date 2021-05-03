@@ -51,7 +51,7 @@ subprojects { project ->
         ]
     }
 
-    task generateSourcesJar(type: Jar) {
+    task generateSources(type: Jar) {
         archiveClassifier = "sources"
         from sourceSets.main.allSource
     }
@@ -73,22 +73,27 @@ subprojects { project ->
         publications {
             bintray(MavenPublication) {
                 from components.java
-                artifact generateSourcesJar
+                artifact generateSources
                 artifact generateJavadoc
 
-                groupId project.group
-                artifactId project.name
-                version project.version
+                groupId = project.group
+                artifactId = project.name
+                version = project.version
 
                 pom {
-                    name = project.name
+                    name = "${project.group}:${project.name}"
                     description = "A lightweight ORM Framework for Kotlin with strong typed SQL DSL and sequence APIs."
-                    url = "https://github.com/kotlin-orm/ktorm"
+                    url = "https://www.ktorm.org"
                     licenses {
                         license {
                             name = "The Apache Software License, Version 2.0"
                             url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
                         }
+                    }
+                    scm {
+                        url = "https://github.com/kotlin-orm/ktorm"
+                        connection = "scm:git:https://github.com/kotlin-orm/ktorm.git"
+                        developerConnection = "scm:git:ssh://git@github.com/kotlin-orm/ktorm.git"
                     }
                     developers {
                         developer {
@@ -171,9 +176,6 @@ subprojects { project ->
                             name = "Eric Fenderbosch"
                             email = "eric@fender.net"
                         }
-                    }
-                    scm {
-                        url = "https://github.com/kotlin-orm/ktorm.git"
                     }
                 }
             }
