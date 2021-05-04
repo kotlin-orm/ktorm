@@ -12,12 +12,8 @@ env:
 #  - mysql -e "create database ktorm;"
 #  - psql -c "create database ktorm;" -U postgres
 
-before_install:
-  - echo $TEST_MULTI_LINES
-
 after_success: 
-  - chmod +x auto-upload.sh
-  - ./auto-upload.sh
+  - ./gradlew publishDistPublicationToSnapshotRepository
 
 before_cache:
   - rm -f  "${HOME}/.gradle/caches/modules-2/modules-2.lock"
