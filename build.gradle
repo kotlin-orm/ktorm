@@ -2,37 +2,32 @@
 buildscript {
     ext {
         kotlinVersion = "1.4.32"
-        detektVersion = "1.15.0"
+        detektVersion = "1.17.0-RC2"
     }
     repositories {
-        maven {
-            url 'https://maven.aliyun.com/repository/public/'
-        }
+        mavenCentral()
         gradlePluginPortal()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4"
         classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${detektVersion}"
     }
 }
 
 allprojects {
     group = "org.ktorm"
-    version = "3.3.0"
+    version = "3.4.0-SNAPSHOT"
 }
 
 subprojects { project ->
     apply plugin: "kotlin"
+    apply plugin: "signing"
     apply plugin: "maven-publish"
-    apply plugin: "com.jfrog.bintray"
     apply plugin: "io.gitlab.arturbosch.detekt"
     apply from: "${project.rootDir}/check-source-header.gradle"
 
     repositories {
-        maven {
-            url 'https://maven.aliyun.com/repository/public/'
-        }
+        mavenCentral()
     }
 
     dependencies {
@@ -62,16 +57,13 @@ subprojects { project ->
 
     detekt {
         toolVersion = detektVersion
+        input = files("src/main/kotlin")
         config = files("${project.rootDir}/detekt.yml")
-        reports {
-            xml.enabled = false
-            html.enabled = false
-        }
     }
 
     publishing {
         publications {
-            bintray(MavenPublication) {
+            dist(MavenPublication) {
                 from components.java
                 artifact generateSources
                 artifact generateJavadoc
@@ -180,33 +172,38 @@ subprojects { project ->
                 }
             }
         }
-    }
 
-    bintray {
-        user = System.getenv("BINTRAY_USER")
-        key = System.getenv("BINTRAY_KEY")
-        publications = ["bintray"]
-        publish = true
-
-        pkg {
-            repo = "ktorm"
-            name = project.name
-            licenses = ["Apache-2.0"]
-            vcsUrl = "https://github.com/kotlin-orm/ktorm.git"
-            labels = ["Kotlin", "ORM", "SQL"]
-
-            version {
-                name = project.version
-                released = new Date()
-                vcsTag = project.version
-
-                mavenCentralSync {
-                    sync = false
-                    user = System.getenv("OSSRH_USER")
+        repositories {
+            maven {
+                name = "central"
+                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                credentials {
+                    username = System.getenv("OSSRH_USER")
+                    password = System.getenv("OSSRH_PASSWORD")
+                }
+            }
+            maven {
+                name = "snapshot"
+                url = "https://oss.sonatype.org/content/repositories/snapshots"
+                credentials {
+                    username = System.getenv("OSSRH_USER")
                     password = System.getenv("OSSRH_PASSWORD")
                 }
             }
         }
+    }
+
+    signing {
+        def keyId = System.getenv("GPG_KEY_ID")
+        def secretKey = System.getenv("GPG_SECRET_KEY")
+        def password = System.getenv("GPG_PASSWORD")
+
+        required {
+            !project.version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publishDistPublicationToCentralRepository")
+        }
+
+        useInMemoryPgpKeys(keyId, secretKey, password)
+        sign publishing.publications.dist
     }
 }
 
