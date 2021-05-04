@@ -198,10 +198,7 @@ subprojects { project ->
         def secretKey = System.getenv("GPG_SECRET_KEY")
         def password = System.getenv("GPG_PASSWORD")
 
-        required {
-            !project.version.endsWith("SNAPSHOT") && gradle.taskGraph.hasTask("publishDistPublicationToCentralRepository")
-        }
-
+        required { !project.version.endsWith("SNAPSHOT") }
         useInMemoryPgpKeys(keyId, secretKey, password)
         sign publishing.publications.dist
     }
