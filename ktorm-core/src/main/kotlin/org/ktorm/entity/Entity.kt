@@ -150,15 +150,14 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Using this function, we need to note that:
      *
      * 1. This function requires a primary key specified in the table object via [Table.primaryKey],
-     * otherwise Ktorm doesn’t know how to identify entity objects, then throws an exception.
+     * otherwise Ktorm doesn’t know how to identify entity objects and will throw an exception.
      *
-     * 2. The entity object calling this function must **be associated with a table** first. In Ktorm’s implementation,
-     * every entity object holds a reference `fromTable`, that means this object is associated with the table or was
-     * obtained from it. For entity objects obtained by sequence APIs, their `fromTable` references point to the current
-     * table object they are obtained from. But for entity objects created by [Entity.create] or [Entity.Factory], their
-     * `fromTable` references are `null` initially, so we can not call [flushChanges] on them. But once we use them with
-     * [add] or [update] function of entity sequences, Ktorm will modify their `fromTable` to the current table object,
-     * then we can call [flushChanges] on them afterwards.
+     * 2. The entity object calling this function must be ATTACHED to the database first. In Ktorm’s implementation,
+     * every entity object holds a reference `fromDatabase`. For entity objects obtained by sequence APIs, their
+     * `fromDatabase` references point to the database they are obtained from. For entity objects created by
+     * [Entity.create] or [Entity.Factory], their `fromDatabase` references are `null` initially, so we can not call
+     * [flushChanges] on them. But once we use them with [add] or [update] function, `fromDatabase` will be modified
+     * to the current database, so we will be able to call [flushChanges] on them afterwards.
      *
      * @see add
      * @see update
@@ -182,7 +181,7 @@ public interface Entity<E : Entity<E>> : Serializable {
      * 1. The function requires a primary key specified in the table object via [Table.primaryKey],
      * otherwise, Ktorm doesn’t know how to identify entity objects.
      *
-     * 2. The entity object calling this function must **be associated with a table** first.
+     * 2. The entity object calling this function must be ATTACHED to the database first.
      *
      * @see add
      * @see update

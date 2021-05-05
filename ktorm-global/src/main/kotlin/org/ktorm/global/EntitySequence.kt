@@ -30,16 +30,15 @@ public fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = tr
 }
 
 /**
- * Insert the given entity into this table and return the affected record number. Only non-null properties
- * are inserted.
+ * Insert the given entity into this sequence and return the affected record number.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
- * [Table.primaryKey] function while registering columns, then this function will obtain the generated key
- * from the database and fill it into the corresponding property after the insertion completes. But this
- * requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
- * will be inserted into the database, and no keys generated.
+ * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
+ * database and fill it into the corresponding property after the insertion completes. But this requires us
+ * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
+ * into the database, and no keys generated.
  *
- * Note that after calling this function, the [entity] will **be associated with the current table**.
+ * Note that after calling this function, the [entity] will be ATTACHED to the current database.
  *
  * @see Entity.flushChanges
  * @see Entity.delete
@@ -53,16 +52,15 @@ public fun <E : Entity<E>> Table<E>.add(entity: E): Int {
 }
 
 /**
- * Insert the given entity into this table and return the affected record number. Only non-null properties
- * are inserted.
+ * Insert the given entity into this sequence and return the affected record number.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
- * [Table.primaryKey] function while registering columns, then this function will obtain the generated key
- * from the database and fill it into the corresponding property after the insertion completes. But this
- * requires us not to set the primary key’s value beforehand, otherwise, if you do that, the given value
- * will be inserted into the database, and no keys generated.
+ * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
+ * database and fill it into the corresponding property after the insertion completes. But this requires us
+ * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
+ * into the database, and no keys generated.
  *
- * Note that after calling this function, the [entity] will **be associated with the current table**.
+ * Note that after calling this function, the [entity] will be ATTACHED to the current database.
  *
  * @see Entity.flushChanges
  * @see Entity.delete
@@ -72,9 +70,9 @@ public fun <E : Entity<E>> Table<E>.addEntity(entity: E): Int {
 }
 
 /**
- * Update the non-null properties of the given entity to the database and return the affected record number.
+ * Update properties of the given entity to the database and return the affected record number.
  *
- * Note that after calling this function, the [entity] will **be associated with the current table**.
+ * Note that after calling this function, the [entity] will be ATTACHED to the current database.
  *
  * @see Entity.flushChanges
  * @see Entity.delete
