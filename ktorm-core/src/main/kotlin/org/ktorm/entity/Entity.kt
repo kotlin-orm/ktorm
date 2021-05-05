@@ -44,11 +44,11 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * ### Creating Entity Objects
  *
- * As everyone knows, interfaces cannot be instantiated, so Ktorm provides [Entity.create] functions for us to
- * create entity objects. Those functions generate implementations for entity interfaces via JDK dynamic proxy
+ * As everyone knows, interfaces cannot be instantiated, so Ktorm provides a [Entity.create] function for us to
+ * create entity objects. This function generate implementations for entity interfaces via JDK dynamic proxy
  * and create their instances.
  *
- * If you don't like creating objects by [Entity.create] functions, Ktorm also provides an abstract factory class
+ * In case you don't like creating objects by [Entity.create], Ktorm also provides an abstract factory class
  * [Entity.Factory]. This class overloads the `invoke` operator of Kotlin, so we just need to add a companion
  * object to our entity class extending from [Entity.Factory], then entity objects can be created just like there
  * is a constructor: `val department = Department()`.
@@ -208,6 +208,27 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Return a deep copy of this entity, which has the same property values and tracked statuses.
      */
     public fun copy(): E
+
+    /**
+     * Indicate whether some other object is "equal to" this entity.
+     * Two entities are equal only if they have the same [entityClass] and [properties].
+     *
+     * @since 3.4.0
+     */
+    public override fun equals(other: Any?): Boolean
+
+    /**
+     * Return a hash code value for this entity.
+     *
+     * @since 3.4.0
+     */
+    public override fun hashCode(): Int
+
+    /**
+     * Return a string representation of this table.
+     * The format is like `Employee{id=1, name=Eric, job=contributor, hireDate=2021-05-05, salary=50}`.
+     */
+    public override fun toString(): String
 
     /**
      * Companion object provides functions to create entity instances.
