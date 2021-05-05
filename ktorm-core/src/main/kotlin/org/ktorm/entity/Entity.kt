@@ -71,7 +71,7 @@ import kotlin.reflect.jvm.jvmErasure
  * - For [Boolean] type, the default value is `false`.
  * - For [Char] type, the default value is `\u0000`.
  * - For number types (such as [Int], [Long], [Double], etc), the default value is zero.
- * - For the [String] type, the default value is the empty string.
+ * - For [String] type, the default value is an empty string.
  * - For entity types, the default value is a new-created entity object which is empty.
  * - For enum types, the default value is the first value of the enum, whose ordinal is 0.
  * - For array types, the default value is a new-created empty array.
