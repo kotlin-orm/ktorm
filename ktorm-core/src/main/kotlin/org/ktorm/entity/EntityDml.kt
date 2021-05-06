@@ -30,7 +30,7 @@ import org.ktorm.schema.*
  * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
  * into the database, and no keys generated.
  *
- * Note that after calling this function, the [entity] will **be associated with the current table**.
+ * Note that after calling this function, the [entity] will be ATTACHED to the current database.
  *
  * @see Entity.flushChanges
  * @see Entity.delete
@@ -91,7 +91,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
 /**
  * Update properties of the given entity to the database and return the affected record number.
  *
- * Note that after calling this function, the [entity] will **be associated with the current table**.
+ * Note that after calling this function, the [entity] will be ATTACHED to the current database.
  *
  * @see Entity.flushChanges
  * @see Entity.delete
@@ -148,10 +148,10 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doFlushChanges(): Int {
-    check(parent == null) { "The entity is not associated with any database yet." }
+    check(parent == null) { "The entity is not attached to any database yet." }
 
-    val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
-    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
+    val fromDatabase = fromDatabase ?: error("The entity is not attached to any database yet.")
+    val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
     checkUnexpectedDiscarding(fromTable)
 
     val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
@@ -174,10 +174,10 @@ internal fun EntityImplementation.doFlushChanges(): Int {
 
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doDelete(): Int {
-    check(parent == null) { "The entity is not associated with any database yet." }
+    check(parent == null) { "The entity is not attached to any database yet." }
 
-    val fromDatabase = fromDatabase ?: error("The entity is not associated with any database yet.")
-    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
+    val fromDatabase = fromDatabase ?: error("The entity is not attached to any database yet.")
+    val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
 
     val expression = AliasRemover.visit(
         expr = DeleteExpression(
@@ -272,8 +272,8 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
 }
 
 internal fun EntityImplementation.doDiscardChanges() {
-    check(parent == null) { "The entity is not associated with any database yet." }
-    val fromTable = fromTable ?: error("The entity is not associated with any table yet.")
+    check(parent == null) { "The entity is not attached to any database yet." }
+    val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
 
     for (column in fromTable.columns) {
         val binding = column.binding ?: continue

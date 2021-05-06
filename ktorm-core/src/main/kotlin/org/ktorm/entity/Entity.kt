@@ -44,11 +44,11 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * ### Creating Entity Objects
  *
- * As everyone knows, interfaces cannot be instantiated, so Ktorm provides [Entity.create] functions for us to
- * create entity objects. Those functions generate implementations for entity interfaces via JDK dynamic proxy
+ * As everyone knows, interfaces cannot be instantiated, so Ktorm provides a [Entity.create] function for us to
+ * create entity objects. This function generate implementations for entity interfaces via JDK dynamic proxy
  * and create their instances.
  *
- * If you don't like creating objects by [Entity.create] functions, Ktorm also provides an abstract factory class
+ * In case you don't like creating objects by [Entity.create], Ktorm also provides an abstract factory class
  * [Entity.Factory]. This class overloads the `invoke` operator of Kotlin, so we just need to add a companion
  * object to our entity class extending from [Entity.Factory], then entity objects can be created just like there
  * is a constructor: `val department = Department()`.
@@ -71,7 +71,7 @@ import kotlin.reflect.jvm.jvmErasure
  * - For [Boolean] type, the default value is `false`.
  * - For [Char] type, the default value is `\u0000`.
  * - For number types (such as [Int], [Long], [Double], etc), the default value is zero.
- * - For the [String] type, the default value is the empty string.
+ * - For [String] type, the default value is an empty string.
  * - For entity types, the default value is a new-created entity object which is empty.
  * - For enum types, the default value is the first value of the enum, whose ordinal is 0.
  * - For array types, the default value is a new-created empty array.
@@ -150,15 +150,14 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Using this function, we need to note that:
      *
      * 1. This function requires a primary key specified in the table object via [Table.primaryKey],
-     * otherwise Ktorm doesn’t know how to identify entity objects, then throws an exception.
+     * otherwise Ktorm doesn’t know how to identify entity objects and will throw an exception.
      *
-     * 2. The entity object calling this function must **be associated with a table** first. In Ktorm’s implementation,
-     * every entity object holds a reference `fromTable`, that means this object is associated with the table or was
-     * obtained from it. For entity objects obtained by sequence APIs, their `fromTable` references point to the current
-     * table object they are obtained from. But for entity objects created by [Entity.create] or [Entity.Factory], their
-     * `fromTable` references are `null` initially, so we can not call [flushChanges] on them. But once we use them with
-     * [add] or [update] function of entity sequences, Ktorm will modify their `fromTable` to the current table object,
-     * then we can call [flushChanges] on them afterwards.
+     * 2. The entity object calling this function must be ATTACHED to the database first. In Ktorm’s implementation,
+     * every entity object holds a reference `fromDatabase`. For entity objects obtained by sequence APIs, their
+     * `fromDatabase` references point to the database they are obtained from. For entity objects created by
+     * [Entity.create] or [Entity.Factory], their `fromDatabase` references are `null` initially, so we can not call
+     * [flushChanges] on them. But once we use them with [add] or [update] function, `fromDatabase` will be modified
+     * to the current database, so we will be able to call [flushChanges] on them afterwards.
      *
      * @see add
      * @see update
@@ -182,7 +181,7 @@ public interface Entity<E : Entity<E>> : Serializable {
      * 1. The function requires a primary key specified in the table object via [Table.primaryKey],
      * otherwise, Ktorm doesn’t know how to identify entity objects.
      *
-     * 2. The entity object calling this function must **be associated with a table** first.
+     * 2. The entity object calling this function must be ATTACHED to the database first.
      *
      * @see add
      * @see update
@@ -208,6 +207,27 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Return a deep copy of this entity, which has the same property values and tracked statuses.
      */
     public fun copy(): E
+
+    /**
+     * Indicate whether some other object is "equal to" this entity.
+     * Two entities are equal only if they have the same [entityClass] and [properties].
+     *
+     * @since 3.4.0
+     */
+    public override fun equals(other: Any?): Boolean
+
+    /**
+     * Return a hash code value for this entity.
+     *
+     * @since 3.4.0
+     */
+    public override fun hashCode(): Int
+
+    /**
+     * Return a string representation of this table.
+     * The format is like `Employee{id=1, name=Eric, job=contributor, hireDate=2021-05-05, salary=50}`.
+     */
+    public override fun toString(): String
 
     /**
      * Companion object provides functions to create entity instances.

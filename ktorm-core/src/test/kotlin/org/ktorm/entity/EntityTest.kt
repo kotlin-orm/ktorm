@@ -522,7 +522,8 @@ class EntityTest : BaseTest() {
         val employee = database.employees.find { it.id eq 2 } ?: return
         val copy = employee.copy()
 
-        assert(employee.hireDate == copy.hireDate)
+        assert(employee == copy)
+        assert(employee !== copy)
         assert(employee.hireDate !== copy.hireDate) // should not be the same instance because of deep copy.
         assert(copy.manager?.implementation?.parent === copy.implementation) // should keep the parent relationship.
     }
