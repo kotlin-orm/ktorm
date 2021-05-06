@@ -45,7 +45,7 @@ import kotlin.reflect.jvm.jvmErasure
  * ### Creating Entity Objects
  *
  * As everyone knows, interfaces cannot be instantiated, so Ktorm provides a [Entity.create] function for us to
- * create entity objects. This function generate implementations for entity interfaces via JDK dynamic proxy
+ * create entity objects. This function will generate implementations for entity interfaces via JDK dynamic proxy
  * and create their instances.
  *
  * In case you don't like creating objects by [Entity.create], Ktorm also provides an abstract factory class
