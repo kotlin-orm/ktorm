@@ -43,6 +43,8 @@ class EntityTest : BaseTest() {
 
         assert(employee["name"] == "vince")
         assert(employee.name == "vince")
+        assert(employee.upperName == "VINCE")
+        assert(employee.upperName() == "VINCE")
 
         assert(employee["job"] == null)
         assert(employee.job == "")
