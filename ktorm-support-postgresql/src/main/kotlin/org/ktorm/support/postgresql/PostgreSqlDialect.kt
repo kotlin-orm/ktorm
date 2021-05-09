@@ -325,7 +325,8 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
                 table = table,
                 assignments = assignments,
                 conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments
+                updateAssignments = updateAssignments,
+                returningColumns = returningColumns
             )
         }
     }
@@ -350,7 +351,8 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
                 table = table,
                 assignments = assignments,
                 conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments
+                updateAssignments = updateAssignments,
+                returningColumns = returningColumns
             )
         }
     }
