@@ -1,7 +1,7 @@
 package org.ktorm.support.mysql
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.ClassRule
 import org.junit.Test
 import org.ktorm.BaseTest
@@ -524,12 +524,16 @@ class MySqlTest : BaseTest() {
         }
 
         val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
+        assertThat(count, equalTo(1))
 
-        MatcherAssert.assertThat(count, CoreMatchers.equalTo(1))
+        val mood = database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        assertThat(mood, equalTo(Mood.SAD))
 
-        val currentMood =
-            database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        database.insert(TableWithEnum) {
+            set(it.current_mood, null)
+        }
 
-        MatcherAssert.assertThat(currentMood, CoreMatchers.equalTo(Mood.SAD))
+        val mood1 = database.sequenceOf(TableWithEnum).filter { it.id eq 2 }.mapColumns { it.current_mood }.first()
+        assertThat(mood1, equalTo(null))
     }
 }

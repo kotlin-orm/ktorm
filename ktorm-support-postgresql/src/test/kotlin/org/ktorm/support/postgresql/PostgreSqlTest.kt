@@ -783,13 +783,17 @@ class PostgreSqlTest : BaseTest() {
         }
 
         val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
-
         assertThat(count, equalTo(1))
 
-        val currentMood =
-            database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        val mood = database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        assertThat(mood, equalTo(Mood.HAPPY))
 
-        assertThat(currentMood, equalTo(Mood.HAPPY))
+        database.insert(TableWithEnum) {
+            set(it.current_mood, null)
+        }
+
+        val mood1 = database.sequenceOf(TableWithEnum).filter { it.id eq 3 }.mapColumns { it.current_mood }.first()
+        assertThat(mood1, equalTo(null))
     }
 
     @Test

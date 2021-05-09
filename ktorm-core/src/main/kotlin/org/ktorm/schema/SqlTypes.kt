@@ -501,10 +501,22 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<
  *
  * @property enumClass the enum class.
  */
-public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.VARCHAR, "enum") {
+public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.OTHER, "enum") {
 
     private val hasPostgresqlDriver by lazy {
         runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
+    }
+
+    override fun setParameter(ps: PreparedStatement, index: Int, parameter: C?) {
+        if (parameter != null) {
+            doSetParameter(ps, index, parameter)
+        } else {
+            if (hasPostgresqlDriver && ps is PGStatement) {
+                ps.setNull(index, Types.OTHER)
+            } else {
+                ps.setNull(index, Types.VARCHAR)
+            }
+        }
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
