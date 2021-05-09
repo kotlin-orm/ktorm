@@ -42,7 +42,7 @@ For more documentation, go to our site: [https://www.ktorm.org](https://www.ktor
 
 # Quick Start
 
-Ktorm was deployed to maven central and jcenter, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
+Ktorm was deployed to maven central, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
 
 ```xml
 <dependency>

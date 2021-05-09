@@ -42,7 +42,7 @@ Ktormは純粋なJDBCをベースにしたKotlin用の軽量で効率的なORM�
 
 # クイックスタート
 
-Ktormはmaven centralとjcenterにデプロイされているので、mavenを使っている場合は `pom.xml` ファイルに依存関係を追加するだけです。
+Ktormはmaven centralにデプロイされているので、mavenを使っている場合は `pom.xml` ファイルに依存関係を追加するだけです。
 
 ```xml
 <dependency>
