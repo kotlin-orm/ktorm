@@ -392,6 +392,11 @@ class MySqlTest : BaseTest() {
             set(it.arr, listOf(1, 2, 3))
         }
 
+        database.insert(t) {
+            set(it.obj, null)
+            set(it.arr, null)
+        }
+
         database
             .from(t)
             .select(t.obj, t.arr)

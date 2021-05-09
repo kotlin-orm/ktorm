@@ -78,10 +78,22 @@ public inline fun <reified C : Any> BaseTable<*>.json(
 public class JsonSqlType<T : Any>(
     public val objectMapper: ObjectMapper,
     public val javaType: JavaType
-) : SqlType<T>(Types.VARCHAR, "json") {
+) : SqlType<T>(Types.OTHER, "json") {
 
     private val hasPostgresqlDriver by lazy {
         runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
+    }
+
+    override fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
+        if (parameter != null) {
+            doSetParameter(ps, index, parameter)
+        } else {
+            if (hasPostgresqlDriver && ps is PGStatement) {
+                ps.setNull(index, Types.OTHER)
+            } else {
+                ps.setNull(index, Types.VARCHAR)
+            }
+        }
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
