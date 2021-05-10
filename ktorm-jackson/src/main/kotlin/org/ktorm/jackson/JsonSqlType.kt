@@ -88,7 +88,7 @@ public class JsonSqlType<T : Any>(
         if (parameter != null) {
             doSetParameter(ps, index, parameter)
         } else {
-            if (hasPostgresqlDriver && ps is PGStatement) {
+            if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
                 ps.setNull(index, Types.OTHER)
             } else {
                 ps.setNull(index, Types.VARCHAR)
@@ -97,7 +97,7 @@ public class JsonSqlType<T : Any>(
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
-        if (hasPostgresqlDriver && ps is PGStatement) {
+        if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
             val obj = PGobject()
             obj.type = "json"
             obj.value = objectMapper.writeValueAsString(parameter)

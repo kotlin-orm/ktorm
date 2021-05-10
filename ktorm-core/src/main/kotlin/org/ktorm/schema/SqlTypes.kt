@@ -511,7 +511,7 @@ public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<
         if (parameter != null) {
             doSetParameter(ps, index, parameter)
         } else {
-            if (hasPostgresqlDriver && ps is PGStatement) {
+            if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
                 ps.setNull(index, Types.OTHER)
             } else {
                 ps.setNull(index, Types.VARCHAR)
@@ -520,7 +520,7 @@ public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
-        if (hasPostgresqlDriver && ps is PGStatement) {
+        if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
             ps.setObject(index, parameter.name, Types.OTHER)
         } else {
             ps.setString(index, parameter.name)

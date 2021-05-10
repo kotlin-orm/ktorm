@@ -1,5 +1,9 @@
 package org.ktorm.support.postgresql
 
+import com.alibaba.druid.pool.DruidDataSource
+import com.mchange.v2.c3p0.ComboPooledDataSource
+import com.zaxxer.hikari.HikariDataSource
+import org.apache.commons.dbcp2.BasicDataSource
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -797,7 +801,59 @@ class PostgreSqlTest : BaseTest() {
     }
 
     @Test
-    fun testJson() {
+    fun testJsonWithDefaultConnection() {
+        testJson(database)
+    }
+
+    @Test
+    fun testJsonWithHikariCP() {
+        val ds = HikariDataSource()
+        ds.jdbcUrl = postgres.jdbcUrl
+        ds.driverClassName = postgres.driverClassName
+        ds.username = postgres.username
+        ds.password = postgres.password
+
+        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
+        testJson(database)
+    }
+
+    @Test
+    fun testJsonWithC3P0() {
+        val ds = ComboPooledDataSource()
+        ds.jdbcUrl = postgres.jdbcUrl
+        ds.driverClass = postgres.driverClassName
+        ds.user = postgres.username
+        ds.password = postgres.password
+
+        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
+        testJson(database)
+    }
+
+    @Test
+    fun testJsonWithDBCP() {
+        val ds = BasicDataSource()
+        ds.url = postgres.jdbcUrl
+        ds.driverClassName = postgres.driverClassName
+        ds.username = postgres.username
+        ds.password = postgres.password
+
+        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
+        testJson(database)
+    }
+
+    @Test
+    fun testJsonWithDruid() {
+        val ds = DruidDataSource()
+        ds.url = postgres.jdbcUrl
+        ds.driverClassName = postgres.driverClassName
+        ds.username = postgres.username
+        ds.password = postgres.password
+
+        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
+        testJson(database)
+    }
+
+    private fun testJson(database: Database) {
         val t = object : Table<Nothing>("t_json") {
             val obj = json<Employee>("obj")
             val arr = json<List<Int>>("arr")
