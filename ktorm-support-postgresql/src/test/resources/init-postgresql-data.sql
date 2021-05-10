@@ -29,6 +29,8 @@ create table t_enum(
    current_mood mood
 );
 
+create table t_json (obj json, arr json);
+
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
 insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');
 

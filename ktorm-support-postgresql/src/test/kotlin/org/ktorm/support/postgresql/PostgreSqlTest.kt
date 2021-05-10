@@ -859,13 +859,6 @@ class PostgreSqlTest : BaseTest() {
             val arr = json<List<Int>>("arr")
         }
 
-        database.useConnection { conn ->
-            conn.createStatement().use { statement ->
-                val sql = """create table t_json (obj json, arr json)"""
-                statement.executeUpdate(sql)
-            }
-        }
-
         database.insert(t) {
             set(it.obj, Employee { name = "vince"; salary = 100 })
             set(it.arr, listOf(1, 2, 3))
