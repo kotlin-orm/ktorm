@@ -21,9 +21,10 @@ logs/
 
 ### NetBeans ###
 nbproject/private/
-build/
 nbbuild/
 dist/
 nbdist/
 .nb-gradle/
 
+# Include Ktorm build sources
+!buildSrc/src/main/kotlin/org/ktorm/build
