@@ -4,6 +4,7 @@ plugins {
     id("signing")
     id("maven-publish")
     id("io.gitlab.arturbosch.detekt")
+    id("check-source-header")
 }
 
 repositories {
