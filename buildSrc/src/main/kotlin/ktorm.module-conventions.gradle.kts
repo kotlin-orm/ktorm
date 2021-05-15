@@ -4,7 +4,7 @@ plugins {
     id("signing")
     id("maven-publish")
     id("io.gitlab.arturbosch.detekt")
-    id("check-source-header")
+    id("ktorm.source-header-check")
 }
 
 repositories {
@@ -32,7 +32,7 @@ tasks {
 
     register<Jar>("generateSources") {
         archiveClassifier.set("sources")
-        from(sourceSets.main.get().allSource)
+        from(sourceSets.main.map { it.allSource })
     }
 
     register<Jar>("generateJavadoc") {
