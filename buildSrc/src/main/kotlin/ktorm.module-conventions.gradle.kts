@@ -7,6 +7,9 @@ plugins {
     id("ktorm.source-header-check")
 }
 
+group = rootProject.group
+version = rootProject.version
+
 repositories {
     mavenCentral()
 }
@@ -14,12 +17,12 @@ repositories {
 dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
-    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.0-RC2")
 }
 
 tasks {
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") {
         kotlinOptions {
             jvmTarget = "1.6"
             allWarningsAsErrors = true
@@ -30,12 +33,12 @@ tasks {
         }
     }
 
-    register<Jar>("generateSources") {
+    register<Jar>("jarSources") {
         archiveClassifier.set("sources")
         from(sourceSets.main.map { it.allSource })
     }
 
-    register<Jar>("generateJavadoc") {
+    register<Jar>("jarJavadoc") {
         archiveClassifier.set("javadoc")
     }
 }
@@ -50,8 +53,8 @@ publishing {
     publications {
         create<MavenPublication>("dist") {
             from(components["java"])
-            artifact("generateSources")
-            artifact("generateJavadoc")
+            artifact(tasks["jarSources"])
+            artifact(tasks["jarJavadoc"])
 
             groupId = project.group.toString()
             artifactId = project.name

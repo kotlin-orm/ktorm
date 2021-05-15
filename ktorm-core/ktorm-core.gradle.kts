@@ -14,17 +14,16 @@ dependencies {
     testImplementation("com.h2database:h2:1.4.197")
 }
 
-configurations {
-    val testOutput by creating
-    testOutput.extendsFrom(configurations["testImplementation"])
+val testOutput by configurations.creating {
+    extendsFrom(configurations["testImplementation"])
 }
 
-task<Jar>("testJar") {
+val testJar by tasks.registering(Jar::class) {
     dependsOn("testClasses")
     from(sourceSets.test.map { it.output })
     archiveClassifier.set("test")
 }
 
 artifacts {
-    add("testOutput", "testJar")
+    add(testOutput.name, testJar)
 }

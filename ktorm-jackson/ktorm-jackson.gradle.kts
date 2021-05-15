@@ -25,4 +25,5 @@ sourceSets.main {
     java.srcDirs(generatedSourceDir)
 }
 
-tasks.getByName("compileKotlin").dependsOn(generatePackageVersion)
+tasks["compileKotlin"].dependsOn(generatePackageVersion)
+tasks["jarSources"].dependsOn(generatePackageVersion)

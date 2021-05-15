@@ -447,4 +447,5 @@ sourceSets.main {
     java.srcDirs(generatedSourceDir)
 }
 
-tasks.getByName("compileKotlin").dependsOn(generateTuples)
+tasks["compileKotlin"].dependsOn(generateTuples)
+tasks["jarSources"].dependsOn(generateTuples)
