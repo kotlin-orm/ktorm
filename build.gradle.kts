@@ -4,11 +4,11 @@ version = "3.5.0-SNAPSHOT"
 
 task("printClasspath") {
     doLast {
-        val jars = subprojects.flatMapTo(HashSet()) { it.configurations["compileClasspath"].files }
-        jars.removeIf { it.name.contains("ktorm") }
-
-        println("Project classpath: ")
-        jars.forEach { println(it.name) }
+        val jars = subprojects
+            .map { it.configurations["compileClasspath"] }
+            .flatMap { it.files }
+            .filterNotTo(HashSet()) { it.name.contains("ktorm") }
+            .onEach { println(it.name) }
 
         val file = file("build/ktorm.classpath")
         file.parentFile.mkdirs()

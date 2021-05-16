@@ -5,8 +5,7 @@ plugins {
 
 dependencies {
     api(project(":ktorm-core"))
-
-    testImplementation(project(path = ":ktorm-core", configuration = "testOutput"))
-    testImplementation(fileTree("lib") { include("*.jar") })
+    testImplementation(project(":ktorm-core", configuration = "testOutput"))
+    testImplementation(files("lib/ojdbc6-11.2.0.3.jar"))
     testImplementation("org.testcontainers:oracle-xe:1.15.1")
 }

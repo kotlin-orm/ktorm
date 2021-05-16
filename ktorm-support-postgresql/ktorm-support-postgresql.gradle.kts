@@ -5,8 +5,7 @@ plugins {
 
 dependencies {
     api(project(":ktorm-core"))
-
-    testImplementation(project(path = ":ktorm-core", configuration = "testOutput"))
+    testImplementation(project(":ktorm-core", configuration = "testOutput"))
     testImplementation(project(":ktorm-jackson"))
     testImplementation("org.postgresql:postgresql:42.2.5")
     testImplementation("org.testcontainers:postgresql:1.15.1")

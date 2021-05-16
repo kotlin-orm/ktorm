@@ -16,7 +16,6 @@ val generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main
 val generatePackageVersion by tasks.registering(Copy::class) {
     from("src/main/kotlin/org/ktorm/jackson/PackageVersion.kt.tmpl")
     into("${generatedSourceDir}/org/ktorm/jackson")
-
     rename("(.+)\\.tmpl", "$1")
     expand(project.properties)
 }
