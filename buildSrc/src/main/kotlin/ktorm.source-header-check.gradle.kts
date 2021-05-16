@@ -3,7 +3,8 @@ plugins {
     id("kotlin")
 }
 
-val licenseHeaderText = """/*
+val licenseHeaderText = """
+/*
  * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,7 @@ val licenseHeaderText = """/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-"""
+""".trimIndent()
 
 val checkSourceHeader by tasks.registering {
     doLast {
@@ -37,4 +38,4 @@ val checkSourceHeader by tasks.registering {
     }
 }
 
-tasks.getByName("check").dependsOn(checkSourceHeader)
+tasks["check"].dependsOn(checkSourceHeader)

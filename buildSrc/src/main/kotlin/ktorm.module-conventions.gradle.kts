@@ -186,9 +186,9 @@ signing {
     val secretKey = System.getenv("GPG_SECRET_KEY")
     val password = System.getenv("GPG_PASSWORD")
 
-    setRequired({
+    setRequired {
         !project.version.toString().endsWith("SNAPSHOT")
-    })
+    }
 
     useInMemoryPgpKeys(keyId, secretKey, password)
     sign(publishing.publications["dist"])
