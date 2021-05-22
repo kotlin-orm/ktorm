@@ -129,8 +129,8 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
         val employees = Employees.asSequence().groupBy { it.department.id }
         println(employees)
         assert(employees.size == 2)
-        assert(employees[1]!!.sumBy { it.salary.toInt() } == 150)
-        assert(employees[2]!!.sumBy { it.salary.toInt() } == 300)
+        assert(employees[1]!!.sumOf { it.salary.toInt() } == 150)
+        assert(employees[2]!!.sumOf { it.salary.toInt() } == 300)
     }
 
     @Test
