@@ -2,6 +2,7 @@
 include "ktorm-core"
 include "ktorm-global"
 include "ktorm-jackson"
+include "ktorm-autotable"
 include "ktorm-support-mysql"
 include "ktorm-support-oracle"
 include "ktorm-support-postgresql"
