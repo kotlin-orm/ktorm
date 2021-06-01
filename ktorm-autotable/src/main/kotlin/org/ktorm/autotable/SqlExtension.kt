@@ -58,10 +58,8 @@ internal val KClass<*>.tableName: String
     get() = findAnnotation<TableName>()?.name ?: simpleName!!.sqlName
 internal val Class<*>.tableName: String
     get() = getAnnotation(TableName::class.java)?.name ?: simpleName.sqlName
-internal val KProperty<*>.tableFieldName: String?
-    get() = javaField?.getAnnotation(TableField::class.java)?.name
-internal val KProperty<*>.simpTableField: String
-    get() = tableFieldName ?: name.sqlName
+internal val KProperty<*>.tableFieldName: String
+    get() = javaField?.getAnnotation(TableField::class.java)?.name ?: name.sqlName
 
 /**
  * get AutoTable instance of property.
@@ -73,7 +71,7 @@ public val KProperty<*>.table: AutoTable<Any>
 /**
  * get Column instance of property.
  */
-public val <T : Any> KProperty<T?>.sql: Column<T>
+public val <T : Any> KProperty<T?>.column: Column<T>
     get() = table[this]
 
 /**
@@ -116,147 +114,147 @@ public inline fun <reified T : Any> Query.toList(
  */
 public fun <E : Any> BaseTable<E>.boolean(
     field: KProperty1<E, Boolean?>,
-): Column<Boolean> = boolean(field.simpTableField)
+): Column<Boolean> = boolean(field.tableFieldName)
 
 /**
  * Define a column typed of [IntSqlType].
  */
 public fun <E : Any> BaseTable<E>.int(
     field: KProperty1<E, Int?>,
-): Column<Int> = int(field.simpTableField)
+): Column<Int> = int(field.tableFieldName)
 
 /**
  * Define a column typed of [LongSqlType].
  */
 public fun <E : Any> BaseTable<E>.long(
     field: KProperty1<E, Long?>,
-): Column<Long> = long(field.simpTableField)
+): Column<Long> = long(field.tableFieldName)
 
 /**
  * Define a column typed of [FloatSqlType].
  */
 public fun <E : Any> BaseTable<E>.float(
     field: KProperty1<E, Float?>,
-): Column<Float> = float(field.simpTableField)
+): Column<Float> = float(field.tableFieldName)
 
 /**
  * Define a column typed of [DoubleSqlType].
  */
 public fun <E : Any> BaseTable<E>.double(
     field: KProperty1<E, Double?>,
-): Column<Double> = double(field.simpTableField)
+): Column<Double> = double(field.tableFieldName)
 
 /**
  * Define a column typed of [DecimalSqlType].
  */
 public fun <E : Any> BaseTable<E>.decimal(
     field: KProperty1<E, BigDecimal?>,
-): Column<BigDecimal> = decimal(field.simpTableField)
+): Column<BigDecimal> = decimal(field.tableFieldName)
 
 /**
  * Define a column typed of [VarcharSqlType].
  */
 public fun <E : Any> BaseTable<E>.varchar(
     field: KProperty1<E, String?>,
-): Column<String> = varchar(field.simpTableField)
+): Column<String> = varchar(field.tableFieldName)
 
 /**
  * Define a column typed of [TextSqlType].
  */
 public fun <E : Any> BaseTable<E>.text(
     field: KProperty1<E, String?>,
-): Column<String> = text(field.simpTableField)
+): Column<String> = text(field.tableFieldName)
 
 /**
  * Define a column typed of [BlobSqlType].
  */
 public fun <E : Any> BaseTable<E>.blob(
     field: KProperty1<E, ByteArray?>,
-): Column<ByteArray> = blob(field.simpTableField)
+): Column<ByteArray> = blob(field.tableFieldName)
 
 /**
  * Define a column typed of [BytesSqlType].
  */
 public fun <E : Any> BaseTable<E>.bytes(
     field: KProperty1<E, ByteArray?>,
-): Column<ByteArray> = bytes(field.simpTableField)
+): Column<ByteArray> = bytes(field.tableFieldName)
 
 /**
  * Define a column typed of [TimestampSqlType].
  */
 public fun <E : Any> BaseTable<E>.jdbcTimestamp(
     field: KProperty1<E, Timestamp?>,
-): Column<Timestamp> = jdbcTimestamp(field.simpTableField)
+): Column<Timestamp> = jdbcTimestamp(field.tableFieldName)
 
 /**
  * Define a column typed of [DateSqlType].
  */
 public fun <E : Any> BaseTable<E>.jdbcDate(
     field: KProperty1<E, Date?>,
-): Column<Date> = jdbcDate(field.simpTableField)
+): Column<Date> = jdbcDate(field.tableFieldName)
 
 /**
  * Define a column typed of [TimeSqlType].
  */
 public fun <E : Any> BaseTable<E>.jdbcTime(
     field: KProperty1<E, Time?>,
-): Column<Time> = jdbcTime(field.simpTableField)
+): Column<Time> = jdbcTime(field.tableFieldName)
 
 /**
  * Define a column typed of [InstantSqlType].
  */
 public fun <E : Any> BaseTable<E>.timestamp(
     field: KProperty1<E, Instant?>,
-): Column<Instant> = timestamp(field.simpTableField)
+): Column<Instant> = timestamp(field.tableFieldName)
 
 /**
  * Define a column typed of [LocalDateTimeSqlType].
  */
 public fun <E : Any> BaseTable<E>.datetime(
     field: KProperty1<E, LocalDateTime?>,
-): Column<LocalDateTime> = datetime(field.simpTableField)
+): Column<LocalDateTime> = datetime(field.tableFieldName)
 
 /**
  * Define a column typed of [LocalTimeSqlType].
  */
 public fun <E : Any> BaseTable<E>.date(
     field: KProperty1<E, LocalDate?>,
-): Column<LocalDate> = date(field.simpTableField)
+): Column<LocalDate> = date(field.tableFieldName)
 
 /**
  * Define a column typed of [LocalTimeSqlType].
  */
 public fun <E : Any> BaseTable<E>.time(
     field: KProperty1<E, LocalTime?>,
-): Column<LocalTime> = time(field.simpTableField)
+): Column<LocalTime> = time(field.tableFieldName)
 
 /**
  * Define a column typed of [MonthDaySqlType], instances of [MonthDay] are saved as strings in format `MM-dd`.
  */
 public fun <E : Any> BaseTable<E>.monthDay(
     field: KProperty1<E, MonthDay?>,
-): Column<MonthDay> = monthDay(field.simpTableField)
+): Column<MonthDay> = monthDay(field.tableFieldName)
 
 /**
  * Define a column typed of [YearMonthSqlType], instances of [YearMonth] are saved as strings in format `yyyy-MM`.
  */
 public fun <E : Any> BaseTable<E>.yearMonth(
     field: KProperty1<E, YearMonth?>,
-): Column<YearMonth> = yearMonth(field.simpTableField)
+): Column<YearMonth> = yearMonth(field.tableFieldName)
 
 /**
  * Define a column typed of [YearSqlType], instances of [Year] are saved as integers.
  */
 public fun <E : Any> BaseTable<E>.year(
     field: KProperty1<E, Year?>,
-): Column<Year> = year(field.simpTableField)
+): Column<Year> = year(field.tableFieldName)
 
 /**
  * Define a column typed of [UuidSqlType].
  */
 public fun <E : Any> BaseTable<E>.uuid(
     field: KProperty1<E, UUID?>,
-): Column<UUID> = uuid(field.simpTableField)
+): Column<UUID> = uuid(field.tableFieldName)
 
 /**
  * Define a column typed of [C].
@@ -264,7 +262,7 @@ public fun <E : Any> BaseTable<E>.uuid(
 public fun <E : Any, C : Enum<C>> BaseTable<E>.enum(
     field: KProperty1<E, C?>,
     type: Class<C>,
-): Column<C> = registerColumn(field.simpTableField, EnumSqlType(type))
+): Column<C> = registerColumn(field.tableFieldName, EnumSqlType(type))
 
 /**
  * inject value to an property of an instance.

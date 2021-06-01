@@ -17,7 +17,7 @@
 package org.ktorm.autotable.typeadapter
 
 import org.ktorm.autotable.TypeAdapter
-import org.ktorm.autotable.simpTableField
+import org.ktorm.autotable.tableFieldName
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.EnumSqlType
@@ -38,7 +38,7 @@ public object EnumAdapter : TypeAdapter<EnumAdapter.EnumType> {
         val kClass = field.returnType.jvmErasure
         return if (kClass.isSubclassOf(Enum::class)) {
             @Suppress("UNCHECKED_CAST")
-            table.registerColumn(field.simpTableField, EnumSqlType(kClass.java as Class<EnumType>))
+            table.registerColumn(field.tableFieldName, EnumSqlType(kClass.java as Class<EnumType>))
         } else {
             null
         }

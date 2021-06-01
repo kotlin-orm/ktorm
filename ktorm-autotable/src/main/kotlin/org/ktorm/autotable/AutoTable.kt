@@ -18,6 +18,8 @@ package org.ktorm.autotable
 
 import org.ktorm.autotable.annotations.TableField
 import org.ktorm.dsl.QueryRowSet
+import org.ktorm.logging.Logger
+import org.ktorm.logging.detectLoggerImplementation
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import java.util.concurrent.ConcurrentHashMap
@@ -40,7 +42,6 @@ public open class AutoTable<T : Any> private constructor(
     schema: String? = null,
     private val unsafe: Boolean = true,
     private val fieldMap: Map<String, KProperty1<out T, *>>,
-    private val fieldNameColumnMap: MutableMap<String, Column<*>> = HashMap(),
 ) : BaseTable<T>(tableName, alias, catalog, schema, entityClass) {
     public constructor(
         entityClass: KClass<T>,
@@ -51,14 +52,13 @@ public open class AutoTable<T : Any> private constructor(
         unsafe: Boolean = true,
     ) : this(
         entityClass, tableName, alias, catalog, schema, unsafe,
-        entityClass.memberProperties.associateBy { it.simpTableField },
+        entityClass.memberProperties.associateBy { it.tableFieldName },
     ) {
         entityClass.memberProperties.forEach {
             val field = it.javaField ?: return@forEach
             val tableField: TableField? = field.getAnnotation(TableField::class.java)
             if (tableField?.exist == false) return@forEach
-            val column = TypeAdapterFactory.register(this, it) ?: return@forEach
-            fieldNameColumnMap[it.name] = column
+            TypeAdapterFactory.register(this, it)
         }
     }
 
@@ -73,18 +73,38 @@ public open class AutoTable<T : Any> private constructor(
     }
 
     /**
+     * rebuild column map.
+     */
+    public fun rebuild() {
+        val columnsField = BaseTable::class.java.getDeclaredField("_columns")
+        columnsField.isAccessible = true
+        (columnsField.get(this) as MutableMap<*, *>).clear()
+
+        entityClass!!.memberProperties.forEach {
+            try {
+                val field = it.javaField ?: return@forEach
+                val tableField: TableField? = field.getAnnotation(TableField::class.java)
+                if (tableField?.exist == false) return@forEach
+                TypeAdapterFactory.register(this, it)
+            } catch (e: Exception) {
+                logger.warn("an exception caused on rebuild property $it", e)
+            }
+        }
+    }
+
+    /**
      * get column by property.
      */
     @Suppress("UNCHECKED_CAST")
     public operator fun <R : Any> get(property: KProperty1<out T, R?>): Column<R> =
-        fieldNameColumnMap[property.name] as Column<R>
+        this[property.tableFieldName] as Column<R>
 
     /**
      * get column by property.
      */
     @Suppress("UNCHECKED_CAST")
     public operator fun <R : Any> get(property: KProperty<R?>): Column<R> =
-        fieldNameColumnMap[property.name] as Column<R>
+        this[property.tableFieldName] as Column<R>
 
     /**
      * create table field.
@@ -98,7 +118,7 @@ public open class AutoTable<T : Any> private constructor(
     @Suppress("UNCHECKED_CAST")
     public fun <V : Any> field(
         property: KProperty0<*>,
-    ): Column<V> = fieldNameColumnMap[property.name] as Column<V>
+    ): Column<V> = this[property.tableFieldName] as Column<V>
 
     /**
      * clone AutoTable instance.
@@ -111,7 +131,7 @@ public open class AutoTable<T : Any> private constructor(
         schema: String? = super.schema,
         unsafe: Boolean = this.unsafe,
     ): AutoTable<T> {
-        return AutoTable(
+        val autoTable = AutoTable(
             entityClass,
             tableName,
             alias,
@@ -119,11 +139,18 @@ public open class AutoTable<T : Any> private constructor(
             schema,
             unsafe,
             fieldMap,
-            fieldNameColumnMap
         )
+
+        val columnsField = BaseTable::class.java.getDeclaredField("_columns")
+        columnsField.isAccessible = true
+        columnsField.set(autoTable, columnsField.get(this))
+
+        return autoTable
     }
 
     public companion object {
+        private val logger: Logger = detectLoggerImplementation()
+
         /**
          * get AutoTable instance.
          */
@@ -165,7 +192,7 @@ public open class AutoTable<T : Any> private constructor(
             public operator fun getValue(
                 autoTable: AutoTable<T>,
                 property: KProperty<*>,
-            ): Column<V> = autoTable.fieldNameColumnMap[property.name] as Column<V>
+            ): Column<V> = autoTable[property.tableFieldName] as Column<V>
         }
 
         private val fieldProxyInstance = FieldDelegation<Any, Any>()
