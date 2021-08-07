@@ -3,7 +3,6 @@ package org.ktorm
 import org.junit.After
 import org.junit.Before
 import org.ktorm.database.Database
-import org.ktorm.database.SqlDialect
 import org.ktorm.database.use
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
@@ -19,12 +18,9 @@ import java.time.LocalDate
 open class BaseTest {
     lateinit var database: Database
 
-    object TestDialect: SqlDialect{}
-
     @Before
     open fun init() {
         database = Database.connect(
-            dialect = TestDialect,
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
             logger = ConsoleLogger(threshold = LogLevel.TRACE),
