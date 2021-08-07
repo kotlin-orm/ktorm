@@ -164,6 +164,13 @@ public abstract class BaseTable<E : Any>(
     }
 
     /**
+     * Removes the column entry.
+     */
+    protected fun <C : Any> removeColumn(name: String) {
+        _columns.remove(name)
+    }
+
+    /**
      * Mark the registered column as a primary key.
      */
     public fun <C : Any> Column<C>.primaryKey(): Column<C> {
