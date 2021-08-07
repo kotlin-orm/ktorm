@@ -109,9 +109,9 @@ public data class Column<T : Any>(
     override val sqlType: SqlType<T>,
 
     /**
-     * Any [Constraint]s that apply to this column.
+     * Extra properties of this expression, maybe useful in various extensions.
      */
-    val constraints: List<Constraint<T>> = listOf()
+    val extraProperties: Map<String, Any> = emptyMap()
 
 ) : ColumnDeclaring<T> {
 
@@ -197,9 +197,3 @@ public data class Column<T : Any>(
         return System.identityHashCode(this)
     }
 }
-
-public abstract class Constraint<in T>() {}
-public data class ForeignKeyConstraint(val to: BaseTable<*>, val on: Column<*>): Constraint<Any>()
-public data class DefaultConstraint<T: Any>(val value: ScalarExpression<T>): Constraint<Any>()
-public object NotNullConstraint: Constraint<Any>()
-public object UniqueConstraint: Constraint<Any>()

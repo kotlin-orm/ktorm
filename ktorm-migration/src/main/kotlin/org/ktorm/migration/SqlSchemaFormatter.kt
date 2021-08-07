@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.ktorm.expression
+package org.ktorm.migration
 
 import org.ktorm.database.Database
+import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.TableExpression
 
 /**
  * Subclass of [SqlFormatter] that is able to write information about migrations.
@@ -110,7 +113,7 @@ public abstract class SqlSchemaFormatter(
     protected open fun visitDropView(expr: DropViewExpression): SqlExpression = TODO()
 
     protected open fun visitColumnDeclaration(expr: ColumnDeclarationExpression<*>): SqlExpression {
-        write(expr.name)
+        write(expr.name.quoted)
         write(" ")
         writeKeyword(expr.sqlType.typeName)
         for(constraint in expr.constraints){
@@ -126,7 +129,7 @@ public abstract class SqlSchemaFormatter(
         for(col in orderedEntries){
             if(first) first = false
             else write(", ")
-            write(col.key.name)
+            write(col.key.name.quoted)
         }
         writeKeyword(") REFERENCES ")
         visitTableReference(expr.otherTable)
@@ -135,7 +138,7 @@ public abstract class SqlSchemaFormatter(
         for(col in orderedEntries){
             if(first) first = false
             else write(", ")
-            write(col.value.name)
+            write(col.value.name.quoted)
         }
         write(")")
         return expr

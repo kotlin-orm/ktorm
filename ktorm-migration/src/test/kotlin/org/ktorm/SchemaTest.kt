@@ -1,15 +1,18 @@
-package org.ktorm.expression
+package org.ktorm
 
 import org.junit.Before
 import org.junit.Test
 import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
-import org.ktorm.dsl.default
-import org.ktorm.dsl.unique
+import org.ktorm.database.asIterable
+import org.ktorm.dsl.insert
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
+import org.ktorm.expression.QueryExpression
+import org.ktorm.expression.SqlFormatter
 import org.ktorm.logging.ConsoleLogger
 import org.ktorm.logging.LogLevel
+import org.ktorm.migration.*
 import org.ktorm.schema.*
 import java.io.Serializable
 import java.time.LocalDate
@@ -41,9 +44,13 @@ open class SchemaTest {
 
     @Test
     fun create(){
-        val fmt = TestFormatter(database, true, 2)
         database.executeUpdate(Departments.createTable())
-        database.executeUpdate(Employees.createTable())
+        database.insert(Departments) {
+            set(it.id, 0)
+            set(it.name, "Test Department")
+            set(it.location, LocationWrapper("Some Location"))
+            set(it.mixedCase, "WhEeEeEe")
+        }
     }
 
     class TestFormatter(
@@ -51,9 +58,7 @@ open class SchemaTest {
         beautifySql: Boolean,
         indentSize: Int
     ) : SqlSchemaFormatter(database, beautifySql, indentSize) {
-        override fun writePagination(expr: QueryExpression) {
-            TODO("Not yet implemented")
-        }
+        override fun writePagination(expr: QueryExpression) = TODO()
     }
 
 

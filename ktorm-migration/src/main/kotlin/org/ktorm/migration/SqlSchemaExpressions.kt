@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.ktorm.expression
+package org.ktorm.migration
 
+import org.ktorm.expression.*
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.SqlType
 import kotlin.reflect.KClass

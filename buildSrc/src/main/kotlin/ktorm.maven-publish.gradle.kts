@@ -121,6 +121,11 @@ publishing {
                         name.set("Eric Fenderbosch")
                         email.set("eric@fender.net")
                     }
+                    developer {
+                        id.set("unknownjoe796")
+                        name.set("Joseph Ivie")
+                        email.set("joseph@lightningkite.com")
+                    }
                 }
             }
         }
