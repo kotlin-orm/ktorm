@@ -17,11 +17,9 @@
 package org.ktorm.expression
 
 import org.ktorm.database.Database
-import org.ktorm.database.DialectFeatureNotSupportedException
 
 /**
- * Subclass of [SqlExpressionVisitor], visiting SQL expression trees using visitor pattern. After the visit completes,
- * the executable SQL string will be generated in the [sql] property with its execution parameters in [parameters].
+ * Subclass of [SqlFormatter] that is able to write information about migrations.
  *
  * @property database the current database object used to obtain metadata such as identifier quote string.
  * @property beautifySql mark if we should output beautiful SQL strings with line-wrapping and indentation.
@@ -29,7 +27,6 @@ import org.ktorm.database.DialectFeatureNotSupportedException
  * @property sql return the executable SQL string after the visit completes.
  * @property parameters return the SQL's execution parameters after the visit completes.
  */
-@Suppress("VariableNaming")
 public abstract class SqlSchemaFormatter(
     database: Database,
     beautifySql: Boolean,
