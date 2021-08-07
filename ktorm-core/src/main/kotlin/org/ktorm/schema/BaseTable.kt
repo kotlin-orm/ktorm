@@ -156,6 +156,14 @@ public abstract class BaseTable<E : Any>(
     }
 
     /**
+     * Updates the column entry, replacing the existing column with a matching name.
+     */
+    protected fun <C : Any> updateColumn(column: Column<C>): Column<C> {
+        _columns[column.name] = column
+        return column
+    }
+
+    /**
      * Mark the registered column as a primary key.
      */
     public fun <C : Any> Column<C>.primaryKey(): Column<C> {
@@ -202,9 +210,13 @@ public abstract class BaseTable<E : Any>(
         checkRegistered()
         checkTransformable()
 
-        val result = Column(table, name, sqlType = sqlType.transform(fromUnderlyingValue, toUnderlyingValue))
-        _columns[name] = result
-        return result
+        return updateColumn(
+            Column(
+                table = table,
+                name = name,
+                sqlType = sqlType.transform(fromUnderlyingValue, toUnderlyingValue)
+            )
+        )
     }
 
     /**
@@ -226,8 +238,7 @@ public abstract class BaseTable<E : Any>(
         }
 
         val result = if (this.binding == null) this.copy(binding = b) else this.copy(extraBindings = extraBindings + b)
-        _columns[name] = result
-        return result
+        return updateColumn(result)
     }
 
     private fun <C : Any> Column<C>.checkConflictBinding(binding: ColumnBinding) {
