@@ -100,17 +100,17 @@ public abstract class SqlSchemaFormatter(
         visitTableReference(expr.table)
         return expr
     }
-    protected open fun visitAlterTableAdd(expr: AlterTableAddExpression): SqlExpression = expr
-    protected open fun visitAlterTableDropColumn(expr: AlterTableDropColumnExpression): SqlExpression = expr
-    protected open fun visitAlterTableModifyColumn(expr: AlterTableModifyColumnExpression): SqlExpression = expr
-    protected open fun visitAlterTableSetColumnConstraint(expr: AlterTableSetColumnConstraintExpression<*>): SqlExpression = expr
-    protected open fun visitAlterTableDropColumnConstraint(expr: AlterTableDropColumnConstraintExpression): SqlExpression = expr
-    protected open fun visitAlterTableAddConstraint(expr: AlterTableAddConstraintExpression): SqlExpression = expr
-    protected open fun visitAlterTableDropConstraint(expr: AlterTableDropConstraintExpression): SqlExpression = expr
-    protected open fun visitCreateIndex(expr: CreateIndexExpression): SqlExpression = expr
-    protected open fun visitDropIndex(expr: DropIndexExpression): SqlExpression = expr
-    protected open fun visitCreateView(expr: CreateViewExpression): SqlExpression = expr
-    protected open fun visitDropView(expr: DropViewExpression): SqlExpression = expr
+    protected open fun visitAlterTableAdd(expr: AlterTableAddExpression): SqlExpression = TODO()
+    protected open fun visitAlterTableDropColumn(expr: AlterTableDropColumnExpression): SqlExpression = TODO()
+    protected open fun visitAlterTableModifyColumn(expr: AlterTableModifyColumnExpression): SqlExpression = TODO()
+    protected open fun visitAlterTableSetColumnConstraint(expr: AlterTableSetColumnConstraintExpression<*>): SqlExpression = TODO()
+    protected open fun visitAlterTableDropColumnConstraint(expr: AlterTableDropColumnConstraintExpression): SqlExpression = TODO()
+    protected open fun visitAlterTableAddConstraint(expr: AlterTableAddConstraintExpression): SqlExpression = TODO()
+    protected open fun visitAlterTableDropConstraint(expr: AlterTableDropConstraintExpression): SqlExpression = TODO()
+    protected open fun visitCreateIndex(expr: CreateIndexExpression): SqlExpression = TODO()
+    protected open fun visitDropIndex(expr: DropIndexExpression): SqlExpression = TODO()
+    protected open fun visitCreateView(expr: CreateViewExpression): SqlExpression = TODO()
+    protected open fun visitDropView(expr: DropViewExpression): SqlExpression = TODO()
 
     protected open fun visitColumnDeclaration(expr: ColumnDeclarationExpression<*>): SqlExpression {
         write(expr.name)
@@ -143,9 +143,9 @@ public abstract class SqlSchemaFormatter(
         write(")")
         return expr
     }
-    protected open fun visitCheckTableConstraint(expr: CheckTableConstraintExpression): SqlExpression = expr
-    protected open fun visitUniqueTableConstraint(expr: UniqueTableConstraintExpression): SqlExpression = expr
-    protected open fun visitPrimaryKeyTableConstraint(expr: PrimaryKeyTableConstraintExpression): SqlExpression = expr
+    protected open fun visitCheckTableConstraint(expr: CheckTableConstraintExpression): SqlExpression = TODO()
+    protected open fun visitUniqueTableConstraint(expr: UniqueTableConstraintExpression): SqlExpression = TODO()
+    protected open fun visitPrimaryKeyTableConstraint(expr: PrimaryKeyTableConstraintExpression): SqlExpression = TODO()
     protected open fun visitPrimaryKeyColumnConstraint(expr: PrimaryKeyColumnConstraintExpression): SqlExpression {
         writeKeyword("PRIMARY KEY")
         return expr
