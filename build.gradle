@@ -168,6 +168,11 @@ subprojects { project ->
                             name = "Eric Fenderbosch"
                             email = "eric@fender.net"
                         }
+                        developer {
+                            id = "unknownjoe796"
+                            name = "Joseph Ivie"
+                            email = "joseph@lightningkite.com"
+                        }
                     }
                 }
             }
