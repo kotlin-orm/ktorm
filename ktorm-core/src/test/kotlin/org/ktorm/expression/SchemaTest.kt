@@ -1,10 +1,11 @@
-package org.ktorm
+package org.ktorm.expression
 
-import org.junit.After
 import org.junit.Before
+import org.junit.Test
 import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
-import org.ktorm.database.use
+import org.ktorm.dsl.default
+import org.ktorm.dsl.unique
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.logging.ConsoleLogger
@@ -16,45 +17,45 @@ import java.time.LocalDate
 /**
  * Created by vince on Dec 07, 2018.
  */
-open class BaseTest {
+open class SchemaTest {
     lateinit var database: Database
-
-    object TestDialect: SqlDialect{}
 
     @Before
     open fun init() {
         database = Database.connect(
-            dialect = TestDialect,
+            dialect = object : SqlDialect {
+                override fun createSqlFormatter(
+                    database: Database,
+                    beautifySql: Boolean,
+                    indentSize: Int
+                ): SqlFormatter {
+                    return TestFormatter(database, beautifySql, indentSize)
+                }
+            },
             url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
             driver = "org.h2.Driver",
             logger = ConsoleLogger(threshold = LogLevel.TRACE),
             alwaysQuoteIdentifiers = true
         )
-
-        execSqlScript("init-data.sql")
     }
 
-    @After
-    open fun destroy() {
-        execSqlScript("drop-data.sql")
+    @Test
+    fun create(){
+        val fmt = TestFormatter(database, true, 2)
+        database.executeUpdate(Departments.createTable())
+        database.executeUpdate(Employees.createTable())
     }
 
-    protected fun execSqlScript(filename: String) {
-        database.useConnection { conn ->
-            conn.createStatement().use { statement ->
-                javaClass.classLoader
-                    ?.getResourceAsStream(filename)
-                    ?.bufferedReader()
-                    ?.use { reader ->
-                        for (sql in reader.readText().split(';')) {
-                            if (sql.any { it.isLetterOrDigit() }) {
-                                statement.executeUpdate(sql)
-                            }
-                        }
-                    }
-            }
+    class TestFormatter(
+        database: Database,
+        beautifySql: Boolean,
+        indentSize: Int
+    ) : SqlSchemaFormatter(database, beautifySql, indentSize) {
+        override fun writePagination(expr: QueryExpression) {
+            TODO("Not yet implemented")
         }
     }
+
 
     data class LocationWrapper(val underlying: String = ""): Serializable
 
@@ -76,8 +77,8 @@ open class BaseTest {
         var salary: Long
         var department: Department
 
-        val upperName get() = name.uppercase()
-        fun upperName() = name.uppercase()
+        val upperName get() = name.toUpperCase()
+        fun upperName() = name.toUpperCase()
     }
 
     interface Customer : Entity<Customer> {
@@ -103,8 +104,8 @@ open class BaseTest {
         override fun aliased(alias: String) = Employees(alias)
 
         val id = int("id").primaryKey().bindTo { it.id }
-        val name = varchar("name").bindTo { it.name }
-        val job = varchar("job").bindTo { it.job }
+        val name = varchar("name").unique().bindTo { it.name }
+        val job = varchar("job").default("Minion").bindTo { it.job }
         val managerId = int("manager_id").bindTo { it.manager?.id }
         val hireDate = date("hire_date").bindTo { it.hireDate }
         val salary = long("salary").bindTo { it.salary }
