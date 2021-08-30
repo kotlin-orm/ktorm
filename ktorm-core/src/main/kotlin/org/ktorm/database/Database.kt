@@ -461,11 +461,10 @@ public inline fun <T> Database.useConnection(func: (Connection) -> T): T {
     }
 }
 
-
 /**
  * Execute the specific callback function in a transaction and returns its result if the execution succeeds,
  * otherwise, if the execution fails, the transaction will be rollback.
- *
+ *P
  * Note:
  *
  * - Any exceptions thrown in the callback function can trigger a rollback.
