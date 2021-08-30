@@ -6,6 +6,7 @@ import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
 import org.ktorm.database.use
+import org.ktorm.database.useConnection
 import org.ktorm.dsl.*
 import org.ktorm.entity.count
 import org.ktorm.entity.filter

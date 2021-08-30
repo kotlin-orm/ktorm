@@ -71,7 +71,7 @@ public fun Database.Companion.connectGlobally(
     generateSqlInUpperCase: Boolean? = null,
     connector: () -> Connection
 ): Database {
-    val database = Database(
+    val database = DatabaseImpl(
         transactionManager = JdbcTransactionManager(connector),
         dialect = dialect,
         logger = logger,
@@ -100,7 +100,7 @@ public fun Database.Companion.connectGlobally(
     alwaysQuoteIdentifiers: Boolean = false,
     generateSqlInUpperCase: Boolean? = null
 ): Database {
-    val database = Database(
+    val database = org.ktorm.database.DatabaseImpl(
         transactionManager = JdbcTransactionManager { dataSource.connection },
         dialect = dialect,
         logger = logger,
@@ -140,7 +140,7 @@ public fun Database.Companion.connectGlobally(
         Class.forName(driver)
     }
 
-    val database = Database(
+    val database = DatabaseImpl(
         transactionManager = JdbcTransactionManager { DriverManager.getConnection(url, user, password) },
         dialect = dialect,
         logger = logger,
@@ -179,7 +179,7 @@ public fun Database.Companion.connectWithSpringSupportGlobally(
 ): Database {
     val translator = SQLErrorCodeSQLExceptionTranslator(dataSource)
 
-    val database = Database(
+    val database = DatabaseImpl(
         transactionManager = SpringManagedTransactionManager(dataSource),
         dialect = dialect,
         logger = logger,

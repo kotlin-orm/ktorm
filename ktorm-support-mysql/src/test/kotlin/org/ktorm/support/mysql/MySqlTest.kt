@@ -7,6 +7,8 @@ import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
 import org.ktorm.database.use
+import org.ktorm.database.useConnection
+import org.ktorm.database.useTransaction
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.jackson.json

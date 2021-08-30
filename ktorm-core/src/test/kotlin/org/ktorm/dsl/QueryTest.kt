@@ -2,6 +2,7 @@ package org.ktorm.dsl
 
 import org.junit.Test
 import org.ktorm.BaseTest
+import org.ktorm.database.useTransaction
 import org.ktorm.entity.filter
 import org.ktorm.entity.first
 import org.ktorm.entity.forUpdate
