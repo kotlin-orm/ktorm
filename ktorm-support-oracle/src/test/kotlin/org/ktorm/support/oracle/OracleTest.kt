@@ -16,6 +16,8 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import org.testcontainers.containers.OracleContainer
+import java.util.*
+import kotlin.collections.HashSet
 
 /**
  * Created by vince at Aug 01, 2020.
@@ -36,7 +38,7 @@ class OracleTest : BaseTest() {
         @ClassRule
         @JvmField
         val oracle: OracleContainer = OracleContainer("zerda/oracle-database:11.2.0.2-xe")
-            .withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize(1 * 1024 * 1024 * 1024) }
+            .withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize(1024L * 1024 * 1024) }
     }
 
     override fun init() {
@@ -147,7 +149,10 @@ class OracleTest : BaseTest() {
 
     @Test
     fun testSchema() {
-        val t = object : Table<Department>("t_department", schema = oracle.username.toUpperCase()) {
+        val t = object : Table<Department>(
+            "t_department",
+            schema = oracle.username.uppercase(Locale.getDefault())
+        ) {
             val id = int("id").primaryKey().bindTo { it.id }
             val name = varchar("name").bindTo { it.name }
         }

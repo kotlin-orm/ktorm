@@ -11,6 +11,7 @@ import org.ktorm.logging.LogLevel
 import org.ktorm.schema.*
 import java.io.Serializable
 import java.time.LocalDate
+import java.util.*
 
 /**
  * Created by vince on Dec 07, 2018.
@@ -72,8 +73,8 @@ open class BaseTest {
         var salary: Long
         var department: Department
 
-        val upperName get() = name.toUpperCase()
-        fun upperName() = name.toUpperCase()
+        val upperName get() = name.uppercase(Locale.getDefault())
+        fun upperName() = name.uppercase(Locale.getDefault())
     }
 
     interface Customer : Entity<Customer> {

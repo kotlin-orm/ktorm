@@ -1,7 +1,6 @@
-
 buildscript {
     ext {
-        kotlinVersion = "1.4.32"
+        kotlinVersion = "1.5.30"
         detektVersion = "1.17.0-RC2"
     }
     repositories {
@@ -16,7 +15,7 @@ buildscript {
 
 allprojects {
     group = "org.ktorm"
-    version = "3.4.1"
+    version = "3.5.0"
 }
 
 subprojects { project ->
@@ -31,19 +30,25 @@ subprojects { project ->
     }
 
     dependencies {
-        api "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
+        api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
         api "org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}"
         testImplementation "junit:junit:4.12"
         detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:${detektVersion}"
     }
 
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.6"
-        kotlinOptions.allWarningsAsErrors = true
-        kotlinOptions.freeCompilerArgs = [
-            "-Xexplicit-api=strict",
-            "-Xopt-in=kotlin.RequiresOptIn"
-        ]
+        kotlinOptions {
+            jvmTarget = "1.8"
+            allWarningsAsErrors = true
+            freeCompilerArgs = [
+                    "-Xexplicit-api=strict",
+                    "-Xopt-in=kotlin.RequiresOptIn"
+            ]
+        }
+    }
+
+    compileJava {
+        java.targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     task generateSources(type: Jar) {
