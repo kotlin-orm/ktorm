@@ -319,20 +319,6 @@ public data class BinaryExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * Varargs expression: change multiple expressions together.
- *
- * @property type the expression's type.
- * @property scalars items in the expression.
- */
-public data class VarargsExpression<T : Any>(
-    val type: VarargsExpressionType,
-    val scalars: Collection<ScalarExpression<*>>,
-    override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = false,
-    override val extraProperties: Map<String, Any> = emptyMap()
-) : ScalarExpression<T>()
-
-/**
  * Table expression.
  *
  * @property name the table's name.

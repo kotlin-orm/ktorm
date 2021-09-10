@@ -16,8 +16,6 @@
 
 package org.ktorm.expression
 
-import kotlin.math.exp
-
 /**
  * Base class designed to visit or modify SQL expression trees using visitor pattern.
  *
