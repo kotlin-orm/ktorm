@@ -260,6 +260,26 @@ public abstract class SqlFormatter(
         return expr
     }
 
+    override fun <T : Any> visitVarargs(expr: VarargsExpression<T>): VarargsExpression<T> {
+        write("((")
+        visit(expr.scalars.first())
+        removeLastBlank()
+        write(")")
+
+        expr.scalars.drop(1).forEach { scalar ->
+            write(" ")
+            writeKeyword("${expr.type} ")
+            write("(")
+            visit(scalar)
+            removeLastBlank()
+            write(")")
+        }
+
+        removeLastBlank()
+        write(")")
+        return expr
+    }
+
     override fun visitTable(expr: TableExpression): TableExpression {
         if (expr.catalog != null && expr.catalog.isNotBlank()) {
             write("${expr.catalog.quoted}.")

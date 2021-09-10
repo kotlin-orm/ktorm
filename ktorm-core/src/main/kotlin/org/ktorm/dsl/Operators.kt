@@ -224,6 +224,19 @@ public infix fun Boolean.and(expr: ColumnDeclaring<Boolean>): BinaryExpression<B
     return expr.wrapArgument(this) and expr
 }
 
+/**
+ * And operator, translated to the `and` keyword in SQL. ANDs together all parameters.
+ */
+public fun and(expr1: ColumnDeclaring<Boolean>, expr2: ColumnDeclaring<Boolean>, vararg exprs: ColumnDeclaring<Boolean>) : VarargsExpression<Boolean> =
+    and(listOf(expr1, expr2, *exprs))
+
+/**
+ * And operator, translated to the `and` keyword in SQL. ANDs together all parameters.
+ * There must be at least two items in the collection.
+ */
+public fun and(exprs: Collection<ColumnDeclaring<Boolean>>) : VarargsExpression<Boolean> =
+    VarargsExpression(VarargsExpressionType.AND, exprs.map { it.asExpression() }, BooleanSqlType)
+
 // --------- Or ----------
 
 /**
@@ -246,6 +259,19 @@ public infix fun ColumnDeclaring<Boolean>.or(value: Boolean): BinaryExpression<B
 public infix fun Boolean.or(expr: ColumnDeclaring<Boolean>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) or expr
 }
+
+/**
+ * Or operator, translated to the `or` keyword in SQL. ORs together all parameters.
+ */
+public fun or(expr1: ColumnDeclaring<Boolean>, expr2: ColumnDeclaring<Boolean>, vararg exprs: ColumnDeclaring<Boolean>) : VarargsExpression<Boolean> =
+    or(listOf(expr1, expr2, *exprs))
+
+/**
+ * Or operator, translated to the `or` keyword in SQL. ORs together all parameters.
+  * There must be at least two items in the collection.
+ */
+public fun or(exprs: Collection<ColumnDeclaring<Boolean>>) : VarargsExpression<Boolean> =
+    VarargsExpression(VarargsExpressionType.OR, exprs.map { it.asExpression() }, BooleanSqlType)
 
 // -------- Xor ---------
 

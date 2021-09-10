@@ -226,7 +226,7 @@ public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<
     if (conditions.isEmpty()) {
         return this
     } else {
-        return this.where { conditions.reduce { a, b -> a and b } }
+        return this.where { and(conditions) }
     }
 }
 
@@ -242,7 +242,7 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
     if (conditions.isEmpty()) {
         return this
     } else {
-        return this.where { conditions.reduce { a, b -> a or b } }
+        return this.where { or(conditions) }
     }
 }
 

@@ -290,6 +290,18 @@ public enum class BinaryExpressionType(private val value: String) {
     }
 }
 
+public enum class VarargsExpressionType(private val value: String) {
+    /**
+     * And operator, translated to the `and` keyword in SQL.
+     */
+    AND("and"),
+
+    /**
+     * Or operator, translated to the `or` keyword in SQL.
+     */
+    OR("or")
+}
+
 /**
  * Binary expression.
  *
@@ -301,6 +313,20 @@ public data class BinaryExpression<T : Any>(
     val type: BinaryExpressionType,
     val left: ScalarExpression<*>,
     val right: ScalarExpression<*>,
+    override val sqlType: SqlType<T>,
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
+) : ScalarExpression<T>()
+
+/**
+ * Varargs expression: change multiple expressions together.
+ *
+ * @property type the expression's type.
+ * @property scalars items in the expression.
+ */
+public data class VarargsExpression<T : Any>(
+    val type: VarargsExpressionType,
+    val scalars: Collection<ScalarExpression<*>>,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
