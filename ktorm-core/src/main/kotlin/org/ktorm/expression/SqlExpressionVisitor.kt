@@ -70,7 +70,6 @@ public open class SqlExpressionVisitor {
             is BetweenExpression<*> -> visitBetween(expr)
             is ArgumentExpression -> visitArgument(expr)
             is FunctionExpression -> visitFunction(expr)
-            is VarargsExpression -> visitVarargs(expr)
             else -> visitUnknown(expr)
         }
 
@@ -142,16 +141,6 @@ public open class SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(left = left, right = right)
-        }
-    }
-
-    protected open fun <T : Any> visitVarargs(expr: VarargsExpression<T>): VarargsExpression<T> {
-        val scalars = expr.scalars.map { visitScalar(it) }
-
-        return if (expr.scalars.zip(scalars).all { (orig, visited) -> orig === visited }) {
-            expr
-        } else {
-            expr.copy(scalars = scalars)
         }
     }
 

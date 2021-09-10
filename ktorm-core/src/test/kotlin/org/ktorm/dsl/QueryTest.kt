@@ -1,6 +1,5 @@
 package org.ktorm.dsl
 
-import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.entity.filter
@@ -69,49 +68,6 @@ class QueryTest : BaseTest() {
             .first()
 
         assert(name == "vince")
-    }
-
-    @Test
-    fun testWhereWithConditionsSql() {
-        val t = Employees.aliased("t")
-
-        val sql = database
-            .from(t)
-            .select(t.name)
-            .whereWithConditions {
-                it += t.managerId.isNull()
-                it += t.departmentId eq 1
-            }
-            .sql
-
-        val expected = """
-            SELECT "t"."name" AS "t_name" 
-            FROM "t_employee" "t" 
-            WHERE ("t"."manager_id" IS NULL AND "t"."department_id" = ?)
-        """.trimIndent()
-        assertEquals(expected, sql)
-    }
-
-    @Test
-    fun testWhereWithOrConditionsSql() {
-        val t = Employees.aliased("t")
-
-        val sql = database
-            .from(t)
-            .select(t.name)
-            .whereWithOrConditions {
-                it += (t.id eq 1) and (t.departmentId eq 100)
-                it += (t.id eq 2) and (t.departmentId eq 200)
-                it += (t.id eq 3) and (t.departmentId eq 300)
-            }
-            .sql
-
-        val expected = """
-            SELECT "t"."name" AS "t_name" 
-            FROM "t_employee" "t" 
-            WHERE ((("t"."id" = ?) AND ("t"."department_id" = ?)) OR (("t"."id" = ?) AND ("t"."department_id" = ?)) OR (("t"."id" = ?) AND ("t"."department_id" = ?)))
-        """.trimIndent()
-        assertEquals(expected, sql)
     }
 
     @Test
