@@ -290,18 +290,6 @@ public enum class BinaryExpressionType(private val value: String) {
     }
 }
 
-public enum class VarargsExpressionType(private val value: String) {
-    /**
-     * And operator, translated to the `and` keyword in SQL.
-     */
-    AND("and"),
-
-    /**
-     * Or operator, translated to the `or` keyword in SQL.
-     */
-    OR("or")
-}
-
 /**
  * Binary expression.
  *
