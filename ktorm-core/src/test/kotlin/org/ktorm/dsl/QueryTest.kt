@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.random.Random
 
 /**
  * Created by vince on Dec 07, 2018.
@@ -67,6 +68,24 @@ class QueryTest : BaseTest() {
             .first()
 
         assert(name == "vince")
+    }
+
+    @Test
+    fun testWhereWithOrConditionsNoStackOverflow() {
+        val t = Employees.aliased("t")
+
+        val sql = database
+            .from(t)
+            .select(t.name)
+            .whereWithOrConditions { where ->
+                repeat(100_000) {
+                    where += (t.id eq Random.nextInt()) and (t.departmentId eq Random.nextInt())
+                }
+            }
+            .sql
+
+        // very large SQL doesn't cause stackoverflow
+        assert(true)
     }
 
     @Test
