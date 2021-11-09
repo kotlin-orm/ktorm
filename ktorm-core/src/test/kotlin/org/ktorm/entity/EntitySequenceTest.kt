@@ -42,6 +42,24 @@ class EntitySequenceTest : BaseTest() {
     }
 
     @Test
+    fun testFilters() {
+        val reqName: String? = null //Parameter that may be null
+
+        val names = database.employees
+            .filters {
+                andIfNotNull(reqName) { it.name eq reqName!! }
+                andIf(false) { it.salary greater 20 }
+                and { it.departmentId eq 1 }
+            }
+            .filterNot { it.managerId.isNull() }
+            .toList()
+            .map { it.name }
+
+        assert(names.size == 1)
+        assert(names[0] == "marry")
+    }
+
+    @Test
     fun testFilterTo() {
         val names = database.employees
             .filter { it.departmentId eq 1 }

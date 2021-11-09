@@ -26,11 +26,6 @@ import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
 import java.sql.ResultSet
 import java.util.*
-import kotlin.NoSuchElementException
-import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
-import kotlin.collections.LinkedHashMap
-import kotlin.collections.LinkedHashSet
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.math.min
 
@@ -279,6 +274,24 @@ public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filter(
     } else {
         return this.withExpression(expression.copy(where = expression.where and predicate(sourceTable)))
     }
+}
+
+/**
+ *
+ * Multi-conditional filtering, the builder passed in is a filter multi-conditional builder,
+ * typically used to build multi-conditional dynamic SQL
+ * The implementation still uses the [filter] method
+ *
+ * The operation is intermediate.
+ */
+public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.filters(
+    block: FilterConditionBuilder<E, T>.() -> Unit
+): EntitySequence<E, T> {
+    val builder = FilterConditionBuilder<E, T>().apply { block() }
+    val predicates = builder.predicateOnCondition.entries
+        .filter { it.value }
+        .map { it.key(this.sourceTable) }
+    return this.filter { predicates.reduce { p1, p2 -> p1 and p2 } }
 }
 
 /**
