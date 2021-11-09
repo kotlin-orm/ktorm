@@ -367,6 +367,41 @@ public open class AssignmentsBuilder {
 }
 
 /**
+ * DSL builder for multi-condition filters.
+ */
+@KtormDsl
+public open class FilterConditionBuilder<E : Any, T : BaseTable<E>> {
+    internal val predicateOnCondition: MutableMap<(T) -> ColumnDeclaring<Boolean>, Boolean> = mutableMapOf()
+
+    /**
+     * Splicing when the current condition is not NULL
+     */
+    public fun andIfNotNull(
+        param: Any?,
+        predicate: (T) -> ColumnDeclaring<Boolean>
+    ) {
+        predicateOnCondition.put(predicate, param != null)
+    }
+
+    /**
+     * Splice when the current condition holds
+     */
+    public fun andIf(
+        condition: Boolean,
+        predicate: (T) -> ColumnDeclaring<Boolean>
+    ) {
+        predicateOnCondition.put(predicate, condition)
+    }
+
+    /**
+     * Splicing conditions
+     */
+    public fun and(predicate: (T) -> ColumnDeclaring<Boolean>) {
+        predicateOnCondition.put(predicate, true)
+    }
+}
+
+/**
  * DSL builder for update statements.
  */
 @KtormDsl
