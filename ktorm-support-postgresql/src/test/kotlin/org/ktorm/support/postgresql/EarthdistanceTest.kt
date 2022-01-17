@@ -1,7 +1,9 @@
 package org.ktorm.support.postgresql
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.ClassRule
 import org.junit.Test
 import org.ktorm.BaseTest
@@ -123,6 +125,41 @@ class EarthdistanceTest : BaseTest() {
                 assertEquals(false, row[t2])
                 assertEquals(true, row[t3])
                 assertEquals(true, row[t4])
+                return
             }
+        assertTrue(false) // Throws if above statement didn't return anything
+    }
+
+    @Test
+    fun testEarthDistanceFunctions() {
+        val distance = earthDistance(llToEarth(0.0, 0.0), llToEarth(1.0, 0.0)).aliased("distance")
+
+        val record = TestRecord()
+        record.c = Cube(arrayOf(0.0), arrayOf(0.0))
+        database.sequenceOf(TestTable).add(record)
+
+        database.from(TestTable)
+            .select(distance)
+            .map { row ->
+                assertTrue(row[distance]!! > 100000)
+            }
+
+        val box = earthBox(llToEarth(0.0, 0.0), 10000.0)
+        val pointInBox = llToEarth(0.01, 0.01)
+        val pointOutsideBox = llToEarth(10.0, 10.0)
+        val check1 = (box contains pointInBox).aliased("c1")
+        val check1r = (pointInBox containedIn box).aliased("c1r")
+        val check2 = (box contains pointOutsideBox).aliased("c2")
+        val check2r = (pointOutsideBox containedIn box).aliased("c2r")
+        database.from(TestTable)
+            .select(check1, check2, check1r, check2r)
+            .map { row ->
+                assertTrue(row[check1]!!)
+                assertTrue(row[check1r]!!)
+                assertFalse(row[check2]!!)
+                assertFalse(row[check2r]!!)
+                return
+            }
+        assertTrue(false)
     }
 }
