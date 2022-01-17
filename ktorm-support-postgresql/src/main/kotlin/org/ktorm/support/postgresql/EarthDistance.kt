@@ -8,6 +8,9 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.DoubleSqlType
 import org.ktorm.schema.SqlType
 
+/**
+ * Enum for 'cube' and 'earthdistance' binary operators.
+ */
 public enum class CubeExpressionType(private val value: String) {
     /**
      * Cube overlaps operator, translated to the && operator in PostgreSQL.
@@ -182,7 +185,7 @@ public fun earthDistance(
 
 /**
  * Get distance between 2 points on earth.
-**/
+ */
 public fun earthDistance(
     point1: ColumnDeclaring<Earth>,
     point2: Earth
@@ -191,7 +194,7 @@ public fun earthDistance(
 
 /**
  * Get distance between 2 points on earth.
- **/
+ */
 public fun earthDistance(
     point1: Earth,
     point2: ColumnDeclaring<Earth>
@@ -200,7 +203,7 @@ public fun earthDistance(
 
 /**
  * Get distance between 2 points on earth.
- **/
+ */
 public fun earthDistance(
     point1: Earth,
     point2: Earth
@@ -224,7 +227,7 @@ public fun earthBox(
 
 /**
  * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
-**/
+ */
 public fun earthBox(
     point: ColumnDeclaring<Earth>,
     radius: Double
@@ -233,7 +236,7 @@ public fun earthBox(
 
 /**
  * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
- **/
+ */
 public fun earthBox(
     point: Earth,
     radius: ColumnDeclaring<Double>
@@ -242,7 +245,7 @@ public fun earthBox(
 
 /**
  * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
- **/
+ */
 public fun earthBox(
     point: Earth,
     radius: Double

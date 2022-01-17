@@ -126,6 +126,10 @@ public class PgEnumType<C : Enum<C>>(private val enumClass: Class<C>) : SqlType<
  */
 public typealias Earth = Triple<Double, Double, Double>
 
+/**
+ * Represents a point on Earth's surface
+ * Part of PostgreSQL's `earthdistance` SQL extension.
+ */
 public object PGEarthType : SqlType<Earth>(Types.OTHER, "earth") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
         ps.setObject(index, parameter, Types.OTHER)
@@ -153,13 +157,14 @@ public fun BaseTable<*>.earth(name: String): Column<Earth> = registerColumn(name
  * Part of PostgreSQL's `cube` SQL extension.
  * https://www.postgresql.org/docs/9.5/cube.html
  */
-public class Cube(
+public data class Cube(
     public val first: DoubleArray,
     public val second: DoubleArray
 ) {
     init {
-        if (first.size != second.size)
+        if (first.size != second.size) {
             throw IllegalArgumentException("Cube should be initialized with same size arrays")
+        }
     }
 
     override fun toString(): String {
