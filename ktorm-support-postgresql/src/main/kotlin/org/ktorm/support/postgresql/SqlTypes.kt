@@ -141,7 +141,6 @@ public object PGEarthType : SqlType<Earth>(Types.OTHER, "earth") {
                 }
         }
     }
-
 }
 
 /**
@@ -183,6 +182,11 @@ public class Cube(
     }
 }
 
+/**
+ * Represents a Cube by storing 2 n-dimensional points
+ * Part of PostgreSQL's `cube` SQL extension.
+ * https://www.postgresql.org/docs/9.5/cube.html
+ */
 public object PGCubeType : SqlType<Cube>(Types.OTHER, "cube") {
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Cube) {
         ps.setObject(index, parameter, Types.OTHER)
@@ -192,17 +196,16 @@ public object PGCubeType : SqlType<Cube>(Types.OTHER, "cube") {
         return rs.getObject(index)?.let { pgObj ->
             (pgObj as PGobject).value // (-1.1, 2.2, 3.0), (1.1, -2.2, 0.3)
                 .replace("(", "")
-                .replace(")", "")// -1.1, 2.2, 3.0, 1.1, -2.2, 0.3
+                .replace(")", "") // -1.1, 2.2, 3.0, 1.1, -2.2, 0.3
                 .split(',')
                 .let { rawValues ->
                     Cube(
-                        rawValues.take(rawValues.size/2).map { it.toDouble() }.toDoubleArray(),
-                        rawValues.takeLast(rawValues.size/2).map { it.toDouble() }.toDoubleArray()
+                        rawValues.take(rawValues.size / 2).map { it.toDouble() }.toDoubleArray(),
+                        rawValues.takeLast(rawValues.size / 2).map { it.toDouble() }.toDoubleArray()
                     )
                 }
         }
     }
-
 }
 
 /**
