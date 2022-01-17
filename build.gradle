@@ -168,6 +168,11 @@ subprojects { project ->
                             name = "Eric Fenderbosch"
                             email = "eric@fender.net"
                         }
+                        developer {
+                            id = "kocproz"
+                            name = "Kacper Stasiuk"
+                            email = "kocproz@pm.me"
+                        }
                     }
                 }
             }
