@@ -144,6 +144,9 @@ public object PGEarthType : SqlType<Earth>(Types.OTHER, "earth") {
 
 }
 
+/**
+ * Define a column typed [PGEarthType].
+ */
 public fun BaseTable<*>.earth(name: String): Column<Earth> = registerColumn(name, PGEarthType)
 
 /**
@@ -202,4 +205,7 @@ public object PGCubeType : SqlType<Cube>(Types.OTHER, "cube") {
 
 }
 
+/**
+ * Define a column typed [PGCubeType].
+ */
 public fun BaseTable<*>.cube(name: String): Column<Cube> = registerColumn(name, PGCubeType)
