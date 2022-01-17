@@ -155,8 +155,8 @@ public fun BaseTable<*>.earth(name: String): Column<Earth> = registerColumn(name
  * https://www.postgresql.org/docs/9.5/cube.html
  */
 public class Cube(
-    public val first: Array<Double>,
-    public val second: Array<Double>
+    public val first: DoubleArray,
+    public val second: DoubleArray
 ) {
     init {
         if (first.size != second.size)
@@ -196,8 +196,8 @@ public object PGCubeType : SqlType<Cube>(Types.OTHER, "cube") {
                 .split(',')
                 .let { rawValues ->
                     Cube(
-                        rawValues.take(rawValues.size/2).map { it.toDouble() }.toTypedArray(),
-                        rawValues.takeLast(rawValues.size/2).map { it.toDouble() }.toTypedArray()
+                        rawValues.take(rawValues.size/2).map { it.toDouble() }.toDoubleArray(),
+                        rawValues.takeLast(rawValues.size/2).map { it.toDouble() }.toDoubleArray()
                     )
                 }
         }

@@ -83,10 +83,10 @@ class EarthdistanceTest : BaseTest() {
     @Test
     fun testCubeType() {
         assertThrows(IllegalArgumentException::class.java) {
-            Cube(arrayOf(1.0), arrayOf(1.0, 2.0))
+            Cube(doubleArrayOf(1.0), doubleArrayOf(1.0, 2.0))
         }
 
-        val cubeValue = Cube(arrayOf(-1.1, 2.2, 3.0), arrayOf(1.1, -2.2, 0.3))
+        val cubeValue = Cube(doubleArrayOf(-1.1, 2.2, 3.0), doubleArrayOf(1.1, -2.2, 0.3))
         val inserted = database.insert(TestTable) {
             set(TestTable.c, cubeValue)
         }
@@ -104,9 +104,9 @@ class EarthdistanceTest : BaseTest() {
 
     @Test
     fun testCubeExpression() {
-        val cube1 = Cube(arrayOf(1.0, 1.0, 1.0), arrayOf(-1.0, -1.0, -1.0))
-        val cube2 = Cube(arrayOf(0.0, 0.0, 0.0), arrayOf(2.0, 2.0, 2.0))
-        val cube3 = Cube(arrayOf(0.5, 0.5, 0.5), arrayOf(-0.5, -0.5, -0.5))
+        val cube1 = Cube(doubleArrayOf(1.0, 1.0, 1.0), doubleArrayOf(-1.0, -1.0, -1.0))
+        val cube2 = Cube(doubleArrayOf(0.0, 0.0, 0.0), doubleArrayOf(2.0, 2.0, 2.0))
+        val cube3 = Cube(doubleArrayOf(0.5, 0.5, 0.5), doubleArrayOf(-0.5, -0.5, -0.5))
         val record = TestRecord()
         record.c = cube1
 
@@ -135,7 +135,7 @@ class EarthdistanceTest : BaseTest() {
         val distance = earthDistance(llToEarth(0.0, 0.0), llToEarth(1.0, 0.0)).aliased("distance")
 
         val record = TestRecord()
-        record.c = Cube(arrayOf(0.0), arrayOf(0.0))
+        record.c = Cube(doubleArrayOf(0.0), doubleArrayOf(0.0))
         database.sequenceOf(TestTable).add(record)
 
         database.from(TestTable)
