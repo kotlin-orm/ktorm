@@ -99,7 +99,6 @@ public open class SQLiteFormatter(
 
         return expr
     }
-
 }
 
 /**
