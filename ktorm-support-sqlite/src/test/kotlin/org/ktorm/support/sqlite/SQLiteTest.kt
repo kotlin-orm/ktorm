@@ -79,6 +79,35 @@ class SQLiteTest : BaseTest() {
     }
 
     @Test
+    fun testInsertOrUpdate() {
+        database.insertOrUpdate(Employees) {
+            set(it.id, 1)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict {
+                set(it.salary, it.salary + 1000)
+            }
+        }
+        database.insertOrUpdate(Employees.aliased("t")) {
+            set(it.id, 5)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict(it.id) {
+                set(it.salary, it.salary + 1000)
+            }
+        }
+
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+    }
+
+    @Test
     fun testLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
         assert(query.totalRecords == 4)

@@ -17,10 +17,7 @@
 package org.ktorm.support.sqlite
 
 import org.ktorm.database.*
-import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.QueryExpression
-import org.ktorm.expression.SqlExpression
-import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.*
 import org.ktorm.schema.IntSqlType
 
 /**
@@ -101,6 +98,45 @@ public open class SQLiteFormatter(
         }
 
         return expr
+    }
+
+}
+
+/**
+ * Base class designed to visit or modify SQLite's expression trees using visitor pattern.
+ *
+ * For detailed documents, see [SqlExpressionVisitor].
+ */
+public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
+
+    override fun visit(expr: SqlExpression): SqlExpression {
+        return when (expr) {
+            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            else -> super.visit(expr)
+        }
+    }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitColumnAssignments(expr.assignments)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictColumns === expr.conflictColumns
+            && updateAssignments === expr.updateAssignments
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictColumns = conflictColumns,
+                updateAssignments = updateAssignments
+            )
+        }
     }
 
 }
