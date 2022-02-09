@@ -137,5 +137,4 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
             )
         }
     }
-
 }
