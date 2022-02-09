@@ -19,6 +19,7 @@ package org.ktorm.support.sqlite
 import org.ktorm.database.*
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.QueryExpression
+import org.ktorm.expression.SqlExpression
 import org.ktorm.expression.SqlFormatter
 import org.ktorm.schema.IntSqlType
 
@@ -63,10 +64,43 @@ public open class SQLiteFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
 
+    override fun visit(expr: SqlExpression): SqlExpression {
+        val result = when (expr) {
+            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
+            else -> super.visit(expr)
+        }
+
+        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        return result
+    }
+
     override fun writePagination(expr: QueryExpression) {
         newLine(Indentation.SAME)
         writeKeyword("limit ?, ? ")
         _parameters += ArgumentExpression(expr.offset ?: 0, IntSqlType)
         _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
     }
+
+    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        writeKeyword("insert into ")
+        visitTable(expr.table)
+        writeInsertColumnNames(expr.assignments.map { it.column })
+        writeKeyword("values ")
+        writeInsertValues(expr.assignments)
+
+        if (expr.conflictColumns.isNotEmpty()) {
+            writeKeyword("on conflict ")
+            writeInsertColumnNames(expr.conflictColumns)
+
+            if (expr.updateAssignments.isNotEmpty()) {
+                writeKeyword("do update set ")
+                visitColumnAssignments(expr.updateAssignments)
+            } else {
+                writeKeyword("do nothing ")
+            }
+        }
+
+        return expr
+    }
+
 }
