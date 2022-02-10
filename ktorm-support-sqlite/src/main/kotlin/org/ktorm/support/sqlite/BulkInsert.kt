@@ -83,7 +83,6 @@ public data class BulkInsertExpression(
  * }
  * ```
  *
- * @since 3.3.0
  * @param table the table to be inserted.
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
  * @return the effected row count.
@@ -139,7 +138,6 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
- * @since 3.3.0
  * @param table the table to be inserted.
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
