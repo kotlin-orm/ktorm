@@ -167,6 +167,9 @@ public class InsertOrUpdateOnConflictClauseBuilder : SQLiteAssignmentsBuilder() 
     internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing = false
 
+    /**
+     * Specify the where clause for this update statement.
+     */
     public fun where(block: () -> ColumnDeclaring<Boolean>) {
         this.where = block()
     }
