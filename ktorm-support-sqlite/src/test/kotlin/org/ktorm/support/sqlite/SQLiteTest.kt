@@ -108,6 +108,135 @@ class SQLiteTest : BaseTest() {
     }
 
     @Test
+    fun testInsertOrUpdate1() {
+        database.insertOrUpdate(Employees) {
+            set(it.id, 1)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict {
+                setExcluded(it.salary)
+            }
+        }
+        database.insertOrUpdate(Employees.aliased("t")) {
+            set(it.id, 5)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict(it.id) {
+                set(it.salary, it.salary + 1000)
+            }
+        }
+
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+    }
+
+    @Test
+    fun testBulkInsert() {
+        database.bulkInsert(Employees.aliased("t")) {
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            item {
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+        }
+
+        assert(database.employees.count() == 6)
+    }
+
+    @Test
+    fun testBulkInsertOrUpdate() {
+        database.bulkInsertOrUpdate(Employees.aliased("t")) {
+            item {
+                set(it.id, 1)
+                set(it.name, "vince")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            item {
+                set(it.id, 5)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 2)
+            }
+            onConflict(it.id) {
+                set(it.job, it.job)
+                set(it.departmentId, excluded(it.departmentId))
+                set(it.salary, it.salary + 1000)
+            }
+        }
+
+        database.employees.find { it.id eq 1 }!!.let {
+            assert(it.job == "engineer")
+            assert(it.department.id == 2)
+            assert(it.salary == 1100L)
+        }
+
+        database.employees.find { it.id eq 5 }!!.let {
+            assert(it.job == "engineer")
+            assert(it.department.id == 2)
+            assert(it.salary == 1000L)
+        }
+    }
+
+    @Test
+    fun testBulkInsertOrUpdate1() {
+        val bulkInsertWithUpdate = { ignoreErrors: Boolean ->
+            database.bulkInsertOrUpdate(Employees.aliased("t")) {
+                item {
+                    set(it.id, 5)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+                item {
+                    set(it.id, 6)
+                    set(it.name, "vince")
+                    set(it.job, "engineer")
+                    set(it.salary, 1000)
+                    set(it.hireDate, LocalDate.now())
+                    set(it.departmentId, 1)
+                }
+                onConflict {
+                    if (ignoreErrors) doNothing() else set(it.salary, it.salary + 900)
+                }
+            }
+        }
+
+        bulkInsertWithUpdate(false)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1000L)
+        assert(database.employees.find { it.id eq 6 }!!.salary == 1000L)
+
+        bulkInsertWithUpdate(false)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 6 }!!.salary == 1900L)
+
+        bulkInsertWithUpdate(true)
+        assert(database.employees.find { it.id eq 5 }!!.salary == 1900L)
+        assert(database.employees.find { it.id eq 6 }!!.salary == 1900L)
+    }
+
+    @Test
     fun testLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
         assert(query.totalRecords == 4)

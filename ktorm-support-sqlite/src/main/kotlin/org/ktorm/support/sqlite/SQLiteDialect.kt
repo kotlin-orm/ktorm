@@ -170,18 +170,16 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
     }
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        val table = expr.table
+        val table = visitTable(expr.table)
         val assignments = visitBulkInsertAssignments(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
-        val returningColumns = visitExpressionList(expr.returningColumns)
 
         @Suppress("ComplexCondition")
         if (table === expr.table
             && assignments === expr.assignments
             && conflictColumns === expr.conflictColumns
             && updateAssignments === expr.updateAssignments
-            && returningColumns === expr.returningColumns
         ) {
             return expr
         } else {
@@ -189,8 +187,7 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
                 table = table,
                 assignments = assignments,
                 conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments,
-                returningColumns = returningColumns
+                updateAssignments = updateAssignments
             )
         }
     }
