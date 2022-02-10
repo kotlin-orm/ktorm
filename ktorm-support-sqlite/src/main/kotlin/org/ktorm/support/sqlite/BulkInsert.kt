@@ -20,12 +20,10 @@ import org.ktorm.database.Database
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.dsl.batchInsert
-import org.ktorm.expression.ColumnAssignmentExpression
-import org.ktorm.expression.ColumnExpression
-import org.ktorm.expression.SqlExpression
-import org.ktorm.expression.TableExpression
+import org.ktorm.expression.*
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
+import org.ktorm.schema.ColumnDeclaring
 
 /**
  * Bulk insert expression, represents a bulk insert statement in SQLite.
@@ -48,6 +46,7 @@ public data class BulkInsertExpression(
     val assignments: List<List<ColumnAssignmentExpression<*>>>,
     val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val where: ScalarExpression<Boolean>? = null,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -182,7 +181,8 @@ private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments
+        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
+        where = builder.where?.asExpression()
     )
 }
 
@@ -216,6 +216,7 @@ public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val tabl
 public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertStatementBuilder<T>(table) {
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing: Boolean = false
 
     /**
@@ -225,6 +226,7 @@ public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : Bu
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
         this.conflictColumns += columns
         this.updateAssignments += builder.assignments
+        this.where = builder.where
         this.doNothing = builder.doNothing
     }
 }

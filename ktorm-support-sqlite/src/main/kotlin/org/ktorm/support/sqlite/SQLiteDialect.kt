@@ -93,6 +93,11 @@ public open class SQLiteFormatter(
             if (expr.updateAssignments.isNotEmpty()) {
                 writeKeyword("do update set ")
                 visitColumnAssignments(expr.updateAssignments)
+
+                if (expr.where != null) {
+                    writeKeyword("where ")
+                    visit(expr.where)
+                }
             } else {
                 writeKeyword("do nothing ")
             }
@@ -122,6 +127,11 @@ public open class SQLiteFormatter(
             if (expr.updateAssignments.isNotEmpty()) {
                 writeKeyword("do update set ")
                 visitColumnAssignments(expr.updateAssignments)
+
+                if (expr.where != null) {
+                    writeKeyword("where ")
+                    visit(expr.where)
+                }
             } else {
                 writeKeyword("do nothing ")
             }
@@ -151,12 +161,14 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
         val assignments = visitColumnAssignments(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val where = expr.where?.let { visitScalar(it) }
 
         @Suppress("ComplexCondition")
         if (table === expr.table
             && assignments === expr.assignments
             && conflictColumns === expr.conflictColumns
             && updateAssignments === expr.updateAssignments
+            && where === expr.where
         ) {
             return expr
         } else {
@@ -164,7 +176,8 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
                 table = table,
                 assignments = assignments,
                 conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments
+                updateAssignments = updateAssignments,
+                where = where
             )
         }
     }
@@ -174,12 +187,14 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
         val assignments = visitBulkInsertAssignments(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val where = expr.where?.let { visitScalar(it) }
 
         @Suppress("ComplexCondition")
         if (table === expr.table
             && assignments === expr.assignments
             && conflictColumns === expr.conflictColumns
             && updateAssignments === expr.updateAssignments
+            && where === expr.where
         ) {
             return expr
         } else {
@@ -187,7 +202,8 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
                 table = table,
                 assignments = assignments,
                 conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments
+                updateAssignments = updateAssignments,
+                where = where
             )
         }
     }

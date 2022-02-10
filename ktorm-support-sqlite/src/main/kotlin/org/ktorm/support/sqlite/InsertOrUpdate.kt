@@ -19,12 +19,10 @@ package org.ktorm.support.sqlite
 import org.ktorm.database.Database
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
-import org.ktorm.expression.ColumnAssignmentExpression
-import org.ktorm.expression.ColumnExpression
-import org.ktorm.expression.SqlExpression
-import org.ktorm.expression.TableExpression
+import org.ktorm.expression.*
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
+import org.ktorm.schema.ColumnDeclaring
 
 /**
  * Insert or update expression, represents an insert statement with an
@@ -40,6 +38,7 @@ public data class InsertOrUpdateExpression(
     val assignments: List<ColumnAssignmentExpression<*>>,
     val conflictColumns: List<ColumnExpression<*>> = emptyList(),
     val updateAssignments: List<ColumnAssignmentExpression<*>> = emptyList(),
+    val where: ScalarExpression<Boolean>? = null,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
@@ -111,6 +110,7 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
+        where = builder.where?.asExpression(),
         updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments
     )
 }
@@ -134,6 +134,7 @@ public open class SQLiteAssignmentsBuilder : AssignmentsBuilder() {
 public class InsertOrUpdateStatementBuilder : SQLiteAssignmentsBuilder() {
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
+    internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing = false
 
     /**
@@ -154,6 +155,7 @@ public class InsertOrUpdateStatementBuilder : SQLiteAssignmentsBuilder() {
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
         this.conflictColumns += columns
         this.updateAssignments += builder.assignments
+        this.where = builder.where
         this.doNothing = builder.doNothing
     }
 }
@@ -163,7 +165,12 @@ public class InsertOrUpdateStatementBuilder : SQLiteAssignmentsBuilder() {
  */
 @KtormDsl
 public class InsertOrUpdateOnConflictClauseBuilder : SQLiteAssignmentsBuilder() {
+    internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing = false
+
+    public fun where(block: () -> ColumnDeclaring<Boolean>) {
+        this.where = block()
+    }
 
     /**
      * Explicitly tells ktorm to ignore any on-conflict errors and continue insertion.

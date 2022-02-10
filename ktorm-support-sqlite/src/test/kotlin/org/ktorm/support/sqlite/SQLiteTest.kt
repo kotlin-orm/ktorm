@@ -137,6 +137,41 @@ class SQLiteTest : BaseTest() {
     }
 
     @Test
+    fun testInsertOrUpdateOnConflictWhere() {
+        database.insertOrUpdate(Employees.aliased("t")) {
+            set(it.id, 1)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict {
+                set(it.salary, it.salary + excluded(it.salary))
+                where {
+                    it.salary less 1000
+                }
+            }
+        }
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
+        database.insertOrUpdate(Employees.aliased("t")) {
+            set(it.id, 1)
+            set(it.name, "vince")
+            set(it.job, "engineer")
+            set(it.salary, 1000)
+            set(it.hireDate, LocalDate.now())
+            set(it.departmentId, 1)
+            onConflict(it.id) {
+                set(it.salary, it.salary + excluded(it.salary))
+                where {
+                    it.salary less 1000
+                }
+            }
+        }
+
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
+    }
+
+    @Test
     fun testBulkInsert() {
         database.bulkInsert(Employees.aliased("t")) {
             item {
@@ -195,6 +230,37 @@ class SQLiteTest : BaseTest() {
             assert(it.department.id == 2)
             assert(it.salary == 1000L)
         }
+    }
+
+    @Test
+    fun testBulkInsertOrUpdateOnConflictWhere() {
+        database.bulkInsertOrUpdate(Employees.aliased("t")) {
+            item {
+                set(it.id, 1)
+                set(it.name, "vince")
+                set(it.job, "engineer")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            item {
+                set(it.id, 2)
+                set(it.name, "marry")
+                set(it.job, "trainee")
+                set(it.salary, 1000)
+                set(it.hireDate, LocalDate.now())
+                set(it.departmentId, 1)
+            }
+            onConflict(it.id) {
+                set(it.salary, it.salary + 1000)
+                where {
+                    it.job eq "engineer"
+                }
+            }
+        }
+
+        assert(database.employees.find { it.id eq 1 }!!.salary == 1100L)
+        assert(database.employees.find { it.id eq 2 }!!.salary == 50L)
     }
 
     @Test
