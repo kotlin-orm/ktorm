@@ -204,12 +204,4 @@ internal object AliasRemover : SQLiteExpressionVisitor() {
             return expr.copy(tableAlias = null)
         }
     }
-
-    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.table == null) {
-            return expr
-        } else {
-            return expr.copy(table = null)
-        }
-    }
 }
