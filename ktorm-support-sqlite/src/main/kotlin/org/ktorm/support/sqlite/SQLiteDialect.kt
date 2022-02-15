@@ -79,6 +79,34 @@ public open class SQLiteFormatter(
         _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
     }
 
+    override fun visitUnion(expr: UnionExpression): UnionExpression {
+        when (expr.left) {
+            is SelectExpression -> visitQuery(expr.left)
+            is UnionExpression -> visitUnion(expr.left as UnionExpression)
+        }
+
+        if (expr.isUnionAll) {
+            writeKeyword("union all ")
+        } else {
+            writeKeyword("union ")
+        }
+
+        when (expr.right) {
+            is SelectExpression -> visitQuery(expr.right)
+            is UnionExpression -> visitUnion(expr.right as UnionExpression)
+        }
+
+        if (expr.orderBy.isNotEmpty()) {
+            newLine(Indentation.SAME)
+            writeKeyword("order by ")
+            visitOrderByList(expr.orderBy)
+        }
+        if (expr.offset != null || expr.limit != null) {
+            writePagination(expr)
+        }
+        return expr
+    }
+
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
