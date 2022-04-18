@@ -1,8 +1,0 @@
-
-dependencies {
-    api project(":ktorm-core")
-
-    testImplementation project(path: ":ktorm-core", configuration: "testOutput")
-    testImplementation fileTree(dir: "lib", includes: ["*.jar"])
-    testImplementation "org.testcontainers:oracle-xe:1.15.1"
-}

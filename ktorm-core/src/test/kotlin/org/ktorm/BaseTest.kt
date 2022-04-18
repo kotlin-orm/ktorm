@@ -72,8 +72,8 @@ open class BaseTest {
         var salary: Long
         var department: Department
 
-        val upperName get() = name.toUpperCase()
-        fun upperName() = name.toUpperCase()
+        val upperName get() = name.uppercase()
+        fun upperName() = name.uppercase()
     }
 
     interface Customer : Entity<Customer> {
