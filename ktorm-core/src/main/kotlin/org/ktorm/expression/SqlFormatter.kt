@@ -76,16 +76,16 @@ public abstract class SqlFormatter(
     protected fun writeKeyword(keyword: String) {
         when (database.generateSqlInUpperCase) {
             true -> {
-                _builder.append(keyword.toUpperCase())
+                _builder.append(keyword.uppercase())
             }
             false -> {
-                _builder.append(keyword.toLowerCase())
+                _builder.append(keyword.lowercase())
             }
             null -> {
                 if (database.supportsMixedCaseIdentifiers || !database.storesLowerCaseIdentifiers) {
-                    _builder.append(keyword.toUpperCase())
+                    _builder.append(keyword.uppercase())
                 } else {
-                    _builder.append(keyword.toLowerCase())
+                    _builder.append(keyword.lowercase())
                 }
             }
         }
@@ -100,7 +100,7 @@ public abstract class SqlFormatter(
         if (!identifier.isIdentifier) {
             return true
         }
-        if (identifier.toUpperCase() in database.keywords) {
+        if (identifier.uppercase() in database.keywords) {
             return true
         }
         if (identifier.isMixedCase
@@ -118,10 +118,10 @@ public abstract class SqlFormatter(
                 return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
             } else {
                 if (database.storesUpperCaseQuotedIdentifiers) {
-                    return "${database.identifierQuoteString}${this.toUpperCase()}${database.identifierQuoteString}"
+                    return "${database.identifierQuoteString}${this.uppercase()}${database.identifierQuoteString}"
                 }
                 if (database.storesLowerCaseQuotedIdentifiers) {
-                    return "${database.identifierQuoteString}${this.toLowerCase()}${database.identifierQuoteString}"
+                    return "${database.identifierQuoteString}${this.lowercase()}${database.identifierQuoteString}"
                 }
                 if (database.storesMixedCaseQuotedIdentifiers) {
                     return "${database.identifierQuoteString}${this}${database.identifierQuoteString}"
@@ -134,10 +134,10 @@ public abstract class SqlFormatter(
                 return this
             } else {
                 if (database.storesUpperCaseIdentifiers) {
-                    return this.toUpperCase()
+                    return this.uppercase()
                 }
                 if (database.storesLowerCaseIdentifiers) {
-                    return this.toLowerCase()
+                    return this.lowercase()
                 }
                 if (database.storesMixedCaseIdentifiers) {
                     return this

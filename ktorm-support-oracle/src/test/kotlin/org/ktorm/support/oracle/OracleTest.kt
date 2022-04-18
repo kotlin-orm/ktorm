@@ -147,7 +147,7 @@ class OracleTest : BaseTest() {
 
     @Test
     fun testSchema() {
-        val t = object : Table<Department>("t_department", schema = oracle.username.toUpperCase()) {
+        val t = object : Table<Department>("t_department", schema = oracle.username.uppercase()) {
             val id = int("id").primaryKey().bindTo { it.id }
             val name = varchar("name").bindTo { it.name }
         }
