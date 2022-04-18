@@ -121,6 +121,11 @@ publishing {
                         name.set("Eric Fenderbosch")
                         email.set("eric@fender.net")
                     }
+                    developer {
+                        id.set("forte")
+                        name.set("Forte Scarlet")
+                        email.set("ForteScarlet@163.com")
+                    }
                 }
             }
         }
