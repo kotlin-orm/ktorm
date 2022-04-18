@@ -13,8 +13,7 @@ env:
 #  - psql -c "create database ktorm;" -U postgres
 
 after_success: 
-  - chmod +x auto-upload.sh
-  - ./auto-upload.sh
+  - ./gradlew publishDistPublicationToSnapshotRepository
 
 before_cache:
   - rm -f  "${HOME}/.gradle/caches/modules-2/modules-2.lock"

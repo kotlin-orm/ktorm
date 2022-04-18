@@ -2,7 +2,8 @@
 create table t_department(
   id int not null primary key auto_increment,
   name varchar(128) not null,
-  location varchar(128) not null
+  location varchar(128) not null,
+  mixedCase varchar(128)
 );
 
 create table t_employee(
@@ -29,3 +30,5 @@ insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
 values ('tom', 'director', null, '2018-01-01', 200, 2);
 insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
 values ('penny', 'assistant', 3, '2019-01-01', 100, 2);
+
+

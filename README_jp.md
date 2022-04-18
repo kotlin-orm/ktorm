@@ -5,8 +5,8 @@
     <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
         <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
     </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
@@ -24,7 +24,7 @@
 
 Ktormは純粋なJDBCをベースにしたKotlin用の軽量で効率的なORMフレームワークです。強力に型付けされた柔軟性の高い SQL DSL と便利なシーケンス API を提供し、データベース操作の重複作業を軽減してくれます。もちろん、すべてのSQL文は自動的に生成されます。Ktormはオープンソースで、Apache 2.0ライセンスで提供されています。このライブラリが役に立ったならば、Starをつけてください!  
 
-詳細なドキュメントについては、私たちのサイトを参照してください。: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+詳細なドキュメントについては、私たちのサイトを参照してください。: [https://www.ktorm.org](https://www.ktorm.org).
 
 :us: [English](README.md) | :cn: [简体中文](README_cn.md) | :jp: 日本語
 
@@ -42,11 +42,11 @@ Ktormは純粋なJDBCをベースにしたKotlin用の軽量で効率的なORM�
 
 # クイックスタート
 
-Ktormはmaven centralとjcenterにデプロイされているので、mavenを使っている場合は `pom.xml` ファイルに依存関係を追加するだけです。
+Ktormはmaven centralにデプロイされているので、mavenを使っている場合は `pom.xml` ファイルに依存関係を追加するだけです。
 
 ```xml
 <dependency>
-    <groupId>me.liuwj.ktorm</groupId>
+    <groupId>org.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
@@ -55,10 +55,10 @@ Ktormはmaven centralとjcenterにデプロイされているので、mavenを�
 Gradleの場合: 
 
 ```groovy
-compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
+compile "org.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-第一に、[テーブルスキーマを記述する](https://ktorm.liuwj.me/en/schema-definition.html)ためのKotlinオブジェクトを作成します。
+第一に、[テーブルスキーマを記述する](https://www.ktorm.org/en/schema-definition.html)ためのKotlinオブジェクトを作成します。
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -82,7 +82,7 @@ object Employees : Table<Nothing>("t_employee") {
 
 ```kotlin
 fun main() {
-    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
+    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm", user = "root", password = "***")
 
     for (row in database.from(Employees).select()) {
         println(row[Employees.name])
@@ -189,12 +189,12 @@ val results = database
 
 ```kotlin
 database.insert(Employees) {
-    it.name to "jerry"
-    it.job to "trainee"
-    it.managerId to 1
-    it.hireDate to LocalDate.now()
-    it.salary to 50
-    it.departmentId to 1
+    set(it.name, "jerry")
+    set(it.job, "trainee")
+    set(it.managerId, 1)
+    set(it.hireDate, LocalDate.now())
+    set(it.salary, 50)
+    set(it.departmentId, 1)
 }
 ```
 
@@ -202,9 +202,9 @@ database.insert(Employees) {
 
 ```kotlin
 database.update(Employees) {
-    it.job to "engineer"
-    it.managerId to null
-    it.salary to 100
+    set(it.job, "engineer")
+    set(it.managerId, null)
+    set(it.salary, 100)
     where {
         it.id eq 2
     }
@@ -217,7 +217,7 @@ database.update(Employees) {
 database.delete(Employees) { it.id eq 4 }
 ```
 
-SQL DSLの詳しい使い方については、[詳細ドキュメント](https://ktorm.liuwj.me/en/query.html)を参照してください。
+SQL DSLの詳しい使い方については、[詳細ドキュメント](https://www.ktorm.org/en/query.html)を参照してください。
 
 ## エンティティと列のバインド
 
@@ -323,7 +323,7 @@ val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-エンティティAPIの詳しい使い方は、[column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html)と[entity query](https://ktorm.liuwj.me/en/entity-finding.html)のドキュメントに記載されています。
+エンティティAPIの詳しい使い方は、[column binding](https://www.ktorm.org/en/entities-and-column-binding.html)と[entity query](https://www.ktorm.org/en/entity-finding.html)のドキュメントに記載されています。
 
 ## エンティティシーケンス API
 
@@ -399,12 +399,12 @@ val employees = database.employees.toCollection(ArrayList())
 val names = database.employees.mapColumns { it.name }
 ```
 
-さらに、2つ以上のカラムを選択したい場合は`mapColumns2` や `mapColumns3`に変更し、選択したカラムを `Pair` あるいは `Triple` でクロージャでラップする必要があります。この関数の戻り値の型は `List<Pair<C1?, C2?>>` か `List<Triple<C1?, C2?, C3?>>`になります: 
+さらに、2つ以上の列を選択する場合は、選択した列をクロージャの `tupleOf` でラップするだけでよく、関数の戻り値の型は `List<TupleN<C1?, C2?, .. Cn?>>` になります:
 
 ```kotlin
 database.employees
     .filter { it.departmentId eq 1 }
-    .mapColumns2 { Pair(it.id, it.name) }
+    .mapColumns { tupleOf(it.id, it.name) }
     .forEach { (id, name) ->
         println("$id:$name")
     }
@@ -436,12 +436,12 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-また、2つ以上の列を集約したい場合は `aggregateColumns2` や `aggregateColumns3` に変更し、クロージャ内で `Pair` や `Triple` で集約式をラップする必要があり、関数の戻り値の型は `Pair<C1?, C2?>` や `Triple<C1?, C2?, C3?>` となります。以下の例では、第1部門の給与の平均と範囲を求めています。: 
+また、2つ以上の列を集計する場合は、クロージャー内の `tupleOf` で集計式をラップするだけでよく、関数の戻り値の型は `TupleN<C1?, C2?, .. Cn?>` になります。 以下の例では、部門1の給与の平均と範囲を取得しています。
 
 ```kotlin
 val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
-    .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
+    .aggregateColumns { tupleOf(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
 
 生成される SQL文: 
@@ -496,4 +496,4 @@ val totalSalaries = database.employees
     }
 ```
 
-エンティティシーケンスAPIの詳しい使い方は、[entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html)や[sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html)のドキュメントに記載されています。
+エンティティシーケンスAPIの詳しい使い方は、[entity sequence](https://www.ktorm.org/en/entity-sequence.html)や[sequence aggregation](https://www.ktorm.org/en/sequence-aggregation.html)のドキュメントに記載されています。

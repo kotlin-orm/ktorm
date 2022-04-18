@@ -7,18 +7,17 @@ dependencies {
     compileOnly "com.google.android:android:1.5_r4"
     compileOnly "org.springframework:spring-jdbc:5.0.10.RELEASE"
     compileOnly "org.springframework:spring-tx:5.0.10.RELEASE"
-
-    testCompile "com.h2database:h2:1.4.197"
-    testCompile "org.slf4j:slf4j-simple:1.7.25"
+    compileOnly "org.postgresql:postgresql:42.2.5"
+    testImplementation "com.h2database:h2:1.4.197"
 }
 
 configurations {
-    testOutput.extendsFrom(testCompile)
+    testOutput.extendsFrom(testImplementation)
 }
 
 task testJar(type: Jar, dependsOn: testClasses) {
     from sourceSets.test.output
-    classifier = "test"
+    archiveClassifier = "test"
 }
 
 artifacts {

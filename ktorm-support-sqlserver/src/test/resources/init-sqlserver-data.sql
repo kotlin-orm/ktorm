@@ -2,7 +2,8 @@
 create table t_department(
   id int not null identity(1, 1),
   name varchar(128) not null,
-  location varchar(128) not null
+  location varchar(128) not null,
+  mixedCase varchar(128)
 );
 
 create table t_employee(

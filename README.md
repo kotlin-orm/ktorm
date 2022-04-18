@@ -5,8 +5,8 @@
     <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
         <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
     </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
@@ -24,7 +24,7 @@
 
 Ktorm is a lightweight and efficient ORM Framework for Kotlin directly based on pure JDBC. It provides strong-typed and flexible SQL DSL and convenient sequence APIs to reduce our duplicated effort on database operations. All the SQL statements, of course, are generated automatically. Ktorm is open source and available under the Apache 2.0 license. Please leave a star if you've found this library helpful! 
 
-For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.liuwj.me).
+For more documentation, go to our site: [https://www.ktorm.org](https://www.ktorm.org).
 
 :us: English | :cn: [简体中文](README_cn.md) | :jp: [日本語](README_jp.md)
 
@@ -42,11 +42,11 @@ For more documentation, go to our site: [https://ktorm.liuwj.me](https://ktorm.l
 
 # Quick Start
 
-Ktorm was deployed to maven central and jcenter, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
+Ktorm was deployed to maven central, so you just need to add a dependency to your `pom.xml` file if you are using maven: 
 
 ```xml
 <dependency>
-    <groupId>me.liuwj.ktorm</groupId>
+    <groupId>org.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
@@ -55,10 +55,10 @@ Ktorm was deployed to maven central and jcenter, so you just need to add a depen
 Or Gradle: 
 
 ```groovy
-compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
+compile "org.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-Firstly, create Kotlin objects to [describe your table schemas](https://ktorm.liuwj.me/en/schema-definition.html): 
+Firstly, create Kotlin objects to [describe your table schemas](https://www.ktorm.org/en/schema-definition.html): 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -82,7 +82,7 @@ Then, connect to your database and write a simple query:
 
 ```kotlin
 fun main() {
-    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
+    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm", user = "root", password = "***")
 
     for (row in database.from(Employees).select()) {
         println(row[Employees.name])
@@ -189,12 +189,12 @@ Insert:
 
 ```kotlin
 database.insert(Employees) {
-    it.name to "jerry"
-    it.job to "trainee"
-    it.managerId to 1
-    it.hireDate to LocalDate.now()
-    it.salary to 50
-    it.departmentId to 1
+    set(it.name, "jerry")
+    set(it.job, "trainee")
+    set(it.managerId, 1)
+    set(it.hireDate, LocalDate.now())
+    set(it.salary, 50)
+    set(it.departmentId, 1)
 }
 ```
 
@@ -202,9 +202,9 @@ Update:
 
 ```kotlin
 database.update(Employees) {
-    it.job to "engineer"
-    it.managerId to null
-    it.salary to 100
+    set(it.job, "engineer")
+    set(it.managerId, null)
+    set(it.salary, 100)
     where {
         it.id eq 2
     }
@@ -217,7 +217,7 @@ Delete:
 database.delete(Employees) { it.id eq 4 }
 ```
 
-Refer to [detailed documentation](https://ktorm.liuwj.me/en/query.html) for more usages about SQL DSL.
+Refer to [detailed documentation](https://www.ktorm.org/en/query.html) for more usages about SQL DSL.
 
 ## Entities and Column Binding
 
@@ -265,7 +265,7 @@ object Employees : Table<Employee>("t_employee") {
 
 > Naming Strategy: It's highly recommended to name your entity classes by singular nouns, name table objects by plurals (eg. Employee/Employees, Department/Departments). 
 
-Now that column bindings are configured, so we can use [sequence APIs](#Entity-Sequence-APIs) to perform many operations on entities. Let's add two extension properties for `Database` first. These properties return new created sequence objects via `sequenceOf` and they can help use improve the readability of the code: 
+Now that column bindings are configured, so we can use [sequence APIs](#Entity-Sequence-APIs) to perform many operations on entities. Let's add two extension properties for `Database` first. These properties return new created sequence objects via `sequenceOf` and they can help us improve the readability of the code: 
 
 ```kotlin
 val Database.departments get() = this.sequenceOf(Departments)
@@ -323,7 +323,7 @@ val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-Detailed usages of entity APIs can be found in the documentation of [column binding](https://ktorm.liuwj.me/en/entities-and-column-binding.html) and [entity query](https://ktorm.liuwj.me/en/entity-finding.html).
+Detailed usages of entity APIs can be found in the documentation of [column binding](https://www.ktorm.org/en/entities-and-column-binding.html) and [entity query](https://www.ktorm.org/en/entity-finding.html).
 
 ## Entity Sequence APIs
 
@@ -399,12 +399,12 @@ The `mapColumns` function is used to obtain the results of a column:
 val names = database.employees.mapColumns { it.name }
 ```
 
-Additionally, if we want to select two or more columns, we can change to `mapColumns2` or `mapColumns3`, then we need to wrap our selected columns by `Pair` or `Triple` in the closure, and the function’s return type becomes `List<Pair<C1?, C2?>>` or `List<Triple<C1?, C2?, C3?>>`. 
+Additionally, if we want to select two or more columns, we just need to wrap our selected columns by `tupleOf` in the closure, and the function’s return type becomes `List<TupleN<C1?, C2?, .. Cn?>>`. 
 
 ```kotlin
 database.employees
     .filter { it.departmentId eq 1 }
-    .mapColumns2 { Pair(it.id, it.name) }
+    .mapColumns { tupleOf(it.id, it.name) }
     .forEach { (id, name) ->
         println("$id:$name")
     }
@@ -436,12 +436,12 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-Also, if we want to aggregate two or more columns, we can change to `aggregateColumns2` or `aggregateColumns3`, then we need to wrap our aggregate expressions by `Pair` or `Triple` in the closure, and the function’s return type becomes `Pair<C1?, C2?>` or `Triple<C1?, C2?, C3?>`. The example below obtains the average and the range of salaries in department 1: 
+Also, if we want to aggregate two or more columns, we just need to wrap our aggregate expressions by `tupleOf` in the closure, and the function’s return type becomes `TupleN<C1?, C2?, .. Cn?>`. The example below obtains the average and the range of salaries in department 1: 
 
 ```kotlin
 val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
-    .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
+    .aggregateColumns { tupleOf(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
 
 Generated SQL: 
@@ -496,4 +496,4 @@ val totalSalaries = database.employees
     }
 ```
 
-Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://ktorm.liuwj.me/en/entity-sequence.html) and [sequence aggregation](https://ktorm.liuwj.me/en/sequence-aggregation.html). 
+Detailed usages of entity sequence APIs can be found in the documentation of [entity sequence](https://www.ktorm.org/en/entity-sequence.html) and [sequence aggregation](https://www.ktorm.org/en/sequence-aggregation.html). 

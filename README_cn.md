@@ -5,8 +5,8 @@
     <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
         <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
     </a>
-    <a href="https://search.maven.org/search?q=g:%22me.liuwj.ktorm%22">
-        <img src="https://img.shields.io/maven-central/v/me.liuwj.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
+    <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
+        <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
@@ -24,11 +24,9 @@
 
 Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框架，它提供了强类型而且灵活的 SQL DSL 和方便的序列 API，以减少我们操作数据库的重复劳动。当然，所有的 SQL 都是自动生成的。Ktorm 基于 Apache 2.0 协议开放源代码，如果对你有帮助的话，请留下你的 star。
 
-查看更多详细文档，请前往官网：[https://ktorm.liuwj.me](https://ktorm.liuwj.me/zh-cn)。
+查看更多详细文档，请前往官网：[https://www.ktorm.org](https://www.ktorm.org/zh-cn)。
 
 :us: [English](README.md) | :cn: 简体中文 | :jp: [日本語](README_jp.md)
-
-*【广告】阿里巴巴深圳 Lazada 团队招 Java 工程师/技术专家，可以写 Kotlin 哦，有兴趣者可把简历发我邮箱 [vincent.liu@alibaba-inc.com](mailto:vincent.liu@alibaba-inc.com)*
 
 # 特性
 
@@ -44,11 +42,11 @@ Ktorm 是直接基于纯 JDBC 编写的高效简洁的轻量级 Kotlin ORM 框�
 
 # 快速开始
 
-Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
+Ktorm 已经发布到 maven 中央仓库，因此，如果你使用 maven 的话，只需要在 `pom.xml` 文件里面添加一个依赖： 
 
 ```xml
 <dependency>
-    <groupId>me.liuwj.ktorm</groupId>
+    <groupId>org.ktorm</groupId>
     <artifactId>ktorm-core</artifactId>
     <version>${ktorm.version}</version>
 </dependency>
@@ -57,10 +55,10 @@ Ktorm 已经发布到 maven 中央仓库和 jcenter，因此，如果你使用 m
 或者 gradle： 
 
 ```groovy
-compile "me.liuwj.ktorm:ktorm-core:${ktorm.version}"
+compile "org.ktorm:ktorm-core:${ktorm.version}"
 ```
 
-首先，创建 Kotlin object，[描述你的表结构](https://ktorm.liuwj.me/zh-cn/schema-definition.html)： 
+首先，创建 Kotlin object，[描述你的表结构](https://www.ktorm.org/zh-cn/schema-definition.html)： 
 
 ```kotlin
 object Departments : Table<Nothing>("t_department") {
@@ -84,7 +82,7 @@ object Employees : Table<Nothing>("t_employee") {
 
 ```kotlin
 fun main() {
-    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm?user=root&password=***")
+    val database = Database.connect("jdbc:mysql://localhost:3306/ktorm", user = "root", password = "***")
 
     for (row in database.from(Employees).select()) {
         println(row[Employees.name])
@@ -191,12 +189,12 @@ val results = database
 
 ```kotlin
 database.insert(Employees) {
-    it.name to "jerry"
-    it.job to "trainee"
-    it.managerId to 1
-    it.hireDate to LocalDate.now()
-    it.salary to 50
-    it.departmentId to 1
+    set(it.name, "jerry")
+    set(it.job, "trainee")
+    set(it.managerId, 1)
+    set(it.hireDate, LocalDate.now())
+    set(it.salary, 50)
+    set(it.departmentId, 1)
 }
 ```
 
@@ -204,9 +202,9 @@ database.insert(Employees) {
 
 ```kotlin
 database.update(Employees) {
-    it.job to "engineer"
-    it.managerId to null
-    it.salary to 100
+    set(it.job, "engineer")
+    set(it.managerId, null)
+    set(it.salary, 100)
     where {
         it.id eq 2
     }
@@ -219,7 +217,7 @@ database.update(Employees) {
 database.delete(Employees) { it.id eq 4 }
 ```
 
-更多 SQL DSL 的用法，请参考[具体文档](https://ktorm.liuwj.me/zh-cn/query.html)。
+更多 SQL DSL 的用法，请参考[具体文档](https://www.ktorm.org/zh-cn/query.html)。
 
 ## 实体类与列绑定
 
@@ -325,7 +323,7 @@ val employee = database.employees.find { it.id eq 2 } ?: return
 employee.delete()
 ```
 
-更多实体 API 的用法，可参考[列绑定](https://ktorm.liuwj.me/zh-cn/entities-and-column-binding.html)和[实体查询](https://ktorm.liuwj.me/zh-cn/entity-finding.html)相关的文档。
+更多实体 API 的用法，可参考[列绑定](https://www.ktorm.org/zh-cn/entities-and-column-binding.html)和[实体查询](https://www.ktorm.org/zh-cn/entity-finding.html)相关的文档。
 
 ## 实体序列 API
 
@@ -401,12 +399,12 @@ val employees = database.employees.toCollection(ArrayList())
 val names = database.employees.mapColumns { it.name }
 ```
 
-除此之外，还有 `mapColumns2`、`mapColumns3` 等更多函数，它们用来同时获取多个列的结果，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些字段，函数的返回值也相应变成了 `List<Pair<C1?, C2?>>` 或 `List<Triple<C1?, C2?, C3?>>`：
+除此之外，`mapColumns` 还可以同时获取多个列的结果，这时我们只需要在闭包中使用 `tupleOf` 包装我们的这些字段，函数的返回值也相应变成了 `List<TupleN<C1?, C2?, .. Cn?>>`：
 
 ```kotlin
 database.employees
     .filter { it.departmentId eq 1 }
-    .mapColumns2 { Pair(it.id, it.name) }
+    .mapColumns { tupleOf(it.id, it.name) }
     .forEach { (id, name) ->
         println("$id:$name")
     }
@@ -438,12 +436,12 @@ val max = database.employees
     .aggregateColumns { max(it.salary) }
 ```
 
-如果你希望同时获取多个聚合结果，可以改用 `aggregateColumns2` 或 `aggregateColumns3` 函数，这时我们需要在闭包中使用 `Pair` 或 `Triple` 包装我们的这些聚合表达式，函数的返回值也相应变成了 `Pair<C1?, C2?>` 或 `Triple<C1?, C2?, C3?>`。下面的例子获取部门 1 中工资的平均值和极差：
+如果你希望同时获取多个聚合结果，只需要在闭包中使用 `tupleOf` 包装我们的这些聚合表达式即可，此时函数的返回值就相应变成了 `TupleN<C1?, C2?, .. Cn?>`。下面的例子获取部门 1 中工资的平均值和极差：
 
 ```kotlin
 val (avg, diff) = database.employees
     .filter { it.departmentId eq 1 }
-    .aggregateColumns2 { Pair(avg(it.salary), max(it.salary) - min(it.salary)) }
+    .aggregateColumns { tupleOf(avg(it.salary), max(it.salary) - min(it.salary)) }
 ```
 
 生成 SQL：
@@ -498,4 +496,4 @@ val totalSalaries = database.employees
     }
 ```
 
-更多实体序列 API 的用法，可参考[实体序列](https://ktorm.liuwj.me/zh-cn/entity-sequence.html)和[序列聚合](https://ktorm.liuwj.me/zh-cn/sequence-aggregation.html)相关的文档。
+更多实体序列 API 的用法，可参考[实体序列](https://www.ktorm.org/zh-cn/entity-sequence.html)和[序列聚合](https://www.ktorm.org/zh-cn/sequence-aggregation.html)相关的文档。

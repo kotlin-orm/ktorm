@@ -1,28 +1,3 @@
-autoCorrect: false
-
-test-pattern: # Configure exclusions for test sources
-  active: true
-  patterns: # Test file regexes
-    - '.*/test/.*'
-    - '.*/androidTest/.*'
-    - '.*Test.kt'
-    - '.*Spec.kt'
-    - '.*Spek.kt'
-  exclude-rule-sets:
-    - 'comments'
-  exclude-rules:
-    - 'NamingRules'
-    - 'WildcardImport'
-    - 'MagicNumber'
-    - 'MaxLineLength'
-    - 'LateinitUsage'
-    - 'StringLiteralDuplication'
-    - 'SpreadOperator'
-    - 'TooManyFunctions'
-    - 'ForEachOnRange'
-    - 'FunctionMaxLength'
-    - 'TooGenericExceptionCaught'
-    - 'InstanceOfCheckForException'
 
 build:
   maxIssues: 0
@@ -53,9 +28,9 @@ console-reports:
 comments:
   active: true
   CommentOverPrivateFunction:
-    active: true
+    active: false
   CommentOverPrivateProperty:
-    active: true
+    active: false
   EndOfSentenceFormat:
     active: true
     endOfSentenceFormat: ([.?!][ \t\n\r\f<])|([.?!]$)
@@ -75,7 +50,7 @@ complexity:
     threshold: 4
   ComplexInterface:
     active: true
-    threshold: 11
+    threshold: 12
     includeStaticDeclarations: false
   ComplexMethod:
     active: true
@@ -93,7 +68,8 @@ complexity:
     threshold: 60
   LongParameterList:
     active: true
-    threshold: 6
+    functionThreshold: 6
+    constructorThreshold: 6
     ignoreDefaultParameters: true
   MethodOverloading:
     active: true
@@ -137,7 +113,7 @@ empty-blocks:
     active: true
   EmptyFunctionBlock:
     active: true
-    ignoreOverriddenFunctions: false
+    ignoreOverridden: false
   EmptyIfBlock:
     active: true
   EmptyInitBlock:
@@ -265,7 +241,7 @@ formatting:
     active: true
     autoCorrect: false
   ParameterListWrapping:
-    active: true
+    active: false
     autoCorrect: false
     indentSize: 4
   SpacingAroundColon:
@@ -324,12 +300,12 @@ naming:
     active: true
     parameterPattern: '[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverriddenFunctions: true
+    ignoreOverridden: true
   MatchingDeclarationName:
     active: true
   MemberNameEqualsClassName:
     active: true
-    ignoreOverriddenFunction: true
+    ignoreOverridden: true
   ObjectPropertyNaming:
     active: true
     constantPattern: '[A-Za-z][_A-Za-z0-9]*'
@@ -433,7 +409,7 @@ style:
     maxJumpCount: 2
   MagicNumber:
     active: true
-    ignoreNumbers: '-1,0,1,2'
+    ignoreNumbers: '-1,0,1,2,3'
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
     ignoreConstantDeclaration: true
@@ -470,7 +446,7 @@ style:
   ProtectedMemberInFinalClass:
     active: true
   RedundantVisibilityModifierRule:
-    active: true
+    active: false
   ReturnCount:
     active: false
     max: 2
