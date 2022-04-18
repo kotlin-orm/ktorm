@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
  * }
  *
  *
- * object Departments : Table<Department>("t_department") {
+ * object Departments : ConditionalTable<Department>("t_department") {
  *    val id = int("id").primaryKey().bindTo { it.id }.conditionOn { department, column, value ->
  *      if (value != null) column eq value else column eq 1
  *    }
