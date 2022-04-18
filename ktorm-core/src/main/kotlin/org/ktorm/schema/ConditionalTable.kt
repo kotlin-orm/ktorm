@@ -85,7 +85,7 @@ public open class ConditionalTable<E : Entity<E>>(
      *
      * @param condition the query condition.
      */
-    public inline fun <reified C : Any> Column<C>.conditionOn(crossinline condition: (E, Column<C>, C?) -> ColumnDeclaring<Boolean>): Column<C> {
+    public inline fun <reified C : Any> Column<C>.conditionOn(crossinline condition: (E, column: Column<C>, value: C?) -> ColumnDeclaring<Boolean>): Column<C> {
         return saveColumnCondition { entity, entityImpl ->
             val value = entityImpl.getColumnValueOrNull(this)
             condition(entity, this, value as C?)
@@ -107,7 +107,7 @@ public open class ConditionalTable<E : Entity<E>>(
      *
      * @param condition the query condition.
      */
-    public inline fun <reified C : Any> Column<C>.conditionNotNullOn(crossinline condition: (E, Column<C>, C) -> ColumnDeclaring<Boolean>): Column<C> {
+    public inline fun <reified C : Any> Column<C>.conditionNotNullOn(crossinline condition: (E, column: Column<C>, value: C) -> ColumnDeclaring<Boolean>): Column<C> {
         return saveColumnCondition { entity, entityImpl ->
             val value = entityImpl.getColumnValueOrThrow(this)
             if (value != null) {
