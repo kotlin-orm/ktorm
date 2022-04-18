@@ -15,36 +15,155 @@ import org.ktorm.schema.*
 class ConditionalTableTest : BaseTest() {
 
     @Test
-    fun testCondition() {
-        println("a")
-        println("a")
-        println("a")
-        println("a")
-        println("a")
-        println("a")
-        println("a")
-        val entity1 = Department {
+    fun testCondition1() {
+        val entity = Department {
             name = "te"
         }
 
         database.departmentsWithCondition
-            .filterBy(entity1)
+            .filterBy(entity)
             .forEach {
-                println(it)
-                assert(it.name.startsWith(entity1.name))
+                assert(it.name.startsWith(entity.name))
                 assert(it.mixedCase != null)
             }
 
         database.from(DepartmentsWithCondition)
             .select()
-            .whereBy(DepartmentsWithCondition, entity1)
+            .whereBy(DepartmentsWithCondition, entity)
             .forEach {
-                assert(it[DepartmentsWithCondition.name]!!.startsWith(entity1.name))
+                assert(it[DepartmentsWithCondition.name]!!.startsWith(entity.name))
                 assert(it[DepartmentsWithCondition.mixedCase] != null)
             }
-
-
     }
+
+    @Test
+    fun testCondition2() {
+        val entity = Department {
+            name = "te"
+            location = LocationWrapper("Guangzhou")
+        }
+
+        database.departmentsWithCondition
+            .filterBy(entity)
+            .forEach {
+                assert(it.name.startsWith(entity.name))
+                assert(it.location.underlying == entity.location.underlying)
+            }
+
+        database.from(DepartmentsWithCondition)
+            .select()
+            .whereBy(DepartmentsWithCondition, entity)
+            .forEach {
+                assert(it[DepartmentsWithCondition.name]!!.startsWith(entity.name))
+                assert(it[DepartmentsWithCondition.location]?.underlying == entity.location.underlying)
+            }
+    }
+
+    @Test
+    fun testCondition3() {
+        val entityManagerId = 1
+        val entity = Employee {
+            manager = Employee {
+                id = entityManagerId
+            }
+        }
+
+        database.employeesWithCondition
+            .filterBy(entity)
+            .forEach {
+                assert(it.manager?.id == entityManagerId)
+            }
+
+        database.from(EmployeesWithCondition)
+            .select()
+            .whereBy(EmployeesWithCondition, entity)
+            .forEach {
+                assert(it[EmployeesWithCondition.managerId] == entityManagerId)
+            }
+    }
+
+    @Test
+    fun testCondition4() {
+        val entity = Employee {
+            salary = 50
+            department = Department {
+                name = "dep"
+            }
+        }
+        database.employeesWithCondition
+            .filterBy(entity)
+            .forEach {
+                assert(it.salary > entity.salary)
+            }
+
+        database.from(EmployeesWithCondition)
+            .select()
+            .whereBy(EmployeesWithCondition, entity)
+            .forEach {
+                assert(it[EmployeesWithCondition.salary]!! > entity.salary)
+            }
+    }
+
+
+    @Test
+    fun testConditionAndThen1() {
+        val locationWrapper = LocationWrapper("Guangzhou")
+
+        val entity = Department {
+            name = "te"
+        }
+
+        database.departmentsWithCondition
+            .filterBy(entity) { table, condition ->
+                condition and (table.location eq locationWrapper)
+            }
+            .forEach {
+                assert(it.name.startsWith(entity.name))
+                assert(it.mixedCase != null)
+                assert(it.location.underlying != locationWrapper.underlying)
+            }
+
+        database.from(DepartmentsWithCondition)
+            .select()
+            .whereBy(DepartmentsWithCondition, entity) {
+                it and (DepartmentsWithCondition.location eq locationWrapper)
+            }
+            .forEach {
+                assert(it[DepartmentsWithCondition.name]!!.startsWith(entity.name))
+                assert(it[DepartmentsWithCondition.mixedCase] != null)
+                assert(it[DepartmentsWithCondition.location]?.underlying != locationWrapper.underlying)
+            }
+    }
+
+    @Test
+    fun testConditionAndThen2() {
+        val locationWrapper = LocationWrapper("Guangzhou")
+
+        val entity = Department {
+            name = "te"
+        }
+
+        database.departmentsWithCondition
+            .filterByOr(entity) { table, condition ->
+                val extraCondition = table.location eq locationWrapper
+                condition?.and(extraCondition) ?: extraCondition
+            }
+            .forEach {
+                assert(it.name.startsWith(entity.name))
+                assert(it.location.underlying == entity.location.underlying)
+            }
+
+        database.from(DepartmentsWithCondition)
+            .select()
+            .whereByOr(DepartmentsWithCondition, entity) {
+                it?.and(DepartmentsWithCondition.location eq locationWrapper) // or null.
+            }
+            .forEach {
+                assert(it[DepartmentsWithCondition.name]!!.startsWith(entity.name))
+                assert(it[DepartmentsWithCondition.location]?.underlying == entity.location.underlying)
+            }
+    }
+
 
 
     open class DepartmentsWithCondition(alias: String?) : ConditionalTable<Department>("t_department", alias) {
@@ -61,6 +180,7 @@ class ConditionalTableTest : BaseTest() {
 
         val location = varchar("location").transform({ LocationWrapper(it) }, { it.underlying }).bindTo { it.location }
             .conditionOn { _, column, locationWrapper ->
+                println("location wrapper: $locationWrapper")
                 if (locationWrapper == null) {
                     (column.table as DepartmentsWithCondition).mixedCase.isNotNull()
                 } else {
@@ -79,9 +199,13 @@ class ConditionalTableTest : BaseTest() {
         val id = int("id").primaryKey().bindTo { it.id }
         val name = varchar("name").bindTo { it.name }
         val job = varchar("job").bindTo { it.job }
-        val managerId = int("manager_id").bindTo { it.manager?.id }
+        val managerId = int("manager_id").bindTo { it.manager?.id }.conditionNotNullOn { employee, column, i ->
+            column eq i
+        }
         val hireDate = date("hire_date").bindTo { it.hireDate }
-        val salary = long("salary").bindTo { it.salary }
+        val salary = long("salary").bindTo { it.salary }.conditionOn { employee, column, value ->
+            column greater (value ?: 0)
+        }
         val departmentId = int("department_id").references(Departments) { it.department }
         val department = departmentId.referenceTable as Departments
     }
@@ -97,9 +221,8 @@ class ConditionalTableTest : BaseTest() {
         val phoneNumber = varchar("phone_number").bindTo { it.phoneNumber }
     }
 
-    val Database.departmentsWithCondition get() = this.sequenceOf(DepartmentsWithCondition)
+    private val Database.departmentsWithCondition get() = this.sequenceOf(DepartmentsWithCondition)
 
-    val Database.employeesWithCondition get() = this.sequenceOf(EmployeesWithCondition)
+    private val Database.employeesWithCondition get() = this.sequenceOf(EmployeesWithCondition)
 
-    val Database.customersWithC get() = this.sequenceOf(CustomersWithC)
 }
