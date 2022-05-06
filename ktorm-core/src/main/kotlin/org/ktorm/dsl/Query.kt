@@ -247,9 +247,7 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
         return this
     } else {
         while (conditions.size > 1) {
-            conditions = conditions.chunked(2) { chunk ->
-                if (chunk.size == 2) chunk[0] or chunk[1] else chunk[0]
-            }
+            conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] or chunk[1] else chunk[0] }
         }
 
         return this.where { conditions[0] }
