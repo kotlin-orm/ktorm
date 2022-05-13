@@ -1,0 +1,28 @@
+name: Build Ktorm
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Assemble the Project
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: assemble
+
+      - name: Run Tests
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: check
