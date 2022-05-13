@@ -1,5 +1,3 @@
-name: Build Ktorm
-
 on:
   - push
   - pull_request
