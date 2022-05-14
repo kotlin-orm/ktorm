@@ -2,8 +2,8 @@
     <img src="https://raw.githubusercontent.com/kotlin-orm/ktorm-docs/master/source/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
-    <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
-        <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
+    <a href="https://github.com/kotlin-orm/ktorm/actions/workflows/build.yml">
+        <img src="https://github.com/kotlin-orm/ktorm/actions/workflows/build.yml/badge.svg" alt="Build Status" />
     </a>
     <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
         <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />

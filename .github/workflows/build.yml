@@ -20,24 +20,29 @@ jobs:
           distribution: temurin
           java-version: 8
 
-#      - name: Assemble the Project
-#        uses: gradle/gradle-build-action@v2
-#        with:
-#          arguments: assemble
-#
-#      - name: Run Tests
-#        uses: gradle/gradle-build-action@v2
-#        with:
-#          arguments: check
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Assemble the Project
+        run: ./gradlew assemble
+
+      - name: Run Tests
+        run: ./gradlew check
 
       - name: Publish Artifacts
         run: |
           if [[ $(cat "ktorm.version") =~ "SNAPSHOT" ]] ; then
-            echo "Publish snapshot artifacts..."
+            ./gradlew publishDistPublicationToSnapshotRepository
           else
             if [[ $GITHUB_EVENT_NAME == "release" ]] ; then
-              echo "Publish release artifacts..."
+              ./gradlew publishDistPublicationToCentralRepository
             else
               echo "Skip release publication because this is not a release event"
             fi
           fi
+        env:
+          OSSRH_USER: ${{secrets.OSSRH_USER}}
+          OSSRH_PASSWORD: ${{secrets.OSSRH_PASSWORD}}
+          GPG_KEY_ID: ${{secrets.GPG_KEY_ID}}
+          GPG_PASSWORD: ${{secrets.GPG_PASSWORD}}
+          GPG_SECRET_KEY: ${{secrets.GPG_SECRET_KEY}}
