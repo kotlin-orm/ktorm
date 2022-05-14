@@ -32,7 +32,7 @@ jobs:
 
       - name: Publish Artifacts
         run: |
-          if [ cat("ktorm.version") =~ "SNAPSHOT" ] ; then
+          if [ $(cat "ktorm.version") =~ "SNAPSHOT" ] ; then
             echo "Publish snapshot artifacts...'
           else
             if [ $GITHUB_EVENT_NAME == "release" ] ; then 
