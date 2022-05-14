@@ -1,6 +1,11 @@
+name: build
+
 on:
-  - push
-  - pull_request
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -15,12 +20,24 @@ jobs:
           distribution: temurin
           java-version: 8
 
-      - name: Assemble the Project
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: assemble
+#      - name: Assemble the Project
+#        uses: gradle/gradle-build-action@v2
+#        with:
+#          arguments: assemble
+#
+#      - name: Run Tests
+#        uses: gradle/gradle-build-action@v2
+#        with:
+#          arguments: check
 
-      - name: Run Tests
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: check
+      - name: Publish Artifacts
+        run: |
+          if [ cat("ktorm.version") =~ "SNAPSHOT" ] ; then
+            echo "Publish snapshot artifacts...'
+          else
+            if [ $GITHUB_EVENT_NAME == "release" ] ; then 
+              echo "Publish release artifacts...'
+            else
+              echo "Skip release publication because this is not a release event"
+            fi
+          fi

@@ -1,6 +1,6 @@
 
 group = "org.ktorm"
-version = "3.5.0-SNAPSHOT"
+version = file("ktorm.version").readText()
 
 task("printClasspath") {
     doLast {
