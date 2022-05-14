@@ -32,6 +32,9 @@ jobs:
 
       - name: Publish Artifacts
         run: |
+          pwd
+          ls
+          cat "ktorm.version"
           if [ $(cat "ktorm.version") =~ "SNAPSHOT" ] ; then
             echo "Publish snapshot artifacts..."
           else
