@@ -17,12 +17,11 @@ dependencies {
     api(kotlin("stdlib"))
     api(kotlin("reflect"))
     testImplementation(kotlin("test-junit"))
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.0-RC2")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${detekt.toolVersion}")
 }
 
 detekt {
-    toolVersion = "1.17.0-RC2"
-    input = files("src/main/kotlin")
+    source = files("src/main/kotlin")
     config = files("${project.rootDir}/detekt.yml")
 }
 

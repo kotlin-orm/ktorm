@@ -74,7 +74,7 @@ class QueryTest : BaseTest() {
     fun testWhereWithOrConditionsNoStackOverflow() {
         val t = Employees.aliased("t")
 
-        val sql = database
+        val query = database
             .from(t)
             .select(t.name)
             .whereWithOrConditions { where ->
@@ -82,9 +82,9 @@ class QueryTest : BaseTest() {
                     where += (t.id eq Random.nextInt()) and (t.departmentId eq Random.nextInt())
                 }
             }
-            .sql
 
         // very large SQL doesn't cause stackoverflow
+        println(query.sql)
         assert(true)
     }
 

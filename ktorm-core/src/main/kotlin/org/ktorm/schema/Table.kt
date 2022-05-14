@@ -48,7 +48,7 @@ import kotlin.reflect.jvm.jvmErasure
  */
 @Suppress("UNCHECKED_CAST")
 public open class Table<E : Entity<E>>(
-    tableName: String,
+        tableName: String,
     alias: String? = null,
     catalog: String? = null,
     schema: String? = null,

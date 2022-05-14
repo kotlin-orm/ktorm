@@ -88,6 +88,7 @@ public data class CastingExpression<T : Any>(
 /**
  * Query source expression, used in the `from` clause of a [SelectExpression].
  */
+@Suppress("UnnecessaryAbstractClass")
 public abstract class QuerySourceExpression : SqlExpression()
 
 /**

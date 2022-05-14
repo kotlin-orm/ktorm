@@ -21,7 +21,6 @@ import org.testcontainers.containers.OracleContainer
  * Created by vince at Aug 01, 2020.
  */
 class OracleTest : BaseTest() {
-
     companion object {
         const val TOTAL_RECORDS = 4
         const val MINUS_ONE = -1
@@ -36,7 +35,7 @@ class OracleTest : BaseTest() {
         @ClassRule
         @JvmField
         val oracle: OracleContainer = OracleContainer("zerda/oracle-database:11.2.0.2-xe")
-            .withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize(1 * 1024 * 1024 * 1024) }
+            .withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize((1 * 1024 * 1024 * 1024).toLong()) }
     }
 
     override fun init() {
