@@ -14,6 +14,7 @@ import org.ktorm.schema.Table
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
+import kotlin.test.assertEquals
 
 class InlineClassTest : BaseTest() {
 
@@ -36,6 +37,10 @@ class InlineClassTest : BaseTest() {
 
     @Test
     fun testUnsigned() {
+        for (method in TestUnsigned::class.java.methods) {
+            println(method)
+        }
+
         val t = object : Table<TestUnsigned>("T_TEST_UNSIGNED") {
             val id = ulong("ID").primaryKey().bindTo { it.id }
         }
@@ -93,5 +98,92 @@ class InlineClassTest : BaseTest() {
         assert(ids == listOf(5UL))
 
         assert(TestUnsignedNullable().id == null)
+    }
+
+    interface Case1 {
+        @JvmInline
+        value class ICPrimitive(val x: Int)
+    }
+
+    interface Case2 {
+        @JvmInline
+        value class ICReference(val s: String)
+    }
+
+    interface Case3 {
+        @JvmInline
+        value class ICNullable(val s: String?)
+    }
+
+    interface Case4 {
+        @JvmInline
+        value class IC1(val s: String)
+        @JvmInline
+        value class IC2(val ic1: IC1?)
+        @JvmInline
+        value class IC3(val ic2: IC2)
+    }
+
+    interface Case5 {
+        @JvmInline
+        value class IC1(val s: String?)
+        @JvmInline
+        value class IC2(val ic1: IC1?)
+        @JvmInline
+        value class IC3(val ic2: IC2)
+    }
+
+    @Test
+    fun testUnboxCase1() {
+        val c = Case1.ICPrimitive(1)
+        assertEquals(c.unboxTo(Int::class.java), 1)
+        assertEquals(c.unboxTo(Case1.ICPrimitive::class.java), Case1.ICPrimitive(1))
+    }
+
+    @Test
+    fun testUnboxCase2() {
+        val c = Case2.ICReference("hello")
+        assertEquals(c.unboxTo(String::class.java), "hello")
+        assertEquals(c.unboxTo(Case2.ICReference::class.java), Case2.ICReference("hello"))
+    }
+
+    @Test
+    fun testUnboxCase3() {
+        val c1 = Case3.ICNullable("hello")
+        assertEquals(c1.unboxTo(String::class.java), "hello")
+        assertEquals(c1.unboxTo(Case3.ICNullable::class.java), Case3.ICNullable("hello"))
+
+        val c2 = Case3.ICNullable(null)
+        assertEquals(c2.unboxTo(String::class.java), null)
+        assertEquals(c2.unboxTo(Case3.ICNullable::class.java), Case3.ICNullable(null))
+    }
+
+    @Test
+    fun testUnboxCase4() {
+        val c1 = Case4.IC3(Case4.IC2(Case4.IC1("hello")))
+        assertEquals(c1.unboxTo(String::class.java), "hello")
+        assertEquals(c1.unboxTo(Case4.IC3::class.java), Case4.IC3(Case4.IC2(Case4.IC1("hello"))))
+
+        val c2 = Case4.IC3(Case4.IC2(null))
+        assertEquals(c2.unboxTo(String::class.java), null)
+        assertEquals(c2.unboxTo(Case4.IC3::class.java), Case4.IC3(Case4.IC2(null)))
+    }
+
+    @Test
+    fun testUnboxCase5() {
+        val c1 = Case5.IC3(Case5.IC2(Case5.IC1("hello")))
+        assertEquals(c1.unboxTo(String::class.java), "hello")
+        assertEquals(c1.unboxTo(Case5.IC1::class.java), Case5.IC1("hello"))
+        assertEquals(c1.unboxTo(Case5.IC3::class.java), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
+
+        val c2 = Case5.IC3(Case5.IC2(null))
+        assertEquals(c2.unboxTo(String::class.java), null)
+        assertEquals(c2.unboxTo(Case5.IC1::class.java), null)
+        assertEquals(c2.unboxTo(Case5.IC3::class.java), Case5.IC3(Case5.IC2(null)))
+
+        val c3 = Case5.IC3(Case5.IC2(Case5.IC1(null)))
+        assertEquals(c3.unboxTo(String::class.java), null)
+        assertEquals(c3.unboxTo(Case5.IC1::class.java), Case5.IC1(null))
+        assertEquals(c3.unboxTo(Case5.IC3::class.java), Case5.IC3(Case5.IC2(Case5.IC1(null))))
     }
 }
