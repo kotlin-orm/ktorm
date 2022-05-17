@@ -24,7 +24,7 @@ class InlineClassTest : BaseTest() {
                 ps.setLong(index, parameter.toLong())
             }
 
-            override fun doGetResult(rs: ResultSet, index: Int): ULong? {
+            override fun doGetResult(rs: ResultSet, index: Int): ULong {
                 return rs.getLong(index).toULong()
             }
         })
@@ -105,34 +105,6 @@ class InlineClassTest : BaseTest() {
         value class ICPrimitive(val x: Int)
     }
 
-    interface Case2 {
-        @JvmInline
-        value class ICReference(val s: String)
-    }
-
-    interface Case3 {
-        @JvmInline
-        value class ICNullable(val s: String?)
-    }
-
-    interface Case4 {
-        @JvmInline
-        value class IC1(val s: String)
-        @JvmInline
-        value class IC2(val ic1: IC1?)
-        @JvmInline
-        value class IC3(val ic2: IC2)
-    }
-
-    interface Case5 {
-        @JvmInline
-        value class IC1(val s: String?)
-        @JvmInline
-        value class IC2(val ic1: IC1?)
-        @JvmInline
-        value class IC3(val ic2: IC2)
-    }
-
     @Test
     fun testUnboxCase1() {
         val c = Case1.ICPrimitive(1)
@@ -141,10 +113,32 @@ class InlineClassTest : BaseTest() {
     }
 
     @Test
+    fun testBoxCase1() {
+        assertEquals(Case1.ICPrimitive::class.boxFrom(1), Case1.ICPrimitive(1))
+        assertEquals(Case1.ICPrimitive::class.boxFrom(Case1.ICPrimitive(1)), Case1.ICPrimitive(1))
+    }
+
+    interface Case2 {
+        @JvmInline
+        value class ICReference(val s: String)
+    }
+
+    @Test
     fun testUnboxCase2() {
         val c = Case2.ICReference("hello")
         assertEquals(c.unboxTo(String::class.java), "hello")
         assertEquals(c.unboxTo(Case2.ICReference::class.java), Case2.ICReference("hello"))
+    }
+
+    @Test
+    fun testBoxCase2() {
+        assertEquals(Case2.ICReference::class.boxFrom("hello"), Case2.ICReference("hello"))
+        assertEquals(Case2.ICReference::class.boxFrom(Case2.ICReference("hello")), Case2.ICReference("hello"))
+    }
+
+    interface Case3 {
+        @JvmInline
+        value class ICNullable(val s: String?)
     }
 
     @Test
@@ -159,6 +153,22 @@ class InlineClassTest : BaseTest() {
     }
 
     @Test
+    fun testBoxCase3() {
+        assertEquals(Case3.ICNullable::class.boxFrom(null), Case3.ICNullable(null))
+        assertEquals(Case3.ICNullable::class.boxFrom("hello"), Case3.ICNullable("hello"))
+        assertEquals(Case3.ICNullable::class.boxFrom(Case3.ICNullable("hello")), Case3.ICNullable("hello"))
+    }
+
+    interface Case4 {
+        @JvmInline
+        value class IC1(val s: String)
+        @JvmInline
+        value class IC2(val ic1: IC1?)
+        @JvmInline
+        value class IC3(val ic2: IC2)
+    }
+
+    @Test
     fun testUnboxCase4() {
         val c1 = Case4.IC3(Case4.IC2(Case4.IC1("hello")))
         assertEquals(c1.unboxTo(String::class.java), "hello")
@@ -167,6 +177,22 @@ class InlineClassTest : BaseTest() {
         val c2 = Case4.IC3(Case4.IC2(null))
         assertEquals(c2.unboxTo(String::class.java), null)
         assertEquals(c2.unboxTo(Case4.IC3::class.java), Case4.IC3(Case4.IC2(null)))
+    }
+
+    @Test
+    fun testBoxCase4() {
+        assertEquals(Case4.IC3::class.boxFrom(null), Case4.IC3(Case4.IC2(null)))
+        assertEquals(Case4.IC3::class.boxFrom("hello"), Case4.IC3(Case4.IC2(Case4.IC1("hello"))))
+        assertEquals(Case4.IC3::class.boxFrom(Case4.IC3(Case4.IC2(Case4.IC1("hello")))), Case4.IC3(Case4.IC2(Case4.IC1("hello"))))
+    }
+
+    interface Case5 {
+        @JvmInline
+        value class IC1(val s: String?)
+        @JvmInline
+        value class IC2(val ic1: IC1?)
+        @JvmInline
+        value class IC3(val ic2: IC2)
     }
 
     @Test
@@ -185,5 +211,14 @@ class InlineClassTest : BaseTest() {
         assertEquals(c3.unboxTo(String::class.java), null)
         assertEquals(c3.unboxTo(Case5.IC1::class.java), Case5.IC1(null))
         assertEquals(c3.unboxTo(Case5.IC3::class.java), Case5.IC3(Case5.IC2(Case5.IC1(null))))
+    }
+
+    @Test
+    fun testBoxCase5() {
+        assertEquals(Case5.IC3::class.boxFrom(null), Case5.IC3(Case5.IC2(null)))
+        assertEquals(Case5.IC3::class.boxFrom(Case5.IC1(null)), Case5.IC3(Case5.IC2(Case5.IC1(null))))
+        assertEquals(Case5.IC3::class.boxFrom("hello"), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
+        assertEquals(Case5.IC3::class.boxFrom(Case5.IC1("hello")), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
+        assertEquals(Case5.IC3::class.boxFrom(Case5.IC3(Case5.IC2(Case5.IC1("hello")))), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
     }
 }

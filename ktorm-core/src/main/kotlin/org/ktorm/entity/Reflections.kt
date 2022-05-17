@@ -17,7 +17,9 @@
 package org.ktorm.entity
 
 import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
 import kotlin.reflect.full.hasAnnotation
 
 /**
@@ -31,12 +33,47 @@ internal val KClass<*>.isInline: Boolean get() = this.isValue && this.hasAnnotat
 internal fun Any.unboxTo(targetClass: Class<*>): Any? {
     var curr: Any? = this
     while (curr != null && curr::class.isInline && curr.javaClass != targetClass) {
-        try {
-            curr = curr.javaClass.getMethod("unbox-impl").invoke(curr)
-        } catch (e: InvocationTargetException) {
-            throw e.targetException
-        }
+        curr = curr.javaClass.getMethod("unbox-impl").invoke0(curr)
     }
 
     return curr
+}
+
+/**
+ * Box the underlying value to an inline class value.
+ */
+internal fun KType.boxFrom(value: Any?): Any? {
+    if (value == null && this.isMarkedNullable) {
+        return null
+    } else {
+        return (this.classifier as KClass<*>).boxFrom(value)
+    }
+}
+
+/**
+ * Box the underlying value to an inline class value
+ */
+internal fun KClass<*>.boxFrom(value: Any?): Any? {
+    if (!this.isInline || this.java == value?.javaClass) {
+        return value
+    }
+
+    val method = this.java.methods.single { it.name == "box-impl" }
+    if (value == null || method.parameterTypes[0].kotlin.isInstance(value)) {
+        return method.invoke0(null, value)
+    } else {
+        return method.invoke0(null, method.parameterTypes[0].kotlin.boxFrom(value))
+    }
+}
+
+/**
+ * Call the [Method.invoke] method, catching [InvocationTargetException], and rethrowing the target exception.
+ */
+@Suppress("SwallowedException")
+internal fun Method.invoke0(obj: Any?, vararg args: Any?): Any? {
+    try {
+        return this.invoke(obj, *args)
+    } catch (e: InvocationTargetException) {
+        throw e.targetException
+    }
 }

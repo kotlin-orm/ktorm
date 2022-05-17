@@ -22,11 +22,8 @@ import org.ktorm.schema.defaultValue
 import org.ktorm.schema.kotlinProperty
 import java.io.*
 import java.lang.reflect.InvocationHandler
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
-import kotlin.collections.LinkedHashMap
-import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaGetter
@@ -135,21 +132,16 @@ internal class EntityImplementation(
         setProperty(prop, value)
     }
 
-    @Suppress("SwallowedException")
     private fun callDefaultImpl(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         val impl = defaultImplsCache.computeIfAbsent(method) {
             val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
             cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
         }
 
-        try {
-            if (args == null) {
-                return impl.invoke(null, proxy)
-            } else {
-                return impl.invoke(null, proxy, *args)
-            }
-        } catch (e: InvocationTargetException) {
-            throw e.targetException
+        if (args == null) {
+            return impl.invoke0(null, proxy)
+        } else {
+            return impl.invoke0(null, proxy, *args)
         }
     }
 
