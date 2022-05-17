@@ -51,7 +51,7 @@ internal fun KType.boxFrom(value: Any?): Any? {
 }
 
 /**
- * Box the underlying value to an inline class value
+ * Box the underlying value to an inline class value.
  */
 internal fun KClass<*>.boxFrom(value: Any?): Any? {
     if (!this.isInline || this.java == value?.javaClass) {
