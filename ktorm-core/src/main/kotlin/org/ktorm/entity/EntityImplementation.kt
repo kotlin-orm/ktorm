@@ -27,7 +27,6 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaGetter
-import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -149,51 +148,16 @@ internal class EntityImplementation(
         return prop.name in values
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun getProperty(prop: KProperty1<*, *>, unboxInlineValues: Boolean = false): Any? {
-        if (!unboxInlineValues) {
+        if (unboxInlineValues) {
+            return values[prop.name]?.unboxTo(prop.javaGetter!!.returnType)
+        } else {
             return values[prop.name]
-        }
-
-        val returnType = prop.javaGetter!!.returnType
-        val value = values[prop.name]
-
-        // Unbox inline class values if necessary.
-        // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
-        // whether a class is inline, so as a workaround, we have to enumerate some common-used types here.
-        return when {
-            value is UByte && returnType == Byte::class.javaPrimitiveType -> value.toByte()
-            value is UShort && returnType == Short::class.javaPrimitiveType -> value.toShort()
-            value is UInt && returnType == Int::class.javaPrimitiveType -> value.toInt()
-            value is ULong && returnType == Long::class.javaPrimitiveType -> value.toLong()
-            value is UByteArray && returnType == ByteArray::class.java -> value.toByteArray()
-            value is UShortArray && returnType == ShortArray::class.java -> value.toShortArray()
-            value is UIntArray && returnType == IntArray::class.java -> value.toIntArray()
-            value is ULongArray && returnType == LongArray::class.java -> value.toLongArray()
-            else -> value
         }
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun setProperty(prop: KProperty1<*, *>, value: Any?, forceSet: Boolean = false) {
-        val propType = prop.returnType.jvmErasure
-
-        // For inline classes, always box the underlying values as wrapper types.
-        // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
-        // whether a class is inline, so as a workaround, we have to enumerate some common-used types here.
-        val boxedValue = when {
-            propType == UByte::class && value is Byte -> value.toUByte()
-            propType == UShort::class && value is Short -> value.toUShort()
-            propType == UInt::class && value is Int -> value.toUInt()
-            propType == ULong::class && value is Long -> value.toULong()
-            propType == UByteArray::class && value is ByteArray -> value.toUByteArray()
-            propType == UShortArray::class && value is ShortArray -> value.toUShortArray()
-            propType == UIntArray::class && value is IntArray -> value.toUIntArray()
-            propType == ULongArray::class && value is LongArray -> value.toULongArray()
-            else -> value
-        }
-
-        doSetProperty(prop.name, boxedValue, forceSet)
+        doSetProperty(prop.name, prop.returnType.boxFrom(value), forceSet)
     }
 
     private fun doSetProperty(name: String, value: Any?, forceSet: Boolean = false) {
