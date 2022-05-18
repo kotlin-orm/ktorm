@@ -17,11 +17,11 @@
 package org.ktorm.dsl
 
 import org.ktorm.database.Database
+import org.ktorm.entity.defaultValue
 import org.ktorm.expression.*
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
-import org.ktorm.schema.defaultValue
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 import java.sql.PreparedStatement
