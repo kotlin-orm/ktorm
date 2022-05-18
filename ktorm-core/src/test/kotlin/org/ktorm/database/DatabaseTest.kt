@@ -6,9 +6,9 @@ import org.ktorm.dsl.delete
 import org.ktorm.dsl.eq
 import org.ktorm.dsl.insert
 import org.ktorm.entity.count
+import org.ktorm.entity.defaultValue
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.Table
-import org.ktorm.schema.defaultValue
 import org.ktorm.schema.varchar
 
 /**
