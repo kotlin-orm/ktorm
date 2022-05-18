@@ -48,7 +48,7 @@ internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
 }
 
 /**
- * Return a default value for the class. 
+ * Return a default value for the class.
  */
 internal val Class<*>.defaultValue: Any get() {
     val value = when {
