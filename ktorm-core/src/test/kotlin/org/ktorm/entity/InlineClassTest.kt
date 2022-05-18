@@ -7,10 +7,7 @@ import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
 import org.ktorm.dsl.map
 import org.ktorm.dsl.select
-import org.ktorm.schema.BaseTable
-import org.ktorm.schema.Column
-import org.ktorm.schema.SqlType
-import org.ktorm.schema.Table
+import org.ktorm.schema.*
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
@@ -78,6 +75,9 @@ class InlineClassTest : BaseTest() {
 
     @Test
     fun testUnsignedNullable() {
+        val unsigned2 = TestUnsignedNullable { id = null }
+        assert(unsigned2.id == null)
+
         val t = object : Table<TestUnsignedNullable>("T_TEST_UNSIGNED_NULLABLE") {
             val id = ulong("ID").primaryKey().bindTo { it.id }
         }
@@ -193,6 +193,28 @@ class InlineClassTest : BaseTest() {
         value class IC2(val ic1: IC1?)
         @JvmInline
         value class IC3(val ic2: IC2)
+
+        interface TestEntity : Entity<TestEntity> {
+            companion object : Entity.Factory<TestEntity>()
+            var id: IC3
+        }
+    }
+
+    fun BaseTable<*>.case5(name: String): Column<Case5.IC3> {
+        return registerColumn(name, object : SqlType<Case5.IC3>(Types.VARCHAR, "varchar") {
+            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Case5.IC3) {
+                val s = parameter.ic2.ic1?.s
+                if (s == null) {
+                    ps.setNull(index, typeCode)
+                } else {
+                    ps.setString(index, s)
+                }
+            }
+
+            override fun doGetResult(rs: ResultSet, index: Int): Case5.IC3 {
+                return Case5.IC3(Case5.IC2(Case5.IC1(rs.getString(index))))
+            }
+        })
     }
 
     @Test
@@ -220,5 +242,31 @@ class InlineClassTest : BaseTest() {
         assertEquals(Case5.IC3::class.boxFrom("hello"), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
         assertEquals(Case5.IC3::class.boxFrom(Case5.IC1("hello")), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
         assertEquals(Case5.IC3::class.boxFrom(Case5.IC3(Case5.IC2(Case5.IC1("hello")))), Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
+    }
+
+    @Test
+    fun testNestedInlineClassCase5() {
+        for (method in Case5.TestEntity::class.java.methods) {
+            println(method)
+        }
+
+        val t = object : Table<Case5.TestEntity>("T_TEST_NESTED_INLINE_CLASS_CASE5") {
+            val id = case5("ID").primaryKey().bindTo { it.id }
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """CREATE TABLE T_TEST_NESTED_INLINE_CLASS_CASE5(ID VARCHAR NOT NULL PRIMARY KEY)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        val entity = Case5.TestEntity { id = Case5.IC3(Case5.IC2(Case5.IC1("hello"))) }
+        assert(entity.id == Case5.IC3(Case5.IC2(Case5.IC1("hello"))))
+        database.sequenceOf(t).add(entity)
+
+        val ids = database.sequenceOf(t).toList().map { it.id }
+        println(ids)
+        assert(ids == listOf(Case5.IC3(Case5.IC2(Case5.IC1("hello")))))
     }
 }
