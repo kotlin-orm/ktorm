@@ -18,10 +18,73 @@ package org.ktorm.entity
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 import kotlin.reflect.jvm.jvmErasure
+
+/**
+ * Return the corresponding Kotlin property of this method if exists and a flag indicates whether
+ * it's a getter (true) or setter (false).
+ */
+internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
+    for (prop in declaringClass.kotlin.declaredMemberProperties) {
+        if (prop.javaGetter == this) {
+            return Pair(prop, true)
+        }
+        if (prop is KMutableProperty<*> && prop.javaSetter == this) {
+            return Pair(prop, false)
+        }
+    }
+    return null
+}
+
+/**
+ * Return a default value for the class. 
+ */
+internal val Class<*>.defaultValue: Any get() {
+    val value = when {
+        this == Boolean::class.javaPrimitiveType -> false
+        this == Char::class.javaPrimitiveType -> 0.toChar()
+        this == Byte::class.javaPrimitiveType -> 0.toByte()
+        this == Short::class.javaPrimitiveType -> 0.toShort()
+        this == Int::class.javaPrimitiveType -> 0
+        this == Long::class.javaPrimitiveType -> 0L
+        this == Float::class.javaPrimitiveType -> 0.0F
+        this == Double::class.javaPrimitiveType -> 0.0
+        this == String::class.java -> ""
+        this == UByte::class.java -> 0.toUByte()
+        this == UShort::class.java -> 0.toUShort()
+        this == UInt::class.java -> 0U
+        this == ULong::class.java -> 0UL
+        this == Set::class.java -> LinkedHashSet<Any?>()
+        this == List::class.java -> ArrayList<Any?>()
+        this == Collection::class.java -> ArrayList<Any?>()
+        this == Map::class.java -> LinkedHashMap<Any?, Any?>()
+        this == Queue::class.java || this == Deque::class.java -> LinkedList<Any?>()
+        this == SortedSet::class.java || this == NavigableSet::class.java -> TreeSet<Any?>()
+        this == SortedMap::class.java || this == NavigableMap::class.java -> TreeMap<Any?, Any?>()
+        this.isEnum -> this.enumConstants[0]
+        this.isArray -> java.lang.reflect.Array.newInstance(this.componentType, 0)
+        this.kotlin.isSubclassOf(Entity::class) -> Entity.create(this.kotlin)
+        else -> this.kotlin.createInstance()
+    }
+
+    if (this.kotlin.isInstance(value)) {
+        return value
+    } else {
+        // never happens...
+        throw AssertionError("$value must be instance of $this")
+    }
+}
 
 /**
  * Check if this class is an inline class.

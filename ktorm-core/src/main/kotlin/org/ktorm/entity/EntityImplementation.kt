@@ -18,8 +18,6 @@ package org.ktorm.entity
 
 import org.ktorm.database.Database
 import org.ktorm.schema.Table
-import org.ktorm.schema.defaultValue
-import org.ktorm.schema.kotlinProperty
 import java.io.*
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
