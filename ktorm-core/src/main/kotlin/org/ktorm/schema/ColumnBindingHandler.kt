@@ -84,7 +84,6 @@ internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
     return null
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 internal val Class<*>.defaultValue: Any get() {
     val value = when {
         this == Boolean::class.javaPrimitiveType -> false
@@ -100,10 +99,6 @@ internal val Class<*>.defaultValue: Any get() {
         this == UShort::class.java -> 0.toUShort()
         this == UInt::class.java -> 0U
         this == ULong::class.java -> 0UL
-        this == UByteArray::class.java -> ubyteArrayOf()
-        this == UShortArray::class.java -> ushortArrayOf()
-        this == UIntArray::class.java -> uintArrayOf()
-        this == ULongArray::class.java -> ulongArrayOf()
         this == Set::class.java -> LinkedHashSet<Any?>()
         this == List::class.java -> ArrayList<Any?>()
         this == Collection::class.java -> ArrayList<Any?>()

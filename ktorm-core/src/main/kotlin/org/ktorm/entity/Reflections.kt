@@ -21,6 +21,7 @@ import java.lang.reflect.Method
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Check if this class is an inline class.
@@ -46,7 +47,7 @@ internal fun KType.boxFrom(value: Any?): Any? {
     if (value == null && this.isMarkedNullable) {
         return null
     } else {
-        return (this.classifier as KClass<*>).boxFrom(value)
+        return this.jvmErasure.boxFrom(value)
     }
 }
 

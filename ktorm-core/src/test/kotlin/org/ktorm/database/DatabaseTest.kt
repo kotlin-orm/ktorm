@@ -14,7 +14,6 @@ import org.ktorm.schema.varchar
 /**
  * Created by vince on Dec 02, 2018.
  */
-@ExperimentalUnsignedTypes
 class DatabaseTest : BaseTest() {
 
     @Test
@@ -110,9 +109,5 @@ class DatabaseTest : BaseTest() {
         assert(UShort::class.java.defaultValue !== UShort::class.java.defaultValue)
         assert(UInt::class.java.defaultValue !== UInt::class.java.defaultValue)
         assert(ULong::class.java.defaultValue !== ULong::class.java.defaultValue)
-        assert(UByteArray::class.java.defaultValue !== UByteArray::class.java.defaultValue)
-        assert(UShortArray::class.java.defaultValue !== UShortArray::class.java.defaultValue)
-        assert(UIntArray::class.java.defaultValue !== UIntArray::class.java.defaultValue)
-        assert(ULongArray::class.java.defaultValue !== ULongArray::class.java.defaultValue)
     }
 }

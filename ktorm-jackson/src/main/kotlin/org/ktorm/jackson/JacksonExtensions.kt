@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.cfg.MapperConfig
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.jvm.*
 
 internal fun JsonGenerator.configureIndentOutputIfEnabled() {
@@ -111,17 +112,11 @@ internal inline fun <reified T : Annotation> KProperty1<*, *>.findAnnotationForD
     return annotation
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 internal fun KProperty1<*, *>.getPropertyType(): java.lang.reflect.Type {
-    return when (returnType.jvmErasure) {
-        UByte::class -> UByte::class.java
-        UShort::class -> UShort::class.java
-        UInt::class -> UInt::class.java
-        ULong::class -> ULong::class.java
-        UByteArray::class -> UByteArray::class.java
-        UShortArray::class -> UShortArray::class.java
-        UIntArray::class -> UIntArray::class.java
-        ULongArray::class -> ULongArray::class.java
-        else -> returnType.javaType
+    val cls = returnType.jvmErasure
+    if (cls.isValue && cls.hasAnnotation<JvmInline>()) {
+        return cls.java
+    } else {
+        return returnType.javaType
     }
 }
