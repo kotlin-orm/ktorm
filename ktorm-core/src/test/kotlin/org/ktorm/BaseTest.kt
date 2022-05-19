@@ -73,6 +73,9 @@ open class BaseTest {
         var department: Department
 
         val upperName get() = name.uppercase()
+
+        @JvmDefault
+        @Suppress("DEPRECATION")
         fun upperName() = name.uppercase()
     }
 

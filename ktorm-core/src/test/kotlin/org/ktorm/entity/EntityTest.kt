@@ -35,6 +35,10 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testEntityProperties() {
+        for (method in Employee::class.java.methods) {
+            println(method)
+        }
+
         val employee = Employee {
             name = "vince"
         }

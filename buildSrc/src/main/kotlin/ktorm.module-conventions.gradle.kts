@@ -35,3 +35,11 @@ tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") {
         )
     }
 }
+
+tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin") {
+    kotlinOptions {
+        freeCompilerArgs = listOf(
+            "-Xjvm-default=enable"
+        )
+    }
+}
