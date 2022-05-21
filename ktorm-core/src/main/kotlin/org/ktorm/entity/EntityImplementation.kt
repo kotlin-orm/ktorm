@@ -40,7 +40,6 @@ internal class EntityImplementation(
 
     companion object {
         private const val serialVersionUID = 1L
-        private val defaultImplsCache: MutableMap<Method, Method> = Collections.synchronizedMap(WeakHashMap())
     }
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
@@ -89,14 +88,14 @@ internal class EntityImplementation(
                     return null
                 }
             } else {
-                return callDefaultImpl(proxy, method, args)
+                return DefaultMethodHandler.forMethod(method).invoke(proxy, args)
             }
         } else {
             val func = method.kotlinFunction
             if (func != null && !func.isAbstract) {
-                return callDefaultImpl(proxy, method, args)
+                return DefaultMethodHandler.forMethod(method).invoke(proxy, args)
             } else {
-                throw IllegalStateException("Unrecognized method: $method")
+                throw IllegalStateException("Unsupported method invocation: $method")
             }
         }
     }
@@ -127,19 +126,6 @@ internal class EntityImplementation(
         if (type.isEnum) return
 
         setProperty(prop, value)
-    }
-
-    private fun callDefaultImpl(proxy: Any, method: Method, args: Array<out Any>?): Any? {
-        val impl = defaultImplsCache.computeIfAbsent(method) {
-            val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
-            cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
-        }
-
-        if (args == null) {
-            return impl.invoke0(null, proxy)
-        } else {
-            return impl.invoke0(null, proxy, *args)
-        }
     }
 
     fun hasProperty(prop: KProperty1<*, *>): Boolean {
