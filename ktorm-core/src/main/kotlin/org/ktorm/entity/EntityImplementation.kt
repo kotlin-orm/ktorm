@@ -95,7 +95,7 @@ internal class EntityImplementation(
             if (func != null && !func.isAbstract) {
                 return DefaultMethodHandler.forMethod(method).invoke(proxy, args)
             } else {
-                throw IllegalStateException("Unsupported method invocation: $method")
+                throw IllegalStateException("Cannot invoke entity abstract method: $method")
             }
         }
     }

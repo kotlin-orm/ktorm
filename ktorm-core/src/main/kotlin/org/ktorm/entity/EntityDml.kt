@@ -201,7 +201,7 @@ private fun EntitySequence<*, *>.checkIfSequenceModified() {
     if (isModified) {
         throw UnsupportedOperationException(
             "Entity manipulation functions are not supported by this sequence object. " +
-                "Please call on the origin sequence returned from database.sequenceOf(table)"
+            "Please call on the origin sequence returned from database.sequenceOf(table)"
         )
     }
 }

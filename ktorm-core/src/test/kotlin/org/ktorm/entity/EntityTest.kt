@@ -35,23 +35,29 @@ class EntityTest : BaseTest() {
 
     @Test
     fun testEntityProperties() {
-        for (method in Employee::class.java.methods) {
-            println(method)
-        }
-
-        val employee = Employee {
-            name = "vince"
-        }
-
+        val employee = Employee { name = "vince" }
         println(employee)
 
         assert(employee["name"] == "vince")
         assert(employee.name == "vince")
-        assert(employee.upperName == "VINCE")
-        assert(employee.upperName() == "VINCE")
 
         assert(employee["job"] == null)
         assert(employee.job == "")
+    }
+
+    @Test
+    fun testDefaultMethod() {
+        for (method in Employee::class.java.methods) {
+            println(method)
+        }
+
+        val employee = Employee { name = "vince" }
+        println(employee)
+
+        assert(employee.upperName == "VINCE")
+        assert(employee.upperName() == "VINCE")
+        assert(employee.nameWithPrefix(":") == ":vince")
+        assert(employee.nameWithSuffix(":") == "vince:")
     }
 
     @Test
