@@ -25,24 +25,24 @@ import java.lang.reflect.Method
 import java.util.*
 
 internal class DefaultMethodHandler(
-    private val kotlinDefaultImplMethod: Method? = null,
-    private val javaDefaultMethodHandle: MethodHandle? = null
+    private val javaDefaultMethodHandle: MethodHandle? = null,
+    private val kotlinDefaultImplMethod: Method? = null
 ) {
 
     fun invoke(proxy: Any, args: Array<out Any>?): Any? {
-        if (kotlinDefaultImplMethod != null) {
-            if (args == null) {
-                return kotlinDefaultImplMethod.invoke0(null, proxy)
-            } else {
-                return kotlinDefaultImplMethod.invoke0(null, proxy, *args)
-            }
-        }
-
         if (javaDefaultMethodHandle != null) {
             if (args == null) {
                 return javaDefaultMethodHandle.bindTo(proxy).invokeWithArguments()
             } else {
                 return javaDefaultMethodHandle.bindTo(proxy).invokeWithArguments(*args)
+            }
+        }
+
+        if (kotlinDefaultImplMethod != null) {
+            if (args == null) {
+                return kotlinDefaultImplMethod.invoke0(null, proxy)
+            } else {
+                return kotlinDefaultImplMethod.invoke0(null, proxy, *args)
             }
         }
 
@@ -55,29 +55,19 @@ internal class DefaultMethodHandler(
 
         fun forMethod(method: Method): DefaultMethodHandler {
             return handlersCache.computeIfAbsent(method) {
-                val defaultImpl = getKotlinDefaultImplMethod(method)
-                if (defaultImpl != null) {
-                    DefaultMethodHandler(kotlinDefaultImplMethod = defaultImpl)
+                if (method.isDefault) {
+                    val handle = unreflectSpecial(method)
+                    DefaultMethodHandler(javaDefaultMethodHandle = handle)
                 } else {
-                    DefaultMethodHandler(javaDefaultMethodHandle = getJavaDefaultMethodHandle(method))
+                    val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
+                    val impl = cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
+                    DefaultMethodHandler(kotlinDefaultImplMethod = impl)
                 }
             }
         }
 
         @Suppress("SwallowedException")
-        private fun getKotlinDefaultImplMethod(method: Method): Method? {
-            try {
-                val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
-                return cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
-            } catch (e: ClassNotFoundException) {
-                return null
-            } catch (e: NoSuchMethodException) {
-                return null
-            }
-        }
-
-        @Suppress("SwallowedException")
-        private fun getJavaDefaultMethodHandle(method: Method): MethodHandle? {
+        private fun unreflectSpecial(method: Method): MethodHandle {
             try {
                 val allModes = PUBLIC or PRIVATE or PROTECTED or PACKAGE
                 val lookup = lookupConstructor.newInstance(method.declaringClass, allModes)
@@ -97,7 +87,7 @@ internal class DefaultMethodHandler(
                 val msg = "" +
                     "Cannot find constructor MethodHandles.Lookup(Class, int), " +
                     "please ensure you are using JDK 8 or above."
-                throw IllegalStateException(msg)
+                throw IllegalStateException(msg, e)
             }
         }
     }

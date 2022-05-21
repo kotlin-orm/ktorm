@@ -199,10 +199,10 @@ private fun EntitySequence<*, *>.checkIfSequenceModified() {
         || expression.limit != null
 
     if (isModified) {
-        throw UnsupportedOperationException(
+        val msg = "" +
             "Entity manipulation functions are not supported by this sequence object. " +
             "Please call on the origin sequence returned from database.sequenceOf(table)"
-        )
+        throw UnsupportedOperationException(msg)
     }
 }
 
