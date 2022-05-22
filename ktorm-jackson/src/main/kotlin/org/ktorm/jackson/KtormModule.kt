@@ -21,9 +21,8 @@ import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
-import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
-import java.util.ServiceLoader
 import org.ktorm.entity.Entity
+import java.util.*
 
 /**
  * Jackson [Module] implementation that supports serializing Ktorm's entity objects in JSON format.
