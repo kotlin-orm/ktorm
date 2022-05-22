@@ -18,6 +18,7 @@ package org.ktorm.entity
 
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodHandles.Lookup
 import java.lang.invoke.MethodHandles.Lookup.*
 import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
@@ -51,7 +52,61 @@ internal class DefaultMethodHandler(
 
     companion object {
         private val handlersCache = Collections.synchronizedMap(WeakHashMap<Method, DefaultMethodHandler>())
-        private val lookupConstructor = initLookupConstructor()
+        private val privateLookupIn: Method?
+        private val lookupConstructor: Constructor<Lookup>?
+
+        init {
+            privateLookupIn = initPrivateLookupInMethod()
+            lookupConstructor = if (privateLookupIn == null) initLookupConstructor() else null
+        }
+
+        private fun initPrivateLookupInMethod(): Method? {
+            try {
+                return MethodHandles::class.java.getMethod("privateLookupIn", Class::class.java, Lookup::class.java)
+            } catch (e: NoSuchMethodException) {
+                // MethodHandles.privateLookupIn(Class, MethodHandles.Lookup) doesn't exist in JDK 1.8
+                return null
+            }
+        }
+
+        private fun initLookupConstructor(): Constructor<Lookup>? {
+            try {
+                val c = Lookup::class.java.getDeclaredConstructor(Class::class.java, Int::class.javaPrimitiveType)
+                c.isAccessible = true
+                return c
+            } catch (e: NoSuchMethodException) {
+                val msg = "" +
+                    "Cannot find constructor MethodHandles.Lookup(Class, int), " +
+                    "please ensure you are using JDK 1.8 or above."
+                throw IllegalStateException(msg, e)
+            }
+        }
+
+        @Suppress("SwallowedException")
+        private fun unreflectSpecial(method: Method): MethodHandle {
+            // For JDK 9 or above
+            if (privateLookupIn != null) {
+                val lookup = privateLookupIn.invoke0(null, method.declaringClass, MethodHandles.lookup()) as Lookup
+                return lookup.unreflectSpecial(method, method.declaringClass)
+            }
+
+            // For JDK 1.8
+            if (lookupConstructor != null) {
+                try {
+                    val allModes = PUBLIC or PRIVATE or PROTECTED or PACKAGE
+                    val lookup = lookupConstructor.newInstance(method.declaringClass, allModes)
+                    return lookup.unreflectSpecial(method, method.declaringClass)
+                } catch (e: InvocationTargetException) {
+                    throw e.targetException
+                }
+            }
+
+            // Throws error for JDK version lower than 1.8.
+            val msg = "" +
+                "Cannot find constructor MethodHandles.Lookup(Class, int), " +
+                "please ensure you are using JDK 1.8 or above."
+            throw AssertionError(msg)
+        }
 
         fun forMethod(method: Method): DefaultMethodHandler {
             return handlersCache.computeIfAbsent(method) {
@@ -63,31 +118,6 @@ internal class DefaultMethodHandler(
                     val impl = cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
                     DefaultMethodHandler(kotlinDefaultImplMethod = impl)
                 }
-            }
-        }
-
-        @Suppress("SwallowedException")
-        private fun unreflectSpecial(method: Method): MethodHandle {
-            try {
-                val allModes = PUBLIC or PRIVATE or PROTECTED or PACKAGE
-                val lookup = lookupConstructor.newInstance(method.declaringClass, allModes)
-                return lookup.unreflectSpecial(method, method.declaringClass)
-            } catch (e: InvocationTargetException) {
-                throw e.targetException
-            }
-        }
-
-        private fun initLookupConstructor(): Constructor<MethodHandles.Lookup> {
-            try {
-                val constructor = MethodHandles.Lookup::class.java
-                    .getDeclaredConstructor(Class::class.java, Int::class.javaPrimitiveType)
-                constructor.isAccessible = true
-                return constructor
-            } catch (e: NoSuchMethodException) {
-                val msg = "" +
-                    "Cannot find constructor MethodHandles.Lookup(Class, int), " +
-                    "please ensure you are using JDK 8 or above."
-                throw IllegalStateException(msg, e)
             }
         }
     }

@@ -27,7 +27,7 @@ detekt {
 
 tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "9"
         allWarningsAsErrors = true
         freeCompilerArgs = listOf(
             "-Xexplicit-api=strict",
@@ -38,6 +38,7 @@ tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") {
 
 tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin") {
     kotlinOptions {
+        jvmTarget = "9"
         freeCompilerArgs = listOf(
             "-Xjvm-default=enable"
         )
