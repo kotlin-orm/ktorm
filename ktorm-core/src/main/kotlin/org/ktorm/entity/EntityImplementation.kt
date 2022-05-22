@@ -29,18 +29,15 @@ import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
 
 internal class EntityImplementation(
-    var entityClass: KClass<*>,
-    @Transient var fromDatabase: Database?,
-    @Transient var fromTable: Table<*>?,
-    @Transient var parent: EntityImplementation?
+    _entityClass: KClass<*>, _fromDatabase: Database?, _fromTable: Table<*>?, _parent: EntityImplementation?
 ) : InvocationHandler, Serializable {
 
+    var entityClass: KClass<*> = _entityClass
     var values = LinkedHashMap<String, Any?>()
+    @Transient var fromDatabase: Database? = _fromDatabase
+    @Transient var fromTable: Table<*>? = _fromTable
+    @Transient var parent: EntityImplementation? = _parent
     @Transient var changedProperties = LinkedHashSet<String>()
-
-    companion object {
-        private const val serialVersionUID = 1L
-    }
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         return when (method.declaringClass.kotlin) {
@@ -115,7 +112,8 @@ internal class EntityImplementation(
     private fun cacheDefaultValue(prop: KProperty1<*, *>, value: Any) {
         val type = prop.javaGetter!!.returnType
 
-        // Skip for primitive types, enums and string, because their default values always share the same instance.
+        // No need to cache primitive types, enums and string,
+        // because their default values always share the same instance.
         if (type == Boolean::class.javaPrimitiveType) return
         if (type == Char::class.javaPrimitiveType) return
         if (type == Byte::class.javaPrimitiveType) return
@@ -125,6 +123,7 @@ internal class EntityImplementation(
         if (type == String::class.java) return
         if (type.isEnum) return
 
+        // Cache the default value to avoid the weird case that entity.prop !== entity.prop
         setProperty(prop, value)
     }
 
@@ -160,14 +159,14 @@ internal class EntityImplementation(
 
         for ((name, value) in values) {
             if (value is Entity<*>) {
-                val valueCopy = value.copy()
+                val copied = value.copy()
 
                 // Keep the parent relationship.
-                if (valueCopy.implementation.parent == this) {
-                    valueCopy.implementation.parent = entity.implementation
+                if (copied.implementation.parent == this) {
+                    copied.implementation.parent = entity.implementation
                 }
 
-                entity.implementation.values[name] = valueCopy
+                entity.implementation.values[name] = copied
             } else {
                 entity.implementation.values[name] = value?.let { deserialize(serialize(it)) }
             }
@@ -201,7 +200,8 @@ internal class EntityImplementation(
 
     @Suppress("UNCHECKED_CAST")
     private fun readObject(input: ObjectInputStream) {
-        entityClass = Class.forName(input.readUTF()).kotlin
+        val javaClass = Class.forName(input.readUTF())
+        entityClass = javaClass.kotlin
         values = input.readObject() as LinkedHashMap<String, Any?>
         changedProperties = LinkedHashSet()
     }
@@ -225,5 +225,9 @@ internal class EntityImplementation(
 
     override fun toString(): String {
         return entityClass.simpleName + values
+    }
+
+    companion object {
+        private const val serialVersionUID = 1L
     }
 }

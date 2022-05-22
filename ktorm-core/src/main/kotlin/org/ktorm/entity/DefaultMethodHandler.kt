@@ -60,11 +60,12 @@ internal class DefaultMethodHandler(
             lookupConstructor = if (privateLookupIn == null) initLookupConstructor() else null
         }
 
+        @Suppress("SwallowedException")
         private fun initPrivateLookupInMethod(): Method? {
             try {
                 return MethodHandles::class.java.getMethod("privateLookupIn", Class::class.java, Lookup::class.java)
             } catch (e: NoSuchMethodException) {
-                // MethodHandles.privateLookupIn(Class, MethodHandles.Lookup) doesn't exist in JDK 1.8
+                // MethodHandles.privateLookupIn(Class, MethodHandles.Lookup) doesn't exist in JDK 1.8.
                 return null
             }
         }
@@ -84,13 +85,13 @@ internal class DefaultMethodHandler(
 
         @Suppress("SwallowedException")
         private fun unreflectSpecial(method: Method): MethodHandle {
-            // For JDK 9 or above
+            // For JDK 9 or above.
             if (privateLookupIn != null) {
                 val lookup = privateLookupIn.invoke0(null, method.declaringClass, MethodHandles.lookup()) as Lookup
                 return lookup.unreflectSpecial(method, method.declaringClass)
             }
 
-            // For JDK 1.8
+            // For JDK 1.8.
             if (lookupConstructor != null) {
                 try {
                     val allModes = PUBLIC or PRIVATE or PROTECTED or PACKAGE

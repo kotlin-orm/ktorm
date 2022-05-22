@@ -137,7 +137,7 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
 }
 
 /**
- * Remove all of the elements of this sequence. The sequence will be empty after this function returns.
+ * Remove all the elements of this sequence. The sequence will be empty after this function returns.
  *
  * @since 2.7
  */
