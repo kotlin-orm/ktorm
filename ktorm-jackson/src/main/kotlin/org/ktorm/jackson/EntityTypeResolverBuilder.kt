@@ -17,93 +17,96 @@
 package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.databind.DeserializationConfig
 import com.fasterxml.jackson.databind.JavaType
-import com.fasterxml.jackson.databind.SerializationConfig
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
 import org.ktorm.entity.Entity
 
 /**
  * Created by vince on Aug 13, 2018.
  */
-internal class EntityTypeResolverBuilder(val delegate: StdTypeResolverBuilder) : StdTypeResolverBuilder() {
+internal class EntityTypeResolverBuilder(
+    src: DefaultTypeResolverBuilder
+) : DefaultTypeResolverBuilder(src._appliesFor, src._subtypeValidator) {
+
     companion object {
-        private const val serialVersionUID = 1L
+        private const val serialVersionUID = 2L
     }
 
     init {
-        this._idType = delegate["_idType"] as JsonTypeInfo.Id?
-        this._includeAs = delegate["_includeAs"] as JsonTypeInfo.As?
-        this._typeProperty = delegate["_typeProperty"] as String?
-        this._typeIdVisible = delegate["_typeIdVisible"] as Boolean
-        this._defaultImpl = delegate["_defaultImpl"] as Class<*>?
-        this._customIdResolver = delegate["_customIdResolver"] as TypeIdResolver?
+        this._idType = src._idType
+        this._includeAs = src._includeAs
+        this._typeProperty = src._typeProperty
+        this._typeIdVisible = src._typeIdVisible
+        this._defaultImpl = src._defaultImpl
+        this._customIdResolver = src._customIdResolver
     }
 
-    override fun getDefaultImpl(): Class<*>? {
-        return _defaultImpl
-    }
-
-    override fun buildTypeSerializer(
-        config: SerializationConfig,
-        baseType: JavaType,
-        subtypes: MutableCollection<NamedType>?
-    ): TypeSerializer? {
-
-        if (baseType.isTypeOrSubTypeOf(Entity::class.java)) {
+    override fun useForType(t: JavaType): Boolean {
+        if (t.isTypeOrSubTypeOf(Entity::class.java)) {
             // Always use type serialization for entity types...
-            return super.buildTypeSerializer(config, baseType, subtypes)
+            return true
         } else {
-            return delegate.buildTypeSerializer(config, baseType, subtypes)
+            return super.useForType(t)
         }
     }
+}
 
-    override fun buildTypeDeserializer(
-        config: DeserializationConfig,
-        baseType: JavaType,
-        subtypes: MutableCollection<NamedType>?
-    ): TypeDeserializer? {
+@Suppress("ObjectPropertyName")
+private val StdTypeResolverBuilder._idType: JsonTypeInfo.Id? get() {
+    val field = StdTypeResolverBuilder::class.java.getDeclaredField("_idType")
+    field.isAccessible = true
+    return field.get(this) as JsonTypeInfo.Id?
+}
 
-        if (baseType.isTypeOrSubTypeOf(Entity::class.java)) {
-            // Always use type serialization for entity types...
-            return super.buildTypeDeserializer(config, baseType, subtypes)
-        } else {
-            return delegate.buildTypeDeserializer(config, baseType, subtypes)
-        }
-    }
+@Suppress("ObjectPropertyName")
+private val StdTypeResolverBuilder._includeAs: JsonTypeInfo.As? get() {
+    val field = StdTypeResolverBuilder::class.java.getDeclaredField("_includeAs")
+    field.isAccessible = true
+    return field.get(this) as JsonTypeInfo.As?
+}
 
-    override fun init(idType: JsonTypeInfo.Id, res: TypeIdResolver?): StdTypeResolverBuilder {
-        delegate.init(idType, res)
-        return super.init(idType, res)
-    }
+@Suppress("ObjectPropertyName")
+private val StdTypeResolverBuilder._typeProperty: String? get() {
+    val field = StdTypeResolverBuilder::class.java.getDeclaredField("_typeProperty")
+    field.isAccessible = true
+    return field.get(this) as String?
+}
 
-    override fun inclusion(includeAs: JsonTypeInfo.As): StdTypeResolverBuilder {
-        delegate.inclusion(includeAs)
-        return super.inclusion(includeAs)
-    }
+@Suppress("ObjectPropertyName")
+private val StdTypeResolverBuilder._typeIdVisible: Boolean get() {
+    val field = StdTypeResolverBuilder::class.java.getDeclaredField("_typeIdVisible")
+    field.isAccessible = true
+    return field.get(this) as Boolean
+}
 
-    override fun typeProperty(propName: String?): StdTypeResolverBuilder {
-        delegate.typeProperty(propName)
-        return super.typeProperty(propName)
-    }
+@Suppress("ObjectPropertyName")
+private val StdTypeResolverBuilder._defaultImpl: Class<*>? get() {
+    val field = StdTypeResolverBuilder::class.java.getDeclaredField("_defaultImpl")
+    field.isAccessible = true
+    return field.get(this) as Class<*>?
+}
 
-    override fun defaultImpl(defaultImpl: Class<*>?): StdTypeResolverBuilder {
-        delegate.defaultImpl(defaultImpl)
-        return super.defaultImpl(defaultImpl)
-    }
+@Suppress("ObjectPropertyName")
+private val StdTypeResolverBuilder._customIdResolver: TypeIdResolver? get() {
+    val field = StdTypeResolverBuilder::class.java.getDeclaredField("_customIdResolver")
+    field.isAccessible = true
+    return field.get(this) as TypeIdResolver?
+}
 
-    override fun typeIdVisibility(isVisible: Boolean): StdTypeResolverBuilder {
-        delegate.typeIdVisibility(isVisible)
-        return super.typeIdVisibility(isVisible)
-    }
+@Suppress("ObjectPropertyName")
+private val DefaultTypeResolverBuilder._appliesFor: ObjectMapper.DefaultTyping get() {
+    val field = DefaultTypeResolverBuilder::class.java.getDeclaredField("_appliesFor")
+    field.isAccessible = true
+    return field.get(this) as ObjectMapper.DefaultTyping
+}
 
-    private operator fun StdTypeResolverBuilder.get(fieldName: String): Any? {
-        val field = StdTypeResolverBuilder::class.java.getDeclaredField(fieldName)
-        field.isAccessible = true
-        return field.get(this)
-    }
+@Suppress("ObjectPropertyName")
+private val DefaultTypeResolverBuilder._subtypeValidator: PolymorphicTypeValidator get() {
+    val field = DefaultTypeResolverBuilder::class.java.getDeclaredField("_subtypeValidator")
+    field.isAccessible = true
+    return field.get(this) as PolymorphicTypeValidator
 }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
 import java.util.ServiceLoader
 import org.ktorm.entity.Entity
@@ -61,12 +62,12 @@ public class KtormModule : Module() {
             val objectType = codec.constructType(Any::class.java)
 
             val serializerTyper = codec.serializationConfig.getDefaultTyper(objectType)
-            if (serializerTyper != null && serializerTyper is StdTypeResolverBuilder) {
+            if (serializerTyper != null && serializerTyper is DefaultTypeResolverBuilder) {
                 codec.setConfig(codec.serializationConfig.with(EntityTypeResolverBuilder(serializerTyper)))
             }
 
             val deserializerTyper = codec.deserializationConfig.getDefaultTyper(objectType)
-            if (deserializerTyper != null && deserializerTyper is StdTypeResolverBuilder) {
+            if (deserializerTyper != null && deserializerTyper is DefaultTypeResolverBuilder) {
                 codec.setConfig(codec.deserializationConfig.with(EntityTypeResolverBuilder(deserializerTyper)))
             }
         }
