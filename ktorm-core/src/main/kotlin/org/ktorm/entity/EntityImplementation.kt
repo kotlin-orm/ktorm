@@ -28,15 +28,16 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
 
+@Suppress("CanBePrimaryConstructorProperty")
 internal class EntityImplementation(
-    _entityClass: KClass<*>, _fromDatabase: Database?, _fromTable: Table<*>?, _parent: EntityImplementation?
+    entityClass: KClass<*>, fromDatabase: Database?, fromTable: Table<*>?, parent: EntityImplementation?
 ) : InvocationHandler, Serializable {
 
-    var entityClass: KClass<*> = _entityClass
+    var entityClass: KClass<*> = entityClass
     var values = LinkedHashMap<String, Any?>()
-    @Transient var fromDatabase: Database? = _fromDatabase
-    @Transient var fromTable: Table<*>? = _fromTable
-    @Transient var parent: EntityImplementation? = _parent
+    @Transient var fromDatabase: Database? = fromDatabase
+    @Transient var fromTable: Table<*>? = fromTable
+    @Transient var parent: EntityImplementation? = parent
     @Transient var changedProperties = LinkedHashSet<String>()
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
