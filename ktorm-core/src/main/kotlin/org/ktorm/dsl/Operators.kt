@@ -482,9 +482,12 @@ public infix fun <T : Any> ColumnDeclaring<T>.eq(value: T): BinaryExpression<Boo
     return this eq wrapArgument(value)
 }
 
-// infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-//     return expr.wrapArgument(this) eq expr
-// }
+/**
+ * Equal operator, translated to `=` in SQL.
+ */
+public infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) eq expr
+}
 
 // ------- NotEq -------
 
@@ -502,9 +505,33 @@ public infix fun <T : Any> ColumnDeclaring<T>.notEq(value: T): BinaryExpression<
     return this notEq wrapArgument(value)
 }
 
-// infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-//     return expr.wrapArgument(this) notEq expr
-// }
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ */
+public infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) notEq expr
+}
+
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ */
+public infix fun <T : Any> ColumnDeclaring<T>.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.NOT_EQUAL, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ */
+public infix fun <T : Any> ColumnDeclaring<T>.neq(value: T): BinaryExpression<Boolean> {
+    return this neq wrapArgument(value)
+}
+
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ */
+public infix fun <T : Any> T.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) neq expr
+}
 
 // ---- Between ----
 
