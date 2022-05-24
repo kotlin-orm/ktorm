@@ -355,7 +355,7 @@ class MySqlTest : BaseTest() {
     fun testIf() {
         val countRich = database
             .from(Employees)
-            .select(sum(IF(Employees.salary greaterEq 100L, 1, 0)))
+            .select(sum(IF(Employees.salary gte 100L, 1, 0)))
             .map { row -> row.getInt(1) }
 
         assert(countRich.size == 1)
@@ -366,7 +366,7 @@ class MySqlTest : BaseTest() {
     fun testSum() {
         val countRich = database
             .from(Employees)
-            .select(sum(Employees.salary.greaterEq(100L).toInt()))
+            .select(sum(Employees.salary.gte(100L).toInt()))
             .map { row -> row.getInt(1) }
 
         assert(countRich.size == 1)
