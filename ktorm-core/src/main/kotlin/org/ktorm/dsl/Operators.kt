@@ -344,6 +344,27 @@ public infix fun <T : Comparable<T>> T.greater(expr: ColumnDeclaring<T>): Binary
     return expr.wrapArgument(this) greater expr
 }
 
+/**
+ * Greater operator, translated to `>` in SQL.
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.GREATER_THAN, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+/**
+ * Greater operator, translated to `>` in SQL.
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(value: T): BinaryExpression<Boolean> {
+    return this gt wrapArgument(value)
+}
+
+/**
+ * Greater operator, translated to `>` in SQL.
+ */
+public infix fun <T : Comparable<T>> T.gt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) gt expr
+}
+
 // -------- GreaterEq ---------
 
 /**

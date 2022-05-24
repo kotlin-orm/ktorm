@@ -141,7 +141,7 @@ class QueryTest : BaseTest() {
             .from(t)
             .select(t.departmentId, avg(t.salary))
             .groupBy(t.departmentId)
-            .having(avg(t.salary).greater(100.0))
+            .having(avg(t.salary).gt(100.0))
             .associate { it.getInt(1) to it.getDouble(2) }
 
         println(salaries)
@@ -158,7 +158,7 @@ class QueryTest : BaseTest() {
             .from(Employees)
             .select(deptId, salaryAvg)
             .groupBy(deptId)
-            .having { salaryAvg greater 100.0 }
+            .having { salaryAvg gt 100.0 }
             .associate { row ->
                 row[deptId] to row[salaryAvg]
             }
@@ -176,7 +176,7 @@ class QueryTest : BaseTest() {
         val salaries = database
             .from(Employees)
             .select(salary)
-            .where { salary greater 200L }
+            .where { salary gt 200L }
             .map { it.getLong(1) }
 
         println(salaries)

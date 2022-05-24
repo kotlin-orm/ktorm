@@ -60,7 +60,7 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testAll() {
-        assert(database.employees.filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+        assert(database.employees.filter { it.departmentId eq 1 }.all { it.salary gt 49L })
     }
 
     @Test

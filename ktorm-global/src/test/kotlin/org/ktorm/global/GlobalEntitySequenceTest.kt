@@ -62,7 +62,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
 
     @Test
     fun testAll() {
-        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary gt 49L })
     }
 
     @Test
