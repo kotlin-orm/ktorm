@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    api(kotlin("stdlib"))
+    api(kotlin("stdlib-jdk8"))
     api(kotlin("reflect"))
     testImplementation(kotlin("test-junit"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${detekt.toolVersion}")
