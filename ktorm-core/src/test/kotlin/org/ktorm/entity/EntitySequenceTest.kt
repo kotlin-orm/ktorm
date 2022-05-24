@@ -160,7 +160,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testEachSum() {
         val sums = database.employees
-            .filter { it.salary lessEq 100000L }
+            .filter { it.salary lte 100000L }
             .groupingBy { it.departmentId }
             .eachSumBy { it.salary }
 

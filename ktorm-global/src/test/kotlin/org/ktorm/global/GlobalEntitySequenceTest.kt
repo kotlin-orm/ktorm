@@ -166,7 +166,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
     fun testEachSum() {
         val sums = Employees
             .asSequence()
-            .filter { it.salary lessEq 100000L }
+            .filter { it.salary lte 100000L }
             .groupingBy { it.departmentId }
             .eachSumBy { it.salary }
 
