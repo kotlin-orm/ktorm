@@ -147,7 +147,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testEachCount() {
         val counts = database.employees
-            .filter { it.salary less 100000L }
+            .filter { it.salary lt 100000L }
             .groupingBy { it.departmentId }
             .eachCount()
 

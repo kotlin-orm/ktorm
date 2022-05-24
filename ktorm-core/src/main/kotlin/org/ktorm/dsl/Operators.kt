@@ -293,6 +293,27 @@ public infix fun <T : Comparable<T>> T.less(expr: ColumnDeclaring<T>): BinaryExp
     return expr.wrapArgument(this) less expr
 }
 
+/**
+ * Less operator, translated to `<` in SQL.
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.LESS_THAN, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+/**
+ * Less operator, translated to `<` in SQL.
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(value: T): BinaryExpression<Boolean> {
+    return this lt wrapArgument(value)
+}
+
+/**
+ * Less operator, translated to `<` in SQL.
+ */
+public infix fun <T : Comparable<T>> T.lt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) lt expr
+}
+
 // ------- LessEq ---------
 
 /**
