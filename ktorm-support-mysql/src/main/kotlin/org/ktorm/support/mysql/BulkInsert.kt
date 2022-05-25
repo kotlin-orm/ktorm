@@ -93,7 +93,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
     val builder = BulkInsertStatementBuilder(table).apply(block)
 
     val expression = AliasRemover.visit(
-        BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
+        BulkInsertExpression(table.asExpression(), builder.assignments)
     )
 
     return executeUpdate(expression)
@@ -159,21 +159,8 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
  * DSL builder for bulk insert statements.
  */
 @KtormDsl
-public class BulkInsertStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertOrUpdateStatementBuilder<T>(table) {
-
-    @Deprecated("This function will be removed in the future, please use bulkInsertOrUpdate instead of bulkInsert.")
-    override fun onDuplicateKey(block: BulkInsertOrUpdateOnDuplicateKeyClauseBuilder.(T) -> Unit) {
-        super.onDuplicateKey(block)
-    }
-}
-
-/**
- * DSL builder for bulk insert or update statements.
- */
-@KtormDsl
-public open class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
+public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
     internal val assignments = ArrayList<List<ColumnAssignmentExpression<*>>>()
-    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     /**
      * Add the assignments of a new row to the bulk insert.
@@ -190,11 +177,19 @@ public open class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(internal 
             throw IllegalArgumentException("Every item in a batch operation must be the same.")
         }
     }
+}
+
+/**
+ * DSL builder for bulk insert or update statements.
+ */
+@KtormDsl
+public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertStatementBuilder<T>(table) {
+    internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
 
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    public open fun onDuplicateKey(block: BulkInsertOrUpdateOnDuplicateKeyClauseBuilder.(T) -> Unit) {
+    public fun onDuplicateKey(block: BulkInsertOrUpdateOnDuplicateKeyClauseBuilder.(T) -> Unit) {
         val builder = BulkInsertOrUpdateOnDuplicateKeyClauseBuilder()
         builder.block(table)
         updateAssignments += builder.assignments
