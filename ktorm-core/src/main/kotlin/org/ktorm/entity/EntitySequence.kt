@@ -1503,13 +1503,3 @@ public fun <E : Any> EntitySequence<E, *>.joinToString(
 ): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
-
-/**
- * Indicate that this query should acquire the record-lock, the generated SQL would be `select ... for update`.
- *
- * @since 3.1.0
- */
-@Deprecated("Will remove in the future, locking clause should be implemented in dialects respectively.")
-public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
-    return this.withExpression(expression.copy(forUpdate = true))
-}

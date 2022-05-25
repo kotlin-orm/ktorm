@@ -116,7 +116,6 @@ public sealed class QueryExpression : QuerySourceExpression() {
  * @property groupBy the grouping conditions, represents the `group by` clause of SQL.
  * @property having the having condition, represents the `having` clause of SQL.
  * @property isDistinct mark if this query is distinct, true means the SQL is `select distinct ...`.
- * @property forUpdate mark if this query should acquire the record-lock, true means the SQL is `select ... for update`.
  */
 public data class SelectExpression(
     val columns: List<ColumnDeclaringExpression<*>> = emptyList(),
@@ -125,8 +124,6 @@ public data class SelectExpression(
     val groupBy: List<ScalarExpression<*>> = emptyList(),
     val having: ScalarExpression<Boolean>? = null,
     val isDistinct: Boolean = false,
-    @Deprecated("Will remove in the future, locking clause should be implemented in dialects respectively.")
-    val forUpdate: Boolean = false,
     override val orderBy: List<OrderByExpression> = emptyList(),
     override val offset: Int? = null,
     override val limit: Int? = null,
