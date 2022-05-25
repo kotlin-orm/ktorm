@@ -42,7 +42,7 @@ public object BooleanSqlType : SqlType<Boolean>(Types.BOOLEAN, "boolean") {
         ps.setBoolean(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): Boolean? {
+    override fun doGetResult(rs: ResultSet, index: Int): Boolean {
         return rs.getBoolean(index)
     }
 }
@@ -62,7 +62,7 @@ public object IntSqlType : SqlType<Int>(Types.INTEGER, "int") {
         ps.setInt(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): Int? {
+    override fun doGetResult(rs: ResultSet, index: Int): Int {
         return rs.getInt(index)
     }
 }
@@ -86,7 +86,7 @@ public object ShortSqlType : SqlType<Short>(Types.SMALLINT, "smallint") {
         ps.setShort(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): Short? {
+    override fun doGetResult(rs: ResultSet, index: Int): Short {
         return rs.getShort(index)
     }
 }
@@ -106,7 +106,7 @@ public object LongSqlType : SqlType<Long>(Types.BIGINT, "bigint") {
         ps.setLong(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): Long? {
+    override fun doGetResult(rs: ResultSet, index: Int): Long {
         return rs.getLong(index)
     }
 }
@@ -126,7 +126,7 @@ public object FloatSqlType : SqlType<Float>(Types.FLOAT, "float") {
         ps.setFloat(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): Float? {
+    override fun doGetResult(rs: ResultSet, index: Int): Float {
         return rs.getFloat(index)
     }
 }
@@ -146,7 +146,7 @@ public object DoubleSqlType : SqlType<Double>(Types.DOUBLE, "double") {
         ps.setDouble(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): Double? {
+    override fun doGetResult(rs: ResultSet, index: Int): Double {
         return rs.getDouble(index)
     }
 }
@@ -468,22 +468,6 @@ public object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
     override fun doGetResult(rs: ResultSet, index: Int): Year? {
         return Year.of(rs.getInt(index))
     }
-}
-
-/**
- * Define a column typed of [EnumSqlType].
- *
- * @param name the column's name.
- * @param typeRef the generic type information of this column, generally created by [org.ktorm.schema.typeRef].
- * @return the registered column.
- */
-@Suppress("UNCHECKED_CAST")
-@Deprecated(
-    message = "This function will be removed in the future. Please use enum<C>(name) instead.",
-    replaceWith = ReplaceWith("enum<C>(name)")
-)
-public fun <C : Enum<C>> BaseTable<*>.enum(name: String, typeRef: TypeReference<C>): Column<C> {
-    return registerColumn(name, EnumSqlType(typeRef.referencedType as Class<C>))
 }
 
 /**
