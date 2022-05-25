@@ -43,28 +43,6 @@ public fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = tr
  * @see Entity.flushChanges
  * @see Entity.delete
  */
-@Deprecated(
-    message = "This function will be removed in the future. Please use addEntity(entity) instead.",
-    replaceWith = ReplaceWith("addEntity(entity)")
-)
-public fun <E : Entity<E>> Table<E>.add(entity: E): Int {
-    return Database.global.sequenceOf(this).add(entity)
-}
-
-/**
- * Insert the given entity into this sequence and return the affected record number.
- *
- * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
- * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
- * database and fill it into the corresponding property after the insertion completes. But this requires us
- * not to set the primary key’s value beforehand, otherwise, if you do that, the given value will be inserted
- * into the database, and no keys generated.
- *
- * Note that after calling this function, the [entity] will be ATTACHED to the current database.
- *
- * @see Entity.flushChanges
- * @see Entity.delete
- */
 public fun <E : Entity<E>> Table<E>.addEntity(entity: E): Int {
     return Database.global.sequenceOf(this).add(entity)
 }
