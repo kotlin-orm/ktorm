@@ -599,21 +599,6 @@ public inline fun <E : Any, T : BaseTable<E>, C, R> EntitySequence<E, T>.mapColu
 }
 
 /**
- * Return a sequence customizing the `order by` clause of the internal query.
- *
- * The operation is intermediate.
- */
-@Deprecated(
-    message = "This function is deprecated, use sortedBy({ it.col1.asc() }, { it.col2.desc() }) instead.",
-    replaceWith = ReplaceWith("sortedBy")
-)
-public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
-    selector: (T) -> List<OrderByExpression>
-): EntitySequence<E, T> {
-    return this.withExpression(expression.copy(orderBy = selector(sourceTable)))
-}
-
-/**
  * Return a sequence sorting elements by multiple columns, in ascending or descending order. For example,
  * `sortedBy({ it.col1.asc() }, { it.col2.desc() })`.
  *
