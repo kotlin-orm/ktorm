@@ -446,17 +446,6 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     /**
      * Specify the update assignments while any key conflict exists.
      */
-    @Deprecated(
-        message = "This function will be removed in the future, please use onConflict { } instead",
-        replaceWith = ReplaceWith("onConflict(columns, block)")
-    )
-    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        onConflict(*columns, block = block)
-    }
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
     public fun onConflict(vararg columns: Column<*>, block: InsertOrUpdateOnConflictClauseBuilder.() -> Unit) {
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
         this.conflictColumns += columns
