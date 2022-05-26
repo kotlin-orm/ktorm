@@ -121,6 +121,11 @@ publishing {
                         name.set("Eric Fenderbosch")
                         email.set("eric@fender.net")
                     }
+                    developer {
+                        id.set("kocproz")
+                        name.set("Kacper Stasiuk")
+                        email.set("kocproz@pm.me")
+                    }
                 }
             }
         }
