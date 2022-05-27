@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -596,21 +596,6 @@ public inline fun <E : Any, T : BaseTable<E>, C, R> EntitySequence<E, T>.mapColu
     )
 
     return Query(database, expr).mapNotNullTo(destination) { row -> column.sqlType.getResult(row, 1) }
-}
-
-/**
- * Return a sequence customizing the `order by` clause of the internal query.
- *
- * The operation is intermediate.
- */
-@Deprecated(
-    message = "This function is deprecated, use sortedBy({ it.col1.asc() }, { it.col2.desc() }) instead.",
-    replaceWith = ReplaceWith("sortedBy")
-)
-public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sorted(
-    selector: (T) -> List<OrderByExpression>
-): EntitySequence<E, T> {
-    return this.withExpression(expression.copy(orderBy = selector(sourceTable)))
 }
 
 /**
@@ -1502,14 +1487,4 @@ public fun <E : Any> EntitySequence<E, *>.joinToString(
     transform: ((E) -> CharSequence)? = null
 ): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
-}
-
-/**
- * Indicate that this query should acquire the record-lock, the generated SQL would be `select ... for update`.
- *
- * @since 3.1.0
- */
-@Deprecated("Will remove in the future, locking clause should be implemented in dialects respectively.")
-public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.forUpdate(): EntitySequence<E, T> {
-    return this.withExpression(expression.copy(forUpdate = true))
 }

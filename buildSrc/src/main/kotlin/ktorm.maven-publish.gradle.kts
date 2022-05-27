@@ -122,6 +122,11 @@ publishing {
                         email.set("eric@fender.net")
                     }
                     developer {
+                        id.set("kocproz")
+                        name.set("Kacper Stasiuk")
+                        email.set("kocproz@pm.me")
+                    }
+                    developer {
                         id.set("forte")
                         name.set("Forte Scarlet")
                         email.set("ForteScarlet@163.com")

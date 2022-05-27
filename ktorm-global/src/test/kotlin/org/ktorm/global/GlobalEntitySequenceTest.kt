@@ -62,7 +62,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
 
     @Test
     fun testAll() {
-        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary gt 49L })
     }
 
     @Test
@@ -152,7 +152,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
     fun testEachCount() {
         val counts = Employees
             .asSequence()
-            .filter { it.salary less 100000L }
+            .filter { it.salary lt 100000L }
             .groupingBy { it.departmentId }
             .eachCount()
 
@@ -166,7 +166,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
     fun testEachSum() {
         val sums = Employees
             .asSequence()
-            .filter { it.salary lessEq 100000L }
+            .filter { it.salary lte 100000L }
             .groupingBy { it.departmentId }
             .eachSumBy { it.salary }
 

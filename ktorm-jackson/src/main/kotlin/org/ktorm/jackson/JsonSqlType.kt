@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,26 +34,6 @@ public val sharedObjectMapper: ObjectMapper = ObjectMapper()
     .registerModule(KtormModule())
     .registerModule(KotlinModule())
     .registerModule(JavaTimeModule())
-
-/**
- * Define a column typed of [JsonSqlType].
- *
- * @param name the column's name.
- * @param typeRef the generic type information of this column, generally created by [org.ktorm.schema.typeRef].
- * @param mapper the object mapper used to serialize column values to JSON strings and deserialize them.
- * @return the registered column.
- */
-@Deprecated(
-    message = "This function will be removed in the future. Please use json<C>(name, mapper) instead.",
-    replaceWith = ReplaceWith("json<C>(name, mapper)")
-)
-public fun <C : Any> BaseTable<*>.json(
-    name: String,
-    typeRef: TypeReference<C>,
-    mapper: ObjectMapper = sharedObjectMapper
-): Column<C> {
-    return registerColumn(name, JsonSqlType(mapper, mapper.constructType(typeRef.referencedType)))
-}
 
 /**
  * Define a column typed of [JsonSqlType].

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,7 +137,7 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
 }
 
 /**
- * Remove all of the elements of this sequence. The sequence will be empty after this function returns.
+ * Remove all the elements of this sequence. The sequence will be empty after this function returns.
  *
  * @since 2.7
  */
@@ -199,10 +199,10 @@ private fun EntitySequence<*, *>.checkIfSequenceModified() {
         || expression.limit != null
 
     if (isModified) {
-        throw UnsupportedOperationException(
+        val msg = "" +
             "Entity manipulation functions are not supported by this sequence object. " +
-                "Please call on the origin sequence returned from database.sequenceOf(table)"
-        )
+            "Please call on the origin sequence returned from database.sequenceOf(table)"
+        throw UnsupportedOperationException(msg)
     }
 }
 

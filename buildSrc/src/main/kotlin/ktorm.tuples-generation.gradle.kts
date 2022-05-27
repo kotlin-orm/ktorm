@@ -87,57 +87,9 @@ fun generateMapColumns(writer: java.io.Writer, tupleNumber: Int) {
          * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
          * containing the query results.
          *
-         * See [EntitySequence.mapColumns] for more details. 
-         *
-         * The operation is terminal.
-         *
-         * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
-         * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
-         * @return a list of the query results.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use mapColumns { .. } instead.",
-            replaceWith = ReplaceWith("mapColumns(isDistinct, columnSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.mapColumns$tupleNumber(
-            isDistinct: Boolean = false,
-            columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): List<Tuple$tupleNumber<$resultTypes>> {
-            return mapColumns(isDistinct, columnSelector)
-        }
-        
-        /**
-         * Customize the selected columns of the internal query by the given [columnSelector] function, and append the query
-         * results to the given [destination].
-         *
-         * See [EntitySequence.mapColumnsTo] for more details. 
-         * 
-         * The operation is terminal.
-         *
-         * @param destination a [MutableCollection] used to store the results.
-         * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
-         * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
-         * @return the [destination] collection of the query results.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use mapColumnsTo(destination) { .. } instead.",
-            replaceWith = ReplaceWith("mapColumnsTo(destination, isDistinct, columnSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, $typeParams, R> EntitySequence<E, T>.mapColumns${tupleNumber}To(
-            destination: R,
-            isDistinct: Boolean = false,
-            columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): R where R : MutableCollection<in Tuple$tupleNumber<$resultTypes>> {
-            return mapColumnsTo(destination, isDistinct, columnSelector)
-        }
-        
-        /**
-         * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
-         * containing the query results.
-         *
          * This function is similar to [EntitySequence.map], but the [columnSelector] closure accepts the current table
          * object [T] as the parameter, so what we get in the closure by `it` is the table object instead of an entity
-         * element. Besides, the function’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
+         * element. Besides, the closure’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
          * columns or expressions to customize the `select` clause of the generated SQL.
          *
          * Ktorm supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
@@ -166,7 +118,7 @@ fun generateMapColumns(writer: java.io.Writer, tupleNumber: Int) {
          *
          * This function is similar to [EntitySequence.mapTo], but the [columnSelector] closure accepts the current table
          * object [T] as the parameter, so what we get in the closure by `it` is the table object instead of an entity
-         * element. Besides, the function’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
+         * element. Besides, the closure’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
          * columns or expressions to customize the `select` clause of the generated SQL.
          * 
          * Ktorm supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
@@ -209,25 +161,6 @@ fun generateAggregateColumns(writer: java.io.Writer, tupleNumber: Int) {
     val resultExtractors = (1..tupleNumber).joinToString(separator = ", ") { "c${it}.sqlType.getResult(rowSet, $it)" }
 
     writer.write("""
-        
-        /**
-         * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
-         * and return the aggregate results.
-         *
-         * The operation is terminal.
-         *
-         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
-         * @return a tuple of the aggregate results.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use aggregateColumns { .. } instead.",
-            replaceWith = ReplaceWith("aggregateColumns(aggregationSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
-            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): Tuple$tupleNumber<$resultTypes> {
-            return aggregateColumns(aggregationSelector)
-        }
         
         /**
          * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
@@ -276,48 +209,6 @@ fun generateGroupingAggregateColumns(writer: java.io.Writer, tupleNumber: Int) {
     val resultExtractors = (1..tupleNumber).joinToString(separator = ", ") { "c${it}.sqlType.getResult(row, ${it + 1})" }
 
     writer.write("""
-        
-        /**
-         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
-         * then store the results in a new [Map].
-         * 
-         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
-         * `select key, aggregation from source group by key`.
-         *
-         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
-         * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use aggregateColumns { .. } instead.",
-            replaceWith = ReplaceWith("aggregateColumns(aggregationSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
-            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
-            return aggregateColumns(aggregationSelector)
-        }
-        
-        /**
-         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
-         * then store the results in the [destination] map.
-         *
-         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
-         * `select key, aggregation from source group by key`.
-         *
-         * @param destination a [MutableMap] used to store the results.
-         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
-         * @return the [destination] map associating the key of each group with the result of aggregations of the group elements.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use aggregateColumns(destination) { .. } instead.",
-            replaceWith = ReplaceWith("aggregateColumns(destination, aggregationSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
-            destination: M,
-            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): M where M : MutableMap<in K?, in Tuple$tupleNumber<$resultTypes>> {
-            return aggregateColumnsTo(destination, aggregationSelector)
-        }
         
         /**
          * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
@@ -391,7 +282,7 @@ val generateTuples by tasks.registering {
         outputFile.bufferedWriter().use { writer ->
             writer.write("""
                 /*
-                 * Copyright 2018-2021 the original author or authors.
+                 * Copyright 2018-2022 the original author or authors.
                  *
                  * Licensed under the Apache License, Version 2.0 (the "License");
                  * you may not use this file except in compliance with the License.

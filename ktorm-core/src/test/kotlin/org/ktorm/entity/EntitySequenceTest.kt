@@ -60,7 +60,7 @@ class EntitySequenceTest : BaseTest() {
 
     @Test
     fun testAll() {
-        assert(database.employees.filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+        assert(database.employees.filter { it.departmentId eq 1 }.all { it.salary gt 49L })
     }
 
     @Test
@@ -147,7 +147,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testEachCount() {
         val counts = database.employees
-            .filter { it.salary less 100000L }
+            .filter { it.salary lt 100000L }
             .groupingBy { it.departmentId }
             .eachCount()
 
@@ -160,7 +160,7 @@ class EntitySequenceTest : BaseTest() {
     @Test
     fun testEachSum() {
         val sums = database.employees
-            .filter { it.salary lessEq 100000L }
+            .filter { it.salary lte 100000L }
             .groupingBy { it.departmentId }
             .eachSumBy { it.salary }
 
