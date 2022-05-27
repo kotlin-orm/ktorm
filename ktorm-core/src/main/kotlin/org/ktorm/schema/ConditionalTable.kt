@@ -21,10 +21,10 @@ import kotlin.reflect.KClass
  *
  *
  * object Departments : ConditionalTable<Department>("t_department") {
- *    val id = int("id").primaryKey().bindTo { it.id }.conditionOn { department, column, value ->
+ *    val id = int("id").primaryKey().bindTo { it.id }.conditionOn { column, value -> // this: Department
  *      if (value != null) column eq value else column eq 1
  *    }
- *    val name = varchar("name").bindTo { it.name }.conditionNotNullOn { department, column, value ->
+ *    val name = varchar("name").bindTo { it.name }.conditionNotNullOn { column, value -> // this: Department
  *      column like "%$value%"
  *    }
  *    val location = varchar("location").bindTo { it.location } // No conditions will be generated for this field(column)
@@ -76,7 +76,7 @@ public open class ConditionalTable<E : Entity<E>>(
      * e.g.
      * ```kotlin
      * object Departments : ConditionalTable<Department>("t_department") {
-     *     val id = int("id").primaryKey().bindTo { it.id }.conditionOn { department, column, value ->
+     *     val id = int("id").primaryKey().bindTo { it.id }.conditionOn { column, value -> // this: Department
      *         if (value != null) column eq value else column eq 1
      *     }
      * }
@@ -85,10 +85,10 @@ public open class ConditionalTable<E : Entity<E>>(
      *
      * @param condition the query condition.
      */
-    public inline fun <reified C : Any> Column<C>.conditionOn(crossinline condition: (E, column: Column<C>, value: C?) -> ColumnDeclaring<Boolean>): Column<C> {
+    public inline fun <reified C : Any> Column<C>.conditionOn(crossinline condition: E.(column: Column<C>, value: C?) -> ColumnDeclaring<Boolean>): Column<C> {
         return saveColumnCondition { entity, entityImpl ->
             val value = entityImpl.getColumnValueOrNull(this)
-            condition(entity, this, value as C?)
+            entity.condition(this, value as C?)
         }
     }
 
@@ -98,7 +98,7 @@ public open class ConditionalTable<E : Entity<E>>(
      * e.g.
      * ```kotlin
      * object Departments : ConditionalTable<Department>("t_department") {
-     *     val id = int("id").primaryKey().bindTo { it.id }.conditionNotNullOn { department, column, value ->
+     *     val id = int("id").primaryKey().bindTo { it.id }.conditionNotNullOn { column, value -> // this: Department
      *         column eq value
      *     }
      * }
@@ -107,11 +107,11 @@ public open class ConditionalTable<E : Entity<E>>(
      *
      * @param condition the query condition.
      */
-    public inline fun <reified C : Any> Column<C>.conditionNotNullOn(crossinline condition: (E, column: Column<C>, value: C) -> ColumnDeclaring<Boolean>): Column<C> {
+    public inline fun <reified C : Any> Column<C>.conditionNotNullOn(crossinline condition: E.(column: Column<C>, value: C) -> ColumnDeclaring<Boolean>): Column<C> {
         return saveColumnCondition { entity, entityImpl ->
             val value = entityImpl.getColumnValueOrThrow(this)
             if (value != null) {
-                condition(entity, this, value as C)
+                entity.condition(this, value as C)
             } else {
                 null
             }
