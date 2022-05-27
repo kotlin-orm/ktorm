@@ -121,7 +121,7 @@ public infix fun ColumnDeclaring<Earth>.containedIn(argument: ColumnDeclaring<Cu
  */
 @JvmName("earthContainedInCube")
 public infix fun ColumnDeclaring<Earth>.containedIn(argument: Cube): CubeExpression<Boolean> {
-    return this.containedIn(ArgumentExpression(argument, PGCubeType))
+    return this.containedIn(ArgumentExpression(argument, CubeSqlType))
 }
 
 /**
@@ -238,7 +238,7 @@ public fun earthBox(
     FunctionExpression(
         functionName = "earth_box",
         arguments = listOf(point.asExpression(), radius.asExpression()),
-        sqlType = PGCubeType
+        sqlType = CubeSqlType
     )
 
 /**
