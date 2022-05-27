@@ -2,15 +2,7 @@ package org.ktorm.dsl
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.entity.filter
-import org.ktorm.entity.first
-import org.ktorm.entity.forUpdate
-import org.ktorm.entity.sequenceOf
 import org.ktorm.expression.ScalarExpression
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import kotlin.random.Random
 
 /**
@@ -74,7 +66,7 @@ class QueryTest : BaseTest() {
     fun testWhereWithOrConditionsNoStackOverflow() {
         val t = Employees.aliased("t")
 
-        val sql = database
+        val query = database
             .from(t)
             .select(t.name)
             .whereWithOrConditions { where ->
@@ -82,9 +74,9 @@ class QueryTest : BaseTest() {
                     where += (t.id eq Random.nextInt()) and (t.departmentId eq Random.nextInt())
                 }
             }
-            .sql
 
         // very large SQL doesn't cause stackoverflow
+        println(query.sql)
         assert(true)
     }
 
@@ -141,7 +133,7 @@ class QueryTest : BaseTest() {
             .from(t)
             .select(t.departmentId, avg(t.salary))
             .groupBy(t.departmentId)
-            .having(avg(t.salary).greater(100.0))
+            .having(avg(t.salary).gt(100.0))
             .associate { it.getInt(1) to it.getDouble(2) }
 
         println(salaries)
@@ -158,7 +150,7 @@ class QueryTest : BaseTest() {
             .from(Employees)
             .select(deptId, salaryAvg)
             .groupBy(deptId)
-            .having { salaryAvg greater 100.0 }
+            .having { salaryAvg gt 100.0 }
             .associate { row ->
                 row[deptId] to row[salaryAvg]
             }
@@ -176,7 +168,7 @@ class QueryTest : BaseTest() {
         val salaries = database
             .from(Employees)
             .select(salary)
-            .where { salary greater 200L }
+            .where { salary gt 200L }
             .map { it.getLong(1) }
 
         println(salaries)
@@ -276,34 +268,6 @@ class QueryTest : BaseTest() {
         val query = database.from(Employees).select().where { Employees.id % 2 eq 1 }
         assert(query.rowSet.size() == 2)
         println(query.sql)
-    }
-
-    @Test
-    @Suppress("DEPRECATION")
-    fun testSelectForUpdate() {
-        database.useTransaction {
-            val employee = database
-                .sequenceOf(Employees, withReferences = false)
-                .filter { it.id eq 1 }
-                .forUpdate()
-                .first()
-
-            val future = Executors.newSingleThreadExecutor().submit {
-                employee.name = "vince"
-                employee.flushChanges()
-            }
-
-            try {
-                future.get(5, TimeUnit.SECONDS)
-                throw AssertionError()
-            } catch (e: ExecutionException) {
-                // Expected, the record is locked.
-                e.printStackTrace()
-            } catch (e: TimeoutException) {
-                // Expected, the record is locked.
-                e.printStackTrace()
-            }
-        }
     }
 
     @Test

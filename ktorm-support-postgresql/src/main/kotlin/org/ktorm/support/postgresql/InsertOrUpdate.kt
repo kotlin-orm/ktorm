@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -442,17 +442,6 @@ public class InsertOrUpdateStatementBuilder : PostgreSqlAssignmentsBuilder() {
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
     internal var doNothing = false
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future, please use onConflict { } instead",
-        replaceWith = ReplaceWith("onConflict(columns, block)")
-    )
-    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        onConflict(*columns, block = block)
-    }
 
     /**
      * Specify the update assignments while any key conflict exists.

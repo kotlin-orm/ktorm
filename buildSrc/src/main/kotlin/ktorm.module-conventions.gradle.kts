@@ -14,15 +14,14 @@ repositories {
 }
 
 dependencies {
-    api(kotlin("stdlib"))
+    api(kotlin("stdlib-jdk8"))
     api(kotlin("reflect"))
     testImplementation(kotlin("test-junit"))
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.0-RC2")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${detekt.toolVersion}")
 }
 
 detekt {
-    toolVersion = "1.17.0-RC2"
-    input = files("src/main/kotlin")
+    source = files("src/main/kotlin")
     config = files("${project.rootDir}/detekt.yml")
 }
 
@@ -33,6 +32,15 @@ tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") {
         freeCompilerArgs = listOf(
             "-Xexplicit-api=strict",
             "-Xopt-in=kotlin.RequiresOptIn"
+        )
+    }
+}
+
+tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin") {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs = listOf(
+            "-Xjvm-default=enable"
         )
     }
 }

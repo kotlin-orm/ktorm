@@ -62,6 +62,7 @@ open class BaseTest {
         var mixedCase: String?
     }
 
+    @Suppress("DEPRECATION")
     interface Employee : Entity<Employee> {
         companion object : Entity.Factory<Employee>()
         var id: Int
@@ -73,7 +74,14 @@ open class BaseTest {
         var department: Department
 
         val upperName get() = name.uppercase()
+
+        @JvmDefault
         fun upperName() = name.uppercase()
+
+        fun nameWithPrefix(prefix: String) = prefix + name
+
+        @JvmDefault
+        fun nameWithSuffix(suffix: String) = name + suffix
     }
 
     interface Customer : Entity<Customer> {

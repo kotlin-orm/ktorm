@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,9 @@ internal fun EntityImplementation.hasColumnValue(binding: ColumnBinding): Boolea
             if (child == null) {
                 // null is also a legal column value.
                 return true
+            } else {
+                return child.implementation.hasPrimaryKeyValue(binding.referenceTable as Table<*>)
             }
-
-            return child.implementation.hasPrimaryKeyValue(binding.referenceTable as Table<*>)
         }
         is NestedBinding -> {
             var curr: EntityImplementation = this
@@ -58,9 +58,9 @@ internal fun EntityImplementation.hasColumnValue(binding: ColumnBinding): Boolea
                     if (child == null) {
                         // null is also a legal column value.
                         return true
+                    } else {
+                        curr = child.implementation
                     }
-
-                    curr = child.implementation
                 }
             }
 

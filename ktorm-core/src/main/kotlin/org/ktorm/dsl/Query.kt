@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -227,9 +227,7 @@ public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<
         return this
     } else {
         while (conditions.size > 1) {
-            conditions = conditions.chunked(2) { chunk ->
-                if (chunk.size == 2) chunk[0] and chunk[1] else chunk[0]
-            }
+            conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] and chunk[1] else chunk[0] }
         }
 
         return this.where { conditions[0] }
@@ -249,9 +247,7 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
         return this
     } else {
         while (conditions.size > 1) {
-            conditions = conditions.chunked(2) { chunk ->
-                if (chunk.size == 2) chunk[0] or chunk[1] else chunk[0]
-            }
+            conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] or chunk[1] else chunk[0] }
         }
 
         return this.where { conditions[0] }
@@ -772,19 +768,4 @@ public fun Query.joinToString(
     transform: (row: QueryRowSet) -> CharSequence
 ): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
-}
-
-/**
- * Indicate that this query should acquire the record-lock, the generated SQL would be `select ... for update`.
- *
- * @since 3.1.0
- */
-@Deprecated("Will remove in the future, locking clause should be implemented in dialects respectively.")
-public fun Query.forUpdate(): Query {
-    val expr = when (expression) {
-        is SelectExpression -> expression.copy(forUpdate = true)
-        is UnionExpression -> throw IllegalStateException("SELECT FOR UPDATE is not supported in a union expression.")
-    }
-
-    return this.withExpression(expr)
 }
