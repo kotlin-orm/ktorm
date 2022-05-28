@@ -112,10 +112,10 @@ class EarthdistanceTest : BaseTest() {
 
         database.sequenceOf(TestTable).add(record)
 
-        val t1 = (TestTable.c contains cube3).aliased("t1") // true
-        val t2 = (TestTable.c containedIn cube2).aliased("t2") // false
-        val t3 = (TestTable.c overlaps cube2).aliased("t3") // true
-        val t4 = (TestTable.c eq cube1).aliased("t4") // true
+        val t1 = TestTable.c.contains(cube3).aliased("t1") // true
+        val t2 = TestTable.c.containedIn(cube2).aliased("t2") // false
+        val t3 = TestTable.c.overlaps(cube2).aliased("t3") // true
+        val t4 = TestTable.c.eq(cube1).aliased("t4") // true
         database.from(TestTable)
             .select(
                 t1, t2, t3, t4
@@ -147,10 +147,10 @@ class EarthdistanceTest : BaseTest() {
         val box = earthBox(llToEarth(0.0, 0.0), 10000.0)
         val pointInBox = llToEarth(0.01, 0.01)
         val pointOutsideBox = llToEarth(10.0, 10.0)
-        val check1 = (box contains pointInBox).aliased("c1")
-        val check1r = (pointInBox containedIn box).aliased("c1r")
-        val check2 = (box contains pointOutsideBox).aliased("c2")
-        val check2r = (pointOutsideBox containedIn box).aliased("c2r")
+        val check1 = box.contains(pointInBox).aliased("c1")
+        val check1r = pointInBox.containedIn(box).aliased("c1r")
+        val check2 = box.contains(pointOutsideBox).aliased("c2")
+        val check2r = pointOutsideBox.containedIn(box).aliased("c2r")
         database.from(TestTable)
             .select(check1, check2, check1r, check2r)
             .map { row ->

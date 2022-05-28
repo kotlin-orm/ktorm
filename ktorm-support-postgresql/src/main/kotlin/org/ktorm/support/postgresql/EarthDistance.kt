@@ -28,6 +28,7 @@ import org.ktorm.schema.SqlType
  * Enum for 'cube' and 'earthdistance' binary operators.
  */
 public enum class CubeExpressionType(private val value: String) {
+
     /**
      * Cube overlaps operator, translated to the && operator in PostgreSQL.
      */
@@ -67,14 +68,14 @@ public data class CubeExpression<T : Any>(
 /**
  * Cube contains operator, translated to the @> operator in PostgreSQL.
  */
-public infix fun ColumnDeclaring<Cube>.contains(argument: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
-    return CubeExpression(CubeExpressionType.CONTAINS, asExpression(), argument.asExpression(), BooleanSqlType)
+public fun ColumnDeclaring<Cube>.contains(expr: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
+    return CubeExpression(CubeExpressionType.CONTAINS, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * Cube contains operator, translated to the @> operator in PostgreSQL.
  */
-public infix fun ColumnDeclaring<Cube>.contains(argument: Cube): CubeExpression<Boolean> {
+public fun ColumnDeclaring<Cube>.contains(argument: Cube): CubeExpression<Boolean> {
     return this.contains(wrapArgument(argument))
 }
 
@@ -82,59 +83,59 @@ public infix fun ColumnDeclaring<Cube>.contains(argument: Cube): CubeExpression<
  * Cube contains operator, translated to the @> operator in PostgreSQL.
  */
 @JvmName("containsEarth")
-public infix fun ColumnDeclaring<Cube>.contains(argument: ColumnDeclaring<Earth>): CubeExpression<Boolean> {
-    return CubeExpression(CubeExpressionType.CONTAINS, asExpression(), argument.asExpression(), BooleanSqlType)
+public fun ColumnDeclaring<Cube>.contains(expr: ColumnDeclaring<Earth>): CubeExpression<Boolean> {
+    return CubeExpression(CubeExpressionType.CONTAINS, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * Cube contains operator, translated to the @> operator in PostgreSQL.
  */
 @JvmName("containsEarth")
-public infix fun ColumnDeclaring<Cube>.contains(argument: Earth): CubeExpression<Boolean> {
+public fun ColumnDeclaring<Cube>.contains(argument: Earth): CubeExpression<Boolean> {
     return this.contains(ArgumentExpression(argument, EarthSqlType))
 }
 
 /**
  * Cube contained in operator, translated to the <@ operator in PostgreSQL.
  */
-public infix fun ColumnDeclaring<Cube>.containedIn(argument: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
-    return CubeExpression(CubeExpressionType.CONTAINED_IN, asExpression(), argument.asExpression(), BooleanSqlType)
+public fun ColumnDeclaring<Cube>.containedIn(expr: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
+    return CubeExpression(CubeExpressionType.CONTAINED_IN, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * Cube contained in operator, translated to the <@ operator in PostgreSQL.
  */
-public infix fun ColumnDeclaring<Cube>.containedIn(argument: Cube): CubeExpression<Boolean> {
+public fun ColumnDeclaring<Cube>.containedIn(argument: Cube): CubeExpression<Boolean> {
     return this.containedIn(wrapArgument(argument))
 }
 
 /**
  * Cube contained in operator, translated to the <@ operator in PostgreSQL.
  */
-@JvmName("earthContainedInCube")
-public infix fun ColumnDeclaring<Earth>.containedIn(argument: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
-    return CubeExpression(CubeExpressionType.CONTAINED_IN, asExpression(), argument.asExpression(), BooleanSqlType)
+@JvmName("earthContainedIn")
+public fun ColumnDeclaring<Earth>.containedIn(expr: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
+    return CubeExpression(CubeExpressionType.CONTAINED_IN, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * Cube contained in operator, translated to the <@ operator in PostgreSQL.
  */
-@JvmName("earthContainedInCube")
-public infix fun ColumnDeclaring<Earth>.containedIn(argument: Cube): CubeExpression<Boolean> {
+@JvmName("earthContainedIn")
+public fun ColumnDeclaring<Earth>.containedIn(argument: Cube): CubeExpression<Boolean> {
     return this.containedIn(ArgumentExpression(argument, CubeSqlType))
 }
 
 /**
  * Cube overlap operator, translated to the && operator in PostgreSQL.
  */
-public infix fun ColumnDeclaring<Cube>.overlaps(argument: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
-    return CubeExpression(CubeExpressionType.OVERLAP, asExpression(), argument.asExpression(), BooleanSqlType)
+public fun ColumnDeclaring<Cube>.overlaps(expr: ColumnDeclaring<Cube>): CubeExpression<Boolean> {
+    return CubeExpression(CubeExpressionType.OVERLAP, asExpression(), expr.asExpression(), BooleanSqlType)
 }
 
 /**
  * Cube overlap operator, translated to the && operator in PostgreSQL.
  */
-public infix fun ColumnDeclaring<Cube>.overlaps(argument: Cube): CubeExpression<Boolean> {
+public fun ColumnDeclaring<Cube>.overlaps(argument: Cube): CubeExpression<Boolean> {
     return this.overlaps(wrapArgument(argument))
 }
 
