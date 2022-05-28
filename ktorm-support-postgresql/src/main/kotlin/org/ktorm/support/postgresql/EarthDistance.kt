@@ -145,126 +145,131 @@ public fun ColumnDeclaring<Cube>.overlaps(argument: Cube): CubeExpression<Boolea
  *
  * Function from earthdistance extension
  */
-public fun llToEarth(
-    lat: ColumnDeclaring<Double>,
-    lng: ColumnDeclaring<Double>
-): FunctionExpression<Earth> =
-    FunctionExpression(
+public fun llToEarth(lat: ColumnDeclaring<Double>, lng: ColumnDeclaring<Double>): FunctionExpression<Earth> {
+    // ll_to_earth(lat, lng)
+    return FunctionExpression(
         functionName = "ll_to_earth",
         arguments = listOf(lat.asExpression(), lng.asExpression()),
         sqlType = EarthSqlType
     )
+}
 
 /**
  * Returns the location of a point on the surface of the Earth
  * given its latitude (argument 1) and longitude (argument 2) in degrees.
- */
-public fun llToEarth(
-    lat: ColumnDeclaring<Double>,
-    lng: Double
-): FunctionExpression<Earth> =
-    llToEarth(lat, ArgumentExpression(lng, DoubleSqlType))
-
-/**
- * Returns the location of a point on the surface of the Earth
- * given its latitude (argument 1) and longitude (argument 2) in degrees.
- */
-public fun llToEarth(
-    lat: Double,
-    lng: ColumnDeclaring<Double>
-): FunctionExpression<Earth> =
-    llToEarth(ArgumentExpression(lat, DoubleSqlType), lng)
-
-/**
- * Returns the location of a point on the surface of the Earth
- * given its latitude (argument 1) and longitude (argument 2) in degrees.
- */
-public fun llToEarth(
-    lat: Double,
-    lng: Double
-): FunctionExpression<Earth> =
-    llToEarth(ArgumentExpression(lat, DoubleSqlType), ArgumentExpression(lng, DoubleSqlType))
-
-/**
- * Get distance between 2 points on earth.
  *
- * Function from earthdistance extension, `earth_distance(point1, point2)` in SQL.
+ * Function from earthdistance extension
  */
-public fun earthDistance(
-    point1: ColumnDeclaring<Earth>,
-    point2: ColumnDeclaring<Earth>
-): FunctionExpression<Double> =
-    FunctionExpression(
+public fun llToEarth(lat: ColumnDeclaring<Double>, lng: Double): FunctionExpression<Earth> {
+    return llToEarth(lat, ArgumentExpression(lng, DoubleSqlType))
+}
+
+/**
+ * Returns the location of a point on the surface of the Earth
+ * given its latitude (argument 1) and longitude (argument 2) in degrees.
+ *
+ * Function from earthdistance extension
+ */
+public fun llToEarth(lat: Double, lng: ColumnDeclaring<Double>): FunctionExpression<Earth> {
+    return llToEarth(ArgumentExpression(lat, DoubleSqlType), lng)
+}
+
+/**
+ * Returns the location of a point on the surface of the Earth
+ * given its latitude (argument 1) and longitude (argument 2) in degrees.
+ *
+ * Function from earthdistance extension
+ */
+public fun llToEarth(lat: Double, lng: Double): FunctionExpression<Earth> {
+    return llToEarth(ArgumentExpression(lat, DoubleSqlType), ArgumentExpression(lng, DoubleSqlType))
+}
+
+/**
+ * Returns the great circle distance between two points on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `earth_distance(p1, p2)` in SQL.
+ */
+public fun earthDistance(p1: ColumnDeclaring<Earth>, p2: ColumnDeclaring<Earth>): FunctionExpression<Double> {
+    // earth_distance(p1, p2)
+    return FunctionExpression(
         functionName = "earth_distance",
-        arguments = listOf(point1.asExpression(), point2.asExpression()),
+        arguments = listOf(p1.asExpression(), p2.asExpression()),
         sqlType = DoubleSqlType
     )
+}
 
 /**
- * Get distance between 2 points on earth.
+ * Returns the great circle distance between two points on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `earth_distance(p1, p2)` in SQL.
  */
-public fun earthDistance(
-    point1: ColumnDeclaring<Earth>,
-    point2: Earth
-): FunctionExpression<Double> =
-    earthDistance(point1, ArgumentExpression(point2, EarthSqlType))
+public fun earthDistance(p1: ColumnDeclaring<Earth>, p2: Earth): FunctionExpression<Double> {
+    return earthDistance(p1, ArgumentExpression(p2, EarthSqlType))
+}
 
 /**
- * Get distance between 2 points on earth.
+ * Returns the great circle distance between two points on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `earth_distance(p1, p2)` in SQL.
  */
-public fun earthDistance(
-    point1: Earth,
-    point2: ColumnDeclaring<Earth>
-): FunctionExpression<Double> =
-    earthDistance(ArgumentExpression(point1, EarthSqlType), point2)
+public fun earthDistance(p1: Earth, p2: ColumnDeclaring<Earth>): FunctionExpression<Double> {
+    return earthDistance(ArgumentExpression(p1, EarthSqlType), p2)
+}
 
 /**
- * Get distance between 2 points on earth.
+ * Returns the great circle distance between two points on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `earth_distance(p1, p2)` in SQL.
  */
-public fun earthDistance(
-    point1: Earth,
-    point2: Earth
-): FunctionExpression<Double> =
-    earthDistance(ArgumentExpression(point1, EarthSqlType), ArgumentExpression(point2, EarthSqlType))
+public fun earthDistance(p1: Earth, p2: Earth): FunctionExpression<Double> {
+    return earthDistance(ArgumentExpression(p1, EarthSqlType), ArgumentExpression(p2, EarthSqlType))
+}
 
 /**
- * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
+ * Returns a box suitable for an indexed search using the cube @> operator for points within a given great circle
+ * distance of a location. Some points in this box are further than the specified great circle distance from the
+ * location, so a second check using earth_distance should be included in the query.
  *
  * Function from earthdistance extension, `earth_box(point, radius)` in SQL.
  */
-public fun earthBox(
-    point: ColumnDeclaring<Earth>,
-    radius: ColumnDeclaring<Double>
-): FunctionExpression<Cube> =
-    FunctionExpression(
+public fun earthBox(point: ColumnDeclaring<Earth>, radius: ColumnDeclaring<Double>): FunctionExpression<Cube> {
+    // earth_box(point, radius)
+    return FunctionExpression(
         functionName = "earth_box",
         arguments = listOf(point.asExpression(), radius.asExpression()),
         sqlType = CubeSqlType
     )
+}
 
 /**
- * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
+ * Returns a box suitable for an indexed search using the cube @> operator for points within a given great circle
+ * distance of a location. Some points in this box are further than the specified great circle distance from the
+ * location, so a second check using earth_distance should be included in the query.
+ *
+ * Function from earthdistance extension, `earth_box(point, radius)` in SQL.
  */
-public fun earthBox(
-    point: ColumnDeclaring<Earth>,
-    radius: Double
-): FunctionExpression<Cube> =
-    earthBox(point, ArgumentExpression(radius, DoubleSqlType))
+public fun earthBox(point: ColumnDeclaring<Earth>, radius: Double): FunctionExpression<Cube> {
+    return earthBox(point, ArgumentExpression(radius, DoubleSqlType))
+}
 
 /**
- * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
+ * Returns a box suitable for an indexed search using the cube @> operator for points within a given great circle
+ * distance of a location. Some points in this box are further than the specified great circle distance from the
+ * location, so a second check using earth_distance should be included in the query.
+ *
+ * Function from earthdistance extension, `earth_box(point, radius)` in SQL.
  */
-public fun earthBox(
-    point: Earth,
-    radius: ColumnDeclaring<Double>
-): FunctionExpression<Cube> =
-    earthBox(ArgumentExpression(point, EarthSqlType), radius)
+public fun earthBox(point: Earth, radius: ColumnDeclaring<Double>): FunctionExpression<Cube> {
+    return earthBox(ArgumentExpression(point, EarthSqlType), radius)
+}
 
 /**
- * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
+ * Returns a box suitable for an indexed search using the cube @> operator for points within a given great circle
+ * distance of a location. Some points in this box are further than the specified great circle distance from the
+ * location, so a second check using earth_distance should be included in the query.
+ *
+ * Function from earthdistance extension, `earth_box(point, radius)` in SQL.
  */
-public fun earthBox(
-    point: Earth,
-    radius: Double
-): FunctionExpression<Cube> =
-    earthBox(ArgumentExpression(point, EarthSqlType), ArgumentExpression(radius, DoubleSqlType))
+public fun earthBox(point: Earth, radius: Double): FunctionExpression<Cube> {
+    return earthBox(ArgumentExpression(point, EarthSqlType), ArgumentExpression(radius, DoubleSqlType))
+}
