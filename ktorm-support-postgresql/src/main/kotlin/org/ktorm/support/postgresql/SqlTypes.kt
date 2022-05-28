@@ -25,35 +25,9 @@ import java.sql.ResultSet
 import java.sql.Types
 
 /**
- * Represent values of PostgreSQL `hstore` SQL type.
- */
-public typealias HStore = Map<String, String?>
-
-/**
  * Represent values of PostgreSQL `text[]` SQL type.
  */
 public typealias TextArray = Array<String?>
-
-/**
- * Define a column typed [HStoreSqlType].
- */
-public fun BaseTable<*>.hstore(name: String): Column<HStore> {
-    return registerColumn(name, HStoreSqlType)
-}
-
-/**
- * [SqlType] implementation represents PostgreSQL `hstore` type.
- */
-public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
-        ps.setObject(index, parameter)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
-        return rs.getObject(index) as HStore?
-    }
-}
 
 /**
  * Define a column typed [TextArraySqlType].
@@ -66,6 +40,7 @@ public fun BaseTable<*>.textArray(name: String): Column<TextArray> {
  * [SqlType] implementation represents PostgreSQL `text[]` type.
  */
 public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: TextArray) {
         ps.setObject(index, parameter)
     }
@@ -79,6 +54,33 @@ public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
         } finally {
             sqlArray.free()
         }
+    }
+}
+
+/**
+ * Represent values of PostgreSQL `hstore` SQL type.
+ */
+public typealias HStore = Map<String, String?>
+
+/**
+ * Define a column typed [HStoreSqlType].
+ */
+public fun BaseTable<*>.hstore(name: String): Column<HStore> {
+    return registerColumn(name, HStoreSqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `hstore` type.
+ */
+public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
+        return rs.getObject(index) as HStore?
     }
 }
 
