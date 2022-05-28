@@ -91,7 +91,7 @@ public infix fun ColumnDeclaring<Cube>.contains(argument: ColumnDeclaring<Earth>
  */
 @JvmName("containsEarth")
 public infix fun ColumnDeclaring<Cube>.contains(argument: Earth): CubeExpression<Boolean> {
-    return this.contains(ArgumentExpression(argument, PGEarthType))
+    return this.contains(ArgumentExpression(argument, EarthSqlType))
 }
 
 /**
@@ -151,7 +151,7 @@ public fun llToEarth(
     FunctionExpression(
         functionName = "ll_to_earth",
         arguments = listOf(lat.asExpression(), lng.asExpression()),
-        sqlType = PGEarthType
+        sqlType = EarthSqlType
     )
 
 /**
@@ -206,7 +206,7 @@ public fun earthDistance(
     point1: ColumnDeclaring<Earth>,
     point2: Earth
 ): FunctionExpression<Double> =
-    earthDistance(point1, ArgumentExpression(point2, PGEarthType))
+    earthDistance(point1, ArgumentExpression(point2, EarthSqlType))
 
 /**
  * Get distance between 2 points on earth.
@@ -215,7 +215,7 @@ public fun earthDistance(
     point1: Earth,
     point2: ColumnDeclaring<Earth>
 ): FunctionExpression<Double> =
-    earthDistance(ArgumentExpression(point1, PGEarthType), point2)
+    earthDistance(ArgumentExpression(point1, EarthSqlType), point2)
 
 /**
  * Get distance between 2 points on earth.
@@ -224,7 +224,7 @@ public fun earthDistance(
     point1: Earth,
     point2: Earth
 ): FunctionExpression<Double> =
-    earthDistance(ArgumentExpression(point1, PGEarthType), ArgumentExpression(point2, PGEarthType))
+    earthDistance(ArgumentExpression(point1, EarthSqlType), ArgumentExpression(point2, EarthSqlType))
 
 /**
  * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
@@ -257,7 +257,7 @@ public fun earthBox(
     point: Earth,
     radius: ColumnDeclaring<Double>
 ): FunctionExpression<Cube> =
-    earthBox(ArgumentExpression(point, PGEarthType), radius)
+    earthBox(ArgumentExpression(point, EarthSqlType), radius)
 
 /**
  * Creates a bounding cube, sized to contain all the points that are not farther than radius meters from a given point.
@@ -266,4 +266,4 @@ public fun earthBox(
     point: Earth,
     radius: Double
 ): FunctionExpression<Cube> =
-    earthBox(ArgumentExpression(point, PGEarthType), ArgumentExpression(radius, DoubleSqlType))
+    earthBox(ArgumentExpression(point, EarthSqlType), ArgumentExpression(radius, DoubleSqlType))

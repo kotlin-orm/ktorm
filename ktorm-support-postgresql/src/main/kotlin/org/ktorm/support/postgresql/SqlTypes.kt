@@ -83,39 +83,6 @@ public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
 }
 
 /**
- * Represents location of a point on the surface of the Earth.
- * Part of PostgreSQL's `earthdistance` extension.
- * https://www.postgresql.org/docs/12/earthdistance.html
- */
-public typealias Earth = Triple<Double, Double, Double>
-
-/**
- * Represents a point on Earth's surface
- * Part of PostgreSQL's `earthdistance` SQL extension.
- */
-public object PGEarthType : SqlType<Earth>(Types.OTHER, "earth") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
-        ps.setObject(index, parameter, Types.OTHER)
-    }
-
-    override fun doGetResult(rs: ResultSet, index: Int): Earth? {
-        return rs.getObject(index)?.let {
-            (it as PGobject).value
-                .substring(1, it.value.length - 1)
-                .split(",")
-                .let { rawNumbers ->
-                    Earth(rawNumbers[0].toDouble(), rawNumbers[1].toDouble(), rawNumbers[2].toDouble())
-                }
-        }
-    }
-}
-
-/**
- * Define a column typed [PGEarthType].
- */
-public fun BaseTable<*>.earth(name: String): Column<Earth> = registerColumn(name, PGEarthType)
-
-/**
  * Represents a box suitable for an indexed search using the cube @> operator.
  * Part of PostgreSQL's `cube` SQL extension.
  * https://www.postgresql.org/docs/9.5/cube.html
@@ -170,6 +137,42 @@ public object CubeSqlType : SqlType<Cube>(Types.OTHER, "cube") {
             val numbers = obj.value.replace("(", "").replace(")", "").split(",").map { it.trim().toDouble() }
             val (x, y) = numbers.chunked(numbers.size / 2).map { it.toDoubleArray() }
             return Cube(x, y)
+        }
+    }
+}
+
+/**
+ * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
+ * Part of PostgreSQL's `earthdistance` extension.
+ * https://www.postgresql.org/docs/12/earthdistance.html
+ */
+public typealias Earth = Triple<Double, Double, Double>
+
+/**
+ * Define a column typed [EarthSqlType].
+ */
+public fun BaseTable<*>.earth(name: String): Column<Earth> {
+    return registerColumn(name, EarthSqlType)
+}
+
+/**
+ * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
+ * Part of PostgreSQL's `earthdistance` SQL extension.
+ */
+public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
+        ps.setObject(index, parameter, Types.OTHER)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Earth? {
+        val obj = rs.getObject(index) as PGobject?
+        if (obj == null) {
+            return null
+        } else {
+            // (1, 2, 3)
+            val (x, y, z) = obj.value.removeSurrounding("(", ")").split(",").map { it.trim().toDouble() }
+            return Earth(x, y, z)
         }
     }
 }
