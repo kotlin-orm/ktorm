@@ -8,8 +8,6 @@ import org.ktorm.dsl.*
 import org.ktorm.entity.count
 import org.ktorm.entity.find
 import org.ktorm.entity.sequenceOf
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
 import java.sql.Connection
@@ -38,7 +36,7 @@ class SQLiteTest : BaseTest() {
     override fun init() {
         connection = DriverManager.getConnection("jdbc:sqlite::memory:")
 
-        database = Database.connect(logger = ConsoleLogger(LogLevel.TRACE)) {
+        database = Database.connect {
             object : Connection by connection {
                 override fun close() {
                     // do nothing...

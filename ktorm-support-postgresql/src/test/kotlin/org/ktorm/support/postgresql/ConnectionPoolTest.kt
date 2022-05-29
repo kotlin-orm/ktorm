@@ -11,10 +11,9 @@ import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
 import org.ktorm.dsl.select
 import org.ktorm.jackson.json
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
 
+@Suppress("ConvertTryFinallyToUseCall")
 class ConnectionPoolTest : BasePostgreSqlTest() {
 
     @Test
@@ -30,8 +29,11 @@ class ConnectionPoolTest : BasePostgreSqlTest() {
         ds.username = username
         ds.password = password
 
-        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
-        testJson(database)
+        try {
+            testJson(Database.connect(ds))
+        } finally {
+            ds.close()
+        }
     }
 
     @Test
@@ -42,8 +44,11 @@ class ConnectionPoolTest : BasePostgreSqlTest() {
         ds.user = username
         ds.password = password
 
-        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
-        testJson(database)
+        try {
+            testJson(Database.connect(ds))
+        } finally {
+            ds.close()
+        }
     }
 
     @Test
@@ -54,8 +59,11 @@ class ConnectionPoolTest : BasePostgreSqlTest() {
         ds.username = username
         ds.password = password
 
-        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
-        testJson(database)
+        try {
+            testJson(Database.connect(ds))
+        } finally {
+            ds.close()
+        }
     }
 
     @Test
@@ -66,8 +74,11 @@ class ConnectionPoolTest : BasePostgreSqlTest() {
         ds.username = username
         ds.password = password
 
-        val database = Database.connect(ds, logger = ConsoleLogger(threshold = LogLevel.TRACE))
-        testJson(database)
+        try {
+            testJson(Database.connect(ds))
+        } finally {
+            ds.close()
+        }
     }
 
     private fun testJson(database: Database) {

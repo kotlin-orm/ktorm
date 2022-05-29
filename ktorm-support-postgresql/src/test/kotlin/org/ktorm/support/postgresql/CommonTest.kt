@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException
 /**
  * Created by vince on Feb 13, 2019.
  */
-class CommonPostgreSqlTest : BasePostgreSqlTest() {
+class CommonTest : BasePostgreSqlTest() {
 
     @Test
     fun testKeywordWrapping() {

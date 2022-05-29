@@ -10,8 +10,6 @@ import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.jackson.json
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.*
 import org.testcontainers.containers.MySQLContainer
 import java.time.LocalDate
@@ -35,14 +33,7 @@ class MySqlTest : BaseTest() {
     }
 
     override fun init() {
-        database = Database.connect(
-            url = mysql.jdbcUrl,
-            driver = mysql.driverClassName,
-            user = mysql.username,
-            password = mysql.password,
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
-        )
-
+        database = Database.connect(mysql.jdbcUrl, mysql.driverClassName, mysql.username, mysql.password)
         execSqlScript("init-mysql-data.sql")
     }
 

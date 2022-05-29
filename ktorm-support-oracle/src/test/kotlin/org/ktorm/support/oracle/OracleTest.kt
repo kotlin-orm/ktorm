@@ -10,8 +10,6 @@ import org.ktorm.entity.count
 import org.ktorm.entity.filter
 import org.ktorm.entity.mapTo
 import org.ktorm.entity.sequenceOf
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
@@ -39,15 +37,7 @@ class OracleTest : BaseTest() {
     }
 
     override fun init() {
-        database = Database.connect(
-            url = oracle.jdbcUrl,
-            driver = oracle.driverClassName,
-            user = oracle.username,
-            password = oracle.password,
-            logger = ConsoleLogger(threshold = LogLevel.TRACE),
-            alwaysQuoteIdentifiers = true
-        )
-
+        database = Database.connect(oracle.jdbcUrl, oracle.driverClassName, oracle.username, oracle.password, alwaysQuoteIdentifiers = true)
         execSqlScript("init-oracle-data.sql")
     }
 

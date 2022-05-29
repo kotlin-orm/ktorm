@@ -2,22 +2,13 @@ package org.ktorm.support.postgresql
 
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.concurrent.thread
 
-open class BasePostgreSqlTest : BaseTest() {
+abstract class BasePostgreSqlTest : BaseTest() {
 
     override fun init() {
-        database = Database.connect(
-            url = jdbcUrl,
-            driver = driverClassName,
-            user = username,
-            password = password,
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
-        )
-
+        database = Database.connect(jdbcUrl, driverClassName, username, password)
         execSqlScript("init-postgresql-data.sql")
     }
 

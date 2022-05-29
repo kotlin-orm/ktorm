@@ -11,8 +11,6 @@ import org.ktorm.entity.count
 import org.ktorm.entity.filter
 import org.ktorm.entity.mapTo
 import org.ktorm.entity.sequenceOf
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
 import org.ktorm.schema.datetime
 import org.ktorm.schema.int
@@ -45,14 +43,7 @@ class SqlServerTest : BaseTest() {
     }
 
     override fun init() {
-        database = Database.connect(
-            url = sqlServer.jdbcUrl,
-            driver = sqlServer.driverClassName,
-            user = sqlServer.username,
-            password = sqlServer.password,
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
-        )
-
+        database = Database.connect(sqlServer.jdbcUrl, sqlServer.driverClassName, sqlServer.username, sqlServer.password)
         execSqlScript("init-sqlserver-data.sql")
     }
 
