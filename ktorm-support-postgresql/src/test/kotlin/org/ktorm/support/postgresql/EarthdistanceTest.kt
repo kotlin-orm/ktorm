@@ -78,10 +78,10 @@ class EarthdistanceTest : BasePostgreSqlTest() {
         val t2 = TestTable.c.containedIn(cube2).aliased("t2") // false
         val t3 = TestTable.c.overlaps(cube2).aliased("t3") // true
         val t4 = TestTable.c.eq(cube1).aliased("t4") // true
-        database.from(TestTable)
-            .select(
-                t1, t2, t3, t4
-            ).where(TestTable.c eq cube1)
+        database
+            .from(TestTable)
+            .select(t1, t2, t3, t4)
+            .where(TestTable.c eq cube1)
             .map { row ->
                 assertEquals(true, row[t1])
                 assertEquals(false, row[t2])
@@ -100,7 +100,8 @@ class EarthdistanceTest : BasePostgreSqlTest() {
         record.c = Cube(doubleArrayOf(0.0), doubleArrayOf(0.0))
         database.sequenceOf(TestTable).add(record)
 
-        database.from(TestTable)
+        database
+            .from(TestTable)
             .select(distance)
             .map { row ->
                 assertTrue(row[distance]!! > 100000)
@@ -113,7 +114,8 @@ class EarthdistanceTest : BasePostgreSqlTest() {
         val check1r = pointInBox.containedIn(box).aliased("c1r")
         val check2 = box.contains(pointOutsideBox).aliased("c2")
         val check2r = pointOutsideBox.containedIn(box).aliased("c2r")
-        database.from(TestTable)
+        database
+            .from(TestTable)
             .select(check1, check2, check1r, check2r)
             .map { row ->
                 assertTrue(row[check1]!!)
