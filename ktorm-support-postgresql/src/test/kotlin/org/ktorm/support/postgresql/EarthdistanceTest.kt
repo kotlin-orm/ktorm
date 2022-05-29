@@ -1,33 +1,19 @@
 package org.ktorm.support.postgresql
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
-import org.junit.ClassRule
+import org.junit.Assert.*
 import org.junit.Test
-import org.ktorm.BaseTest
-import org.ktorm.database.Database
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.from
-import org.ktorm.dsl.insert
-import org.ktorm.dsl.map
-import org.ktorm.dsl.select
-import org.ktorm.dsl.where
+import org.ktorm.dsl.*
 import org.ktorm.entity.Entity
 import org.ktorm.entity.add
 import org.ktorm.entity.sequenceOf
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.Table
-import org.testcontainers.containers.PostgreSQLContainer
 
 /**
  * Created by Kacper on 14/01/2022
  */
-class EarthdistanceTest : BaseTest() {
+class EarthdistanceTest : BasePostgreSqlTest() {
 
-    object TestTable : Table<TestRecord>("earthdistance_t") {
+    object TestTable : Table<TestRecord>("t_earthdistance") {
         val e = earth("earth_field").bindTo { it.e }
         val c = cube("cube_field").bindTo { it.c }
     }
@@ -36,30 +22,6 @@ class EarthdistanceTest : BaseTest() {
         companion object : Entity.Factory<TestRecord>()
         val e: Earth
         var c: Cube
-    }
-    
-    companion object {
-        class KPostgreSqlContainer : PostgreSQLContainer<KPostgreSqlContainer>("postgres:13-alpine")
-
-        @ClassRule
-        @JvmField
-        val postgres = KPostgreSqlContainer()
-    }
-
-    override fun init() {
-        database = Database.connect(
-            url = postgres.jdbcUrl,
-            driver = postgres.driverClassName,
-            user = postgres.username,
-            password = postgres.password,
-            logger = ConsoleLogger(threshold = LogLevel.TRACE)
-        )
-
-        execSqlScript("init-earthdistance.sql")
-    }
-
-    override fun destroy() {
-        execSqlScript("destroy-earthdistance.sql")
     }
 
     @Test
