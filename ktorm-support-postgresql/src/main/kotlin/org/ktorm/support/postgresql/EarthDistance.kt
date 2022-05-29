@@ -185,6 +185,52 @@ public fun llToEarth(lat: Double, lng: Double): FunctionExpression<Earth> {
 }
 
 /**
+ * Returns the latitude in degrees of a point on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `latitude(earth)` in SQL.
+ */
+public fun latitude(earth: ColumnDeclaring<Earth>): FunctionExpression<Double> {
+    // latitude(earth)
+    return FunctionExpression(
+        functionName = "latitude",
+        arguments = listOf(earth.asExpression()),
+        sqlType = DoubleSqlType
+    )
+}
+
+/**
+ * Returns the latitude in degrees of a point on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `latitude(earth)` in SQL.
+ */
+public fun latitude(earth: Earth): FunctionExpression<Double> {
+    return latitude(ArgumentExpression(earth, EarthSqlType))
+}
+
+/**
+ * Returns the longitude in degrees of a point on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `longitude(earth)` in SQL.
+ */
+public fun longitude(earth: ColumnDeclaring<Earth>): FunctionExpression<Double> {
+    // longitude(earth)
+    return FunctionExpression(
+        functionName = "longitude",
+        arguments = listOf(earth.asExpression()),
+        sqlType = DoubleSqlType
+    )
+}
+
+/**
+ * Returns the longitude in degrees of a point on the surface of the Earth.
+ *
+ * Function from earthdistance extension, `longitude(earth)` in SQL.
+ */
+public fun longitude(earth: Earth): FunctionExpression<Double> {
+    return longitude(ArgumentExpression(earth, EarthSqlType))
+}
+
+/**
  * Returns the great circle distance between two points on the surface of the Earth.
  *
  * Function from earthdistance extension, `earth_distance(p1, p2)` in SQL.

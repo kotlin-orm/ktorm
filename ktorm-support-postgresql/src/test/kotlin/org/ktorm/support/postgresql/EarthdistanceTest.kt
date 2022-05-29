@@ -28,7 +28,7 @@ class EarthdistanceTest : BasePostgreSqlTest() {
     fun testEarthType() {
         val earthValue = Earth(-849959.4557142439, -5441944.3654614175, 3216183.683045588)
         val inserted = database.insert(TestTable) {
-            set(TestTable.e, earthValue)
+            set(it.e, earthValue)
         }
 
         val queried = database
@@ -50,7 +50,7 @@ class EarthdistanceTest : BasePostgreSqlTest() {
 
         val cubeValue = Cube(doubleArrayOf(-1.1, 2.2, 3.0), doubleArrayOf(1.1, -2.2, 0.3))
         val inserted = database.insert(TestTable) {
-            set(TestTable.c, cubeValue)
+            set(it.c, cubeValue)
         }
 
         val queried = database
@@ -125,5 +125,23 @@ class EarthdistanceTest : BasePostgreSqlTest() {
                 return
             }
         assertTrue(false)
+    }
+
+    @Test
+    fun testLatLng() {
+        database.insert(TestTable) {
+            set(it.e, llToEarth(22.5, 113.0))
+        }
+
+        val results = database
+            .from(TestTable)
+            .select(latitude(TestTable.e), longitude(TestTable.e))
+            .map { row ->
+                Pair(row.getDouble(1), row.getDouble(2))
+            }
+
+        assert(results.size == 1)
+        assertEquals(results[0].first, 22.5, 0.1)
+        assertEquals(results[0].second, 113.0, 0.1)
     }
 }
