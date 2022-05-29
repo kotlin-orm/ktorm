@@ -9,7 +9,7 @@ import org.ktorm.database.Database
 open class BaseGlobalTest : BaseTest() {
 
     override fun init() {
-        database = Database.connectGlobally("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", "org.h2.Driver", alwaysQuoteIdentifiers = true)
+        database = Database.connectGlobally("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", alwaysQuoteIdentifiers = true)
         execSqlScript("init-data.sql")
     }
 }

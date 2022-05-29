@@ -18,7 +18,7 @@ abstract class BaseTest {
 
     @Before
     open fun init() {
-        database = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", "org.h2.Driver", alwaysQuoteIdentifiers = true)
+        database = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", alwaysQuoteIdentifiers = true)
         execSqlScript("init-data.sql")
     }
 

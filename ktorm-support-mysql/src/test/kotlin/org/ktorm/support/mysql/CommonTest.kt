@@ -2,16 +2,12 @@ package org.ktorm.support.mysql
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.ClassRule
 import org.junit.Test
-import org.ktorm.BaseTest
-import org.ktorm.database.Database
 import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.jackson.json
 import org.ktorm.schema.*
-import org.testcontainers.containers.MySQLContainer
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.ExecutionException
@@ -22,24 +18,7 @@ import java.util.concurrent.TimeoutException
 /**
  * Created by vince on Dec 12, 2018.
  */
-class MySqlTest : BaseTest() {
-
-    companion object {
-        class KMySqlContainer : MySQLContainer<KMySqlContainer>("mysql:8")
-
-        @ClassRule
-        @JvmField
-        val mysql = KMySqlContainer()
-    }
-
-    override fun init() {
-        database = Database.connect(mysql.jdbcUrl, mysql.driverClassName, mysql.username, mysql.password)
-        execSqlScript("init-mysql-data.sql")
-    }
-
-    override fun destroy() {
-        execSqlScript("drop-mysql-data.sql")
-    }
+class CommonTest : BaseMySqlTest() {
 
     @Test
     fun testKeywordWrapping() {
@@ -434,7 +413,7 @@ class MySqlTest : BaseTest() {
 
     @Test
     fun testSchema() {
-        val t = object : Table<Department>("t_department", schema = mysql.databaseName) {
+        val t = object : Table<Department>("t_department", schema = databaseName) {
             val id = int("id").primaryKey().bindTo { it.id }
             val name = varchar("name").bindTo { it.name }
         }

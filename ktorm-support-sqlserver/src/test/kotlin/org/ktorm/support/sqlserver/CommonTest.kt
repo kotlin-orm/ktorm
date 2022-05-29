@@ -1,10 +1,7 @@
 package org.ktorm.support.sqlserver
 
 import microsoft.sql.DateTimeOffset
-import org.junit.ClassRule
 import org.junit.Test
-import org.ktorm.BaseTest
-import org.ktorm.database.Database
 import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.count
@@ -15,41 +12,13 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.datetime
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
-import org.testcontainers.containers.MSSQLServerContainer
 import java.sql.Timestamp
 import java.time.LocalDate
 
 /**
  * Create by vince on Jul 12, 2019.
  */
-class SqlServerTest : BaseTest() {
-
-    companion object {
-        const val TOTAL_RECORDS = 4
-        const val MINUS_ONE = -1
-        const val ZERO = 0
-        const val ONE = 1
-        const val TWO = 2
-        const val ID_1 = 1
-        const val ID_2 = 2
-        const val ID_3 = 3
-        const val ID_4 = 4
-
-        class KSqlServerContainer : MSSQLServerContainer<KSqlServerContainer>("mcr.microsoft.com/mssql/server:2017-CU12")
-
-        @ClassRule
-        @JvmField
-        val sqlServer = KSqlServerContainer()
-    }
-
-    override fun init() {
-        database = Database.connect(sqlServer.jdbcUrl, sqlServer.driverClassName, sqlServer.username, sqlServer.password)
-        execSqlScript("init-sqlserver-data.sql")
-    }
-
-    override fun destroy() {
-        execSqlScript("drop-sqlserver-data.sql")
-    }
+class CommonTest : BaseSqlServerTest() {
 
     @Test
     fun testKeywordWrapping() {
@@ -80,11 +49,11 @@ class SqlServerTest : BaseTest() {
      */
     @Test
     fun testBothLimitAndOffsetAreNotPositive() {
-        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(ZERO, MINUS_ONE)
-        assert(query.totalRecords == TOTAL_RECORDS)
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
+        assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
-        assert(ids == listOf(ID_4, ID_3, ID_2, ID_1))
+        assert(ids == listOf(4, 3, 2, 1))
     }
 
     /**
@@ -92,11 +61,11 @@ class SqlServerTest : BaseTest() {
      */
     @Test
     fun testLimitWithoutOffset() {
-        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(TWO)
-        assert(query.totalRecords == TOTAL_RECORDS)
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
+        assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
-        assert(ids == listOf(ID_4, ID_3))
+        assert(ids == listOf(4, 3))
     }
 
     /**
@@ -104,11 +73,11 @@ class SqlServerTest : BaseTest() {
      */
     @Test
     fun testOffsetWithoutLimit() {
-        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(TWO)
-        assert(query.totalRecords == TOTAL_RECORDS)
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
+        assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
-        assert(ids == listOf(ID_2, ID_1))
+        assert(ids == listOf(2, 1))
     }
 
     /**
@@ -116,11 +85,11 @@ class SqlServerTest : BaseTest() {
      */
     @Test
     fun testOffsetWithLimit() {
-        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(TWO).limit(ONE)
-        assert(query.totalRecords == TOTAL_RECORDS)
+        val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
+        assert(query.totalRecords == 4)
 
         val ids = query.map { it[Employees.id] }
-        assert(ids == listOf(ID_2))
+        assert(ids == listOf(2))
     }
 
     @Test
