@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
+
 package org.ktorm.support.postgresql
 
 import org.ktorm.database.Database
@@ -26,6 +28,7 @@ import java.lang.reflect.InvocationTargetException
  * available in the classpath.
  */
 @Suppress("SwallowedException")
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 internal val Database.Companion.global: Database get() {
     try {
         val cls = Class.forName("org.ktorm.global.GlobalKt")
@@ -68,6 +71,7 @@ internal val Database.Companion.global: Database get() {
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
 }
@@ -110,6 +114,7 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * @return the effected row count.
  * @see batchInsert
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.(T) -> Unit): Int {
     return Database.global.bulkInsert(this, block)
 }
@@ -157,6 +162,7 @@ public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.
  * @return the effected row count.
  * @see bulkInsert
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit): Int {
     return Database.global.bulkInsertOrUpdate(this, block)
 }

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+
 package org.ktorm.global
 
 import org.ktorm.database.Database
@@ -41,6 +43,7 @@ import java.sql.Statement
  * @param block the DSL block, an extension function of [UpdateStatementBuilder], used to construct the expression.
  * @return the effected row count.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.update(this, block)
 }
@@ -70,6 +73,7 @@ public fun <T : BaseTable<*>> T.update(block: UpdateStatementBuilder.(T) -> Unit
  * @param block the DSL block, extension function of [BatchUpdateStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T>.() -> Unit): IntArray {
     return Database.global.batchUpdate(this, block)
 }
@@ -93,6 +97,7 @@ public fun <T : BaseTable<*>> T.batchUpdate(block: BatchUpdateStatementBuilder<T
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the effected row count.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): Int {
     return Database.global.insert(this, block)
 }
@@ -130,6 +135,7 @@ public fun <T : BaseTable<*>> T.insert(block: AssignmentsBuilder.(T) -> Unit): I
  * @param block the DSL block, extension function of [BatchInsertStatementBuilder], used to construct the expressions.
  * @return the effected row counts for each sub-operation.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T>.() -> Unit): IntArray {
     return Database.global.batchInsert(this, block)
 }
@@ -156,6 +162,7 @@ public fun <T : BaseTable<*>> T.batchInsert(block: BatchInsertStatementBuilder<T
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the first auto-generated key.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(T) -> Unit): Any {
     return Database.global.insertAndGenerateKey(this, block)
 }
@@ -163,6 +170,7 @@ public fun <T : BaseTable<*>> T.insertAndGenerateKey(block: AssignmentsBuilder.(
 /**
  * Delete the records in the table that matches the given [predicate].
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return Database.global.delete(this, predicate)
 }
@@ -170,6 +178,7 @@ public fun <T : BaseTable<*>> T.delete(predicate: (T) -> ColumnDeclaring<Boolean
 /**
  * Delete all the records in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun BaseTable<*>.deleteAll(): Int {
     return Database.global.deleteAll(this)
 }

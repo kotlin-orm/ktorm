@@ -6,6 +6,7 @@ import org.ktorm.database.Database
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 open class BaseGlobalTest : BaseTest() {
 
     override fun init() {
