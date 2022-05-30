@@ -126,6 +126,11 @@ publishing {
                         name.set("Kacper Stasiuk")
                         email.set("kocproz@pm.me")
                     }
+                    developer {
+                        id.set("2938137849")
+                        name.set("ccr")
+                        email.set("2938137849@qq.com")
+                    }
                 }
             }
         }
