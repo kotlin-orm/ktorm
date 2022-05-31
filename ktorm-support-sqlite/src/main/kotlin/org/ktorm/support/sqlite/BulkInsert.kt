@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.ktorm.schema.ColumnDeclaring
  * @property assignments column assignments of the bulk insert statement.
  * @property conflictColumns the index columns on which the conflict may happen.
  * @property updateAssignments the updated column assignments while key conflict exists.
+ * @property where the condition whether the update assignments should be executed.
  */
 public data class BulkInsertExpression(
     val table: TableExpression,
@@ -214,8 +215,8 @@ public open class BulkInsertStatementBuilder<T : BaseTable<*>>(internal val tabl
 public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : BulkInsertStatementBuilder<T>(table) {
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-    internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing: Boolean = false
+    internal var where: ColumnDeclaring<Boolean>? = null
 
     /**
      * Specify the update assignments while any key conflict exists.
@@ -224,7 +225,7 @@ public class BulkInsertOrUpdateStatementBuilder<T : BaseTable<*>>(table: T) : Bu
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
         this.conflictColumns += columns
         this.updateAssignments += builder.assignments
-        this.where = builder.where
         this.doNothing = builder.doNothing
+        this.where = builder.where
     }
 }

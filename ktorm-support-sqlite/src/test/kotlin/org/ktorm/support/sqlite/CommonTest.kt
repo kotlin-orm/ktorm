@@ -78,7 +78,7 @@ class CommonTest : BaseSQLiteTest() {
             set(it.hireDate, LocalDate.now())
             set(it.departmentId, 1)
             onConflict {
-                setExcluded(it.salary)
+                set(it.salary, excluded(it.salary))
             }
         }
         database.insertOrUpdate(Employees.aliased("t")) {

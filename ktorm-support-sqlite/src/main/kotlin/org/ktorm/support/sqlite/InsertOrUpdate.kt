@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.ktorm.schema.ColumnDeclaring
  * @property assignments the inserted column assignments.
  * @property conflictColumns the index columns on which the conflict may happen.
  * @property updateAssignments the updated column assignments while any key conflict exists.
+ * @property where the condition whether the update assignments should be executed.
  */
 public data class InsertOrUpdateExpression(
     val table: TableExpression,
@@ -109,8 +110,8 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
-        where = builder.where?.asExpression(),
-        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments
+        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
+        where = builder.where?.asExpression()
     )
 }
 
@@ -133,19 +134,8 @@ public open class SQLiteAssignmentsBuilder : AssignmentsBuilder() {
 public class InsertOrUpdateStatementBuilder : SQLiteAssignmentsBuilder() {
     internal val conflictColumns = ArrayList<Column<*>>()
     internal val updateAssignments = ArrayList<ColumnAssignmentExpression<*>>()
-    internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing = false
-
-    /**
-     * Specify the update assignments while any key conflict exists.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future, please use onConflict { } instead",
-        replaceWith = ReplaceWith("onConflict(columns, block)")
-    )
-    public fun onDuplicateKey(vararg columns: Column<*>, block: AssignmentsBuilder.() -> Unit) {
-        onConflict(*columns, block = block)
-    }
+    internal var where: ColumnDeclaring<Boolean>? = null
 
     /**
      * Specify the update assignments while any key conflict exists.
@@ -154,8 +144,8 @@ public class InsertOrUpdateStatementBuilder : SQLiteAssignmentsBuilder() {
         val builder = InsertOrUpdateOnConflictClauseBuilder().apply(block)
         this.conflictColumns += columns
         this.updateAssignments += builder.assignments
-        this.where = builder.where
         this.doNothing = builder.doNothing
+        this.where = builder.where
     }
 }
 
@@ -164,21 +154,21 @@ public class InsertOrUpdateStatementBuilder : SQLiteAssignmentsBuilder() {
  */
 @KtormDsl
 public class InsertOrUpdateOnConflictClauseBuilder : SQLiteAssignmentsBuilder() {
-    internal var where: ColumnDeclaring<Boolean>? = null
     internal var doNothing = false
-
-    /**
-     * Specify the where clause for this update statement.
-     */
-    public fun where(block: () -> ColumnDeclaring<Boolean>) {
-        this.where = block()
-    }
+    internal var where: ColumnDeclaring<Boolean>? = null
 
     /**
      * Explicitly tells ktorm to ignore any on-conflict errors and continue insertion.
      */
     public fun doNothing() {
         this.doNothing = true
+    }
+
+    /**
+     * Specify the where condition for the update clause.
+     */
+    public fun where(block: () -> ColumnDeclaring<Boolean>) {
+        this.where = block()
     }
 
     /**
@@ -191,13 +181,6 @@ public class InsertOrUpdateOnConflictClauseBuilder : SQLiteAssignmentsBuilder() 
             name = column.name,
             sqlType = column.sqlType
         )
-    }
-
-    /**
-     * be equal to 'set(column, excluded(column))'.
-     */
-    public fun <T : Any> setExcluded(column: Column<T>) {
-        set(column, excluded(column))
     }
 }
 
