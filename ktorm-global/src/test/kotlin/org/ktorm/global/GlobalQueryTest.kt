@@ -8,6 +8,7 @@ import org.ktorm.expression.ScalarExpression
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalQueryTest : BaseGlobalTest() {
     companion object {
         const val TWO = 2

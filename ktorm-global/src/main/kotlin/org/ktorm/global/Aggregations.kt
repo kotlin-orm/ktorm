@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+
 package org.ktorm.global
 
 import org.ktorm.database.Database
@@ -24,6 +26,7 @@ import org.ktorm.schema.ColumnDeclaring
 /**
  * Check if all the records in the table matches the given [predicate].
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return Database.global.sequenceOf(this).all(predicate)
 }
@@ -31,6 +34,7 @@ public inline fun <E : Any, T : BaseTable<E>> T.all(predicate: (T) -> ColumnDecl
 /**
  * Check if there is any record in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
     return Database.global.sequenceOf(this).any()
 }
@@ -38,6 +42,7 @@ public fun <E : Any, T : BaseTable<E>> T.any(): Boolean {
 /**
  * Check if there is any record in the table matches the given [predicate].
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return Database.global.sequenceOf(this).any(predicate)
 }
@@ -45,6 +50,7 @@ public inline fun <E : Any, T : BaseTable<E>> T.any(predicate: (T) -> ColumnDecl
 /**
  * Return `true` if there is no records in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
     return Database.global.sequenceOf(this).none()
 }
@@ -52,6 +58,7 @@ public fun <E : Any, T : BaseTable<E>> T.none(): Boolean {
 /**
  * Return `true` if there is no records in the table that matches the given [predicate].
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDeclaring<Boolean>): Boolean {
     return Database.global.sequenceOf(this).none(predicate)
 }
@@ -59,6 +66,7 @@ public inline fun <E : Any, T : BaseTable<E>> T.none(predicate: (T) -> ColumnDec
 /**
  * Return `true` if the table has no records.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any, T : BaseTable<E>> T.isEmpty(): Boolean {
     return Database.global.sequenceOf(this).isEmpty()
 }
@@ -66,6 +74,7 @@ public fun <E : Any, T : BaseTable<E>> T.isEmpty(): Boolean {
 /**
  * Return `true` if the table has at lease one record.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any, T : BaseTable<E>> T.isNotEmpty(): Boolean {
     return Database.global.sequenceOf(this).isNotEmpty()
 }
@@ -73,6 +82,7 @@ public fun <E : Any, T : BaseTable<E>> T.isNotEmpty(): Boolean {
 /**
  * Return the records count in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any, T : BaseTable<E>> T.count(): Int {
     return Database.global.sequenceOf(this).count()
 }
@@ -80,6 +90,7 @@ public fun <E : Any, T : BaseTable<E>> T.count(): Int {
 /**
  * Return the records count in the table that matches the given [predicate].
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDeclaring<Boolean>): Int {
     return Database.global.sequenceOf(this).count(predicate)
 }
@@ -87,6 +98,7 @@ public inline fun <E : Any, T : BaseTable<E>> T.count(predicate: (T) -> ColumnDe
 /**
  * Return the sum of the given column or expression of all the records, null if there are no records in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return Database.global.sequenceOf(this).sumBy(selector)
 }
@@ -94,6 +106,7 @@ public inline fun <E : Any, T : BaseTable<E>, C : Number> T.sumBy(selector: (T) 
 /**
  * Return the max value of the given column or expression of all the records, null if there are no records in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return Database.global.sequenceOf(this).maxBy(selector)
 }
@@ -101,6 +114,7 @@ public inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.maxBy(selecto
 /**
  * Return the min value of the given column or expression of all the records, null if there are no records in the table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selector: (T) -> ColumnDeclaring<C>): C? {
     return Database.global.sequenceOf(this).minBy(selector)
 }
@@ -108,6 +122,7 @@ public inline fun <E : Any, T : BaseTable<E>, C : Comparable<C>> T.minBy(selecto
 /**
  * Return the average value of the given column or expression of all the records, null if there are no records.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.averageBy(selector: (T) -> ColumnDeclaring<out Number>): Double? {
     return Database.global.sequenceOf(this).averageBy(selector)
 }

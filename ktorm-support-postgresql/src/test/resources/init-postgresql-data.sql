@@ -1,4 +1,5 @@
 create extension if not exists hstore;
+create extension if not exists earthdistance cascade;
 
 create table t_department(
   id serial primary key,
@@ -30,6 +31,8 @@ create table t_enum(
 );
 
 create table t_json (obj json, arr json);
+
+create table t_earthdistance(earth_field earth, cube_field cube);
 
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
 insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');

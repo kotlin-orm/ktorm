@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DeprecatedCallableAddReplaceWith", "DEPRECATION")
+
 package org.ktorm.global
 
 import org.ktorm.database.Database
@@ -25,6 +27,7 @@ import org.ktorm.schema.Table
 /**
  * Create an [EntitySequence] from this table.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = true): EntitySequence<E, T> {
     return Database.global.sequenceOf(this, withReferences)
 }
@@ -43,6 +46,7 @@ public fun <E : Any, T : BaseTable<E>> T.asSequence(withReferences: Boolean = tr
  * @see Entity.flushChanges
  * @see Entity.delete
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Entity<E>> Table<E>.addEntity(entity: E): Int {
     return Database.global.sequenceOf(this).add(entity)
 }
@@ -56,6 +60,7 @@ public fun <E : Entity<E>> Table<E>.addEntity(entity: E): Int {
  * @see Entity.delete
  * @since 3.1.0
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Entity<E>> Table<E>.updateEntity(entity: E): Int {
     return Database.global.sequenceOf(this).update(entity)
 }
@@ -63,6 +68,7 @@ public fun <E : Entity<E>> Table<E>.updateEntity(entity: E): Int {
 /**
  * Obtain a entity object matching the given [predicate], auto left joining all the reference tables.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
     return Database.global.sequenceOf(this).find(predicate)
 }
@@ -70,6 +76,7 @@ public inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> Column
 /**
  * Obtain all the entity objects from this table, auto left joining all the reference tables.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <E : Any> BaseTable<E>.findAll(): List<E> {
     return Database.global.sequenceOf(this).toList()
 }
@@ -77,6 +84,7 @@ public fun <E : Any> BaseTable<E>.findAll(): List<E> {
 /**
  * Obtain a list of entity objects matching the given [predicate], auto left joining all the reference tables.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.findList(predicate: (T) -> ColumnDeclaring<Boolean>): List<E> {
     return Database.global.sequenceOf(this).filter(predicate).toList()
 }

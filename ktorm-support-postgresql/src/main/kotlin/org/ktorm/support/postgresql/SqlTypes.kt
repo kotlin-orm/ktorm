@@ -25,40 +25,14 @@ import java.sql.ResultSet
 import java.sql.Types
 
 /**
- * Represent values of PostgreSQL `hstore` SQL type.
- */
-public typealias HStore = Map<String, String?>
-
-/**
  * Represent values of PostgreSQL `text[]` SQL type.
  */
 public typealias TextArray = Array<String?>
 
 /**
- * Define a column typed [HStoreSqlType].
- */
-public fun <E : Any> BaseTable<E>.hstore(name: String): Column<HStore> {
-    return registerColumn(name, HStoreSqlType)
-}
-
-/**
- * [SqlType] implementation represents PostgreSQL `hstore` type.
- */
-public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
-        ps.setObject(index, parameter)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
-        return rs.getObject(index) as HStore?
-    }
-}
-
-/**
  * Define a column typed [TextArraySqlType].
  */
-public fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
+public fun BaseTable<*>.textArray(name: String): Column<TextArray> {
     return registerColumn(name, TextArraySqlType)
 }
 
@@ -66,6 +40,7 @@ public fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
  * [SqlType] implementation represents PostgreSQL `text[]` type.
  */
 public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: TextArray) {
         ps.setObject(index, parameter)
     }
@@ -83,71 +58,65 @@ public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
 }
 
 /**
- * Represents location of a point on the surface of the Earth.
- * Part of PostgreSQL's `earthdistance` extension.
- * https://www.postgresql.org/docs/12/earthdistance.html
+ * Represent values of PostgreSQL `hstore` SQL type.
  */
-public typealias Earth = Triple<Double, Double, Double>
+public typealias HStore = Map<String, String?>
 
 /**
- * Represents a point on Earth's surface
- * Part of PostgreSQL's `earthdistance` SQL extension.
+ * Define a column typed [HStoreSqlType].
  */
-public object PGEarthType : SqlType<Earth>(Types.OTHER, "earth") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
-        ps.setObject(index, parameter, Types.OTHER)
-    }
-
-    override fun doGetResult(rs: ResultSet, index: Int): Earth? {
-        return rs.getObject(index)?.let {
-            (it as PGobject).value
-                .substring(1, it.value.length - 1)
-                .split(",")
-                .let { rawNumbers ->
-                    Earth(rawNumbers[0].toDouble(), rawNumbers[1].toDouble(), rawNumbers[2].toDouble())
-                }
-        }
-    }
+public fun BaseTable<*>.hstore(name: String): Column<HStore> {
+    return registerColumn(name, HStoreSqlType)
 }
 
 /**
- * Define a column typed [PGEarthType].
+ * [SqlType] implementation represents PostgreSQL `hstore` type.
  */
-public fun BaseTable<*>.earth(name: String): Column<Earth> = registerColumn(name, PGEarthType)
+public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
+        return rs.getObject(index) as HStore?
+    }
+}
 
 /**
  * Represents a box suitable for an indexed search using the cube @> operator.
  * Part of PostgreSQL's `cube` SQL extension.
  * https://www.postgresql.org/docs/9.5/cube.html
  */
-public data class Cube(
-    public val first: DoubleArray,
-    public val second: DoubleArray
-) {
+public data class Cube(val x: DoubleArray, val y: DoubleArray) {
     init {
-        if (first.size != second.size) {
-            throw IllegalArgumentException("Cube should be initialized with same size arrays")
+        if (x.size != y.size) {
+            throw IllegalArgumentException("x and y should have same dimensions.")
         }
     }
 
-    override fun toString(): String {
-        return "${first.contentToString()}, ${second.contentToString()}"
-            .replace('[', '(')
-            .replace(']', ')')
-    }
-
     override fun equals(other: Any?): Boolean {
-        if (other !is Cube) return false
-        if (!other.first.contentEquals(this.first)) return false
-        if (!other.second.contentEquals(this.second)) return false
-        return true
+        return other is Cube && x.contentEquals(other.x) && y.contentEquals(other.y)
     }
 
     override fun hashCode(): Int {
-        var result = first.contentHashCode()
-        result = 31 * result + second.contentHashCode()
+        var result = 1
+        result = 31 * result + x.contentHashCode()
+        result = 31 * result + y.contentHashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "(${x.joinToString(", ")}), (${y.joinToString(", ")})"
+    }
+}
+
+/**
+ * Define a column typed [CubeSqlType].
+ */
+public fun BaseTable<*>.cube(name: String): Column<Cube> {
+    return registerColumn(name, CubeSqlType)
 }
 
 /**
@@ -155,28 +124,57 @@ public data class Cube(
  * Part of PostgreSQL's `cube` SQL extension.
  * https://www.postgresql.org/docs/9.5/cube.html
  */
-public object PGCubeType : SqlType<Cube>(Types.OTHER, "cube") {
+public object CubeSqlType : SqlType<Cube>(Types.OTHER, "cube") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Cube) {
         ps.setObject(index, parameter, Types.OTHER)
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): Cube? {
-        return rs.getObject(index)?.let { pgObj ->
-            (pgObj as PGobject).value // (-1.1, 2.2, 3.0), (1.1, -2.2, 0.3)
-                .replace("(", "")
-                .replace(")", "") // -1.1, 2.2, 3.0, 1.1, -2.2, 0.3
-                .split(',')
-                .let { rawValues ->
-                    Cube(
-                        rawValues.take(rawValues.size / 2).map { it.toDouble() }.toDoubleArray(),
-                        rawValues.takeLast(rawValues.size / 2).map { it.toDouble() }.toDoubleArray()
-                    )
-                }
+        val obj = rs.getObject(index) as PGobject?
+        if (obj == null) {
+            return null
+        } else {
+            // (1, 2, 3), (4, 5, 6)
+            val numbers = obj.value.replace("(", "").replace(")", "").split(",").map { it.trim().toDouble() }
+            val (x, y) = numbers.chunked(numbers.size / 2).map { it.toDoubleArray() }
+            return Cube(x, y)
         }
     }
 }
 
 /**
- * Define a column typed [PGCubeType].
+ * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
+ * Part of PostgreSQL's `earthdistance` extension.
+ * https://www.postgresql.org/docs/12/earthdistance.html
  */
-public fun BaseTable<*>.cube(name: String): Column<Cube> = registerColumn(name, PGCubeType)
+public typealias Earth = Triple<Double, Double, Double>
+
+/**
+ * Define a column typed [EarthSqlType].
+ */
+public fun BaseTable<*>.earth(name: String): Column<Earth> {
+    return registerColumn(name, EarthSqlType)
+}
+
+/**
+ * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
+ * Part of PostgreSQL's `earthdistance` SQL extension.
+ */
+public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
+        ps.setObject(index, parameter, Types.OTHER)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Earth? {
+        val obj = rs.getObject(index) as PGobject?
+        if (obj == null) {
+            return null
+        } else {
+            // (1, 2, 3)
+            val (x, y, z) = obj.value.removeSurrounding("(", ")").split(",").map { it.trim().toDouble() }
+            return Earth(x, y, z)
+        }
+    }
+}

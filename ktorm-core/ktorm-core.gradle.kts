@@ -12,6 +12,7 @@ dependencies {
     compileOnly("org.springframework:spring-tx:5.0.10.RELEASE")
     compileOnly("org.postgresql:postgresql:42.2.5")
     testImplementation("com.h2database:h2:1.4.197")
+    testImplementation("org.slf4j:slf4j-simple:1.7.25")
 }
 
 val testOutput by configurations.creating {

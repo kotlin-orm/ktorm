@@ -38,6 +38,7 @@ public fun BaseTable<*>.boolean(name: String): Column<Boolean> {
  * [SqlType] implementation represents `boolean` SQL type.
  */
 public object BooleanSqlType : SqlType<Boolean>(Types.BOOLEAN, "boolean") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Boolean) {
         ps.setBoolean(index, parameter)
     }
@@ -58,6 +59,7 @@ public fun BaseTable<*>.int(name: String): Column<Int> {
  * [SqlType] implementation represents `int` SQL type.
  */
 public object IntSqlType : SqlType<Int>(Types.INTEGER, "int") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Int) {
         ps.setInt(index, parameter)
     }
@@ -82,6 +84,7 @@ public fun BaseTable<*>.short(name: String): Column<Short> {
  * @since 3.1.0
  */
 public object ShortSqlType : SqlType<Short>(Types.SMALLINT, "smallint") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Short) {
         ps.setShort(index, parameter)
     }
@@ -102,6 +105,7 @@ public fun BaseTable<*>.long(name: String): Column<Long> {
  * [SqlType] implementation represents `long` SQL type.
  */
 public object LongSqlType : SqlType<Long>(Types.BIGINT, "bigint") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Long) {
         ps.setLong(index, parameter)
     }
@@ -122,6 +126,7 @@ public fun BaseTable<*>.float(name: String): Column<Float> {
  * [SqlType] implementation represents `float` SQL type.
  */
 public object FloatSqlType : SqlType<Float>(Types.FLOAT, "float") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Float) {
         ps.setFloat(index, parameter)
     }
@@ -142,6 +147,7 @@ public fun BaseTable<*>.double(name: String): Column<Double> {
  * [SqlType] implementation represents `double` SQL type.
  */
 public object DoubleSqlType : SqlType<Double>(Types.DOUBLE, "double") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Double) {
         ps.setDouble(index, parameter)
     }
@@ -162,6 +168,7 @@ public fun BaseTable<*>.decimal(name: String): Column<BigDecimal> {
  * [SqlType] implementation represents `decimal` SQL type.
  */
 public object DecimalSqlType : SqlType<BigDecimal>(Types.DECIMAL, "decimal") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: BigDecimal) {
         ps.setBigDecimal(index, parameter)
     }
@@ -182,6 +189,7 @@ public fun BaseTable<*>.varchar(name: String): Column<String> {
  * [SqlType] implementation represents `varchar` SQL type.
  */
 public object VarcharSqlType : SqlType<String>(Types.VARCHAR, "varchar") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: String) {
         ps.setString(index, parameter)
     }
@@ -202,6 +210,7 @@ public fun BaseTable<*>.text(name: String): Column<String> {
  * [SqlType] implementation represents `text` SQL type.
  */
 public object TextSqlType : SqlType<String>(Types.LONGVARCHAR, "text") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: String) {
         ps.setString(index, parameter)
     }
@@ -222,6 +231,7 @@ public fun BaseTable<*>.blob(name: String): Column<ByteArray> {
  * [SqlType] implementation represents `blob` SQL type.
  */
 public object BlobSqlType : SqlType<ByteArray>(Types.BLOB, "blob") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ByteArray) {
         ps.setBlob(index, SerialBlob(parameter))
     }
@@ -248,6 +258,7 @@ public fun BaseTable<*>.bytes(name: String): Column<ByteArray> {
  * [SqlType] implementation represents `bytes` SQL type.
  */
 public object BytesSqlType : SqlType<ByteArray>(Types.BINARY, "bytes") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ByteArray) {
         ps.setBytes(index, parameter)
     }
@@ -268,6 +279,7 @@ public fun BaseTable<*>.jdbcTimestamp(name: String): Column<Timestamp> {
  * [SqlType] implementation represents `timestamp` SQL type.
  */
 public object TimestampSqlType : SqlType<Timestamp>(Types.TIMESTAMP, "timestamp") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Timestamp) {
         ps.setTimestamp(index, parameter)
     }
@@ -288,6 +300,7 @@ public fun BaseTable<*>.jdbcDate(name: String): Column<Date> {
  * [SqlType] implementation represents `date` SQL type.
  */
 public object DateSqlType : SqlType<Date>(Types.DATE, "date") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Date) {
         ps.setDate(index, parameter)
     }
@@ -308,6 +321,7 @@ public fun BaseTable<*>.jdbcTime(name: String): Column<Time> {
  * [SqlType] implementation represents `time` SQL type.
  */
 public object TimeSqlType : SqlType<Time>(Types.TIME, "time") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Time) {
         ps.setTime(index, parameter)
     }
@@ -328,6 +342,7 @@ public fun BaseTable<*>.timestamp(name: String): Column<Instant> {
  * [SqlType] implementation represents `timestamp` SQL type.
  */
 public object InstantSqlType : SqlType<Instant>(Types.TIMESTAMP, "timestamp") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Instant) {
         ps.setTimestamp(index, Timestamp.from(parameter))
     }
@@ -348,6 +363,7 @@ public fun BaseTable<*>.datetime(name: String): Column<LocalDateTime> {
  * [SqlType] implementation represents `datetime` SQL type.
  */
 public object LocalDateTimeSqlType : SqlType<LocalDateTime>(Types.TIMESTAMP, "datetime") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: LocalDateTime) {
         ps.setTimestamp(index, Timestamp.valueOf(parameter))
     }
@@ -368,6 +384,7 @@ public fun BaseTable<*>.date(name: String): Column<LocalDate> {
  * [SqlType] implementation represents `date` SQL type.
  */
 public object LocalDateSqlType : SqlType<LocalDate>(Types.DATE, "date") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: LocalDate) {
         ps.setDate(index, Date.valueOf(parameter))
     }
@@ -388,6 +405,7 @@ public fun BaseTable<*>.time(name: String): Column<LocalTime> {
  * [SqlType] implementation represents `time` SQL type.
  */
 public object LocalTimeSqlType : SqlType<LocalTime>(Types.TIME, "time") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: LocalTime) {
         ps.setTime(index, Time.valueOf(parameter))
     }
@@ -461,6 +479,7 @@ public fun BaseTable<*>.year(name: String): Column<Year> {
  * [SqlType] implementation used to save [Year] instances as integers.
  */
 public object YearSqlType : SqlType<Year>(Types.INTEGER, "int") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Year) {
         ps.setInt(index, parameter.value)
     }
@@ -486,7 +505,6 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<
  * @property enumClass the enum class.
  */
 public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.OTHER, "enum") {
-
     private val hasPostgresqlDriver by lazy {
         runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
     }
@@ -532,6 +550,7 @@ public fun BaseTable<*>.uuid(name: String): Column<UUID> {
  * [SqlType] implementation represents `uuid` SQL type.
  */
 public object UuidSqlType : SqlType<UUID>(Types.OTHER, "uuid") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: UUID) {
         ps.setObject(index, parameter)
     }

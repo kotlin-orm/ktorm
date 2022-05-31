@@ -127,6 +127,11 @@ publishing {
                         email.set("kocproz@pm.me")
                     }
                     developer {
+                        id.set("2938137849")
+                        name.set("ccr")
+                        email.set("2938137849@qq.com")
+                    }
+                    developer {
                         id.set("forte")
                         name.set("Forte Scarlet")
                         email.set("ForteScarlet@163.com")

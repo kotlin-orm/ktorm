@@ -6,6 +6,7 @@ import org.ktorm.dsl.*
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalJoinTest : BaseGlobalTest() {
 
     @Test

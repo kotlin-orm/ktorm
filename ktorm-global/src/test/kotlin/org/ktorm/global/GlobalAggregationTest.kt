@@ -9,6 +9,7 @@ import org.ktorm.entity.tupleOf
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalAggregationTest : BaseGlobalTest() {
 
     @Test

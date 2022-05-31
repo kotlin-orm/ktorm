@@ -568,7 +568,7 @@ public abstract class SqlFormatter(
 
     protected fun writeInsertValues(assignments: List<ColumnAssignmentExpression<*>>) {
         write("(")
-        visitExpressionList(assignments.map { it.expression as ArgumentExpression })
+        visitExpressionList(assignments.map { it.expression })
         removeLastBlank()
         write(") ")
     }
