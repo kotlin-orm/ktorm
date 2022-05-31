@@ -997,7 +997,7 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.elementAtOrNull(inde
         return null
     } catch (e: DialectFeatureNotSupportedException) {
         if (database.logger.isTraceEnabled()) {
-            database.logger.trace("Pagination is not supported, retrieving all records instead: ", e)
+            database.logger.trace("Pagination is not supported, retrieving all records instead. $e")
         }
 
         var count = 0

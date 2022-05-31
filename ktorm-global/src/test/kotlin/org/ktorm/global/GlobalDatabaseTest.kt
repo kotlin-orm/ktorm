@@ -11,6 +11,7 @@ import org.ktorm.schema.varchar
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalDatabaseTest : BaseGlobalTest() {
 
     @Test

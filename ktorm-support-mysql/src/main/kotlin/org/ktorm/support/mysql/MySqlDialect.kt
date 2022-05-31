@@ -214,7 +214,7 @@ public open class MySqlExpressionVisitor : SqlExpressionVisitor() {
     }
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        val table = expr.table
+        val table = visitTable(expr.table)
         val assignments = visitBulkInsertAssignments(expr.assignments)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
 

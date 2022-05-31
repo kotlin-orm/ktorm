@@ -7,6 +7,7 @@ import org.ktorm.entity.*
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalEntitySequenceTest : BaseGlobalTest() {
 
     @Test

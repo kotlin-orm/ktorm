@@ -377,7 +377,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     }
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        val table = expr.table
+        val table = visitTable(expr.table)
         val assignments = visitBulkInsertAssignments(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)

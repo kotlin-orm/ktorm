@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
-
-package org.ktorm.support.postgresql
+package org.ktorm.support.sqlite
 
 import org.ktorm.database.Database
 import org.ktorm.dsl.batchInsert
@@ -28,7 +26,6 @@ import java.lang.reflect.InvocationTargetException
  * available in the classpath.
  */
 @Suppress("SwallowedException")
-@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 internal val Database.Companion.global: Database get() {
     try {
         val cls = Class.forName("org.ktorm.global.GlobalKt")
@@ -71,18 +68,16 @@ internal val Database.Companion.global: Database get() {
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
-@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
 }
 
 /**
- * Construct a bulk insert expression in the given closure, then execute it and return the
- * effected row count.
+ * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
  *
- * The usage is almost the same as [batchInsert], but this function is implemented by generating a
- * special SQL using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations.
- * For this reason, its performance is much better than [batchInsert].
+ * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
+ * using SQLite's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
+ * is much better than [batchInsert].
  *
  * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.
  *
@@ -109,12 +104,10 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * }
  * ```
  *
- * @since 3.3.0
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
  * @return the effected row count.
  * @see batchInsert
  */
-@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.(T) -> Unit): Int {
     return Database.global.bulkInsert(this, block)
 }
@@ -157,12 +150,10 @@ public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.
  * on conflict (id) do update set salary = salary + ?
  * ```
  *
- * @since 3.3.0
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  * @see bulkInsert
  */
-@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit): Int {
     return Database.global.bulkInsertOrUpdate(this, block)
 }
