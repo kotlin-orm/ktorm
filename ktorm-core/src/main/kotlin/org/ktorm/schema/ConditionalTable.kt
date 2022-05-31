@@ -158,7 +158,7 @@ public open class ConditionalTable<E : Entity<E>>(
      * Translate the provided entity classes into query conditions.
      *
      * @param entity entity of this table.
-     * @return Query conditions as [ColumnDeclaring]&lt;Boolean%gt;, May be null if no condition is generated.
+     * @return Query conditions as [ColumnDeclaring]&lt;Boolean&gt;, May be null if no condition is generated.
      */
     public fun asCondition(entity: E): ColumnDeclaring<Boolean>? {
         val entityImplementation = entity.implementation
