@@ -192,7 +192,7 @@ public fun ColumnDeclaring<String>.instr(right: ColumnDeclaring<String>): Functi
  * SQLite instr function, translated to `instr(left, right)`.
  */
 public fun ColumnDeclaring<String>.instr(right: String): FunctionExpression<Int> {
-    return instr(wrapArgument(right))
+    return this.instr(wrapArgument(right))
 }
 
 /**
