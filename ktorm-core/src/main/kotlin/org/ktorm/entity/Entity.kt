@@ -232,7 +232,7 @@ public interface Entity<E : Entity<E>> : Serializable {
     public companion object {
 
         /**
-         * Create an entity object. This functions is used by Ktorm internal.
+         * Create an entity object. This function is used by Ktorm internal.
          */
         internal fun create(
             entityClass: KClass<*>,
