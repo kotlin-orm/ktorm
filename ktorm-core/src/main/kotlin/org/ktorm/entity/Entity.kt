@@ -17,13 +17,12 @@
 package org.ktorm.entity
 
 import org.ktorm.database.Database
-import org.ktorm.schema.TypeReference
 import org.ktorm.schema.Table
+import org.ktorm.schema.TypeReference
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.lang.reflect.Proxy
-import java.sql.SQLException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -162,7 +161,6 @@ public interface Entity<E : Entity<E>> : Serializable {
      * @see add
      * @see update
      */
-    @Throws(SQLException::class)
     public fun flushChanges(): Int
 
     /**
@@ -187,7 +185,6 @@ public interface Entity<E : Entity<E>> : Serializable {
      * @see update
      * @see flushChanges
      */
-    @Throws(SQLException::class)
     public fun delete(): Int
 
     /**

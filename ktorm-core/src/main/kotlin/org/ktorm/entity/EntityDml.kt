@@ -38,7 +38,7 @@ import org.ktorm.schema.*
  */
 @Suppress("UNCHECKED_CAST")
 public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): Int {
-    checkIfSequenceModified()
+    checkForDml()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
     val assignments = entity.findInsertColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
@@ -99,7 +99,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
  */
 @Suppress("UNCHECKED_CAST")
 public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E): Int {
-    checkIfSequenceModified()
+    checkForDml()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
     val assignments = entity.findUpdateColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
@@ -132,7 +132,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E):
 public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
     predicate: (T) -> ColumnDeclaring<Boolean>
 ): Int {
-    checkIfSequenceModified()
+    checkForDml()
     return database.delete(sourceTable, predicate)
 }
 
@@ -142,10 +142,15 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.removeIf(
  * @since 2.7
  */
 public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.clear(): Int {
-    checkIfSequenceModified()
+    checkForDml()
     return database.deleteAll(sourceTable)
 }
 
+/**
+ * Update the property changes of this entity into the database and return the affected record number.
+ *
+ * This function is the implementation of [Entity.flushChanges].
+ */
 @Suppress("UNCHECKED_CAST")
 internal fun EntityImplementation.doFlushChanges(): Int {
     check(parent == null) { "The entity is not attached to any database yet." }
@@ -172,7 +177,11 @@ internal fun EntityImplementation.doFlushChanges(): Int {
     return fromDatabase.executeUpdate(expression).also { doDiscardChanges() }
 }
 
-@Suppress("UNCHECKED_CAST")
+/**
+ * Delete this entity in the database and return the affected record number.
+ *
+ * This function is the implementation of [Entity.delete].
+ */
 internal fun EntityImplementation.doDelete(): Int {
     check(parent == null) { "The entity is not attached to any database yet." }
 
@@ -189,7 +198,10 @@ internal fun EntityImplementation.doDelete(): Int {
     return fromDatabase.executeUpdate(expression)
 }
 
-private fun EntitySequence<*, *>.checkIfSequenceModified() {
+/**
+ * Check if this sequence can be used for entity manipulations.
+ */
+private fun EntitySequence<*, *>.checkForDml() {
     val isModified = expression.where != null
         || expression.groupBy.isNotEmpty()
         || expression.having != null
@@ -206,6 +218,9 @@ private fun EntitySequence<*, *>.checkIfSequenceModified() {
     }
 }
 
+/**
+ * Return columns associated with their values for insert.
+ */
 private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
@@ -218,6 +233,9 @@ private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
     return assignments
 }
 
+/**
+ * Return columns associated with their values for update.
+ */
 private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
@@ -230,6 +248,9 @@ private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
     return assignments
 }
 
+/**
+ * Return changed columns associated with their values.
+ */
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
@@ -271,6 +292,11 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
     return assignments
 }
 
+/**
+ * Clear the tracked property changes of this entity.
+ *
+ * This function is the implementation of [Entity.discardChanges].
+ */
 internal fun EntityImplementation.doDiscardChanges() {
     check(parent == null) { "The entity is not attached to any database yet." }
     val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
@@ -302,7 +328,9 @@ internal fun EntityImplementation.doDiscardChanges() {
     }
 }
 
-// Add check to avoid bug #10
+/**
+ * Check to avoid unexpected discarding of changed properties, fix bug #10.
+ */
 private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) {
     for (column in fromTable.columns) {
         if (column.binding !is NestedBinding) continue
@@ -332,6 +360,9 @@ private fun EntityImplementation.checkUnexpectedDiscarding(fromTable: Table<*>) 
     }
 }
 
+/**
+ * Return the root parent of this entity.
+ */
 private tailrec fun EntityImplementation.getRoot(): EntityImplementation {
     val parent = this.parent
     if (parent == null) {
@@ -341,6 +372,9 @@ private tailrec fun EntityImplementation.getRoot(): EntityImplementation {
     }
 }
 
+/**
+ * Clear all changes for this entity.
+ */
 internal fun Entity<*>.clearChangesRecursively() {
     implementation.changedProperties.clear()
 
@@ -351,6 +385,9 @@ internal fun Entity<*>.clearChangesRecursively() {
     }
 }
 
+/**
+ * Construct the identity condition `where primaryKey = ?` for the table.
+ */
 @Suppress("UNCHECKED_CAST")
 private fun EntityImplementation.constructIdentityCondition(fromTable: Table<*>): ScalarExpression<Boolean> {
     val primaryKeys = fromTable.primaryKeys
