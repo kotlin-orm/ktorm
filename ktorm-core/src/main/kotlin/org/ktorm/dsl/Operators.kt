@@ -295,6 +295,8 @@ public infix fun <T : Comparable<T>> T.less(expr: ColumnDeclaring<T>): BinaryExp
 
 /**
  * Less operator, translated to `<` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return BinaryExpression(BinaryExpressionType.LESS_THAN, asExpression(), expr.asExpression(), BooleanSqlType)
@@ -302,6 +304,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(expr: ColumnDeclaring
 
 /**
  * Less operator, translated to `<` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(value: T): BinaryExpression<Boolean> {
     return this lt wrapArgument(value)
@@ -309,6 +313,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(value: T): BinaryExpr
 
 /**
  * Less operator, translated to `<` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> T.lt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) lt expr
@@ -344,6 +350,8 @@ public infix fun <T : Comparable<T>> T.lessEq(expr: ColumnDeclaring<T>): BinaryE
 
 /**
  * Less-eq operator, translated to `<=` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return BinaryExpression(
@@ -356,6 +364,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lte(expr: ColumnDeclarin
 
 /**
  * Less-eq operator, translated to `<=` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lte(value: T): BinaryExpression<Boolean> {
     return this lte wrapArgument(value)
@@ -363,6 +373,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lte(value: T): BinaryExp
 
 /**
  * Less-eq operator, translated to `<=` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> T.lte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) lte expr
@@ -393,6 +405,8 @@ public infix fun <T : Comparable<T>> T.greater(expr: ColumnDeclaring<T>): Binary
 
 /**
  * Greater operator, translated to `>` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return BinaryExpression(BinaryExpressionType.GREATER_THAN, asExpression(), expr.asExpression(), BooleanSqlType)
@@ -400,6 +414,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(expr: ColumnDeclaring
 
 /**
  * Greater operator, translated to `>` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(value: T): BinaryExpression<Boolean> {
     return this gt wrapArgument(value)
@@ -407,6 +423,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(value: T): BinaryExpr
 
 /**
  * Greater operator, translated to `>` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> T.gt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) gt expr
@@ -442,6 +460,8 @@ public infix fun <T : Comparable<T>> T.greaterEq(expr: ColumnDeclaring<T>): Bina
 
 /**
  * Greater-eq operator, translated to `>=` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return BinaryExpression(
@@ -454,6 +474,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gte(expr: ColumnDeclarin
 
 /**
  * Greater-eq operator, translated to `>=` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gte(value: T): BinaryExpression<Boolean> {
     return this gte wrapArgument(value)
@@ -461,6 +483,8 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gte(value: T): BinaryExp
 
 /**
  * Greater-eq operator, translated to `>=` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Comparable<T>> T.gte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) gte expr
@@ -514,6 +538,8 @@ public infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<B
 
 /**
  * Not-equal operator, translated to `<>` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Any> ColumnDeclaring<T>.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return BinaryExpression(BinaryExpressionType.NOT_EQUAL, asExpression(), expr.asExpression(), BooleanSqlType)
@@ -521,6 +547,8 @@ public infix fun <T : Any> ColumnDeclaring<T>.neq(expr: ColumnDeclaring<T>): Bin
 
 /**
  * Not-equal operator, translated to `<>` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Any> ColumnDeclaring<T>.neq(value: T): BinaryExpression<Boolean> {
     return this neq wrapArgument(value)
@@ -528,6 +556,8 @@ public infix fun <T : Any> ColumnDeclaring<T>.neq(value: T): BinaryExpression<Bo
 
 /**
  * Not-equal operator, translated to `<>` in SQL.
+ *
+ * @since 3.5.0
  */
 public infix fun <T : Any> T.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) neq expr
