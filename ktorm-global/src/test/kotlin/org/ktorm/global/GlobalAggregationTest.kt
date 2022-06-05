@@ -9,6 +9,7 @@ import org.ktorm.entity.tupleOf
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalAggregationTest : BaseGlobalTest() {
 
     @Test
@@ -49,17 +50,17 @@ class GlobalAggregationTest : BaseGlobalTest() {
 
     @Test
     fun testNone() {
-        assert(Employees.none { it.salary greater 200L })
+        assert(Employees.none { it.salary gt 200L })
     }
 
     @Test
     fun testAny() {
-        assert(!Employees.any { it.salary greater 200L })
+        assert(!Employees.any { it.salary gt 200L })
     }
 
     @Test
     fun testAll() {
-        assert(Employees.all { it.salary greater 0L })
+        assert(Employees.all { it.salary gt 0L })
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@
 package org.ktorm.entity
 
 import org.ktorm.database.Database
-import org.ktorm.schema.TypeReference
 import org.ktorm.schema.Table
+import org.ktorm.schema.TypeReference
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.lang.reflect.Proxy
-import java.sql.SQLException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -162,7 +161,6 @@ public interface Entity<E : Entity<E>> : Serializable {
      * @see add
      * @see update
      */
-    @Throws(SQLException::class)
     public fun flushChanges(): Int
 
     /**
@@ -187,7 +185,6 @@ public interface Entity<E : Entity<E>> : Serializable {
      * @see update
      * @see flushChanges
      */
-    @Throws(SQLException::class)
     public fun delete(): Int
 
     /**
@@ -235,7 +232,7 @@ public interface Entity<E : Entity<E>> : Serializable {
     public companion object {
 
         /**
-         * Create an entity object. This functions is used by Ktorm internal.
+         * Create an entity object. This function is used by Ktorm internal.
          */
         internal fun create(
             entityClass: KClass<*>,

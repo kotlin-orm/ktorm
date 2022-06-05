@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,10 @@ package org.ktorm.support.postgresql
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.SqlType
+import org.postgresql.util.PGobject
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
-
-/**
- * Represent values of PostgreSQL `hstore` SQL type.
- */
-public typealias HStore = Map<String, String?>
 
 /**
  * Represent values of PostgreSQL `text[]` SQL type.
@@ -34,30 +30,9 @@ public typealias HStore = Map<String, String?>
 public typealias TextArray = Array<String?>
 
 /**
- * Define a column typed [HStoreSqlType].
- */
-public fun <E : Any> BaseTable<E>.hstore(name: String): Column<HStore> {
-    return registerColumn(name, HStoreSqlType)
-}
-
-/**
- * [SqlType] implementation represents PostgreSQL `hstore` type.
- */
-public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
-        ps.setObject(index, parameter)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
-        return rs.getObject(index) as HStore?
-    }
-}
-
-/**
  * Define a column typed [TextArraySqlType].
  */
-public fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
+public fun BaseTable<*>.textArray(name: String): Column<TextArray> {
     return registerColumn(name, TextArraySqlType)
 }
 
@@ -65,6 +40,7 @@ public fun <E : Any> BaseTable<E>.textArray(name: String): Column<TextArray> {
  * [SqlType] implementation represents PostgreSQL `text[]` type.
  */
 public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
+
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: TextArray) {
         ps.setObject(index, parameter)
     }
@@ -82,38 +58,123 @@ public object TextArraySqlType : SqlType<TextArray>(Types.ARRAY, "text[]") {
 }
 
 /**
- * Define a column typed of [PgEnumType].
- * !Note Enums are case sensitive and must match what is in the db
- *
- * @param <C> The Java enum type to use
- * @param name the column's name.
- * @return the registered column.
+ * Represent values of PostgreSQL `hstore` SQL type.
  */
-@Suppress("DEPRECATION")
-@Deprecated(
-    message = "Will remove in the future, please use `enum` instead",
-    replaceWith = ReplaceWith(expression = "enum<C>(name)", imports = ["org.ktorm.schema.enum"])
-)
-public inline fun <reified C : Enum<C>> BaseTable<*>.pgEnum(name: String): Column<C> {
-    return registerColumn(name, PgEnumType(C::class.java))
+public typealias HStore = Map<String, String?>
+
+/**
+ * Define a column typed [HStoreSqlType].
+ */
+public fun BaseTable<*>.hstore(name: String): Column<HStore> {
+    return registerColumn(name, HStoreSqlType)
 }
 
 /**
- * [SqlType] implementation represents PostgreSQL `enum` type.
- * @see <a href="https://www.postgresql.org/docs/current/datatype-enum.html">datatype-enum</a>
+ * [SqlType] implementation represents PostgreSQL `hstore` type.
  */
-@Deprecated(
-    message = "Will remove in the future, please use `EnumSqlType` instead",
-    replaceWith = ReplaceWith(expression = "EnumSqlType", imports = ["org.ktorm.schema.EnumSqlType"])
-)
-public class PgEnumType<C : Enum<C>>(private val enumClass: Class<C>) : SqlType<C>(Types.OTHER, enumClass.name) {
-    private val valueOf = enumClass.getDeclaredMethod("valueOf", String::class.java)
+public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
 
-    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
-        ps.setObject(index, parameter.name, Types.OTHER)
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: HStore) {
+        ps.setObject(index, parameter)
     }
 
-    override fun doGetResult(rs: ResultSet, index: Int): C? {
-        return rs.getString(index)?.takeIf { it.isNotBlank() }?.let { enumClass.cast(valueOf(null, it)) }
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): HStore? {
+        return rs.getObject(index) as HStore?
+    }
+}
+
+/**
+ * Represents a box suitable for an indexed search using the cube @> operator.
+ * Part of PostgreSQL's `cube` SQL extension.
+ * https://www.postgresql.org/docs/9.5/cube.html
+ */
+public data class Cube(val x: DoubleArray, val y: DoubleArray) {
+    init {
+        if (x.size != y.size) {
+            throw IllegalArgumentException("x and y should have same dimensions.")
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is Cube && x.contentEquals(other.x) && y.contentEquals(other.y)
+    }
+
+    override fun hashCode(): Int {
+        var result = 1
+        result = 31 * result + x.contentHashCode()
+        result = 31 * result + y.contentHashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "(${x.joinToString(", ")}), (${y.joinToString(", ")})"
+    }
+}
+
+/**
+ * Define a column typed [CubeSqlType].
+ */
+public fun BaseTable<*>.cube(name: String): Column<Cube> {
+    return registerColumn(name, CubeSqlType)
+}
+
+/**
+ * Represents a Cube by storing 2 n-dimensional points
+ * Part of PostgreSQL's `cube` SQL extension.
+ * https://www.postgresql.org/docs/9.5/cube.html
+ */
+public object CubeSqlType : SqlType<Cube>(Types.OTHER, "cube") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Cube) {
+        ps.setObject(index, parameter, Types.OTHER)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Cube? {
+        val obj = rs.getObject(index) as PGobject?
+        if (obj == null) {
+            return null
+        } else {
+            // (1, 2, 3), (4, 5, 6)
+            val numbers = obj.value.replace("(", "").replace(")", "").split(",").map { it.trim().toDouble() }
+            val (x, y) = numbers.chunked(numbers.size / 2).map { it.toDoubleArray() }
+            return Cube(x, y)
+        }
+    }
+}
+
+/**
+ * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
+ * Part of PostgreSQL's `earthdistance` extension.
+ * https://www.postgresql.org/docs/12/earthdistance.html
+ */
+public typealias Earth = Triple<Double, Double, Double>
+
+/**
+ * Define a column typed [EarthSqlType].
+ */
+public fun BaseTable<*>.earth(name: String): Column<Earth> {
+    return registerColumn(name, EarthSqlType)
+}
+
+/**
+ * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
+ * Part of PostgreSQL's `earthdistance` SQL extension.
+ */
+public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
+        ps.setObject(index, parameter, Types.OTHER)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Earth? {
+        val obj = rs.getObject(index) as PGobject?
+        if (obj == null) {
+            return null
+        } else {
+            // (1, 2, 3)
+            val (x, y, z) = obj.value.removeSurrounding("(", ")").split(",").map { it.trim().toDouble() }
+            return Earth(x, y, z)
+        }
     }
 }

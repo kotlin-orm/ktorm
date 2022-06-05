@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,15 @@ package org.ktorm.support.postgresql
 
 import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
-import org.ktorm.expression.*
+import org.ktorm.expression.ArgumentExpression
+import org.ktorm.expression.ColumnAssignmentExpression
+import org.ktorm.expression.QueryExpression
+import org.ktorm.expression.ScalarExpression
+import org.ktorm.expression.SelectExpression
+import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.SqlExpressionVisitor
+import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.TableExpression
 import org.ktorm.schema.IntSqlType
 
 /**
@@ -60,6 +68,7 @@ public open class PostgreSqlFormatter(
         val result = when (expr) {
             is ILikeExpression -> visitILike(expr)
             is HStoreExpression -> visitHStore(expr)
+            is CubeExpression -> visitCube(expr)
             else -> super.visitScalar(expr)
         }
 
@@ -185,6 +194,30 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
+    protected open fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
+        writeKeyword("${expr.type} ")
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
+        return expr
+    }
+
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
@@ -276,6 +309,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
         val result = when (expr) {
             is ILikeExpression -> visitILike(expr)
             is HStoreExpression -> visitHStore(expr)
+            is CubeExpression -> visitCube(expr)
             else -> super.visitScalar(expr)
         }
 
@@ -295,6 +329,17 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     }
 
     protected open fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    protected open fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
         val left = visitScalar(expr.left)
         val right = visitScalar(expr.right)
 
@@ -332,7 +377,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
     }
 
     protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        val table = expr.table
+        val table = visitTable(expr.table)
         val assignments = visitBulkInsertAssignments(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)

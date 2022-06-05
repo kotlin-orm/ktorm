@@ -1,4 +1,3 @@
-
 create table t_department(
   id int not null identity(1, 1),
   name varchar(128) not null,

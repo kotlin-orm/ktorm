@@ -361,7 +361,7 @@ potential-bugs:
     active: true
   LateinitUsage:
     active: false
-    excludeAnnotatedProperties: ""
+    ignoreAnnotated: []
     ignoreOnClassesPattern: ""
   UnconditionalJumpStatementInLoop:
     active: true
@@ -466,10 +466,10 @@ style:
     active: true
   UnderscoresInNumericLiterals:
     active: true
-    acceptableDecimalLength: 5
+    acceptableLength: 5
   UnnecessaryAbstractClass:
     active: true
-    excludeAnnotatedClasses: "dagger.Module"
+    ignoreAnnotated: ["dagger.Module"]
   UnnecessaryApply:
     active: true
   UnnecessaryInheritance:
@@ -489,7 +489,7 @@ style:
     allowedNames: "(_|ignored|expected|serialVersionUID)"
   UseDataClass:
     active: true
-    excludeAnnotatedClasses: ""
+    ignoreAnnotated: []
   UtilityClassWithPublicConstructor:
     active: true
   VarCouldBeVal:

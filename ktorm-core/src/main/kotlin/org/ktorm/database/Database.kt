@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,7 +254,7 @@ public class Database(
             name = url.substringAfterLast('/').substringBefore('?')
             productName = metadata.runCatching { databaseProductName }.orEmpty()
             productVersion = metadata.runCatching { databaseProductVersion }.orEmpty()
-            keywords = ANSI_SQL_2003_KEYWORDS + metadata.runCatching { sqlKeywords }.orEmpty().toUpperCase().split(',')
+            keywords = ANSI_SQL_2003_KEYWORDS + metadata.runCatching { sqlKeywords }.orEmpty().uppercase().split(',')
             identifierQuoteString = metadata.runCatching { identifierQuoteString }.orEmpty().trim()
             extraNameCharacters = metadata.runCatching { extraNameCharacters }.orEmpty()
             supportsMixedCaseIdentifiers = metadata.runCatching { supportsMixedCaseIdentifiers() }.orFalse()

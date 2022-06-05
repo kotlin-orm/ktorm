@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,27 @@ package org.ktorm.entity
 
 import org.ktorm.database.Database
 import org.ktorm.schema.Table
-import org.ktorm.schema.defaultValue
-import org.ktorm.schema.kotlinProperty
 import java.io.*
 import java.lang.reflect.InvocationHandler
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
-import kotlin.collections.LinkedHashMap
-import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.jvm.javaGetter
-import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.jvmName
 import kotlin.reflect.jvm.kotlinFunction
 
+@Suppress("CanBePrimaryConstructorProperty")
 internal class EntityImplementation(
-    var entityClass: KClass<*>,
-    @Transient var fromDatabase: Database?,
-    @Transient var fromTable: Table<*>?,
-    @Transient var parent: EntityImplementation?
+    entityClass: KClass<*>, fromDatabase: Database?, fromTable: Table<*>?, parent: EntityImplementation?
 ) : InvocationHandler, Serializable {
 
+    var entityClass: KClass<*> = entityClass
     var values = LinkedHashMap<String, Any?>()
+    @Transient var fromDatabase: Database? = fromDatabase
+    @Transient var fromTable: Table<*>? = fromTable
+    @Transient var parent: EntityImplementation? = parent
     @Transient var changedProperties = LinkedHashSet<String>()
-
-    companion object {
-        private const val serialVersionUID = 1L
-        private val defaultImplsCache: MutableMap<Method, Method> = Collections.synchronizedMap(WeakHashMap())
-    }
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         return when (method.declaringClass.kotlin) {
@@ -95,14 +86,14 @@ internal class EntityImplementation(
                     return null
                 }
             } else {
-                return callDefaultImpl(proxy, method, args)
+                return DefaultMethodHandler.forMethod(method).invoke(proxy, args)
             }
         } else {
             val func = method.kotlinFunction
             if (func != null && !func.isAbstract) {
-                return callDefaultImpl(proxy, method, args)
+                return DefaultMethodHandler.forMethod(method).invoke(proxy, args)
             } else {
-                throw IllegalStateException("Unrecognized method: $method")
+                throw IllegalStateException("Cannot invoke entity abstract method: $method")
             }
         }
     }
@@ -122,7 +113,8 @@ internal class EntityImplementation(
     private fun cacheDefaultValue(prop: KProperty1<*, *>, value: Any) {
         val type = prop.javaGetter!!.returnType
 
-        // Skip for primitive types, enums and string, because their default values always share the same instance.
+        // No need to cache primitive types, enums and string,
+        // because their default values always share the same instance.
         if (type == Boolean::class.javaPrimitiveType) return
         if (type == Char::class.javaPrimitiveType) return
         if (type == Byte::class.javaPrimitiveType) return
@@ -132,76 +124,24 @@ internal class EntityImplementation(
         if (type == String::class.java) return
         if (type.isEnum) return
 
+        // Cache the default value to avoid the weird case that entity.prop !== entity.prop
         setProperty(prop, value)
-    }
-
-    @Suppress("SwallowedException")
-    private fun callDefaultImpl(proxy: Any, method: Method, args: Array<out Any>?): Any? {
-        val impl = defaultImplsCache.computeIfAbsent(method) {
-            val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
-            cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
-        }
-
-        try {
-            if (args == null) {
-                return impl.invoke(null, proxy)
-            } else {
-                return impl.invoke(null, proxy, *args)
-            }
-        } catch (e: InvocationTargetException) {
-            throw e.targetException
-        }
     }
 
     fun hasProperty(prop: KProperty1<*, *>): Boolean {
         return prop.name in values
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun getProperty(prop: KProperty1<*, *>, unboxInlineValues: Boolean = false): Any? {
-        if (!unboxInlineValues) {
+        if (unboxInlineValues) {
+            return values[prop.name]?.unboxTo(prop.javaGetter!!.returnType)
+        } else {
             return values[prop.name]
-        }
-
-        val returnType = prop.javaGetter!!.returnType
-        val value = values[prop.name]
-
-        // Unbox inline class values if necessary.
-        // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
-        // whether a class is inline, so as a workaround, we have to enumerate some common-used types here.
-        return when {
-            value is UByte && returnType == Byte::class.javaPrimitiveType -> value.toByte()
-            value is UShort && returnType == Short::class.javaPrimitiveType -> value.toShort()
-            value is UInt && returnType == Int::class.javaPrimitiveType -> value.toInt()
-            value is ULong && returnType == Long::class.javaPrimitiveType -> value.toLong()
-            value is UByteArray && returnType == ByteArray::class.java -> value.toByteArray()
-            value is UShortArray && returnType == ShortArray::class.java -> value.toShortArray()
-            value is UIntArray && returnType == IntArray::class.java -> value.toIntArray()
-            value is ULongArray && returnType == LongArray::class.java -> value.toLongArray()
-            else -> value
         }
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun setProperty(prop: KProperty1<*, *>, value: Any?, forceSet: Boolean = false) {
-        val propType = prop.returnType.jvmErasure
-
-        // For inline classes, always box the underlying values as wrapper types.
-        // In principle, we need to check for all inline classes, but kotlin-reflect is still unable to determine
-        // whether a class is inline, so as a workaround, we have to enumerate some common-used types here.
-        val boxedValue = when {
-            propType == UByte::class && value is Byte -> value.toUByte()
-            propType == UShort::class && value is Short -> value.toUShort()
-            propType == UInt::class && value is Int -> value.toUInt()
-            propType == ULong::class && value is Long -> value.toULong()
-            propType == UByteArray::class && value is ByteArray -> value.toUByteArray()
-            propType == UShortArray::class && value is ShortArray -> value.toUShortArray()
-            propType == UIntArray::class && value is IntArray -> value.toUIntArray()
-            propType == ULongArray::class && value is LongArray -> value.toULongArray()
-            else -> value
-        }
-
-        doSetProperty(prop.name, boxedValue, forceSet)
+        doSetProperty(prop.name, prop.returnType.boxFrom(value), forceSet)
     }
 
     private fun doSetProperty(name: String, value: Any?, forceSet: Boolean = false) {
@@ -220,14 +160,14 @@ internal class EntityImplementation(
 
         for ((name, value) in values) {
             if (value is Entity<*>) {
-                val valueCopy = value.copy()
+                val copied = value.copy()
 
                 // Keep the parent relationship.
-                if (valueCopy.implementation.parent == this) {
-                    valueCopy.implementation.parent = entity.implementation
+                if (copied.implementation.parent == this) {
+                    copied.implementation.parent = entity.implementation
                 }
 
-                entity.implementation.values[name] = valueCopy
+                entity.implementation.values[name] = copied
             } else {
                 entity.implementation.values[name] = value?.let { deserialize(serialize(it)) }
             }
@@ -261,7 +201,8 @@ internal class EntityImplementation(
 
     @Suppress("UNCHECKED_CAST")
     private fun readObject(input: ObjectInputStream) {
-        entityClass = Class.forName(input.readUTF()).kotlin
+        val javaClass = Class.forName(input.readUTF())
+        entityClass = javaClass.kotlin
         values = input.readObject() as LinkedHashMap<String, Any?>
         changedProperties = LinkedHashSet()
     }
@@ -285,5 +226,9 @@ internal class EntityImplementation(
 
     override fun toString(): String {
         return entityClass.simpleName + values
+    }
+
+    companion object {
+        private const val serialVersionUID = 1L
     }
 }

@@ -7,6 +7,7 @@ import org.ktorm.entity.*
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalEntitySequenceTest : BaseGlobalTest() {
 
     @Test
@@ -62,7 +63,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
 
     @Test
     fun testAll() {
-        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary greater 49L })
+        assert(Employees.asSequence().filter { it.departmentId eq 1 }.all { it.salary gt 49L })
     }
 
     @Test
@@ -129,8 +130,8 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
         val employees = Employees.asSequence().groupBy { it.department.id }
         println(employees)
         assert(employees.size == 2)
-        assert(employees[1]!!.sumBy { it.salary.toInt() } == 150)
-        assert(employees[2]!!.sumBy { it.salary.toInt() } == 300)
+        assert(employees[1]!!.sumOf { it.salary.toInt() } == 150)
+        assert(employees[2]!!.sumOf { it.salary.toInt() } == 300)
     }
 
     @Test
@@ -152,7 +153,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
     fun testEachCount() {
         val counts = Employees
             .asSequence()
-            .filter { it.salary less 100000L }
+            .filter { it.salary lt 100000L }
             .groupingBy { it.departmentId }
             .eachCount()
 
@@ -166,7 +167,7 @@ class GlobalEntitySequenceTest : BaseGlobalTest() {
     fun testEachSum() {
         val sums = Employees
             .asSequence()
-            .filter { it.salary lessEq 100000L }
+            .filter { it.salary lte 100000L }
             .groupingBy { it.departmentId }
             .eachSumBy { it.salary }
 
