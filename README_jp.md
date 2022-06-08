@@ -137,7 +137,7 @@ database
     .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
-    .having { avg(t.salary) greater 100.0 }
+    .having { avg(t.salary) gt 100.0 }
     .forEach { row -> 
         println("${row.getInt(1)}:${row.getDouble(2)}")
     }
