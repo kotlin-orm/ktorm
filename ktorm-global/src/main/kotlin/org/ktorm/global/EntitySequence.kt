@@ -66,7 +66,7 @@ public fun <E : Entity<E>> Table<E>.updateEntity(entity: E): Int {
 }
 
 /**
- * Obtain a entity object matching the given [predicate], auto left joining all the reference tables.
+ * Obtain an entity object matching the given [predicate], auto left joining all the reference tables.
  */
 @Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public inline fun <E : Any, T : BaseTable<E>> T.findOne(predicate: (T) -> ColumnDeclaring<Boolean>): E? {
