@@ -160,38 +160,38 @@ internal class EntityImplementation(
 
         for ((name, value) in values) {
             if (value is Entity<*>) {
+                // Copy entity and modify the parent reference.
                 val copied = value.copy()
-
-                // Keep the parent relationship.
-                if (copied.implementation.parent == this) {
+                if (copied.implementation.parent === this) {
                     copied.implementation.parent = entity.implementation
                 }
 
                 entity.implementation.values[name] = copied
             } else {
+                fun serialize(obj: Any): ByteArray {
+                    ByteArrayOutputStream().use { buffer ->
+                        ObjectOutputStream(buffer).use { output ->
+                            output.writeObject(obj)
+                            output.flush()
+                            return buffer.toByteArray()
+                        }
+                    }
+                }
+
+                fun deserialize(bytes: ByteArray): Any {
+                    ByteArrayInputStream(bytes).use { buffer ->
+                        ObjectInputStream(buffer).use { input ->
+                            return input.readObject()
+                        }
+                    }
+                }
+
+                // Deep copy value by serialization.
                 entity.implementation.values[name] = value?.let { deserialize(serialize(it)) }
             }
         }
 
         return entity
-    }
-
-    private fun serialize(obj: Any): ByteArray {
-        ByteArrayOutputStream().use { buffer ->
-            ObjectOutputStream(buffer).use { output ->
-                output.writeObject(obj)
-                output.flush()
-                return buffer.toByteArray()
-            }
-        }
-    }
-
-    private fun deserialize(bytes: ByteArray): Any {
-        ByteArrayInputStream(bytes).use { buffer ->
-            ObjectInputStream(buffer).use { input ->
-                return input.readObject()
-            }
-        }
     }
 
     private fun writeObject(output: ObjectOutputStream) {
