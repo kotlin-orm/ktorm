@@ -7,6 +7,7 @@ import java.time.LocalDate
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalDmlTest : BaseGlobalTest() {
 
     @Test

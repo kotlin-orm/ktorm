@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,7 +192,7 @@ public fun ColumnDeclaring<String>.instr(right: ColumnDeclaring<String>): Functi
  * SQLite instr function, translated to `instr(left, right)`.
  */
 public fun ColumnDeclaring<String>.instr(right: String): FunctionExpression<Int> {
-    return instr(wrapArgument(right))
+    return this.instr(wrapArgument(right))
 }
 
 /**

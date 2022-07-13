@@ -11,7 +11,6 @@ import java.math.BigInteger
 /**
  * Created by vince on Dec 09, 2018.
  */
-@ExperimentalUnsignedTypes
 class JacksonTest {
 
     private val objectMapper = ObjectMapper()

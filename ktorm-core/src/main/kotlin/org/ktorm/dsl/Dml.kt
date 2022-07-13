@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,7 @@ import org.ktorm.expression.*
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
-import org.ktorm.schema.defaultValue
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Proxy
-import java.sql.PreparedStatement
 import java.sql.Statement
-import kotlin.collections.ArrayList
 
 /**
  * Construct an update expression in the given closure, then execute it and return the effected row count.
@@ -287,82 +282,6 @@ public open class AssignmentsBuilder {
      */
     public fun <C : Any> set(column: Column<C>, value: C?) {
         _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
-    }
-
-    /**
-     * Assign the specific column to a value.
-     *
-     * @since 3.1.0
-     */
-    @JvmName("setAny")
-    @Suppress("UNCHECKED_CAST")
-    @Deprecated("This function will be removed in the future. Please use the generic version instead.")
-    public fun set(column: Column<*>, value: Any?) {
-        (column as Column<Any>).checkAssignableFrom(value)
-        _assignments += ColumnAssignmentExpression(column.asExpression(), column.wrapArgument(value))
-    }
-
-    /**
-     * Assign the current column to another column or an expression's result.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future. Please use set(column, expr) instead.",
-        replaceWith = ReplaceWith("set(this, expr)")
-    )
-    public infix fun <C : Any> Column<C>.to(expr: ColumnDeclaring<C>) {
-        _assignments += ColumnAssignmentExpression(asExpression(), expr.asExpression())
-    }
-
-    /**
-     * Assign the current column to a specific value.
-     */
-    @Deprecated(
-        message = "This function will be removed in the future. Please use set(column, value) instead.",
-        replaceWith = ReplaceWith("set(this, value)")
-    )
-    public infix fun <C : Any> Column<C>.to(value: C?) {
-        _assignments += ColumnAssignmentExpression(asExpression(), wrapArgument(value))
-    }
-
-    /**
-     * Assign the current column to a specific value.
-     *
-     * Note that this function accepts an argument type `Any?`, that's because it is designed to avoid
-     * applications call [kotlin.to] unexpectedly in the DSL closures. An exception will be thrown
-     * by this function if the argument type doesn't match the column's type.
-     */
-    @JvmName("toAny")
-    @Suppress("UNCHECKED_CAST")
-    @Deprecated(
-        message = "This function will be removed in the future. Please use set(column, value) instead.",
-        replaceWith = ReplaceWith("set(this, value)")
-    )
-    public infix fun Column<*>.to(value: Any?) {
-        this as Column<Any>
-        checkAssignableFrom(value)
-        _assignments += ColumnAssignmentExpression(asExpression(), wrapArgument(value))
-    }
-
-    private fun Column<Any>.checkAssignableFrom(value: Any?) {
-        if (value == null) return
-
-        val handler = InvocationHandler { _, method, _ ->
-            // Do nothing...
-            @Suppress("ForbiddenVoid")
-            if (method.returnType == Void.TYPE || !method.returnType.isPrimitive) {
-                null
-            } else {
-                method.returnType.defaultValue
-            }
-        }
-
-        val proxy = Proxy.newProxyInstance(javaClass.classLoader, arrayOf(PreparedStatement::class.java), handler)
-
-        try {
-            sqlType.setParameter(proxy as PreparedStatement, 1, value)
-        } catch (e: ClassCastException) {
-            throw IllegalArgumentException("Argument type doesn't match the column's type, column: $this", e)
-        }
     }
 }
 

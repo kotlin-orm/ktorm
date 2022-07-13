@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@file:Suppress("DEPRECATION", "DeprecatedCallableAddReplaceWith")
 
 package org.ktorm.support.mysql
 
@@ -28,6 +30,7 @@ import java.lang.reflect.InvocationTargetException
  * available in the classpath.
  */
 @Suppress("SwallowedException")
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 internal val Database.Companion.global: Database get() {
     try {
         val cls = Class.forName("org.ktorm.global.GlobalKt")
@@ -70,6 +73,7 @@ internal val Database.Companion.global: Database get() {
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBuilder.(T) -> Unit): Int {
     return Database.global.insertOrUpdate(this, block)
 }
@@ -110,6 +114,7 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * @return the effected row count.
  * @see batchInsert
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.() -> Unit): Int {
     return Database.global.bulkInsert(this, block)
 }
@@ -157,6 +162,7 @@ public fun <T : BaseTable<*>> T.bulkInsert(block: BulkInsertStatementBuilder<T>.
  * @return the effected row count.
  * @see bulkInsert
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit): Int {
     return Database.global.bulkInsertOrUpdate(this, block)
 }
@@ -164,6 +170,7 @@ public fun <T : BaseTable<*>> T.bulkInsertOrUpdate(block: BulkInsertOrUpdateStat
 /**
  * Join the right table and return a new [QuerySource], translated to `natural join` in SQL.
  */
+@Deprecated("ktorm-global will be removed in the future, please migrate to the standard API.")
 public fun BaseTable<*>.naturalJoin(right: BaseTable<*>): QuerySource {
     return Database.global.from(this).naturalJoin(right)
 }

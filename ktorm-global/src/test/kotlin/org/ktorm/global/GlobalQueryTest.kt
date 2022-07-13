@@ -8,6 +8,7 @@ import org.ktorm.expression.ScalarExpression
 /**
  * Created by vince at Apr 05, 2020.
  */
+@Suppress("DEPRECATION")
 class GlobalQueryTest : BaseGlobalTest() {
     companion object {
         const val TWO = 2
@@ -111,7 +112,7 @@ class GlobalQueryTest : BaseGlobalTest() {
         val salaries = t
             .select(t.departmentId, avg(t.salary))
             .groupBy(t.departmentId)
-            .having { avg(t.salary) greater 100.0 }
+            .having { avg(t.salary) gt 100.0 }
             .associate { it.getInt(1) to it.getDouble(2) }
 
         println(salaries)
@@ -127,7 +128,7 @@ class GlobalQueryTest : BaseGlobalTest() {
         val salaries = Employees
             .select(deptId, salaryAvg)
             .groupBy(deptId)
-            .having { salaryAvg greater 100.0 }
+            .having { salaryAvg gt 100.0 }
             .associate { row ->
                 row[deptId] to row[salaryAvg]
             }
@@ -144,7 +145,7 @@ class GlobalQueryTest : BaseGlobalTest() {
 
         val salaries = Employees
             .select(salary)
-            .where { salary greater 200L }
+            .where { salary gt 200L }
             .map { it.getLong(1) }
 
         println(salaries)

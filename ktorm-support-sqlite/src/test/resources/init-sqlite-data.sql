@@ -1,4 +1,3 @@
-
 create table t_department(
   id integer primary key autoincrement,
   name text not null,

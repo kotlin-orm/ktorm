@@ -2,17 +2,14 @@
     <img src="https://raw.githubusercontent.com/kotlin-orm/ktorm-docs/master/source/images/logo-full.png" alt="Ktorm" width="300" />
 </p>
 <p align="center">
-    <a href="https://www.travis-ci.org/kotlin-orm/ktorm">
-        <img src="https://www.travis-ci.org/kotlin-orm/ktorm.svg?branch=master" alt="Build Status" />
+    <a href="https://github.com/kotlin-orm/ktorm/actions/workflows/build.yml">
+        <img src="https://github.com/kotlin-orm/ktorm/actions/workflows/build.yml/badge.svg" alt="Build Status" />
     </a>
     <a href="https://search.maven.org/search?q=g:%22org.ktorm%22">
         <img src="https://img.shields.io/maven-central/v/org.ktorm/ktorm-core.svg?label=Maven%20Central" alt="Maven Central" />
     </a>
     <a href="LICENSE">
         <img src="https://img.shields.io/badge/license-Apache%202-blue.svg?maxAge=2592000" alt="Apache License 2" />
-    </a>
-    <a href="https://app.codacy.com/gh/kotlin-orm/ktorm?utm_source=github.com&utm_medium=referral&utm_content=kotlin-orm/ktorm&utm_campaign=Badge_Grade_Dashboard">
-        <img src="https://api.codacy.com/project/badge/Grade/72c1185f408b4cc0974c735fa5c419bc" alt="Codacy Badge" />
     </a>
     <a href="https://github.com/KotlinBy/awesome-kotlin">
         <img src="https://kotlin.link/awesome-kotlin.svg" alt="Awesome Kotlin Badge" />
@@ -140,7 +137,7 @@ database
     .from(t)
     .select(t.departmentId, avg(t.salary))
     .groupBy(t.departmentId)
-    .having { avg(t.salary) greater 100.0 }
+    .having { avg(t.salary) gt 100.0 }
     .forEach { row -> 
         println("${row.getInt(1)}:${row.getDouble(2)}")
     }
@@ -316,7 +313,7 @@ employee.salary = 100
 employee.flushChanges()
 ```
 
-Delete a entity from database: 
+Delete an entity from database: 
 
 ```kotlin
 val employee = database.employees.find { it.id eq 2 } ?: return

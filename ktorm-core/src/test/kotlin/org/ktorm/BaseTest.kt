@@ -6,8 +6,6 @@ import org.ktorm.database.Database
 import org.ktorm.database.use
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
-import org.ktorm.logging.ConsoleLogger
-import org.ktorm.logging.LogLevel
 import org.ktorm.schema.*
 import java.io.Serializable
 import java.time.LocalDate
@@ -15,18 +13,12 @@ import java.time.LocalDate
 /**
  * Created by vince on Dec 07, 2018.
  */
-open class BaseTest {
+abstract class BaseTest {
     lateinit var database: Database
 
     @Before
     open fun init() {
-        database = Database.connect(
-            url = "jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1",
-            driver = "org.h2.Driver",
-            logger = ConsoleLogger(threshold = LogLevel.TRACE),
-            alwaysQuoteIdentifiers = true
-        )
-
+        database = Database.connect("jdbc:h2:mem:ktorm;DB_CLOSE_DELAY=-1", alwaysQuoteIdentifiers = true)
         execSqlScript("init-data.sql")
     }
 
@@ -62,6 +54,7 @@ open class BaseTest {
         var mixedCase: String?
     }
 
+    @Suppress("DEPRECATION")
     interface Employee : Entity<Employee> {
         companion object : Entity.Factory<Employee>()
         var id: Int
@@ -72,8 +65,15 @@ open class BaseTest {
         var salary: Long
         var department: Department
 
-        val upperName get() = name.toUpperCase()
-        fun upperName() = name.toUpperCase()
+        val upperName get() = name.uppercase()
+
+        @JvmDefault
+        fun upperName() = name.uppercase()
+
+        fun nameWithPrefix(prefix: String) = prefix + name
+
+        @JvmDefault
+        fun nameWithSuffix(suffix: String) = name + suffix
     }
 
     interface Customer : Entity<Customer> {

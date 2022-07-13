@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,34 +79,6 @@ public open class SQLiteFormatter(
         _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
     }
 
-    override fun visitUnion(expr: UnionExpression): UnionExpression {
-        when (expr.left) {
-            is SelectExpression -> visitQuery(expr.left)
-            is UnionExpression -> visitUnion(expr.left as UnionExpression)
-        }
-
-        if (expr.isUnionAll) {
-            writeKeyword("union all ")
-        } else {
-            writeKeyword("union ")
-        }
-
-        when (expr.right) {
-            is SelectExpression -> visitQuery(expr.right)
-            is UnionExpression -> visitUnion(expr.right as UnionExpression)
-        }
-
-        if (expr.orderBy.isNotEmpty()) {
-            newLine(Indentation.SAME)
-            writeKeyword("order by ")
-            visitOrderByList(expr.orderBy)
-        }
-        if (expr.offset != null || expr.limit != null) {
-            writePagination(expr)
-        }
-        return expr
-    }
-
     protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
@@ -118,7 +90,9 @@ public open class SQLiteFormatter(
             writeKeyword("on conflict ")
             writeInsertColumnNames(expr.conflictColumns)
 
-            if (expr.updateAssignments.isNotEmpty()) {
+            if (expr.updateAssignments.isEmpty()) {
+                writeKeyword("do nothing ")
+            } else {
                 writeKeyword("do update set ")
                 visitColumnAssignments(expr.updateAssignments)
 
@@ -126,8 +100,6 @@ public open class SQLiteFormatter(
                     writeKeyword("where ")
                     visit(expr.where)
                 }
-            } else {
-                writeKeyword("do nothing ")
             }
         }
 
@@ -152,7 +124,9 @@ public open class SQLiteFormatter(
             writeKeyword("on conflict ")
             writeInsertColumnNames(expr.conflictColumns)
 
-            if (expr.updateAssignments.isNotEmpty()) {
+            if (expr.updateAssignments.isEmpty()) {
+                writeKeyword("do nothing ")
+            } else {
                 writeKeyword("do update set ")
                 visitColumnAssignments(expr.updateAssignments)
 
@@ -160,8 +134,6 @@ public open class SQLiteFormatter(
                     writeKeyword("where ")
                     visit(expr.where)
                 }
-            } else {
-                writeKeyword("do nothing ")
             }
         }
 

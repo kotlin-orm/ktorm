@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -293,6 +293,33 @@ public infix fun <T : Comparable<T>> T.less(expr: ColumnDeclaring<T>): BinaryExp
     return expr.wrapArgument(this) less expr
 }
 
+/**
+ * Less operator, translated to `<` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.LESS_THAN, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+/**
+ * Less operator, translated to `<` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lt(value: T): BinaryExpression<Boolean> {
+    return this lt wrapArgument(value)
+}
+
+/**
+ * Less operator, translated to `<` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> T.lt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) lt expr
+}
+
 // ------- LessEq ---------
 
 /**
@@ -321,6 +348,38 @@ public infix fun <T : Comparable<T>> T.lessEq(expr: ColumnDeclaring<T>): BinaryE
     return expr.wrapArgument(this) lessEq expr
 }
 
+/**
+ * Less-eq operator, translated to `<=` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(
+        type = BinaryExpressionType.LESS_THAN_OR_EQUAL,
+        left = asExpression(),
+        right = expr.asExpression(),
+        sqlType = BooleanSqlType
+    )
+}
+
+/**
+ * Less-eq operator, translated to `<=` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.lte(value: T): BinaryExpression<Boolean> {
+    return this lte wrapArgument(value)
+}
+
+/**
+ * Less-eq operator, translated to `<=` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> T.lte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) lte expr
+}
+
 // ------- Greater ---------
 
 /**
@@ -342,6 +401,33 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.greater(value: T): Binar
  */
 public infix fun <T : Comparable<T>> T.greater(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
     return expr.wrapArgument(this) greater expr
+}
+
+/**
+ * Greater operator, translated to `>` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.GREATER_THAN, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+/**
+ * Greater operator, translated to `>` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gt(value: T): BinaryExpression<Boolean> {
+    return this gt wrapArgument(value)
+}
+
+/**
+ * Greater operator, translated to `>` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> T.gt(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) gt expr
 }
 
 // -------- GreaterEq ---------
@@ -372,6 +458,38 @@ public infix fun <T : Comparable<T>> T.greaterEq(expr: ColumnDeclaring<T>): Bina
     return expr.wrapArgument(this) greaterEq expr
 }
 
+/**
+ * Greater-eq operator, translated to `>=` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(
+        type = BinaryExpressionType.GREATER_THAN_OR_EQUAL,
+        left = asExpression(),
+        right = expr.asExpression(),
+        sqlType = BooleanSqlType
+    )
+}
+
+/**
+ * Greater-eq operator, translated to `>=` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.gte(value: T): BinaryExpression<Boolean> {
+    return this gte wrapArgument(value)
+}
+
+/**
+ * Greater-eq operator, translated to `>=` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Comparable<T>> T.gte(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) gte expr
+}
+
 // -------- Eq ---------
 
 /**
@@ -388,9 +506,12 @@ public infix fun <T : Any> ColumnDeclaring<T>.eq(value: T): BinaryExpression<Boo
     return this eq wrapArgument(value)
 }
 
-// infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-//     return expr.wrapArgument(this) eq expr
-// }
+/**
+ * Equal operator, translated to `=` in SQL.
+ */
+public infix fun <T : Any> T.eq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) eq expr
+}
 
 // ------- NotEq -------
 
@@ -408,9 +529,39 @@ public infix fun <T : Any> ColumnDeclaring<T>.notEq(value: T): BinaryExpression<
     return this notEq wrapArgument(value)
 }
 
-// infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
-//     return expr.wrapArgument(this) notEq expr
-// }
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ */
+public infix fun <T : Any> T.notEq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) notEq expr
+}
+
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Any> ColumnDeclaring<T>.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return BinaryExpression(BinaryExpressionType.NOT_EQUAL, asExpression(), expr.asExpression(), BooleanSqlType)
+}
+
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Any> ColumnDeclaring<T>.neq(value: T): BinaryExpression<Boolean> {
+    return this neq wrapArgument(value)
+}
+
+/**
+ * Not-equal operator, translated to `<>` in SQL.
+ *
+ * @since 3.5.0
+ */
+public infix fun <T : Any> T.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boolean> {
+    return expr.wrapArgument(this) neq expr
+}
 
 // ---- Between ----
 

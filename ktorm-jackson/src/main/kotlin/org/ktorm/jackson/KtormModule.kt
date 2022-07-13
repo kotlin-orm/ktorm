@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2021 the original author or authors.
+ * Copyright 2018-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder
-import java.util.ServiceLoader
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder
 import org.ktorm.entity.Entity
+import java.util.*
 
 /**
  * Jackson [Module] implementation that supports serializing Ktorm's entity objects in JSON format.
@@ -61,12 +61,12 @@ public class KtormModule : Module() {
             val objectType = codec.constructType(Any::class.java)
 
             val serializerTyper = codec.serializationConfig.getDefaultTyper(objectType)
-            if (serializerTyper != null && serializerTyper is StdTypeResolverBuilder) {
+            if (serializerTyper != null && serializerTyper is DefaultTypeResolverBuilder) {
                 codec.setConfig(codec.serializationConfig.with(EntityTypeResolverBuilder(serializerTyper)))
             }
 
             val deserializerTyper = codec.deserializationConfig.getDefaultTyper(objectType)
-            if (deserializerTyper != null && deserializerTyper is StdTypeResolverBuilder) {
+            if (deserializerTyper != null && deserializerTyper is DefaultTypeResolverBuilder) {
                 codec.setConfig(codec.deserializationConfig.with(EntityTypeResolverBuilder(deserializerTyper)))
             }
         }

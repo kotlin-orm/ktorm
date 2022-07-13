@@ -1,13 +1,18 @@
 
-def generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
-def maxTupleNumber = 9
+plugins {
+    id("kotlin")
+}
 
-def generateTuple(Writer writer, int tupleNumber) {
-    def typeParams = (1..tupleNumber).collect { "out E$it" }.join(", ")
-    def propertyDefinitions = (1..tupleNumber).collect { "val element$it: E$it" }.join(",\n            ")
-    def toStringTemplate = (1..tupleNumber).collect { "\$element$it" }.join(", ")
+val generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
+val maxTupleNumber = 9
+
+fun generateTuple(writer: java.io.Writer, tupleNumber: Int) {
+    val typeParams = (1..tupleNumber).joinToString(separator = ", ") { "out E$it" }
+    val propertyDefinitions = (1..tupleNumber).joinToString(separator = ",\n            ") { "val element$it: E$it" }
+    val toStringTemplate = (1..tupleNumber).joinToString(separator = ", ") { "\$element$it" }
 
     writer.write("""
+        
         /** 
          * Represents a tuple of $tupleNumber values.
          *
@@ -19,22 +24,24 @@ def generateTuple(Writer writer, int tupleNumber) {
         ) : Serializable { 
         
             override fun toString(): String { 
-                return \"($toStringTemplate)\"
+                return "($toStringTemplate)"
             }
-            
+        
             private companion object {
                 private const val serialVersionUID = 1L
             }
         }
-    """.stripIndent())
+        
+    """.trimIndent())
 }
 
-def generateTupleOf(Writer writer, int tupleNumber) {
-    def typeParams = (1..tupleNumber).collect { "E$it" }.join(", ")
-    def params = (1..tupleNumber).collect { "element$it: E$it" }.join(",\n            ")
-    def elements = (1..tupleNumber).collect { "element$it" }.join(", ")
+fun generateTupleOf(writer: java.io.Writer, tupleNumber: Int) {
+    val typeParams = (1..tupleNumber).joinToString(separator = ", ") { "E$it" }
+    val params = (1..tupleNumber).joinToString(separator = ",\n            ") { "element$it: E$it" }
+    val elements = (1..tupleNumber).joinToString(separator = ", ") { "element$it" }
 
     writer.write("""
+        
         /**
          * Create a tuple of $tupleNumber values. 
          *
@@ -45,14 +52,16 @@ def generateTupleOf(Writer writer, int tupleNumber) {
         ): Tuple$tupleNumber<$typeParams> {
             return Tuple$tupleNumber($elements)
         }
-    """.stripIndent())
+        
+    """.trimIndent())
 }
 
-def generateToList(Writer writer, int tupleNumber) {
-    def typeParams = (1..tupleNumber).collect { "E" }.join(", ")
-    def elements = (1..tupleNumber).collect { "element$it" }.join(", ")
+fun generateToList(writer: java.io.Writer, tupleNumber: Int) {
+    val typeParams = (1..tupleNumber).joinToString(separator = ", ") { "E" }
+    val elements = (1..tupleNumber).joinToString(separator = ", ") { "element$it" }
 
     writer.write("""
+        
         /**
          * Convert this tuple into a list. 
          *
@@ -61,64 +70,18 @@ def generateToList(Writer writer, int tupleNumber) {
         public fun <E> Tuple$tupleNumber<$typeParams>.toList(): List<E> {
             return listOf($elements)
         }
-    """.stripIndent())
+        
+    """.trimIndent())
 }
 
-def generateMapColumns(Writer writer, int tupleNumber) {
-    def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
-    def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
-    def resultTypes = (1..tupleNumber).collect { "C$it?" }.join(", ")
-    def variableNames = (1..tupleNumber).collect { "c$it" }.join(", ")
-    def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(row, $it)" }.join(", ")
+fun generateMapColumns(writer: java.io.Writer, tupleNumber: Int) {
+    val typeParams = (1..tupleNumber).joinToString(separator = ", ") { "C$it : Any" }
+    val columnDeclarings = (1..tupleNumber).joinToString(separator = ", ") { "ColumnDeclaring<C$it>" }
+    val resultTypes = (1..tupleNumber).joinToString(separator = ", ") { "C$it?" }
+    val variableNames = (1..tupleNumber).joinToString(separator = ", ") { "c$it" }
+    val resultExtractors = (1..tupleNumber).joinToString(separator = ", ") { "c${it}.sqlType.getResult(row, $it)" }
 
     writer.write("""
-        /**
-         * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
-         * containing the query results.
-         *
-         * See [EntitySequence.mapColumns] for more details. 
-         *
-         * The operation is terminal.
-         *
-         * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
-         * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
-         * @return a list of the query results.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use mapColumns { .. } instead.",
-            replaceWith = ReplaceWith("mapColumns(isDistinct, columnSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.mapColumns$tupleNumber(
-            isDistinct: Boolean = false,
-            columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): List<Tuple$tupleNumber<$resultTypes>> {
-            return mapColumns(isDistinct, columnSelector)
-        }
-        
-        /**
-         * Customize the selected columns of the internal query by the given [columnSelector] function, and append the query
-         * results to the given [destination].
-         *
-         * See [EntitySequence.mapColumnsTo] for more details. 
-         * 
-         * The operation is terminal.
-         *
-         * @param destination a [MutableCollection] used to store the results.
-         * @param isDistinct specify if the query is distinct, the generated SQL becomes `select distinct` if it's set to true.
-         * @param columnSelector a function in which we should return a tuple of columns or expressions to be selected.
-         * @return the [destination] collection of the query results.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use mapColumnsTo(destination) { .. } instead.",
-            replaceWith = ReplaceWith("mapColumnsTo(destination, isDistinct, columnSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, $typeParams, R> EntitySequence<E, T>.mapColumns${tupleNumber}To(
-            destination: R,
-            isDistinct: Boolean = false,
-            columnSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): R where R : MutableCollection<in Tuple$tupleNumber<$resultTypes>> {
-            return mapColumnsTo(destination, isDistinct, columnSelector)
-        }
         
         /**
          * Customize the selected columns of the internal query by the given [columnSelector] function, and return a [List]
@@ -126,7 +89,7 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          *
          * This function is similar to [EntitySequence.map], but the [columnSelector] closure accepts the current table
          * object [T] as the parameter, so what we get in the closure by `it` is the table object instead of an entity
-         * element. Besides, the function’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
+         * element. Besides, the closure’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
          * columns or expressions to customize the `select` clause of the generated SQL.
          *
          * Ktorm supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
@@ -155,7 +118,7 @@ def generateMapColumns(Writer writer, int tupleNumber) {
          *
          * This function is similar to [EntitySequence.mapTo], but the [columnSelector] closure accepts the current table
          * object [T] as the parameter, so what we get in the closure by `it` is the table object instead of an entity
-         * element. Besides, the function’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
+         * element. Besides, the closure’s return type is a tuple of `ColumnDeclaring<C>`s, and we should return some 
          * columns or expressions to customize the `select` clause of the generated SQL.
          * 
          * Ktorm supports selecting two or more columns, we just need to wrap our selected columns by [tupleOf]
@@ -186,35 +149,18 @@ def generateMapColumns(Writer writer, int tupleNumber) {
         
             return Query(database, expr).mapTo(destination) { row -> tupleOf($resultExtractors) }
         }
-    """.stripIndent())
+        
+    """.trimIndent())
 }
 
-def generateAggregateColumns(Writer writer, int tupleNumber) {
-    def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
-    def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
-    def resultTypes = (1..tupleNumber).collect { "C$it?" }.join(", ")
-    def variableNames = (1..tupleNumber).collect { "c$it" }.join(", ")
-    def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(rowSet, $it)" }.join(", ")
+fun generateAggregateColumns(writer: java.io.Writer, tupleNumber: Int) {
+    val typeParams = (1..tupleNumber).joinToString(separator = ", ") { "C$it : Any" }
+    val columnDeclarings = (1..tupleNumber).joinToString(separator = ", ") { "ColumnDeclaring<C$it>" }
+    val resultTypes = (1..tupleNumber).joinToString(separator = ", ") { "C$it?" }
+    val variableNames = (1..tupleNumber).joinToString(separator = ", ") { "c$it" }
+    val resultExtractors = (1..tupleNumber).joinToString(separator = ", ") { "c${it}.sqlType.getResult(rowSet, $it)" }
 
     writer.write("""
-        /**
-         * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
-         * and return the aggregate results.
-         *
-         * The operation is terminal.
-         *
-         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
-         * @return a tuple of the aggregate results.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use aggregateColumns { .. } instead.",
-            replaceWith = ReplaceWith("aggregateColumns(aggregationSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, $typeParams> EntitySequence<E, T>.aggregateColumns$tupleNumber(
-            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): Tuple$tupleNumber<$resultTypes> {
-            return aggregateColumns(aggregationSelector)
-        }
         
         /**
          * Perform a tuple of aggregations given by [aggregationSelector] for all elements in the sequence,
@@ -248,61 +194,21 @@ def generateAggregateColumns(Writer writer, int tupleNumber) {
                 return tupleOf($resultExtractors)
             } else {
                 val (sql, _) = database.formatExpression(expr, beautifySql = true)
-                throw IllegalStateException("Expected 1 row but \${rowSet.size()} returned from sql: \\n\\n\$sql")
+                throw IllegalStateException("Expected 1 row but ${'$'}{rowSet.size()} returned from sql: \n\n${'$'}sql")
             }
         }
-    """.stripIndent())
+        
+    """.trimIndent())
 }
 
-def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
-    def typeParams = (1..tupleNumber).collect { "C$it : Any" }.join(", ")
-    def columnDeclarings = (1..tupleNumber).collect { "ColumnDeclaring<C$it>" }.join(", ")
-    def resultTypes = (1..tupleNumber).collect { "C$it?" }.join(", ")
-    def variableNames = (1..tupleNumber).collect { "c$it" }.join(", ")
-    def resultExtractors = (1..tupleNumber).collect { "c${it}.sqlType.getResult(row, ${it + 1})" }.join(", ")
+fun generateGroupingAggregateColumns(writer: java.io.Writer, tupleNumber: Int) {
+    val typeParams = (1..tupleNumber).joinToString(separator = ", ") { "C$it : Any" }
+    val columnDeclarings = (1..tupleNumber).joinToString(separator = ", ") { "ColumnDeclaring<C$it>" }
+    val resultTypes = (1..tupleNumber).joinToString(separator = ", ") { "C$it?" }
+    val variableNames = (1..tupleNumber).joinToString(separator = ", ") { "c$it" }
+    val resultExtractors = (1..tupleNumber).joinToString(separator = ", ") { "c${it}.sqlType.getResult(row, ${it + 1})" }
 
     writer.write("""
-        /**
-         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
-         * then store the results in a new [Map].
-         * 
-         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
-         * `select key, aggregation from source group by key`.
-         *
-         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
-         * @return a [Map] associating the key of each group with the results of aggregations of the group elements.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use aggregateColumns { .. } instead.",
-            replaceWith = ReplaceWith("aggregateColumns(aggregationSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams> EntityGrouping<E, T, K>.aggregateColumns$tupleNumber(
-            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): Map<K?, Tuple$tupleNumber<$resultTypes>> {
-            return aggregateColumns(aggregationSelector)
-        }
-        
-        /**
-         * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
-         * then store the results in the [destination] map.
-         *
-         * The key for each group is provided by the [EntityGrouping.keySelector] function, and the generated SQL is like:
-         * `select key, aggregation from source group by key`.
-         *
-         * @param destination a [MutableMap] used to store the results.
-         * @param aggregationSelector a function that accepts the source table and returns a tuple of aggregate expressions.
-         * @return the [destination] map associating the key of each group with the result of aggregations of the group elements.
-         */
-        @Deprecated(
-            message = "This function will be removed in the future. Please use aggregateColumns(destination) { .. } instead.",
-            replaceWith = ReplaceWith("aggregateColumns(destination, aggregationSelector)")
-        )
-        public inline fun <E : Any, T : BaseTable<E>, K : Any, $typeParams, M> EntityGrouping<E, T, K>.aggregateColumns${tupleNumber}To(
-            destination: M,
-            aggregationSelector: (T) -> Tuple$tupleNumber<$columnDeclarings>
-        ): M where M : MutableMap<in K?, in Tuple$tupleNumber<$resultTypes>> {
-            return aggregateColumnsTo(destination, aggregationSelector)
-        }
         
         /**
          * Group elements from the source sequence by key and perform the given aggregations for elements in each group,
@@ -364,19 +270,34 @@ def generateGroupingAggregateColumns(Writer writer, int tupleNumber) {
         
             return destination
         }
-    """.stripIndent())
+        
+    """.trimIndent())
 }
 
-task generateTuples {
+val generateTuples by tasks.registering {
     doLast {
-        def outputFile = file("$generatedSourceDir/org/ktorm/entity/Tuples.kt")
+        val outputFile = file("$generatedSourceDir/org/ktorm/entity/Tuples.kt")
         outputFile.parentFile.mkdirs()
 
-        outputFile.withWriter { writer ->
-            writer.write(project.licenseHeaderText)
-
+        outputFile.bufferedWriter().use { writer ->
             writer.write("""
-                // This file is auto-generated by generate-tuples.gradle, DO NOT EDIT!
+                /*
+                 * Copyright 2018-2022 the original author or authors.
+                 *
+                 * Licensed under the Apache License, Version 2.0 (the "License");
+                 * you may not use this file except in compliance with the License.
+                 * You may obtain a copy of the License at
+                 *
+                 *      http://www.apache.org/licenses/LICENSE-2.0
+                 *
+                 * Unless required by applicable law or agreed to in writing, software
+                 * distributed under the License is distributed on an "AS IS" BASIS,
+                 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                 * See the License for the specific language governing permissions and
+                 * limitations under the License.
+                 */
+                
+                // Auto-generated by ktorm.tuples-generation.gradle.kts, DO NOT EDIT!
                 
                 package org.ktorm.entity
                 
@@ -396,37 +317,39 @@ task generateTuples {
                  * Set a typealias `Tuple3` for `Triple`.
                  */
                 public typealias Tuple3<E1, E2, E3> = Triple<E1, E2, E3>
-            """.stripIndent())
+                
+            """.trimIndent())
 
-            (4..maxTupleNumber).each { num ->
+            for (num in (4..maxTupleNumber)) {
                 generateTuple(writer, num)
             }
 
-            (2..maxTupleNumber).each { num ->
+            for (num in (2..maxTupleNumber)) {
                 generateTupleOf(writer, num)
             }
 
-            (4..maxTupleNumber).each { num ->
+            for (num in (4..maxTupleNumber)) {
                 generateToList(writer, num)
             }
 
-            (2..maxTupleNumber).each { num ->
+            for (num in (2..maxTupleNumber)) {
                 generateMapColumns(writer, num)
             }
 
-            (2..maxTupleNumber).each { num ->
+            for (num in (2..maxTupleNumber)) {
                 generateAggregateColumns(writer, num)
             }
 
-            (2..maxTupleNumber).each { num ->
+            for (num in (2..maxTupleNumber)) {
                 generateGroupingAggregateColumns(writer, num)
             }
         }
     }
 }
 
-sourceSets {
-    main.kotlin.srcDirs += generatedSourceDir
+sourceSets.main {
+    java.srcDirs(generatedSourceDir)
 }
 
-compileKotlin.dependsOn(generateTuples)
+tasks["compileKotlin"].dependsOn(generateTuples)
+tasks["jarSources"].dependsOn(generateTuples)

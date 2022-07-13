@@ -47,17 +47,17 @@ class AggregationTest : BaseTest() {
 
     @Test
     fun testNone() {
-        assert(database.employees.none { it.salary greater 200L })
+        assert(database.employees.none { it.salary gt 200L })
     }
 
     @Test
     fun testAny() {
-        assert(!database.employees.any { it.salary greater 200L })
+        assert(!database.employees.any { it.salary gt 200L })
     }
 
     @Test
     fun testAll() {
-        assert(database.employees.all { it.salary greater 0L })
+        assert(database.employees.all { it.salary gt 0L })
     }
 
     @Test
