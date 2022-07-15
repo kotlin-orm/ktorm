@@ -519,8 +519,13 @@ public abstract class SqlFormatter(
     }
 
 
-    override fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
+    override fun <T : Any, V : Any> visitCaseWhen(expr: CaseWhenExpression<T, V>): CaseWhenExpression<T, V> {
         writeKeyword("case ")
+        if (expr.caseExpr != null) {
+            visit(expr.caseExpr)
+            write(" ")
+
+        }
         expr.whenThenConditions.forEach { (condition, result) ->
             writeKeyword("when ")
             visit(condition)

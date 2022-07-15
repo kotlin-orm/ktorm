@@ -68,7 +68,7 @@ public open class SqlExpressionVisitor {
             is BetweenExpression<*> -> visitBetween(expr)
             is ArgumentExpression -> visitArgument(expr)
             is FunctionExpression -> visitFunction(expr)
-            is CaseWhenExpression -> visitCaseWhen(expr)
+            is CaseWhenExpression<*, *> -> visitCaseWhen(expr)
             else -> visitUnknown(expr)
         }
 
@@ -304,7 +304,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
+    protected open fun <T : Any, V : Any> visitCaseWhen(expr: CaseWhenExpression<T, V>): CaseWhenExpression<T, V> {
         return expr
     }
 

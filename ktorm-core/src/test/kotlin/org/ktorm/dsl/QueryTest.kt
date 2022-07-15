@@ -3,7 +3,6 @@ package org.ktorm.dsl
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.CaseWhenExpression
 import org.ktorm.expression.ScalarExpression
 import org.ktorm.schema.VarcharSqlType
 import kotlin.random.Random
@@ -290,13 +289,14 @@ class QueryTest : BaseTest() {
 
     @Test
     fun `test case when`() {
-        val caseWhen = CaseWhenExpression(
-            whenThenConditions = listOf(
-                ("vince" eq Employees.name) to ArgumentExpression("hello vince", VarcharSqlType),
-            ),
-            elseExpr = ArgumentExpression("hello world", VarcharSqlType),
-            sqlType = VarcharSqlType
-        ).aliased("c")
+        val caseWhen =
+            case(VarcharSqlType) {
+                whenThen(
+                    `when` = ("vince" eq Employees.name),
+                    then = ArgumentExpression("hello vince", VarcharSqlType)
+                )
+                `else`(ArgumentExpression("hello world", VarcharSqlType))
+            }.aliased("c")
         val names = database
             .from(Employees)
             .select(
@@ -313,20 +313,22 @@ class QueryTest : BaseTest() {
 
     @Test
     fun `test case when without else`() {
-        val casWhen = CaseWhenExpression(
-            whenThenConditions = listOf(
-                ("vince" eq Employees.name) to ArgumentExpression("hello vince", VarcharSqlType),
-            ),
-            sqlType = VarcharSqlType
-        ).aliased("c")
+        val caseWhen =
+            case(VarcharSqlType) {
+                whenThen(
+                    `when` = ("vince" eq Employees.name),
+                    then = ArgumentExpression("hello vince", VarcharSqlType)
+                )
+            }
+                .aliased("c")
         val names = database
             .from(Employees)
             .select(
-                casWhen
+                caseWhen
             )
             .where { Employees.departmentId eq 1 }
             .orderBy(Employees.salary.desc())
-            .flatMapIndexed { index, row -> listOf("$index:${row[casWhen]}") }
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
 
         assert(names.size == 2)
         assert(names[0] == "0:hello vince")
@@ -335,22 +337,95 @@ class QueryTest : BaseTest() {
 
     @Test
     fun `test case when without when and else`() {
-        val casWhen = CaseWhenExpression(
-            whenThenConditions = listOf(
-            ),
-            sqlType = VarcharSqlType
-        ).aliased("c")
+        val caseWhen =
+            case(VarcharSqlType) {
+            }.aliased("caseWhen")
         val names = database
             .from(Employees)
             .select(
-                casWhen
+                caseWhen
             )
             .where { Employees.departmentId eq 1 }
             .orderBy(Employees.salary.desc())
-            .flatMapIndexed { index, row -> listOf("$index:${row[casWhen]}") }
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
 
         assert(names.size == 2)
         assert(names[0] == "0:null")
         assert(names[1] == "1:null")
     }
+
+
+    @Test
+    fun `test case when with caseValue`() {
+        val caseWhen =
+            case(VarcharSqlType, Employees.name) {
+                whenThen(
+                    `when` = "vince",
+                    then = "hello vince"
+                )
+                whenThen(
+                    `when` = ArgumentExpression("vince1", VarcharSqlType),
+                    then = "hello vince1"
+                )
+                `else`("hello world")
+            }.aliased("c")
+        val names = database
+            .from(Employees)
+            .select(
+                caseWhen
+            )
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:hello vince")
+        assert(names[1] == "1:hello world")
+    }
+
+    @Test
+    fun `test case when with caseValue without else`() {
+        val caseWhen =
+            case(VarcharSqlType, Employees.name) {
+                whenThen(
+                    `when` = "vince",
+                    then = "hello vince"
+                )
+            }
+                .aliased("c")
+        val names = database
+            .from(Employees)
+            .select(
+                caseWhen
+            )
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:hello vince")
+        assert(names[1] == "1:null")
+    }
+
+    @Test
+    fun `test case when with caseValue without when and else`() {
+        val caseWhen =
+            case(VarcharSqlType, Employees.name) {
+
+            }.aliased("c")
+        val names = database
+            .from(Employees)
+            .select(
+                caseWhen
+            )
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:null")
+        assert(names[1] == "1:null")
+    }
+
+
 }
