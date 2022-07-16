@@ -305,7 +305,28 @@ public open class SqlExpressionVisitor {
     }
 
     protected open fun <T : Any, V : Any> visitCaseWhen(expr: CaseWhenExpression<T, V>): CaseWhenExpression<T, V> {
-        return expr
+        val caseExpr = if (expr.caseExpr != null) {
+            visitScalar(expr.caseExpr)
+        } else {
+            null
+        }
+
+        val elseExpr = if (expr.elseExpr != null) {
+            visitScalar(expr.elseExpr)
+        } else {
+            null
+        }
+
+        val whenThenConditions =
+            expr.whenThenConditions.map { (condition, value) ->
+                visitScalar(condition) to visitScalar(value)
+            }
+
+        return expr.copy(
+            caseExpr = caseExpr,
+            whenThenConditions = whenThenConditions,
+            elseExpr = elseExpr,
+        )
     }
 
     protected open fun <T : Any> visitColumnAssignment(

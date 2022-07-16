@@ -537,7 +537,6 @@ public data class BetweenExpression<T : Any>(
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<Boolean>()
 
-
 /**
  * The CASE statement goes through conditions and returns a value when the
  * first condition is met (like an if-then-else statement). So, once a condition
@@ -553,9 +552,9 @@ public data class BetweenExpression<T : Any>(
 public data class CaseWhenExpression<V : Any, T : Any> internal constructor(
     val caseExpr: ScalarExpression<V>? = null,
     val whenThenConditions: List<Pair<ScalarExpression<V>, ScalarExpression<T>>>,
+    val elseExpr: ScalarExpression<T>? = null,
     internal val whenSqlType: SqlType<V>,
     override val sqlType: SqlType<T>,
-    val elseExpr: ScalarExpression<T>? = null,
     override val isLeafNode: Boolean = true,
     override val extraProperties: Map<String, Any> = emptyMap(),
 ) : ScalarExpression<T>()

@@ -291,7 +291,7 @@ class QueryTest : BaseTest() {
         val caseWhen =
             CASE()
                 .WHEN(Employees.name eq "vince").THEN(ArgumentExpression(1, IntSqlType))
-                .WHEN(Employees.name eq "mary").THEN(ArgumentExpression(2, IntSqlType))
+                .WHEN(Employees.name eq "mary").THEN(2)
                 .ELSE(ArgumentExpression(3, IntSqlType))
                 .aliased("caseWhen")
         val names = database
