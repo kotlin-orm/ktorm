@@ -111,6 +111,88 @@ public fun ColumnDeclaring<*>.jsonValid(): FunctionExpression<Boolean> {
 
 // endregion
 
+// region SQLite: Built-in Aggregate Functions
+
+/**
+ * SQLite avg function, translated to `avg(column)`.
+ */
+public fun <T : Any> Column<T>.avg(): FunctionExpression<Double> {
+    // avg(column)
+    return FunctionExpression(functionName = "avg", arguments = listOf(asExpression()), sqlType = DoubleSqlType)
+}
+
+/**
+ * SQLite count function, translated to `count(column)`.
+ */
+public fun <T : Any> Column<T>.count(): FunctionExpression<Long> {
+    // count(column)
+    return FunctionExpression(functionName = "count", arguments = listOf(asExpression()), sqlType = LongSqlType)
+}
+
+/**
+ * SQLite count function, translated to `count()`.
+ */
+public fun count(): FunctionExpression<Long> {
+    // count()
+    return FunctionExpression(functionName = "count", arguments = emptyList(), sqlType = LongSqlType)
+}
+
+/**
+ * SQLite group_concat function, translated to `group_concat(column)`.
+ */
+public fun <T : Any> Column<T>.groupConcat(): FunctionExpression<String> {
+    // group_concat(column)
+    return FunctionExpression(
+        functionName = "group_concat", arguments = listOf(asExpression()), sqlType = VarcharSqlType
+    )
+}
+
+/**
+ * SQLite group_concat function, translated to `group_concat(column, separator)`.
+ */
+public fun <T : Any> Column<T>.groupConcat(separator: String): FunctionExpression<String> {
+    // group_concat(column, separator)
+    return FunctionExpression(
+        functionName = "group_concat",
+        arguments = listOf(asExpression(), ArgumentExpression(separator, VarcharSqlType)),
+        sqlType = VarcharSqlType
+    )
+}
+
+/**
+ * SQLite max function, translated to `max(column)`.
+ */
+public fun <T : Any> Column<T>.max(): FunctionExpression<Long> {
+    // max(column)
+    return FunctionExpression(functionName = "max", arguments = listOf(asExpression()), sqlType = LongSqlType)
+}
+
+/**
+ * SQLite min function, translated to `min(column)`.
+ */
+public fun <T : Any> Column<T>.min(): FunctionExpression<Long> {
+    // min(column)
+    return FunctionExpression(functionName = "min", arguments = listOf(asExpression()), sqlType = LongSqlType)
+}
+
+/**
+ * SQLite sum function, translated to `sum(column)`.
+ */
+public fun <T : Any> Column<T>.sum(): FunctionExpression<Long> {
+    // sum(column)
+    return FunctionExpression(functionName = "sum", arguments = listOf(asExpression()), sqlType = LongSqlType)
+}
+
+/**
+ * SQLite total function, translated to `total(column)`.
+ */
+public fun <T : Any> Column<T>.total(): FunctionExpression<Long> {
+    // total(column)
+    return FunctionExpression(functionName = "total", arguments = listOf(asExpression()), sqlType = LongSqlType)
+}
+
+// endregion
+
 // region SQLite: Built-In Scalar SQL Functions
 
 /**
