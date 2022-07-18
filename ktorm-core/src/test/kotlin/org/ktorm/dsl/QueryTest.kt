@@ -337,6 +337,7 @@ class QueryTest : BaseTest() {
                 CASE(Employees.name)
                         WHEN "vince" THEN Employees.id
                         WHEN "mary" THEN 2
+                        WHEN "mary1" THEN Employees.departmentId
                         ELSE 3
                 ).aliased("caseWhen")
         val names = database

@@ -524,7 +524,7 @@ public abstract class SqlFormatter(
             visit(expr.caseExpr)
             write(" ")
         }
-        expr.whenThenConditions.forEach { (condition, result) ->
+        for ((condition, result) in expr.whenThenConditions) {
             writeKeyword("when ")
             visit(condition)
             writeKeyword("then ")

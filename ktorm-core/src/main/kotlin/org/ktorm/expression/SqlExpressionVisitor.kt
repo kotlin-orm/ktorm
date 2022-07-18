@@ -322,11 +322,18 @@ public open class SqlExpressionVisitor {
                 visitScalar(condition) to visitScalar(value)
             }
 
-        return expr.copy(
-            caseExpr = caseExpr,
-            whenThenConditions = whenThenConditions,
-            elseExpr = elseExpr,
-        )
+        if (caseExpr === expr.caseExpr
+            && elseExpr === expr.elseExpr
+            && whenThenConditions === expr.whenThenConditions
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                caseExpr = caseExpr,
+                whenThenConditions = whenThenConditions,
+                elseExpr = elseExpr,
+            )
+        }
     }
 
     protected open fun <T : Any> visitColumnAssignment(

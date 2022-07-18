@@ -549,7 +549,7 @@ public data class BetweenExpression<T : Any>(
  * @property caseExpr case statements, optional, may be null.
  * @property sqlType the argument's [SqlType].
  */
-public data class CaseWhenExpression<V : Any, T : Any> internal constructor(
+public data class CaseWhenExpression<V : Any, T : Any> constructor(
     val caseExpr: ScalarExpression<V>? = null,
     val whenThenConditions: List<Pair<ScalarExpression<V>, ScalarExpression<T>>>,
     val elseExpr: ScalarExpression<T>? = null,

@@ -131,6 +131,11 @@ publishing {
                         name.set("ccr")
                         email.set("2938137849@qq.com")
                     }
+                    developer {
+                        id.set("zuisong")
+                        name.set("zuisong")
+                        email.set("com.me@foxmail.com")
+                    }
                 }
             }
         }
