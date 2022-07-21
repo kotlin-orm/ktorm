@@ -131,6 +131,11 @@ publishing {
                         name.set("ccr")
                         email.set("2938137849@qq.com")
                     }
+                    developer {
+                        id.set("svenallers")
+                        name.set("Sven Allers")
+                        email.set("sven.allers@gmx.de")
+                    }
                 }
             }
         }
