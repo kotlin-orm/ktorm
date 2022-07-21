@@ -4,11 +4,10 @@ import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.use
 import org.ktorm.expression.ScalarExpression
-import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.TextSqlType
 import java.sql.Clob
 import kotlin.random.Random
-import kotlin.test.assertEquals
+import kotlin.test.assertContentEquals
 
 /**
  * Created by vince on Dec 07, 2018.
@@ -207,6 +206,7 @@ class QueryTest : BaseTest() {
         assert(names.size == 3)
         println(names)
     }
+
     @Test
     fun testCast() {
         val salaries = database
@@ -220,7 +220,7 @@ class QueryTest : BaseTest() {
                 }
             }
 
-        assertEquals(listOf("200"), salaries)
+        assertContentEquals(listOf("200"), salaries)
     }
 
     @Test

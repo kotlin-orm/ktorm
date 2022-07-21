@@ -17,6 +17,7 @@ create table "t_employee"(
 
 insert into "t_department"("id", "name", "location") values (1, 'tech', 'Guangzhou');
 insert into "t_department"("id", "name", "location") values (2, 'finance', 'Beijing');
+insert into "t_department"("id", "name", "location", "mixedCase") values (3, 'ai', 'Hamburg', '123');
 
 insert into "t_employee"("id", "name", "job", "manager_id", "hire_date", "salary", "department_id")
     values (1, 'vince', 'engineer', null, to_date('2018-01-01', 'yyyy-MM-dd'), 100, 1);

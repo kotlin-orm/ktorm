@@ -392,9 +392,9 @@ public abstract class SqlFormatter(
     }
 
     override fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
-        write("CAST(")
+        writeKeyword("cast(")
         writeExpression(expr.expression)
-        write("AS ${expr.sqlType.typeName}) ")
+        writeKeyword("as ${expr.sqlType.typeName}) ")
         return expr
     }
 
