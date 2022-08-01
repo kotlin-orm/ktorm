@@ -17,7 +17,11 @@
 package org.ktorm.dsl
 
 import org.ktorm.database.Database
-import org.ktorm.expression.*
+import org.ktorm.expression.BinaryExpression
+import org.ktorm.expression.BinaryExpressionType
+import org.ktorm.expression.JoinExpression
+import org.ktorm.expression.JoinType
+import org.ktorm.expression.QuerySourceExpression
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.ColumnDeclaring
@@ -95,6 +99,20 @@ public fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolea
     return this.copy(
         expression = JoinExpression(
             type = JoinType.RIGHT_JOIN,
+            left = expression,
+            right = right.asExpression(),
+            condition = on?.asExpression()
+        )
+    )
+}
+
+/**
+ * Perform a full outer join and return a new [QuerySource], translated to `full outer join` in SQL.
+ */
+public fun QuerySource.fullOuterJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+    return this.copy(
+        expression = JoinExpression(
+            type = JoinType.FULL_OUTER_JOIN,
             left = expression,
             right = right.asExpression(),
             condition = on?.asExpression()
