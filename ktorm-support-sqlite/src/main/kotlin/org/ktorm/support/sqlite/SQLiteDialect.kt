@@ -103,6 +103,16 @@ public open class SQLiteFormatter(
             }
         }
 
+        if (expr.returningColumns.isNotEmpty()) {
+            writeKeyword("returning ")
+
+            for ((i, column) in expr.returningColumns.withIndex()) {
+                if (i > 0) write(", ")
+                checkColumnName(column.name)
+                write(column.name.quoted)
+            }
+        }
+
         return expr
     }
 
@@ -137,6 +147,16 @@ public open class SQLiteFormatter(
             }
         }
 
+        if (expr.returningColumns.isNotEmpty()) {
+            writeKeyword("returning ")
+
+            for ((i, column) in expr.returningColumns.withIndex()) {
+                if (i > 0) write(", ")
+                checkColumnName(column.name)
+                write(column.name.quoted)
+            }
+        }
+
         return expr
     }
 }
@@ -162,6 +182,7 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
         val where = expr.where?.let { visitScalar(it) }
+        val returningColumns = visitExpressionList(expr.returningColumns)
 
         @Suppress("ComplexCondition")
         if (table === expr.table
@@ -169,6 +190,7 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
             && conflictColumns === expr.conflictColumns
             && updateAssignments === expr.updateAssignments
             && where === expr.where
+            && returningColumns === expr.returningColumns
         ) {
             return expr
         } else {
@@ -177,7 +199,8 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
                 assignments = assignments,
                 conflictColumns = conflictColumns,
                 updateAssignments = updateAssignments,
-                where = where
+                where = where,
+                returningColumns = returningColumns
             )
         }
     }
@@ -188,6 +211,7 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
         val conflictColumns = visitExpressionList(expr.conflictColumns)
         val updateAssignments = visitColumnAssignments(expr.updateAssignments)
         val where = expr.where?.let { visitScalar(it) }
+        val returningColumns = visitExpressionList(expr.returningColumns)
 
         @Suppress("ComplexCondition")
         if (table === expr.table
@@ -195,6 +219,7 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
             && conflictColumns === expr.conflictColumns
             && updateAssignments === expr.updateAssignments
             && where === expr.where
+            && returningColumns === expr.returningColumns
         ) {
             return expr
         } else {
@@ -203,7 +228,8 @@ public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
                 assignments = assignments,
                 conflictColumns = conflictColumns,
                 updateAssignments = updateAssignments,
-                where = where
+                where = where,
+                returningColumns = returningColumns
             )
         }
     }
