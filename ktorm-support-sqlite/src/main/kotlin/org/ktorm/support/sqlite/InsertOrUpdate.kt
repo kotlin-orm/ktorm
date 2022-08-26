@@ -233,8 +233,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
 private fun <T : BaseTable<*>> Database.insertOrUpdateReturningRow(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): CachedRowSet? {
-    val expression = buildInsertOrUpdateExpression(table, returning, block)
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    val expression = AliasRemover.visit(buildInsertOrUpdateExpression(table, returning, block))
+    val rowSet = executeQuery(expression)
 
     if (rowSet.size() == 0) {
         // Possible when using onConflict { doNothing() }
@@ -405,13 +405,13 @@ private fun <T : BaseTable<*>> Database.insertReturningRow(
 ): CachedRowSet {
     val builder = SQLiteAssignmentsBuilder().apply { block(table) }
 
-    val expression = InsertOrUpdateExpression(
+    val expression = AliasRemover.visit(InsertOrUpdateExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         returningColumns = returning.map { it.asExpression() }
-    )
+    ))
 
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    val rowSet = executeQuery(expression)
 
     if (rowSet.size() == 1) {
         check(rowSet.next())

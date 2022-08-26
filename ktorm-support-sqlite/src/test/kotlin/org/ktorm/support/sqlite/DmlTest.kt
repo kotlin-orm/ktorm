@@ -1,10 +1,7 @@
 package org.ktorm.support.sqlite
 
 import org.junit.Test
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.less
-import org.ktorm.dsl.plus
-import org.ktorm.dsl.update
+import org.ktorm.dsl.*
 import org.ktorm.entity.count
 import org.ktorm.entity.find
 import java.time.LocalDate
@@ -516,4 +513,19 @@ class DmlTest : BaseSQLiteTest() {
         }
     }
 
+    @Test
+    fun testInsertAndGenerateKey() {
+        val id = database.insertAndGenerateKey(Employees) {
+            set(it.name, "Joe Friend")
+            set(it.job, "Tester")
+            set(it.managerId, null)
+            set(it.salary, 50)
+            set(it.hireDate, LocalDate.of(2020, 1, 10))
+            set(it.departmentId, 1)
+        } as Int
+
+        assert(id > 4)
+
+        assert(database.employees.count() == 5)
+    }
 }

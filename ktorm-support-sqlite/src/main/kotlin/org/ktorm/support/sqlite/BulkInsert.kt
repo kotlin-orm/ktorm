@@ -258,14 +258,12 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
 ): CachedRowSet {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
-    val expression = BulkInsertExpression(
+    val expression = AliasRemover.visit(BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         returningColumns = returning.map { it.asExpression() }
-    )
-
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
-    return rowSet
+    ))
+    return executeQuery(expression)
 }
 
 /**
@@ -313,9 +311,7 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
 public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): Int {
-    val expression = AliasRemover.visit(
-        buildBulkInsertOrUpdateExpression(table, returning = emptyList(), block = block)
-    )
+    val expression = buildBulkInsertOrUpdateExpression(table, returning = emptyList(), block = block)
 
     return executeUpdate(expression)
 }
@@ -369,7 +365,7 @@ public fun <T : BaseTable<*>, C : Any> Database.bulkInsertOrUpdateReturning(
     table: T, returning: Column<C>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): List<C?> {
     val expression = buildBulkInsertOrUpdateExpression(table, listOf(returning), block)
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    val rowSet = executeQuery(expression)
     return rowSet.asIterable().map { row -> returning.sqlType.getResult(row, 1) }
 }
 
@@ -423,7 +419,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertOrUpdateRet
 ): List<Pair<C1?, C2?>> {
     val (c1, c2) = returning
     val expression = buildBulkInsertOrUpdateExpression(table, listOf(c1, c2), block)
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    val rowSet = executeQuery(expression)
     return rowSet.asIterable().map { row -> Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2)) }
 }
 
@@ -479,7 +475,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertO
 ): List<Triple<C1?, C2?, C3?>> {
     val (c1, c2, c3) = returning
     val expression = buildBulkInsertOrUpdateExpression(table, listOf(c1, c2, c3), block)
-    val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
+    val rowSet = executeQuery(expression)
     return rowSet.asIterable().map { row ->
         Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
     }
@@ -490,7 +486,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertO
  */
 private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
     table: T, returning: List<Column<*>>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
-): BulkInsertExpression {
+): SqlExpression {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
@@ -508,14 +504,14 @@ private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
         throw IllegalStateException(msg)
     }
 
-    return BulkInsertExpression(
+    return AliasRemover.visit(BulkInsertExpression(
         table = table.asExpression(),
         assignments = builder.assignments,
         conflictColumns = conflictColumns.map { it.asExpression() },
         updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
         where = builder.where?.asExpression(),
         returningColumns = returning.map { it.asExpression() }
-    )
+    ))
 }
 
 /**
