@@ -36,7 +36,7 @@ class DefaultValueTest : BasePostgreSqlTest() {
             set(it.age, it.age.defaultValue())
         }
         assertNotNull(id)
-        val entity = database.users.first { it.id eq id }
+        val entity = database.users.firstOrNull { it.id eq id }
         assertNotNull(entity)
         assertNotNull(entity.id)
         assertEquals(entity.username, "default")
