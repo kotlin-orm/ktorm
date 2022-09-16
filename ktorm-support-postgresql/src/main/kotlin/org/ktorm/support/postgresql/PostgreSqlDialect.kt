@@ -69,6 +69,7 @@ public open class PostgreSqlFormatter(
             is ILikeExpression -> visitILike(expr)
             is HStoreExpression -> visitHStore(expr)
             is CubeExpression -> visitCube(expr)
+            is DefaultValueExpression -> visitDefaultValue(expr)
             else -> super.visitScalar(expr)
         }
 
@@ -215,6 +216,11 @@ public open class PostgreSqlFormatter(
             write(") ")
         }
 
+        return expr
+    }
+
+    protected open fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
+        writeKeyword("default ")
         return expr
     }
 

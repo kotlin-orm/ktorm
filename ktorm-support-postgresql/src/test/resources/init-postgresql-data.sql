@@ -34,6 +34,12 @@ create table t_json (obj json, arr json);
 
 create table t_earthdistance(earth_field earth, cube_field cube);
 
+create table t_user(
+    id serial primary key,
+    username varchar default 'default',
+    age int
+);
+
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
 insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');
 
