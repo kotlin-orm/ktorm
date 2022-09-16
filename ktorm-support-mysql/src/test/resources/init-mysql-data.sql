@@ -17,6 +17,12 @@ create table t_employee(
 
 create fulltext index employee_name_job on t_employee(name, job);
 
+create table t_user(
+   id int not null primary key auto_increment,
+   username varchar(128) default 'default',
+   age int
+);
+
 insert into t_department(name, location) values ('tech', 'Guangzhou');
 insert into t_department(name, location) values ('finance', 'Beijing');
 
