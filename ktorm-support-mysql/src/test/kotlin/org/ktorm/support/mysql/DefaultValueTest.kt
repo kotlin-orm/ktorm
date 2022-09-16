@@ -10,9 +10,9 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class DefaultValueTest : BaseMySqlTest() {
 
@@ -37,8 +37,7 @@ class DefaultValueTest : BaseMySqlTest() {
             set(it.username, it.username.defaultValue())
             set(it.age, it.age.defaultValue())
         }
-        assertNotNull(id)
-        assertTrue(id is Int)
+        assertIs<Int>(id)
         val entity = database.users.firstOrNull { it.id eq id }
         assertNotNull(entity)
         assertNotNull(entity.id)
