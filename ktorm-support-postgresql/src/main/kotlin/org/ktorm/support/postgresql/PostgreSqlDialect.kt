@@ -148,23 +148,74 @@ public open class PostgreSqlFormatter(
     }
 
     protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
-        writeExpression(expr.left)
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
         writeKeyword("ilike ")
-        writeExpression(expr.right)
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
         return expr
     }
 
     protected open fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
-        writeExpression(expr.left)
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
         writeKeyword("${expr.type} ")
-        writeExpression(expr.right)
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
         return expr
     }
 
     protected open fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
-        writeExpression(expr.left)
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
         writeKeyword("${expr.type} ")
-        writeExpression(expr.right)
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
         return expr
     }
 

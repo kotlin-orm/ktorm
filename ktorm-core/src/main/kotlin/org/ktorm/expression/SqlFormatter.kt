@@ -73,17 +73,6 @@ public abstract class SqlFormatter(
         _builder.append(value)
     }
 
-    protected fun writeExpression(expr: SqlExpression) {
-        if (expr.removeBrackets) {
-            visit(expr)
-        } else {
-            write("(")
-            visit(expr)
-            removeLastBlank()
-            write(") ")
-        }
-    }
-
     protected fun writeKeyword(keyword: String) {
         when (database.generateSqlInUpperCase) {
             true -> {
@@ -221,20 +210,53 @@ public abstract class SqlFormatter(
 
     override fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
         if (expr.type == UnaryExpressionType.IS_NULL || expr.type == UnaryExpressionType.IS_NOT_NULL) {
-            writeExpression(expr.operand)
+            if (expr.operand.removeBrackets) {
+                visit(expr.operand)
+            } else {
+                write("(")
+                visit(expr.operand)
+                removeLastBlank()
+                write(") ")
+            }
+
             writeKeyword("${expr.type} ")
         } else {
             writeKeyword("${expr.type} ")
-            writeExpression(expr.operand)
+
+            if (expr.operand.removeBrackets) {
+                visit(expr.operand)
+            } else {
+                write("(")
+                visit(expr.operand)
+                removeLastBlank()
+                write(") ")
+            }
         }
 
         return expr
     }
 
     override fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
-        writeExpression(expr.left)
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
         writeKeyword("${expr.type} ")
-        writeExpression(expr.right)
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
         return expr
     }
 
@@ -293,7 +315,14 @@ public abstract class SqlFormatter(
             checkColumnName(expr.declaredName)
             write("${expr.declaredName.quoted} ")
         } else {
-            writeExpression(expr.expression)
+            if (expr.expression.removeBrackets) {
+                visit(expr.expression)
+            } else {
+                write("(")
+                visit(expr.expression)
+                removeLastBlank()
+                write(") ")
+            }
         }
 
         return expr
@@ -393,7 +422,16 @@ public abstract class SqlFormatter(
 
     override fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
         writeKeyword("cast(")
-        writeExpression(expr.expression)
+
+        if (expr.expression.removeBrackets) {
+            visit(expr.expression)
+        } else {
+            write("(")
+            visit(expr.expression)
+            removeLastBlank()
+            write(") ")
+        }
+
         writeKeyword("as ${expr.sqlType.typeName}) ")
         return expr
     }
