@@ -5,3 +5,4 @@ drop table if exists t_enum;
 drop type if exists mood;
 drop table if exists t_json;
 drop table t_earthdistance;
+drop table if exists t_user;

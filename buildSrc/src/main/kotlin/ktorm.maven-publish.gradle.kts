@@ -136,6 +136,11 @@ publishing {
                         name.set("Sven Allers")
                         email.set("sven.allers@gmx.de")
                     }
+                    developer {
+                        id.set("lookup-cat")
+                        name.set("夜里的向日葵")
+                        email.set("641571835@qq.com")
+                    }
                 }
             }
         }
