@@ -193,6 +193,7 @@ public open class MySqlExpressionVisitor : SqlExpressionVisitor() {
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
             is MatchAgainstExpression -> visitMatchAgainst(expr)
+            is DefaultValueExpression -> visitDefaultValue(expr)
             else -> super.visitScalar(expr)
         }
 
@@ -268,5 +269,9 @@ public open class MySqlExpressionVisitor : SqlExpressionVisitor() {
         } else {
             return expr.copy(matchColumns = matchColumns)
         }
+    }
+
+    protected open fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
+        return expr
     }
 }

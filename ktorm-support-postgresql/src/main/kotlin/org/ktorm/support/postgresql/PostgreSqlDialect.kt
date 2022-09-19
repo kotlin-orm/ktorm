@@ -316,6 +316,7 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
             is ILikeExpression -> visitILike(expr)
             is HStoreExpression -> visitHStore(expr)
             is CubeExpression -> visitCube(expr)
+            is DefaultValueExpression -> visitDefaultValue(expr)
             else -> super.visitScalar(expr)
         }
 
@@ -424,5 +425,9 @@ public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
         }
 
         return if (changed) result else assignments
+    }
+
+    protected open fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
+        return expr
     }
 }
