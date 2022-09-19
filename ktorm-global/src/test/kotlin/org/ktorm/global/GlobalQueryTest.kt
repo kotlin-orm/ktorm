@@ -201,8 +201,7 @@ class GlobalQueryTest : BaseGlobalTest() {
 
     @Test
     fun testCast() {
-        val salaries = database
-            .from(Employees)
+        val salaries = Employees
             .select(Employees.salary.cast(TextSqlType))
             .where { Employees.salary eq 200 }
             .map { row ->

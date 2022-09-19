@@ -2,7 +2,6 @@ package org.ktorm.support.mysql
 
 import org.junit.Test
 import org.ktorm.dsl.*
-import org.ktorm.schema.FloatSqlType
 import kotlin.test.assertContentEquals
 
 class QueryTest : BaseMySqlTest() {
@@ -11,10 +10,10 @@ class QueryTest : BaseMySqlTest() {
     fun testCast() {
         val salaries = database
             .from(Employees)
-            .select(Employees.salary.cast(FloatSqlType))
+            .select(Employees.salary.toFloat())
             .where { Employees.salary eq 200 }
-            .map { it.getObject(1) }
+            .map { row -> row.getObject(1) }
 
-        assertContentEquals(listOf(200.0f), salaries)
+        assertContentEquals(listOf(200.0F), salaries)
     }
 }

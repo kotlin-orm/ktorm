@@ -336,11 +336,11 @@ class CommonTest : BaseMySqlTest() {
     fun testSum() {
         val countRich = database
             .from(Employees)
-            .select(sum(Employees.salary.gte(100L).toInt()))
-            .map { row -> row.getInt(1) }
+            .select(sum(Employees.salary.toDouble()))
+            .map { row -> row.getObject(1) }
 
         assert(countRich.size == 1)
-        assert(countRich.first() == 3)
+        assert(countRich.first() == 450.0)
     }
 
     @Test

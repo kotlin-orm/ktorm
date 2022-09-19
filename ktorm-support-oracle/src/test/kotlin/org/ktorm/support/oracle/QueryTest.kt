@@ -14,7 +14,7 @@ class QueryTest : BaseOracleTest() {
             .from(Departments)
             .select(Departments.mixedCase.cast(IntSqlType))
             .where { Departments.mixedCase eq "123" }
-            .map { it.getObject(1)}
+            .map { row -> row.getObject(1)}
 
         assertContentEquals(listOf(BigDecimal(123)), mixedCases)
     }
