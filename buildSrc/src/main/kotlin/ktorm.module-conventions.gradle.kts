@@ -25,22 +25,29 @@ detekt {
     config = files("${project.rootDir}/detekt.yml")
 }
 
-tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileKotlin") {
-    kotlinOptions {
-        jvmTarget = "1.8"
-        allWarningsAsErrors = true
-        freeCompilerArgs = listOf(
-            "-Xexplicit-api=strict",
-            "-Xopt-in=kotlin.RequiresOptIn"
-        )
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin") {
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs = listOf(
-            "-Xjvm-default=enable"
-        )
+tasks {
+    compileKotlin {
+        kotlinOptions {
+            jvmTarget = "1.8"
+            allWarningsAsErrors = true
+            freeCompilerArgs = listOf(
+                "-Xexplicit-api=strict",
+                "-Xopt-in=kotlin.RequiresOptIn"
+            )
+        }
+    }
+
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = "1.8"
+            freeCompilerArgs = listOf(
+                "-Xjvm-default=enable"
+            )
+        }
     }
 }
