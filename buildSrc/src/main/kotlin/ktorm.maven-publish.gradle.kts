@@ -131,6 +131,11 @@ publishing {
                         name.set("ccr")
                         email.set("2938137849@qq.com")
                     }
+                    developer {
+                        id.set("lookup-cat")
+                        name.set("夜里的向日葵")
+                        email.set("641571835@qq.com")
+                    }
                 }
             }
         }
