@@ -2,8 +2,9 @@ package org.ktorm.dsl
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.database.use
+import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.ScalarExpression
+import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.TextSqlType
 import java.sql.Clob
 import kotlin.random.Random
@@ -303,4 +304,74 @@ class QueryTest : BaseTest() {
         assert(names[0] == "0:vince")
         assert(names[1] == "1:marry")
     }
+
+    @Test
+    fun `test case when with function chain`() {
+        val caseWhen =
+            CASE()
+                .WHEN(Employees.name eq "vince").THEN(ArgumentExpression(1, IntSqlType))
+                .WHEN(Employees.name eq "mary").THEN(2)
+                .ELSE(ArgumentExpression(3, IntSqlType))
+                .aliased("caseWhen")
+        val names = database
+            .from(Employees)
+            .select(
+                caseWhen
+            )
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:1")
+        assert(names[1] == "1:3")
+    }
+
+
+    @Test
+    fun `test  case when with infix dsl`() {
+        val caseWhen =
+            (CASE()
+                    WHEN (Employees.name eq "vince") THEN (Employees.id)
+                    WHEN (Employees.name eq "mary") THEN (2)
+                    ELSE 3
+                    ).aliased("caseWhen")
+        val names = database
+            .from(Employees)
+            .select(
+                caseWhen
+            )
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:1")
+        assert(names[1] == "1:3")
+    }
+
+    @Test
+    fun `test  case when with infix dsl1`() {
+        val caseWhen = (
+                CASE(Employees.name)
+                        WHEN "vince" THEN Employees.id
+                        WHEN "mary" THEN 2
+                        WHEN "mary1" THEN Employees.departmentId
+                        ELSE 3
+                ).aliased("caseWhen")
+        val names = database
+            .from(Employees)
+            .select(
+                caseWhen
+            )
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+
+        assert(names.size == 2)
+        assert(names[0] == "0:1")
+        assert(names[1] == "1:3")
+    }
+
 }
+
