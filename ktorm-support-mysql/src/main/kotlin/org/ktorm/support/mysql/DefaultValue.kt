@@ -22,9 +22,9 @@ import java.util.Collections.emptyMap
 
 /**
  * Default value expression, translated to the `default` keyword in MySQL, used in insert statements.
- * 
+ *
  * For example:
- * 
+ *
  * ```sql
  * insert into table (column1, column2) values (default, ?)
  * ```
