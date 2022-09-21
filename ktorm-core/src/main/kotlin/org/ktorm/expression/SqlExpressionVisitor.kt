@@ -57,7 +57,7 @@ public open class SqlExpressionVisitor {
 
     protected open fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
-            is ColumnDeclaringExpression<*> -> visitColumnDeclaring(expr)
+            is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
             is CastingExpression -> visitCasting(expr)
             is UnaryExpression -> visitUnary(expr)
             is BinaryExpression -> visitBinary(expr)
@@ -68,7 +68,7 @@ public open class SqlExpressionVisitor {
             is BetweenExpression<*> -> visitBetween(expr)
             is ArgumentExpression -> visitArgument(expr)
             is FunctionExpression -> visitFunction(expr)
-            is CaseWhenExpression<*, *> -> visitCaseWhen(expr)
+            is CaseWhenExpression -> visitCaseWhen(expr)
             else -> visitUnknown(expr)
         }
 
@@ -304,36 +304,35 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any, V : Any> visitCaseWhen(expr: CaseWhenExpression<T, V>): CaseWhenExpression<T, V> {
-        val caseExpr = if (expr.caseExpr != null) {
-            visitScalar(expr.caseExpr)
-        } else {
-            null
-        }
+    protected open fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
+        val operand = expr.operand?.let { visitScalar(it) }
+        val whenClauses = visitWhenClauses(expr.whenClauses)
+        val elseClause = expr.elseClause?.let { visitScalar(it) }
 
-        val elseExpr = if (expr.elseExpr != null) {
-            visitScalar(expr.elseExpr)
-        } else {
-            null
-        }
-
-        val whenThenConditions =
-            expr.whenThenConditions.map { (condition, value) ->
-                visitScalar(condition) to visitScalar(value)
-            }
-
-        if (caseExpr === expr.caseExpr
-            && elseExpr === expr.elseExpr
-            && whenThenConditions === expr.whenThenConditions
-        ) {
+        if (operand === expr.operand && whenClauses === expr.whenClauses && elseClause === expr.elseClause) {
             return expr
         } else {
-            return expr.copy(
-                caseExpr = caseExpr,
-                whenThenConditions = whenThenConditions,
-                elseExpr = elseExpr,
-            )
+            return expr.copy(operand = operand, whenClauses = whenClauses, elseClause = elseClause)
         }
+    }
+
+    protected open fun <T : Any> visitWhenClauses(
+        originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
+    ): List<Pair<ScalarExpression<*>, ScalarExpression<T>>> {
+        val resultClauses = ArrayList<Pair<ScalarExpression<*>, ScalarExpression<T>>>()
+        var changed = false
+
+        for ((condition, result) in originalClauses) {
+            val visitedCondition = visitScalar(condition)
+            val visitedResult = visitScalar(result)
+            resultClauses += Pair(visitedCondition, visitedResult)
+
+            if (visitedCondition !== condition || visitedResult !== result) {
+                changed = true
+            }
+        }
+
+        return if (changed) resultClauses else originalClauses
     }
 
     protected open fun <T : Any> visitColumnAssignment(

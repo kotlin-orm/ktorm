@@ -538,28 +538,6 @@ public data class BetweenExpression<T : Any>(
 ) : ScalarExpression<Boolean>()
 
 /**
- * The CASE statement goes through conditions and returns a value when the
- * first condition is met (like an if-then-else statement). So, once a condition
- * is true, it will stop reading and return the result. If no conditions are true,
- * it returns the value in the ELSE clause.
- * If there is no ELSE part and no conditions are true, it returns NULL.
- *
- * @property whenThenConditions "when conditions then value" statements.
- * @property elseExpr else statements.
- * @property caseExpr case statements, optional, may be null.
- * @property sqlType the argument's [SqlType].
- */
-public data class CaseWhenExpression<V : Any, T : Any> constructor(
-    val caseExpr: ScalarExpression<V>? = null,
-    val whenThenConditions: List<Pair<ScalarExpression<V>, ScalarExpression<T>>>,
-    val elseExpr: ScalarExpression<T>? = null,
-    internal val whenSqlType: SqlType<V>,
-    override val sqlType: SqlType<T>,
-    override val isLeafNode: Boolean = true,
-    override val extraProperties: Map<String, Any> = emptyMap(),
-) : ScalarExpression<T>()
-
-/**
  * Argument expression, wraps an argument passed to the executed SQL.
  *
  * @property value the argument value.
@@ -584,6 +562,37 @@ public data class FunctionExpression<T : Any>(
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
+) : ScalarExpression<T>()
+
+/**
+ * Case-when expression, represents a SQL case-when clause.
+ *
+ * There are two kind of case-when clauses in SQL, one is simple case-when clause, which has an operand following
+ * the `case` keyword, for example:
+ *
+ * ```sql
+ * case operand when a then 1 when b then 2 else 3
+ * ```
+ *
+ * The other is searched case-when clause, which doesn't have an operand, for example:
+ *
+ * ```sql
+ * case when a = 1 then 1 when b = 2 then 2 else 3
+ * ```
+ *
+ * See the SQL BNF Grammar https://ronsavage.github.io/SQL/sql-2003-2.bnf.html#case%20expression
+ *
+ * @property operand the case operand, might be null for simple case-when clauses.
+ * @property whenClauses pairs of when clauses and their results.
+ * @property elseClause the result in case no when clauses are matched.
+ */
+public data class CaseWhenExpression<T : Any>(
+    val operand: ScalarExpression<*>?,
+    val whenClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>,
+    val elseClause: ScalarExpression<T>?,
+    override val sqlType: SqlType<T>,
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap(),
 ) : ScalarExpression<T>()
 
 /**
