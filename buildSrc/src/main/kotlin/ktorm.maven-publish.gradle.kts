@@ -132,6 +132,11 @@ publishing {
                         email.set("2938137849@qq.com")
                     }
                     developer {
+                        id.set("zuisong")
+                        name.set("zuisong")
+                        email.set("com.me@foxmail.com")
+                    }
+                    developer {
                         id.set("svenallers")
                         name.set("Sven Allers")
                         email.set("sven.allers@gmx.de")

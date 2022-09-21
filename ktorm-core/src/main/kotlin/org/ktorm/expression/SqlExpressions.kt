@@ -538,6 +538,28 @@ public data class BetweenExpression<T : Any>(
 ) : ScalarExpression<Boolean>()
 
 /**
+ * The CASE statement goes through conditions and returns a value when the
+ * first condition is met (like an if-then-else statement). So, once a condition
+ * is true, it will stop reading and return the result. If no conditions are true,
+ * it returns the value in the ELSE clause.
+ * If there is no ELSE part and no conditions are true, it returns NULL.
+ *
+ * @property whenThenConditions "when conditions then value" statements.
+ * @property elseExpr else statements.
+ * @property caseExpr case statements, optional, may be null.
+ * @property sqlType the argument's [SqlType].
+ */
+public data class CaseWhenExpression<V : Any, T : Any> constructor(
+    val caseExpr: ScalarExpression<V>? = null,
+    val whenThenConditions: List<Pair<ScalarExpression<V>, ScalarExpression<T>>>,
+    val elseExpr: ScalarExpression<T>? = null,
+    internal val whenSqlType: SqlType<V>,
+    override val sqlType: SqlType<T>,
+    override val isLeafNode: Boolean = true,
+    override val extraProperties: Map<String, Any> = emptyMap(),
+) : ScalarExpression<T>()
+
+/**
  * Argument expression, wraps an argument passed to the executed SQL.
  *
  * @property value the argument value.

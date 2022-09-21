@@ -68,6 +68,7 @@ public open class SqlExpressionVisitor {
             is BetweenExpression<*> -> visitBetween(expr)
             is ArgumentExpression -> visitArgument(expr)
             is FunctionExpression -> visitFunction(expr)
+            is CaseWhenExpression<*, *> -> visitCaseWhen(expr)
             else -> visitUnknown(expr)
         }
 
@@ -300,6 +301,38 @@ public open class SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(arguments = arguments)
+        }
+    }
+
+    protected open fun <T : Any, V : Any> visitCaseWhen(expr: CaseWhenExpression<T, V>): CaseWhenExpression<T, V> {
+        val caseExpr = if (expr.caseExpr != null) {
+            visitScalar(expr.caseExpr)
+        } else {
+            null
+        }
+
+        val elseExpr = if (expr.elseExpr != null) {
+            visitScalar(expr.elseExpr)
+        } else {
+            null
+        }
+
+        val whenThenConditions =
+            expr.whenThenConditions.map { (condition, value) ->
+                visitScalar(condition) to visitScalar(value)
+            }
+
+        if (caseExpr === expr.caseExpr
+            && elseExpr === expr.elseExpr
+            && whenThenConditions === expr.whenThenConditions
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                caseExpr = caseExpr,
+                whenThenConditions = whenThenConditions,
+                elseExpr = elseExpr,
+            )
         }
     }
 
