@@ -273,7 +273,7 @@ public abstract class BaseTable<E : Any>(
     private fun checkCircularReference(root: BaseTable<*>, stack: LinkedList<String> = LinkedList()) {
         stack.push(root.toString(withAlias = false))
 
-        if (tableName == root.tableName && catalog == root.catalog && schema == root.catalog) {
+        if (tableName == root.tableName && catalog == root.catalog && schema == root.schema) {
             throw IllegalStateException(
                 "Circular reference detected, current table: '$this', reference route: ${stack.asReversed()}"
             )
