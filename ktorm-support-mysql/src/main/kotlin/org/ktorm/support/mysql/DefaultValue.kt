@@ -21,9 +21,9 @@ import org.ktorm.schema.SqlType
 import java.util.Collections.emptyMap
 
 /**
- * Default value expression, translated to the `default` keyword in MySQL, used in insert statements. 
+ * Default value expression, translated to the `default` keyword in MySQL, used in insert statements.
  * 
- * For example: 
+ * For example:
  * 
  * ```sql
  * insert into table (column1, column2) values (default, ?)
@@ -36,6 +36,6 @@ public data class DefaultValueExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * Return a default value for [this] column, see [DefaultValueExpression]. 
+ * Return a default value for [this] column, see [DefaultValueExpression].
  */
 public fun <T : Any> Column<T>.defaultValue(): DefaultValueExpression<T> = DefaultValueExpression(this.sqlType)
