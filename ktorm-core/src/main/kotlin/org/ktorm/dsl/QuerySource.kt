@@ -51,7 +51,7 @@ public fun Database.from(table: BaseTable<*>): QuerySource {
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `cross join` in SQL.
+ * Perform a cross join and return a new [QuerySource], translated to `cross join` in SQL.
  */
 public fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -65,7 +65,7 @@ public fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolea
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `inner join` in SQL.
+ * Perform an inner join and return a new [QuerySource], translated to `inner join` in SQL.
  */
 public fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -79,7 +79,7 @@ public fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolea
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `left join` in SQL.
+ * Perform a left join and return a new [QuerySource], translated to `left join` in SQL.
  */
 public fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -93,7 +93,7 @@ public fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `right join` in SQL.
+ * Perform a right join and return a new [QuerySource], translated to `right join` in SQL.
  */
 public fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -107,12 +107,12 @@ public fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolea
 }
 
 /**
- * Perform a full outer join and return a new [QuerySource], translated to `full outer join` in SQL.
+ * Perform a full join and return a new [QuerySource], translated to `full join` in SQL.
  */
-public fun QuerySource.fullOuterJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+public fun QuerySource.fullJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
-            type = JoinType.FULL_OUTER_JOIN,
+            type = JoinType.FULL_JOIN,
             left = expression,
             right = right.asExpression(),
             condition = on?.asExpression()
