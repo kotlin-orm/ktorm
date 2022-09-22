@@ -14,173 +14,86 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionName")
+
 package org.ktorm.dsl
 
-import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.CaseWhenExpression
-import org.ktorm.expression.ScalarExpression
-import org.ktorm.schema.BooleanSqlType
-import org.ktorm.schema.ColumnDeclaring
-import org.ktorm.schema.SqlType
+import org.ktorm.schema.*
 
 /**
- * case when of case Expression.
- * [caseValue] case value, may be null
- * [caseSqlType] case value sqlType
- *
- * if [caseValue] is null, then [caseSqlType] is [BooleanSqlType]
+ * Helper class used to build case-when SQL DSL. See [CaseWhenExpression].
  */
-public data class CaseExpression<T : Any> internal constructor(
-    internal val caseValue: ScalarExpression<T>? = null,
-    internal val caseSqlType: SqlType<T>,
+public data class CaseWhen<T : Any, R : Any>(
+    val operand: ColumnDeclaring<T>?,
+    val whenClauses: List<Pair<ColumnDeclaring<T>, ColumnDeclaring<R>>> = emptyList(),
+    val elseClause: ColumnDeclaring<R>? = null
 )
 
 /**
- * case when of when Expression.
- *
- * [caseValue] case value, may be null
- * [condition] when condition
- * [caseWhenExpression], the [CaseWhenExpression] when build [WhenExpression]
- * from [CaseWhenExpression], may be bull
+ * Return type for [WHEN] function, call its extension function [THEN] to finish a SQL when clause.
  */
-public data class WhenExpression<T : Any, V : Any> internal constructor(
-    internal val caseValue: ScalarExpression<T>?,
-    internal val condition: ScalarExpression<T>,
-    internal val caseWhenExpression: CaseWhenExpression<T, V>? = null,
+public data class WhenContinuation<T : Any, R : Any>(
+    val parent: CaseWhen<T, R>,
+    val condition: ColumnDeclaring<T>
 )
 
 /**
- * DSL to build [CaseExpression] without [CaseExpression.caseValue].
+ * Starts a searched case-when DSL.
  */
-@Suppress("FunctionName")
-public fun CASE(): CaseExpression<Boolean> {
-    return CaseExpression(null, BooleanSqlType)
+public fun CASE(): CaseWhen<Boolean, Nothing> {
+    return CaseWhen(operand = null)
 }
 
 /**
- * DSL to build [CaseExpression] with [CaseExpression.caseValue].
+ * Starts a simple case-when DSL with the given [operand].
  */
-@Suppress("FunctionName")
-public fun <T : Any> CASE(caseValue: ColumnDeclaring<T>): CaseExpression<T> {
-    return CaseExpression(caseValue.asExpression(), caseValue.sqlType)
+public fun <T : Any> CASE(operand: ColumnDeclaring<T>): CaseWhen<T, Nothing> {
+    return CaseWhen(operand)
 }
 
 /**
- * DSL to build [WhenExpression] from [CaseExpression].
+ * Starts a when clause with the given [condition].
  */
-@Suppress("FunctionName")
-public infix fun <T : Any> CaseExpression<T>.WHEN(condition: ColumnDeclaring<T>): WhenExpression<T, Nothing> {
-    return WhenExpression(
-        caseValue = this.caseValue,
-        condition = condition.asExpression(),
-        caseWhenExpression = null
-    )
+public fun <T : Any, R : Any> CaseWhen<T, R>.WHEN(condition: ColumnDeclaring<T>): WhenContinuation<T, R> {
+    return WhenContinuation(this, condition)
 }
 
 /**
- * DSL to build [WhenExpression] from [CaseExpression].
+ * Finishes the current when clause with the given [result].
  */
-@Suppress("FunctionName")
-public infix fun <T : Any> CaseExpression<T>.WHEN(condition: T): WhenExpression<T, Nothing> {
-    return WhenExpression(
-        this.caseValue,
-        ArgumentExpression(condition, this.caseSqlType),
-        caseWhenExpression = null
-    )
+@JvmName("firstTHEN")
+@Suppress("UNCHECKED_CAST")
+public fun <T : Any, R : Any> WhenContinuation<T, Nothing>.THEN(result: ColumnDeclaring<R>): CaseWhen<T, R> {
+    return (this as WhenContinuation<T, R>).THEN(result)
 }
 
 /**
- * DSL to build [CaseWhenExpression] from [WhenExpression].
- *
- * [value] the value of then branch
+ * Finishes the current when clause with the given [result].
  */
-@JvmName("_THEN")
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> WhenExpression<T, V>.THEN(value: V): CaseWhenExpression<T, V> {
-    return this.caseWhenExpression!!.copy(
-        whenThenConditions = this.caseWhenExpression.whenThenConditions +
-            (this.condition to
-                ArgumentExpression(
-                    value,
-                    this.caseWhenExpression.sqlType
-                ))
-    )
+public fun <T : Any, R : Any> WhenContinuation<T, R>.THEN(result: ColumnDeclaring<R>): CaseWhen<T, R> {
+    return parent.copy(whenClauses = parent.whenClauses + Pair(condition, result))
 }
 
 /**
- * DSL to build [CaseWhenExpression] from [WhenExpression].
- *
- * [value] the value of then branch
+ * Specifies the else clause for the case-when DSL.
  */
-@JvmName("_THEN")
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> WhenExpression<T, V>.THEN(value: ColumnDeclaring<V>): CaseWhenExpression<T, V> {
-    return this.caseWhenExpression!!.copy(
-        whenThenConditions = this.caseWhenExpression.whenThenConditions +
-            (this.condition to value.asExpression())
-    )
+public fun <T : Any, R : Any> CaseWhen<T, R>.ELSE(result: ColumnDeclaring<R>): CaseWhen<T, R> {
+    return this.copy(elseClause = result)
 }
 
 /**
- * DSL to build [CaseWhenExpression] from [WhenExpression].
- *
- * [value] the value of then branch
+ * Finishes the case-when DSL and returns a [CaseWhenExpression].
  */
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> WhenExpression<T, Nothing>.THEN(
-    value: ColumnDeclaring<V>,
-): CaseWhenExpression<T, V> {
+public fun <R : Any> CaseWhen<*, R>.END(): CaseWhenExpression<R> {
+    if (whenClauses.isEmpty()) {
+        throw IllegalStateException("A case-when DSL must have at least one when clause.")
+    }
+
     return CaseWhenExpression(
-        caseExpr = this.caseValue,
-        whenThenConditions = listOf(this.condition to value.asExpression()),
-        whenSqlType = this.condition.sqlType,
-        sqlType = value.sqlType,
-    )
-}
-
-/**
- * DSL to build [CaseWhenExpression] from [CaseWhenExpression] with else branch.
- * [value] the value of else branch
- */
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> CaseWhenExpression<T, V>.ELSE(value: ColumnDeclaring<V>): CaseWhenExpression<T, V> {
-    return this.copy(elseExpr = value.asExpression())
-}
-
-/**
- * DSL to build [CaseWhenExpression] from [CaseWhenExpression] with else branch.
- *
- * [value] the value of else branch
- */
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> CaseWhenExpression<T, V>.ELSE(value: V): CaseWhenExpression<T, V> {
-    return this.copy(elseExpr = ArgumentExpression(value, this.sqlType))
-}
-
-/**
- * DSL to build [WhenExpression] from [CaseWhenExpression].
- *
- * [condition] the when condition
- */
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> CaseWhenExpression<T, V>.WHEN(condition: ColumnDeclaring<T>): WhenExpression<T, V> {
-    return WhenExpression(
-        caseWhenExpression = this,
-        condition = condition.asExpression(),
-        caseValue = null
-    )
-}
-
-/**
- * DSL to build [WhenExpression] from [CaseWhenExpression].
- *
- * [condition] the when condition
- */
-@Suppress("FunctionName")
-public infix fun <T : Any, V : Any> CaseWhenExpression<T, V>.WHEN(condition: T): WhenExpression<T, V> {
-    return WhenExpression(
-        caseWhenExpression = this,
-        condition = ArgumentExpression(condition, this.whenSqlType),
-        caseValue = null,
+        operand = operand?.asExpression(),
+        whenClauses = whenClauses.map { (condition, result) -> Pair(condition.asExpression(), result.asExpression()) },
+        elseClause = elseClause?.asExpression(),
+        sqlType = whenClauses.map { (_, result) -> result.sqlType }.first()
     )
 }
