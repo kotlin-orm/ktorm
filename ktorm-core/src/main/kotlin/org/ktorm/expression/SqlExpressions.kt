@@ -412,7 +412,12 @@ public enum class JoinType(private val value: String) {
     /**
      * Right join, translated to the `right join` keyword in SQL.
      */
-    RIGHT_JOIN("right join");
+    RIGHT_JOIN("right join"),
+
+    /**
+     * Full outer join, translated to the `full outer join` keyword in SQL.
+     */
+    FULL_OUTER_JOIN("full outer join");
 
     override fun toString(): String {
         return value
