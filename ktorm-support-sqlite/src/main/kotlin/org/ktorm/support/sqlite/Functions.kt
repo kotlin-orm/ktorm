@@ -19,42 +19,6 @@ package org.ktorm.support.sqlite
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.FunctionExpression
 import org.ktorm.schema.*
-import java.math.BigDecimal
-import java.sql.Date
-import java.sql.Time
-import java.sql.Timestamp
-import java.time.*
-import java.util.*
-
-@PublishedApi
-internal inline fun <reified T : Any> sqlTypeOf(): SqlType<T>? {
-    val sqlType = when (T::class) {
-        Boolean::class -> BooleanSqlType
-        Int::class -> IntSqlType
-        Short::class -> ShortSqlType
-        Long::class -> LongSqlType
-        Float::class -> FloatSqlType
-        Double::class -> DoubleSqlType
-        BigDecimal::class -> DecimalSqlType
-        String::class -> VarcharSqlType
-        ByteArray::class -> BytesSqlType
-        Timestamp::class -> TimestampSqlType
-        Date::class -> DateSqlType
-        Time::class -> TimeSqlType
-        Instant::class -> InstantSqlType
-        LocalDateTime::class -> LocalDateTimeSqlType
-        LocalDate::class -> LocalDateSqlType
-        LocalTime::class -> LocalTimeSqlType
-        MonthDay::class -> MonthDaySqlType
-        YearMonth::class -> YearMonthSqlType
-        Year::class -> YearSqlType
-        UUID::class -> UuidSqlType
-        else -> null
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    return sqlType as SqlType<T>?
-}
 
 // region SQLite: The JSON1 Extension
 
@@ -63,7 +27,7 @@ internal inline fun <reified T : Any> sqlTypeOf(): SqlType<T>? {
  */
 public inline fun <reified T : Any> ColumnDeclaring<*>.jsonExtract(
     path: String,
-    sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the result's SqlType, please specify manually.")
+    sqlType: SqlType<T> = SqlType.of() ?: error("Cannot detect the result's SqlType, please specify manually.")
 ): FunctionExpression<T> {
     // json_extract(column, path)
     return FunctionExpression(
@@ -162,7 +126,7 @@ public inline fun <reified T : Any> iif(
     condition: ColumnDeclaring<Boolean>,
     then: T,
     otherwise: T,
-    sqlType: SqlType<T> = sqlTypeOf() ?: error("Cannot detect the param's SqlType, please specify manually.")
+    sqlType: SqlType<T> = SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually.")
 ): FunctionExpression<T> {
     // iif(condition, then, otherwise)
     return FunctionExpression(

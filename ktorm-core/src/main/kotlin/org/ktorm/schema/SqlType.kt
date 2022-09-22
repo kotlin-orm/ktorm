@@ -16,8 +16,10 @@
 
 package org.ktorm.schema
 
-import java.sql.PreparedStatement
-import java.sql.ResultSet
+import java.math.BigDecimal
+import java.sql.*
+import java.sql.Date
+import java.time.*
 import java.util.*
 
 /**
@@ -112,5 +114,48 @@ public abstract class SqlType<T : Any>(public val typeCode: Int, public val type
      */
     override fun hashCode(): Int {
         return Objects.hash(typeCode, typeName)
+    }
+
+    /**
+     * Companion object provides some utility functions.
+     */
+    public companion object {
+
+        /**
+         * Return the corresponding ktorm core built-in [SqlType] for kotlin type [T].
+         */
+        @Suppress("UNCHECKED_CAST")
+        public inline fun <reified T : Any> of(): SqlType<T>? {
+            val kotlinType = T::class
+            if (kotlinType.java.isEnum) {
+                return EnumSqlType(kotlinType.java as Class<out Enum<*>>) as SqlType<T>
+            }
+
+            val sqlType = when (kotlinType) {
+                Boolean::class -> BooleanSqlType
+                Int::class -> IntSqlType
+                Short::class -> ShortSqlType
+                Long::class -> LongSqlType
+                Float::class -> FloatSqlType
+                Double::class -> DoubleSqlType
+                BigDecimal::class -> DecimalSqlType
+                String::class -> VarcharSqlType
+                ByteArray::class -> BytesSqlType
+                Timestamp::class -> TimestampSqlType
+                Date::class -> DateSqlType
+                Time::class -> TimeSqlType
+                Instant::class -> InstantSqlType
+                LocalDateTime::class -> LocalDateTimeSqlType
+                LocalDate::class -> LocalDateSqlType
+                LocalTime::class -> LocalTimeSqlType
+                MonthDay::class -> MonthDaySqlType
+                YearMonth::class -> YearMonthSqlType
+                Year::class -> YearSqlType
+                UUID::class -> UuidSqlType
+                else -> null
+            }
+
+            return sqlType as SqlType<T>?
+        }
     }
 }
