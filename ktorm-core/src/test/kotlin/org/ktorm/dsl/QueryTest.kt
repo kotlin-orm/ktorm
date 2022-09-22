@@ -2,9 +2,7 @@ package org.ktorm.dsl
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.ScalarExpression
-import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.TextSqlType
 import java.sql.Clob
 import kotlin.random.Random
@@ -306,72 +304,62 @@ class QueryTest : BaseTest() {
     }
 
     @Test
-    fun `test case when with function chain`() {
-        val caseWhen =
-            CASE()
-                .WHEN(Employees.name eq "vince").THEN(ArgumentExpression(1, IntSqlType))
-                .WHEN(Employees.name eq "mary").THEN(2)
-                .ELSE(ArgumentExpression(3, IntSqlType))
-                .aliased("caseWhen")
-        val names = database
+    fun testSimpleCaseWhen() {
+        val id = CASE(Employees.name)
+            .WHEN("vince").THEN(Employees.id)
+            .WHEN("marry").THEN(2)
+            .ELSE(3)
+            .END().aliased("n")
+
+        val results = database
             .from(Employees)
-            .select(
-                caseWhen
-            )
+            .select(id)
             .where { Employees.departmentId eq 1 }
             .orderBy(Employees.salary.desc())
-            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+            .mapIndexed { i, row -> "$i:${row[id]}" }
 
-        assert(names.size == 2)
-        assert(names[0] == "0:1")
-        assert(names[1] == "1:3")
-    }
-
-
-    @Test
-    fun `test  case when with infix dsl`() {
-        val caseWhen =
-            (CASE()
-                    WHEN (Employees.name eq "vince") THEN (Employees.id)
-                    WHEN (Employees.name eq "mary") THEN (2)
-                    ELSE 3
-                    ).aliased("caseWhen")
-        val names = database
-            .from(Employees)
-            .select(
-                caseWhen
-            )
-            .where { Employees.departmentId eq 1 }
-            .orderBy(Employees.salary.desc())
-            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
-
-        assert(names.size == 2)
-        assert(names[0] == "0:1")
-        assert(names[1] == "1:3")
+        assert(results.size == 2)
+        assert(results[0] == "0:1")
+        assert(results[1] == "1:2")
     }
 
     @Test
-    fun `test  case when with infix dsl1`() {
-        val caseWhen = (
-                CASE(Employees.name)
-                        WHEN "vince" THEN Employees.id
-                        WHEN "mary" THEN 2
-                        WHEN "mary1" THEN Employees.departmentId
-                        ELSE 3
-                ).aliased("caseWhen")
-        val names = database
+    fun testSearchedCaseWhen() {
+        val id = CASE()
+            .WHEN(Employees.name eq "vince").THEN(Employees.id)
+            .WHEN(Employees.name eq "marry").THEN(2)
+            .ELSE(3)
+            .END().aliased("n")
+
+        val results = database
             .from(Employees)
-            .select(
-                caseWhen
-            )
+            .select(id)
             .where { Employees.departmentId eq 1 }
             .orderBy(Employees.salary.desc())
-            .flatMapIndexed { index, row -> listOf("$index:${row[caseWhen]}") }
+            .mapIndexed { i, row -> "$i:${row[id]}" }
 
-        assert(names.size == 2)
-        assert(names[0] == "0:1")
-        assert(names[1] == "1:3")
+        assert(results.size == 2)
+        assert(results[0] == "0:1")
+        assert(results[1] == "1:2")
     }
 
+    @Test
+    fun testCaseWhenInWhere() {
+        val id = CASE(Employees.name)
+            .WHEN("vince").THEN(Employees.id)
+            .WHEN("marry").THEN(2)
+            .ELSE(3)
+            .END()
+
+        val results = database
+            .from(Employees)
+            .select(Employees.name)
+            .where { (Employees.departmentId eq 1) and (Employees.id eq id) }
+            .orderBy(Employees.salary.desc())
+            .mapIndexed { i, row -> "$i:${row[Employees.name]}" }
+
+        assert(results.size == 2)
+        assert(results[0] == "0:vince")
+        assert(results[1] == "1:marry")
+    }
 }
-

@@ -183,6 +183,7 @@ public abstract class SqlFormatter(
             || this is AggregateExpression<*>
             || this is ExistsExpression
             || this is ColumnDeclaringExpression<*>
+            || this is CaseWhenExpression<*>
     }
 
     override fun visit(expr: SqlExpression): SqlExpression {

@@ -79,6 +79,9 @@ public fun <T : Any, R : Any> WhenContinuation<T, Nothing>.THEN(result: ColumnDe
     return (this as WhenContinuation<T, R>).THEN(result)
 }
 
+/**
+ * Finishes the current when clause with the given [result].
+ */
 @JvmName("firstTHEN")
 @Suppress("UNCHECKED_CAST")
 public inline fun <T : Any, reified R : Any> WhenContinuation<T, Nothing>.THEN(
