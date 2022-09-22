@@ -18,6 +18,7 @@
 
 package org.ktorm.dsl
 
+import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.CaseWhenExpression
 import org.ktorm.schema.*
 
@@ -60,12 +61,31 @@ public fun <T : Any, R : Any> CaseWhen<T, R>.WHEN(condition: ColumnDeclaring<T>)
 }
 
 /**
+ * Starts a when clause with the given [condition].
+ */
+public inline fun <reified T : Any, R : Any> CaseWhen<T, R>.WHEN(
+    condition: T,
+    sqlType: SqlType<T> = SqlType.of() ?: error("Cannot detect the argument's SqlType, please specify manually.")
+): WhenContinuation<T, R> {
+    return WHEN(ArgumentExpression(condition, sqlType))
+}
+
+/**
  * Finishes the current when clause with the given [result].
  */
 @JvmName("firstTHEN")
 @Suppress("UNCHECKED_CAST")
 public fun <T : Any, R : Any> WhenContinuation<T, Nothing>.THEN(result: ColumnDeclaring<R>): CaseWhen<T, R> {
     return (this as WhenContinuation<T, R>).THEN(result)
+}
+
+@JvmName("firstTHEN")
+@Suppress("UNCHECKED_CAST")
+public inline fun <T : Any, reified R : Any> WhenContinuation<T, Nothing>.THEN(
+    result: R,
+    sqlType: SqlType<R> = SqlType.of() ?: error("Cannot detect the argument's SqlType, please specify manually.")
+): CaseWhen<T, R> {
+    return (this as WhenContinuation<T, R>).THEN(result, sqlType)
 }
 
 /**
@@ -76,10 +96,30 @@ public fun <T : Any, R : Any> WhenContinuation<T, R>.THEN(result: ColumnDeclarin
 }
 
 /**
+ * Finishes the current when clause with the given [result].
+ */
+public inline fun <T : Any, reified R : Any> WhenContinuation<T, R>.THEN(
+    result: R,
+    sqlType: SqlType<R> = SqlType.of() ?: error("Cannot detect the argument's SqlType, please specify manually.")
+): CaseWhen<T, R> {
+    return THEN(ArgumentExpression(result, sqlType))
+}
+
+/**
  * Specifies the else clause for the case-when DSL.
  */
 public fun <T : Any, R : Any> CaseWhen<T, R>.ELSE(result: ColumnDeclaring<R>): CaseWhen<T, R> {
     return this.copy(elseClause = result)
+}
+
+/**
+ * Specifies the else clause for the case-when DSL.
+ */
+public inline fun <T : Any, reified R : Any> CaseWhen<T, R>.ELSE(
+    result: R,
+    sqlType: SqlType<R> = SqlType.of() ?: error("Cannot detect the argument's SqlType, please specify manually.")
+): CaseWhen<T, R> {
+    return ELSE(ArgumentExpression(result, sqlType))
 }
 
 /**
