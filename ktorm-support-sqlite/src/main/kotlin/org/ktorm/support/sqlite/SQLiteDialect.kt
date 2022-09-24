@@ -40,7 +40,7 @@ public open class SQLiteDialect : SqlDialect {
                 statement.executeUpdate()
             }
 
-            val retrieveKeySql = "select last_insert_rowid()"
+            val retrieveKeySql = "SELECT LAST_INSERT_ROWID()"
             if (database.logger.isDebugEnabled()) {
                 database.logger.debug("Retrieving generated keys by SQL: $retrieveKeySql")
             }

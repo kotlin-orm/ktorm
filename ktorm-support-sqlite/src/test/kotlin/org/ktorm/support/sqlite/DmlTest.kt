@@ -14,7 +14,6 @@ class DmlTest : BaseSQLiteTest() {
             set(it.job, "engineer")
             set(it.managerId, null)
             set(it.salary, 100)
-
             where {
                 it.id eq 2
             }
@@ -524,8 +523,7 @@ class DmlTest : BaseSQLiteTest() {
             set(it.departmentId, 1)
         } as Int
 
-        assert(id > 4)
-
+        assert(id == 5)
         assert(database.employees.count() == 5)
     }
 }
