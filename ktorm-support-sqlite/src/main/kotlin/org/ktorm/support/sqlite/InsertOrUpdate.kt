@@ -115,7 +115,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  * returning id
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the column to return
  * @param block the DSL block used to construct the expression.
@@ -161,7 +161,7 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
  * returning id, job
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
@@ -209,7 +209,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
  * returning id, job, salary
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
@@ -307,7 +307,7 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
  * returning id
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the column to return
  * @param block the DSL block used to construct the expression.
@@ -344,7 +344,7 @@ public fun <T : BaseTable<*>, C : Any> Database.insertReturning(
  * returning id, job
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
@@ -383,7 +383,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertReturning(
  * returning id, job, salary
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
@@ -405,11 +405,13 @@ private fun <T : BaseTable<*>> Database.insertReturningRow(
 ): CachedRowSet {
     val builder = SQLiteAssignmentsBuilder().apply { block(table) }
 
-    val expression = AliasRemover.visit(InsertOrUpdateExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        returningColumns = returning.map { it.asExpression() }
-    ))
+    val expression = AliasRemover.visit(
+            InsertOrUpdateExpression(
+            table = table.asExpression(),
+            assignments = builder.assignments,
+            returningColumns = returning.map { it.asExpression() }
+        )
+    )
 
     val rowSet = executeQuery(expression)
 

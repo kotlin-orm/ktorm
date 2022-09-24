@@ -139,7 +139,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
  * returning id
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the column to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
@@ -186,7 +186,7 @@ public fun <T : BaseTable<*>, C : Any> Database.bulkInsertReturning(
  * returning id, job
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
@@ -234,7 +234,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertReturning(
  * returning id, job, salary
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block, extension function of [BulkInsertStatementBuilder], used to construct the expression.
@@ -258,11 +258,14 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
 ): CachedRowSet {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
-    val expression = AliasRemover.visit(BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        returningColumns = returning.map { it.asExpression() }
-    ))
+    val expression = AliasRemover.visit(
+            BulkInsertExpression(
+            table = table.asExpression(),
+            assignments = builder.assignments,
+            returningColumns = returning.map { it.asExpression() }
+        )
+    )
+
     return executeQuery(expression)
 }
 
@@ -312,7 +315,6 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     table: T, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): Int {
     val expression = buildBulkInsertOrUpdateExpression(table, returning = emptyList(), block = block)
-
     return executeUpdate(expression)
 }
 
@@ -355,7 +357,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
  * returning id
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the column to return
  * @param block the DSL block used to construct the expression.
@@ -408,7 +410,7 @@ public fun <T : BaseTable<*>, C : Any> Database.bulkInsertOrUpdateReturning(
  * returning id, job
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
@@ -462,7 +464,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertOrUpdateRet
  * returning id, job, salary
  * ```
  *
- * @since 3.4.0
+ * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
  * @param block the DSL block used to construct the expression.
@@ -504,14 +506,16 @@ private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
         throw IllegalStateException(msg)
     }
 
-    return AliasRemover.visit(BulkInsertExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
-        where = builder.where?.asExpression(),
-        returningColumns = returning.map { it.asExpression() }
-    ))
+    return AliasRemover.visit(
+            BulkInsertExpression(
+            table = table.asExpression(),
+            assignments = builder.assignments,
+            conflictColumns = conflictColumns.map { it.asExpression() },
+            updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
+            where = builder.where?.asExpression(),
+            returningColumns = returning.map { it.asExpression() }
+        )
+    )
 }
 
 /**
