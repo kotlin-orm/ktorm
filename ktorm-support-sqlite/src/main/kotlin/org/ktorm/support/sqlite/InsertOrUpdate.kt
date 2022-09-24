@@ -406,7 +406,7 @@ private fun <T : BaseTable<*>> Database.insertReturningRow(
     val builder = SQLiteAssignmentsBuilder().apply { block(table) }
 
     val expression = AliasRemover.visit(
-            InsertOrUpdateExpression(
+        InsertOrUpdateExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
             returningColumns = returning.map { it.asExpression() }

@@ -259,7 +259,7 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
     val expression = AliasRemover.visit(
-            BulkInsertExpression(
+        BulkInsertExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
             returningColumns = returning.map { it.asExpression() }
@@ -507,7 +507,7 @@ private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
     }
 
     return AliasRemover.visit(
-            BulkInsertExpression(
+        BulkInsertExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
             conflictColumns = conflictColumns.map { it.asExpression() },
