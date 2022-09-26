@@ -347,9 +347,17 @@ val generateTuples by tasks.registering {
     }
 }
 
-sourceSets.main {
-    java.srcDirs(generatedSourceDir)
+tasks {
+    compileKotlin {
+        dependsOn(generateTuples)
+    }
+    "jarSources" {
+        dependsOn(generateTuples)
+    }
 }
 
-tasks["compileKotlin"].dependsOn(generateTuples)
-tasks["jarSources"].dependsOn(generateTuples)
+kotlin {
+    sourceSets["main"].apply {
+        kotlin.srcDir(generatedSourceDir)
+    }
+}

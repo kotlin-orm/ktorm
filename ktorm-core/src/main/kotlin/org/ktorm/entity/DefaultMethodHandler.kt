@@ -110,7 +110,11 @@ internal class DefaultMethodHandler(
         }
 
         fun forMethod(method: Method): DefaultMethodHandler {
-            return handlersCache.computeIfAbsent(method) {
+            // Workaround for the compiler bug, see https://youtrack.jetbrains.com/issue/KT-34826
+            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "UNCHECKED_CAST")
+            val cache = handlersCache as java.util.Map<Method, DefaultMethodHandler>
+
+            return cache.computeIfAbsent(method) {
                 if (method.isDefault) {
                     val handle = unreflectSpecial(method)
                     DefaultMethodHandler(javaDefaultMethodHandle = handle)

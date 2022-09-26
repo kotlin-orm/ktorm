@@ -38,4 +38,6 @@ val checkSourceHeader by tasks.registering {
     }
 }
 
-tasks["check"].dependsOn(checkSourceHeader)
+tasks.check {
+    dependsOn(checkSourceHeader)
+}

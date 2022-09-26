@@ -20,9 +20,17 @@ val generatePackageVersion by tasks.registering(Copy::class) {
     expand(project.properties)
 }
 
-sourceSets.main {
-    java.srcDirs(generatedSourceDir)
+tasks {
+    compileKotlin {
+        dependsOn(generatePackageVersion)
+    }
+    "jarSources" {
+        dependsOn(generatePackageVersion)
+    }
 }
 
-tasks["compileKotlin"].dependsOn(generatePackageVersion)
-tasks["jarSources"].dependsOn(generatePackageVersion)
+kotlin {
+    sourceSets["main"].apply {
+        kotlin.srcDir(generatedSourceDir)
+    }
+}
