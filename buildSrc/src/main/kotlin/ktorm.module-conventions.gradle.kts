@@ -53,9 +53,15 @@ detekt {
     config = files("${project.rootDir}/detekt.yml")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 tasks {
     compileKotlin {
         kotlinOptions {
+            jvmTarget = "1.8"
             allWarningsAsErrors = true
             freeCompilerArgs = listOf(
                 "-Xexplicit-api=strict",
@@ -66,6 +72,7 @@ tasks {
 
     compileTestKotlin {
         kotlinOptions {
+            jvmTarget = "1.8"
             freeCompilerArgs = listOf(
                 "-Xjvm-default=enable"
             )
