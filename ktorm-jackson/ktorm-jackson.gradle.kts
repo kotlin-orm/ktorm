@@ -30,7 +30,7 @@ tasks {
 }
 
 kotlin {
-    sourceSets["main"].apply {
+    sourceSets.main {
         kotlin.srcDir(generatedSourceDir)
     }
 }
