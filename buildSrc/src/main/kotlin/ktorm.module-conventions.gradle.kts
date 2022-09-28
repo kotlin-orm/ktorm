@@ -53,11 +53,6 @@ detekt {
     config = files("${project.rootDir}/detekt.yml")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 tasks {
     compileKotlin {
         kotlinOptions {
