@@ -131,6 +131,11 @@ publishing {
                         name.set("ccr")
                         email.set("2938137849@qq.com")
                     }
+                    developer {
+                        id.set("lupus")
+                        name.set("Marcin Grzywacz")
+                        email.set("marcin.grzywacz.2002@gmail.com")
+                    }
                 }
             }
         }

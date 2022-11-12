@@ -552,10 +552,11 @@ public fun BaseTable<*>.uuid(name: String): Column<UUID> {
 public object UuidSqlType : SqlType<UUID>(Types.OTHER, "uuid") {
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: UUID) {
-        ps.setObject(index, parameter)
+        ps.setObject(index, parameter.toString())
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): UUID? {
-        return rs.getObject(index) as UUID?
+        val uuid = rs.getObject(index) as String? ?: return null
+        return UUID.fromString(uuid)
     }
 }
