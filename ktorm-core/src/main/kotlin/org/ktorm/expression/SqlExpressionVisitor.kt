@@ -16,6 +16,8 @@
 
 package org.ktorm.expression
 
+import org.ktorm.database.DialectFeatureNotSupportedException
+
 /**
  * Base class designed to visit or modify SQL expression trees using visitor pattern.
  *
@@ -68,6 +70,7 @@ public open class SqlExpressionVisitor {
             is BetweenExpression<*> -> visitBetween(expr)
             is ArgumentExpression -> visitArgument(expr)
             is FunctionExpression -> visitFunction(expr)
+            is WindowFunctionExpression -> visitWindowFunction(expr)
             is CaseWhenExpression -> visitCaseWhen(expr)
             else -> visitUnknown(expr)
         }
@@ -302,6 +305,25 @@ public open class SqlExpressionVisitor {
         } else {
             return expr.copy(arguments = arguments)
         }
+    }
+
+    protected open fun visitWindow(expr: WindowExpression): WindowExpression {
+        return expr
+    }
+
+    protected open fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
+        val arguments = visitExpressionList(expr.arguments)
+        check(expr.window != null) {
+            throw DialectFeatureNotSupportedException("no anonymous or named windows found in window function expression `${expr.functionName}`.")
+        }
+        val window = visitWindow(expr.window)
+        if (arguments === expr.arguments && expr.window === window) {
+            return expr
+        }
+        return expr.copy(
+            arguments = arguments,
+            window = window
+        )
     }
 
     protected open fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
