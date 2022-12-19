@@ -32,7 +32,7 @@ moditect {
     }
 
     // Let kotlin compiler know the module descriptor.
-    if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
+    if (JavaVersion.current() >= JavaVersion.VERSION_1_9 && System.getenv("CI") == "true") {
         kotlin {
             sourceSets.main {
                 kotlin.srcDir("src/main/moditect")
