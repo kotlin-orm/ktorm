@@ -549,13 +549,17 @@ public fun BaseTable<*>.uuid(name: String): Column<UUID> {
 /**
  * [SqlType] implementation represents `uuid` SQL type.
  */
-public object UuidSqlType : SqlType<UUID>(Types.OTHER, "uuid") {
+public object UuidSqlType : SqlType<UUID>(Types.VARCHAR, "uuid") {
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: UUID) {
-        ps.setObject(index, parameter)
+        ps.setString(index, parameter.toString())
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): UUID? {
-        return rs.getObject(index) as UUID?
+        try {
+            return UUID.fromString(rs.getString(index))
+        } catch (e: Exception){
+            return null
+        }
     }
 }
