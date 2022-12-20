@@ -4,4 +4,5 @@ module ktorm.jackson {
     requires com.fasterxml.jackson.kotlin;
     requires com.fasterxml.jackson.datatype.jsr310;
     exports org.ktorm.jackson;
+    provides com.fasterxml.jackson.databind.Module with org.ktorm.jackson.KtormModule;
 }

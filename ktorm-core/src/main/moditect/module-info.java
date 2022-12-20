@@ -1,6 +1,6 @@
 module ktorm.core {
     requires transitive java.sql;
-    requires transitive java.sql.rowset;
+    // requires transitive java.sql.rowset;
     requires transitive kotlin.stdlib;
     requires transitive kotlin.reflect;
     exports org.ktorm.database;
@@ -9,4 +9,5 @@ module ktorm.core {
     exports org.ktorm.expression;
     exports org.ktorm.logging;
     exports org.ktorm.schema;
+    uses org.ktorm.database.SqlDialect;
 }
