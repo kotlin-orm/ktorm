@@ -4,6 +4,7 @@ version = rootProject.version
 
 plugins {
     id("kotlin")
+    id("org.gradle.jacoco")
     id("org.moditect.gradleplugin")
     id("io.gitlab.arturbosch.detekt")
     id("ktorm.source-header-check")
@@ -71,6 +72,14 @@ tasks {
             freeCompilerArgs = listOf(
                 "-Xjvm-default=enable"
             )
+        }
+    }
+
+    jacocoTestReport {
+        reports {
+            csv.required.set(true)
+            xml.required.set(true)
+            html.required.set(true)
         }
     }
 }
