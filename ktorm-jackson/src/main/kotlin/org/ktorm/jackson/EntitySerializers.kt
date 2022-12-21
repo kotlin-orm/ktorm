@@ -17,6 +17,7 @@
 package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonProperty.Access
 import com.fasterxml.jackson.core.JsonGenerator
@@ -81,13 +82,18 @@ internal class EntitySerializers : SimpleSerializers() {
             gen: JsonGenerator,
             serializers: SerializerProvider
         ) {
+            val includeNulls = listOf(Include.ALWAYS, Include.CUSTOM, Include.USE_DEFAULTS)
+                .contains(serializers.getDefaultPropertyInclusion(entity::class.java).valueInclusion)
+            val entityProperties = entity.properties
             val properties = findReadableProperties(entity)
 
-            for ((name, value) in entity.properties) {
-                val prop = properties[name] ?: continue
+            for ((name, prop) in properties) {
+                val value = entityProperties[name]
+                if (value == null && !includeNulls) {
+                    continue
+                }
 
                 gen.writeFieldName(gen.codec.serializeNameForProperty(prop, serializers.config))
-
                 if (value == null) {
                     gen.writeNull()
                 } else {

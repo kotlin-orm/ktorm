@@ -12,6 +12,8 @@ import java.io.ObjectOutputStream
 import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * Created by vince on Dec 09, 2018.
@@ -277,7 +279,7 @@ class EntityTest : BaseTest() {
     }
 
     @Test
-    fun testHasColumnValue() {
+    fun testHasColumnValueTransient() {
         val p1 = Parent()
         assert(!p1.implementation.hasColumnValue(Parents.id.binding!!))
         assert(p1.implementation.getColumnValue(Parents.id.binding!!) == null)
@@ -285,7 +287,7 @@ class EntityTest : BaseTest() {
         val p2 = Parent {
             child = null
         }
-        assert(p2.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(!p2.implementation.hasColumnValue(Parents.id.binding!!))
         assert(p2.implementation.getColumnValue(Parents.id.binding!!) == null)
 
         val p3 = Parent {
@@ -299,7 +301,7 @@ class EntityTest : BaseTest() {
                 grandChild = null
             }
         }
-        assert(p4.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(!p4.implementation.hasColumnValue(Parents.id.binding!!))
         assert(p4.implementation.getColumnValue(Parents.id.binding!!) == null)
 
         val p5 = Parent {
@@ -317,7 +319,7 @@ class EntityTest : BaseTest() {
                 }
             }
         }
-        assert(p6.implementation.hasColumnValue(Parents.id.binding!!))
+        assert(!p6.implementation.hasColumnValue(Parents.id.binding!!))
         assert(p6.implementation.getColumnValue(Parents.id.binding!!) == null)
 
         val p7 = Parent {
@@ -329,6 +331,78 @@ class EntityTest : BaseTest() {
         }
         assert(p7.implementation.hasColumnValue(Parents.id.binding!!))
         assert(p7.implementation.getColumnValue(Parents.id.binding!!) == 6)
+    }
+
+    @Test
+    fun testHasColumnValueAttached() {
+        val sofiaDepartment = Department {
+            name = "Sofia Office"
+            location = LocationWrapper("Sofia")
+        }
+        database.departments.add(sofiaDepartment)
+
+        val now = LocalDate.now()
+        val employeeManager = Employee {
+            name = "Simpson"
+            job = "Manager"
+            hireDate = now
+            department = sofiaDepartment
+            salary = 100
+        }
+        database.employees.add(employeeManager)
+
+        val employee1 = Employee {
+            name = "McDonald"
+            job = "Engineer"
+            hireDate = now
+            department = sofiaDepartment
+            salary = 100
+        }
+
+        val e1 = with(database.employees) {
+            add(employee1)
+            find { it.id eq employee1.id }
+        }
+
+        assertNotNull(e1)
+        assert(!e1.implementation.hasColumnValue(Employees.managerId.binding!!))
+        assertNull(e1.implementation.getColumnValue(Employees.managerId.binding!!))
+
+        val employee2 = Employee {
+            name = "Smith"
+            job = "Engineer"
+            hireDate = now
+            department = sofiaDepartment
+            manager = null
+            salary = 100
+        }
+
+        val e2 = with(database.employees) {
+            add(employee2)
+            find { it.id eq employee2.id }
+        }
+
+        assertNotNull(e2)
+        assert(!e2.implementation.hasColumnValue(Employees.managerId.binding!!))
+        assertNull(e2.implementation.getColumnValue(Employees.managerId.binding!!))
+
+        val employee3 = Employee {
+            name = "Dennis"
+            job = "Engineer"
+            hireDate = now
+            department = sofiaDepartment
+            manager = employeeManager
+            salary = 100
+        }
+
+        val e3 = with(database.employees) {
+            add(employee3)
+            find { it.id eq employee3.id }
+        }
+
+        assertNotNull(e3)
+        assert(e3.implementation.hasColumnValue(Employees.managerId.binding!!))
+        assertNotNull(e3.implementation.getColumnValue(Employees.managerId.binding!!))
     }
 
     @Test
@@ -612,6 +686,21 @@ class EntityTest : BaseTest() {
         }
 
         assert(employee1 == employee2)
+    }
+
+    @Test
+    fun testValueNullEquality() {
+        val departmentTransient = Department {
+            name = "Sofia Office"
+            location = LocationWrapper("Sofia")
+            mixedCase = null // explicitly initialized to null
+        }
+        database.departments.add(departmentTransient)
+
+        val departmentAttached = database.departments.find { it.name eq "Sofia Office" }
+
+        assertNotNull(departmentAttached)
+        assert(departmentTransient == departmentAttached)
     }
 
     @Test

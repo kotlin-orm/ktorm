@@ -17,6 +17,7 @@ package org.ktorm.jackson
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -29,6 +30,7 @@ import org.ktorm.entity.Entity
 class JacksonAnnotationTest {
     private val objectMapper = ObjectMapper()
         .configure(SerializationFeature.INDENT_OUTPUT, true)
+        .setDefaultPropertyInclusion(JsonInclude.Include.ALWAYS)
         .findAndRegisterModules()
 
     interface TestEntity : Entity<TestEntity> {

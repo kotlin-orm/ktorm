@@ -150,7 +150,8 @@ internal class EntityImplementation(
             throw UnsupportedOperationException(msg)
         }
 
-        values[name] = value
+        values.compute(name) { _, _ -> value }
+
         changedProperties.add(name)
     }
 
