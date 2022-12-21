@@ -34,6 +34,29 @@ jobs:
       - name: Run Tests
         run: ./gradlew check
 
+      - name: Generate JaCoCo Report
+        run: ./gradlew jacocoTestReport
+
+      - name: Generate JaCoCo Badges
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          generate-branches-badge: true
+          jacoco-csv-file: >
+            ktorm-core/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-global/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-jackson/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-support-mysql/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-support-oracle/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-support-postgresql/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-support-sqlite/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-support-sqlserver/build/reports/jacoco/test/jacocoTestReport.csv
+
+      - name: Output Jacoco Badges
+        run: |
+          echo "### Code Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "\![coverage](data:image/svg+xml;base64,$(base64 .github/badges/jacoco.svg))" >> $GITHUB_STEP_SUMMARY
+          echo "\![branches](data:image/svg+xml;base64,$(base64 .github/badges/branches.svg))" >> $GITHUB_STEP_SUMMARY
+
   publish:
     name: Publish Artifacts
     runs-on: ubuntu-latest
