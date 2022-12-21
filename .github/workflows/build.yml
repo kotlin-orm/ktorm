@@ -53,9 +53,8 @@ jobs:
 
       - name: Output Jacoco Badges
         run: |
-          echo "### Code Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "\![coverage](data:image/svg+xml;base64,$(base64 .github/badges/jacoco.svg))" >> $GITHUB_STEP_SUMMARY
-          echo "\![branches](data:image/svg+xml;base64,$(base64 .github/badges/branches.svg))" >> $GITHUB_STEP_SUMMARY
+          echo "![coverage](data:image/svg+xml;base64,$(base64 .github/badges/jacoco.svg))" >> $GITHUB_STEP_SUMMARY
+          echo "![branches](data:image/svg+xml;base64,$(base64 .github/badges/branches.svg))" >> $GITHUB_STEP_SUMMARY
 
   publish:
     name: Publish Artifacts
