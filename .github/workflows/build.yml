@@ -65,8 +65,10 @@ jobs:
             git config user.email 'me@liuwj.me'
             git add . 
             git commit -m "update jacoco badges"
-            git push
+            git push "https://$GIT_PUSH_TOKEN@github.com/kotlin-orm/ktorm-docs.git" master
           fi
+        env:
+          GIT_PUSH_TOKEN: ${{secrets.GIT_PUSH_TOKEN}}
 
   publish:
     name: Publish Artifacts
