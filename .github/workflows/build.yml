@@ -51,10 +51,22 @@ jobs:
             ktorm-support-sqlite/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-sqlserver/build/reports/jacoco/test/jacocoTestReport.csv
 
-      - name: Output Jacoco Badges
+      - name: Upload Jacoco Badges
         run: |
-          echo "![coverage](data:image/svg+xml;base64,$(base64 .github/badges/jacoco.svg))" >> $GITHUB_STEP_SUMMARY
-          echo "![branches](data:image/svg+xml;base64,$(base64 .github/badges/branches.svg))" >> $GITHUB_STEP_SUMMARY
+          REPO_DIR=~/.ktorm/temp/repo/ktorm-docs
+          git clone --depth=1 --branch=master https://github.com/kotlin-orm/ktorm-docs.git "$REPO_DIR"
+
+          cp .github/badges/jacoco.svg "$REPO_DIR/source/images"
+          cp .github/badges/branches.svg "$REPO_DIR/source/images"
+          cd "$REPO_DIR"
+
+          if [[ `git status --porcelain` ]]; then
+            git config user.name 'vince'
+            git config user.email 'me@liuwj.me'
+            git add . 
+            git commit -m "update jacoco badges"
+            git push
+          fi
 
   publish:
     name: Publish Artifacts
