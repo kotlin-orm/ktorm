@@ -56,18 +56,28 @@ public class KtormModule : Module() {
         context.addSerializers(EntitySerializers())
         context.addDeserializers(EntityDeserializers())
 
-        val codec = context.getOwner<ObjectCodec>()
-        if (codec is ObjectMapper) {
-            val objectType = codec.constructType(Any::class.java)
+        try {
+            val codec = context.getOwner<ObjectCodec>()
+            if (codec is ObjectMapper) {
+                val objectType = codec.constructType(Any::class.java)
 
-            val serializerTyper = codec.serializationConfig.getDefaultTyper(objectType)
-            if (serializerTyper != null && serializerTyper is DefaultTypeResolverBuilder) {
-                codec.setConfig(codec.serializationConfig.with(EntityTypeResolverBuilder(serializerTyper)))
+                val serializerTyper = codec.serializationConfig.getDefaultTyper(objectType)
+                if (serializerTyper != null && serializerTyper is DefaultTypeResolverBuilder) {
+                    codec.setConfig(codec.serializationConfig.with(EntityTypeResolverBuilder(serializerTyper)))
+                }
+
+                val deserializerTyper = codec.deserializationConfig.getDefaultTyper(objectType)
+                if (deserializerTyper != null && deserializerTyper is DefaultTypeResolverBuilder) {
+                    codec.setConfig(codec.deserializationConfig.with(EntityTypeResolverBuilder(deserializerTyper)))
+                }
             }
-
-            val deserializerTyper = codec.deserializationConfig.getDefaultTyper(objectType)
-            if (deserializerTyper != null && deserializerTyper is DefaultTypeResolverBuilder) {
-                codec.setConfig(codec.deserializationConfig.with(EntityTypeResolverBuilder(deserializerTyper)))
+        } catch (e: Throwable) {
+            // Some reflection operation (setAccessible) may fail in JDK 9 or above.
+            if (e.javaClass.name == "java.lang.reflect.InaccessibleObjectException") {
+                val msg = "Default typing is not supported because some hacking magic based on reflection failed."
+                throw UnsupportedOperationException(msg, e)
+            } else {
+                throw e
             }
         }
     }

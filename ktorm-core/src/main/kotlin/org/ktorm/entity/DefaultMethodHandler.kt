@@ -72,6 +72,7 @@ internal class DefaultMethodHandler(
 
         private fun initLookupConstructor(): Constructor<Lookup>? {
             try {
+                // This method only runs in JDK 1.8, so the reflection operation (setAccessible) is safe.
                 val c = Lookup::class.java.getDeclaredConstructor(Class::class.java, Int::class.javaPrimitiveType)
                 c.isAccessible = true
                 return c
