@@ -30,7 +30,7 @@ public class AndroidLoggerAdapter(private val tag: String) : Logger {
     private val iMethod = logClass.getMethod("i", String::class.java, String::class.java, Throwable::class.java)
     private val wMethod = logClass.getMethod("w", String::class.java, String::class.java, Throwable::class.java)
     private val eMethod = logClass.getMethod("e", String::class.java, String::class.java, Throwable::class.java)
-    
+
     private object Levels {
         const val VERBOSE = 2
         const val DEBUG = 3
