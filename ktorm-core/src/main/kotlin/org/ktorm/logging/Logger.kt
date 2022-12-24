@@ -139,7 +139,8 @@ public fun detectLoggerImplementation(): Logger {
         if (result == null) {
             try {
                 result = init()
-            } catch (ignored: Throwable) {
+            } catch (ignored: ClassNotFoundException) {
+            } catch (ignored: NoClassDefFoundError) {
             }
         }
     }
