@@ -151,8 +151,7 @@ public fun detectLoggerImplementation(): Logger {
     }
 
     tryImplement {
-        val logger = org.slf4j.LoggerFactory.getLogger(loggerName)
-        Slf4jLoggerAdapter(logger)
+        Slf4jLoggerAdapter(loggerName)
     }
 
     tryImplement {

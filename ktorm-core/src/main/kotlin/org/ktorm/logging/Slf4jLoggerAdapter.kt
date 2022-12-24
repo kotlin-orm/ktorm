@@ -16,50 +16,64 @@
 
 package org.ktorm.logging
 
+import org.ktorm.entity.invoke0
+
 /**
  * Adapter [Logger] implementation integrating Slf4j with Ktorm.
- *
- * @property logger a logger instance of Slf4j.
  */
-public class Slf4jLoggerAdapter(public val logger: org.slf4j.Logger) : Logger {
+public class Slf4jLoggerAdapter(loggerName: String) : Logger {
+    private val loggerFactoryClass = Class.forName("org.slf4j.LoggerFactory")
+    private val loggerClass = Class.forName("org.slf4j.Logger")
+    private val getLoggerMethod = loggerFactoryClass.getMethod("getLogger", String::class.java)
+    private val isTraceEnabledMethod = loggerClass.getMethod("isTraceEnabled")
+    private val isDebugEnabledMethod = loggerClass.getMethod("isDebugEnabled")
+    private val isInfoEnabledMethod = loggerClass.getMethod("isInfoEnabled")
+    private val isWarnEnabledMethod = loggerClass.getMethod("isWarnEnabled")
+    private val isErrorEnabledMethod = loggerClass.getMethod("isErrorEnabled")
+    private val traceMethod = loggerClass.getMethod("trace", String::class.java, Throwable::class.java)
+    private val debugMethod = loggerClass.getMethod("debug", String::class.java, Throwable::class.java)
+    private val infoMethod = loggerClass.getMethod("info", String::class.java, Throwable::class.java)
+    private val warnMethod = loggerClass.getMethod("warn", String::class.java, Throwable::class.java)
+    private val errorMethod = loggerClass.getMethod("error", String::class.java, Throwable::class.java)
+    private val logger = getLoggerMethod.invoke0(null, loggerName)
 
     override fun isTraceEnabled(): Boolean {
-        return logger.isTraceEnabled
+        return isTraceEnabledMethod.invoke0(logger) as Boolean
     }
 
     override fun trace(msg: String, e: Throwable?) {
-        logger.trace(msg, e)
+        traceMethod.invoke0(logger, msg, e)
     }
 
     override fun isDebugEnabled(): Boolean {
-        return logger.isDebugEnabled
+        return isDebugEnabledMethod.invoke0(logger) as Boolean
     }
 
     override fun debug(msg: String, e: Throwable?) {
-        logger.debug(msg, e)
+        debugMethod.invoke0(logger, msg, e)
     }
 
     override fun isInfoEnabled(): Boolean {
-        return logger.isInfoEnabled
+        return isInfoEnabledMethod.invoke0(logger) as Boolean
     }
 
     override fun info(msg: String, e: Throwable?) {
-        logger.info(msg, e)
+        infoMethod.invoke0(logger, msg, e)
     }
 
     override fun isWarnEnabled(): Boolean {
-        return logger.isWarnEnabled
+        return isWarnEnabledMethod.invoke0(logger) as Boolean
     }
 
     override fun warn(msg: String, e: Throwable?) {
-        logger.warn(msg, e)
+        warnMethod.invoke0(logger, msg, e)
     }
 
     override fun isErrorEnabled(): Boolean {
-        return logger.isErrorEnabled
+        return isErrorEnabledMethod.invoke0(logger) as Boolean
     }
 
     override fun error(msg: String, e: Throwable?) {
-        logger.error(msg, e)
+        errorMethod.invoke0(logger, msg, e)
     }
 }
