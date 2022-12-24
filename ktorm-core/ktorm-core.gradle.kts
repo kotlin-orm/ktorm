@@ -5,9 +5,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.slf4j:slf4j-api:1.7.25")
     compileOnly("commons-logging:commons-logging:1.2")
-    compileOnly("com.google.android:android:1.5_r4")
     compileOnly("org.springframework:spring-jdbc:5.0.10.RELEASE")
     compileOnly("org.springframework:spring-tx:5.0.10.RELEASE")
     compileOnly("org.postgresql:postgresql:42.2.5")

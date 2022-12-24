@@ -146,7 +146,6 @@ public fun detectLoggerImplementation(): Logger {
     }
 
     tryImplement {
-        Class.forName("android.util.Log")
         AndroidLoggerAdapter(loggerName)
     }
 

@@ -16,53 +16,66 @@
 
 package org.ktorm.logging
 
-import android.util.Log
+import org.ktorm.entity.invoke0
 
 /**
  * Adapter [Logger] implementation integrating
  * [android.util.Log](https://developer.android.com/reference/android/util/Log) with Ktorm.
- *
- * @property tag the tag for android logging.
  */
-public class AndroidLoggerAdapter(public val tag: String) : Logger {
+public class AndroidLoggerAdapter(private val tag: String) : Logger {
+    private val logClass = Class.forName("android.util.Log")
+    private val isLoggableMethod = logClass.getMethod("isLoggable", String::class.java, Int::class.javaPrimitiveType)
+    private val vMethod = logClass.getMethod("v", String::class.java, String::class.java, Throwable::class.java)
+    private val dMethod = logClass.getMethod("d", String::class.java, String::class.java, Throwable::class.java)
+    private val iMethod = logClass.getMethod("i", String::class.java, String::class.java, Throwable::class.java)
+    private val wMethod = logClass.getMethod("w", String::class.java, String::class.java, Throwable::class.java)
+    private val eMethod = logClass.getMethod("e", String::class.java, String::class.java, Throwable::class.java)
+    
+    private object Levels {
+        const val VERBOSE = 2
+        const val DEBUG = 3
+        const val INFO = 4
+        const val WARN = 5
+        const val ERROR = 6
+    }
 
     override fun isTraceEnabled(): Boolean {
-        return Log.isLoggable(tag, Log.VERBOSE)
+        return isLoggableMethod.invoke0(null, tag, Levels.VERBOSE) as Boolean
     }
 
     override fun trace(msg: String, e: Throwable?) {
-        Log.v(tag, msg, e)
+        vMethod.invoke0(null, tag, msg, e)
     }
 
     override fun isDebugEnabled(): Boolean {
-        return Log.isLoggable(tag, Log.DEBUG)
+        return isLoggableMethod.invoke0(null, tag, Levels.DEBUG) as Boolean
     }
 
     override fun debug(msg: String, e: Throwable?) {
-        Log.d(tag, msg, e)
+        dMethod.invoke0(null, tag, msg, e)
     }
 
     override fun isInfoEnabled(): Boolean {
-        return Log.isLoggable(tag, Log.INFO)
+        return isLoggableMethod.invoke0(null, tag, Levels.INFO) as Boolean
     }
 
     override fun info(msg: String, e: Throwable?) {
-        Log.i(tag, msg, e)
+        iMethod.invoke0(null, tag, msg, e)
     }
 
     override fun isWarnEnabled(): Boolean {
-        return Log.isLoggable(tag, Log.WARN)
+        return isLoggableMethod.invoke0(null, tag, Levels.WARN) as Boolean
     }
 
     override fun warn(msg: String, e: Throwable?) {
-        Log.w(tag, msg, e)
+        wMethod.invoke0(null, tag, msg, e)
     }
 
     override fun isErrorEnabled(): Boolean {
-        return Log.isLoggable(tag, Log.ERROR)
+        return isLoggableMethod.invoke0(null, tag, Levels.ERROR) as Boolean
     }
 
     override fun error(msg: String, e: Throwable?) {
-        Log.e(tag, msg, e)
+        eMethod.invoke0(null, tag, msg, e)
     }
 }
