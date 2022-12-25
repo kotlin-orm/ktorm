@@ -22,6 +22,7 @@ import org.ktorm.entity.invoke0
  * Adapter [Logger] implementation integrating Slf4j with Ktorm.
  */
 public class Slf4jLoggerAdapter(loggerName: String) : Logger {
+    // Access SLF4J API by reflection, because we haven't required it in module-info.java.
     private val loggerFactoryClass = Class.forName("org.slf4j.LoggerFactory")
     private val loggerClass = Class.forName("org.slf4j.Logger")
     private val getLoggerMethod = loggerFactoryClass.getMethod("getLogger", String::class.java)

@@ -139,28 +139,15 @@ public fun detectLoggerImplementation(): Logger {
         if (result == null) {
             try {
                 result = init()
-            } catch (ignored: ClassNotFoundException) {
-            } catch (ignored: NoClassDefFoundError) {
+            } catch (_: ClassNotFoundException) {
+            } catch (_: NoClassDefFoundError) {
             }
         }
     }
 
-    tryImplement {
-        AndroidLoggerAdapter(loggerName)
-    }
-
-    tryImplement {
-        Slf4jLoggerAdapter(loggerName)
-    }
-
-    tryImplement {
-        CommonsLoggerAdapter(loggerName)
-    }
-
-    tryImplement {
-        val logger = java.util.logging.Logger.getLogger(loggerName)
-        JdkLoggerAdapter(logger)
-    }
-
+    tryImplement { AndroidLoggerAdapter(loggerName) }
+    tryImplement { Slf4jLoggerAdapter(loggerName) }
+    tryImplement { CommonsLoggerAdapter(loggerName) }
+    tryImplement { JdkLoggerAdapter(loggerName) }
     return result ?: ConsoleLogger(threshold = INFO)
 }

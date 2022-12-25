@@ -23,6 +23,8 @@ import org.ktorm.entity.invoke0
  * [android.util.Log](https://developer.android.com/reference/android/util/Log) with Ktorm.
  */
 public class AndroidLoggerAdapter(private val tag: String) : Logger {
+    // Access Android Log API by reflection, because Android SDK is not a JDK 9 module,
+    // we are not able to require it in module-info.java.
     private val logClass = Class.forName("android.util.Log")
     private val isLoggableMethod = logClass.getMethod("isLoggable", String::class.java, Int::class.javaPrimitiveType)
     private val vMethod = logClass.getMethod("v", String::class.java, String::class.java, Throwable::class.java)

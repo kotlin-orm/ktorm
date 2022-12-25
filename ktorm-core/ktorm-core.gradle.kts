@@ -5,7 +5,6 @@ plugins {
 }
 
 dependencies {
-    compileOnly("commons-logging:commons-logging:1.2")
     compileOnly("org.springframework:spring-jdbc:5.0.10.RELEASE")
     compileOnly("org.springframework:spring-tx:5.0.10.RELEASE")
     compileOnly("org.postgresql:postgresql:42.2.5")

@@ -22,6 +22,8 @@ import org.ktorm.entity.invoke0
  * Adapter [Logger] implementation integrating Apache Commons Logging with Ktorm.
  */
 public class CommonsLoggerAdapter(loggerName: String) : Logger {
+    // Access commons logging API by reflection, because it is not a JDK 9 module,
+    // we are not able to require it in module-info.java.
     private val logFactoryClass = Class.forName("org.apache.commons.logging.LogFactory")
     private val logClass = Class.forName("org.apache.commons.logging.Log")
     private val getLogMethod = logFactoryClass.getMethod("getLog", String::class.java)
