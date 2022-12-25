@@ -154,8 +154,7 @@ public fun detectLoggerImplementation(): Logger {
     }
 
     tryImplement {
-        val logger = org.apache.commons.logging.LogFactory.getLog(loggerName)
-        CommonsLoggerAdapter(logger)
+        CommonsLoggerAdapter(loggerName)
     }
 
     tryImplement {
