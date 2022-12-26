@@ -31,7 +31,7 @@ import java.sql.ResultSet
  * the result set into memory, so we just need to wait for GC to collect them after they are not useful.
  *
  * - **Indexed access operator:** It overloads the indexed access operator, so we can use square brackets `[]` to
- * obtain the value by giving a specific [Column] instance. It’s less error prone by the benefit of the compiler’s
+ * obtain the value by giving a specific [Column] instance. It’s less error-prone by the benefit of the compiler’s
  * static checking. Also, we can still use getXxx functions in the [ResultSet] to obtain our results by labels or
  * column indices.
  *
