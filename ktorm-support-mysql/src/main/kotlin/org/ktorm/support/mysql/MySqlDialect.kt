@@ -176,7 +176,7 @@ public open class MySqlFormatter(
 }
 
 /**
- * Base class designed to visit or modify MySQL's expression trees using visitor pattern.
+ * Base class designed to visit or modify MySQL expression trees using visitor pattern.
  *
  * For detailed documents, see [SqlExpressionVisitor].
  */

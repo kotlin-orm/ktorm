@@ -139,11 +139,11 @@ public fun <T : Any> ColumnDeclaring<T>.ifNull(right: T?): FunctionExpression<T>
 }
 
 /**
- * MySQL if function, translated to `if(condition, then, otherwise)`.
+ * MySQL `if` function, translated to `if(condition, then, otherwise)`.
  *
  * @since 3.1.0
  */
-@Suppress("FunctionNaming")
+@Suppress("FunctionNaming", "FunctionName")
 public fun <T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: ColumnDeclaring<T>,
@@ -158,11 +158,11 @@ public fun <T : Any> IF(
 }
 
 /**
- * MySQL if function, translated to `if(condition, then, otherwise)`.
+ * MySQL `if` function, translated to `if(condition, then, otherwise)`.
  *
  * @since 3.1.0
  */
-@Suppress("FunctionNaming")
+@Suppress("FunctionNaming", "FunctionName")
 public inline fun <reified T : Any> IF(
     condition: ColumnDeclaring<Boolean>,
     then: T,
