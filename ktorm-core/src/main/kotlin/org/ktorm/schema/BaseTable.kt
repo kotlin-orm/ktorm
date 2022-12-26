@@ -191,7 +191,7 @@ public abstract class BaseTable<E : Any>(
      * registered one.
      *
      * @param fromUnderlyingValue a function that transforms a value of underlying type to the user's type.
-     * @param toUnderlyingValue a function that transforms a value of user's type the to the underlying type.
+     * @param toUnderlyingValue a function that transforms a value of user's type to the underlying type.
      * @return the new [Column] instance with its type changed to [R].
      * @see SqlType.transform
      */
@@ -234,12 +234,12 @@ public abstract class BaseTable<E : Any>(
         for (column in _columns.values) {
             val hasConflict = when (binding) {
                 is NestedBinding ->
-                    column.allBindings
+                    column.allBindings.asSequence()
                         .filterIsInstance<NestedBinding>()
                         .filter { it.properties == binding.properties }
                         .any()
                 is ReferenceBinding ->
-                    column.allBindings
+                    column.allBindings.asSequence()
                         .filterIsInstance<ReferenceBinding>()
                         .filter { it.referenceTable.tableName == binding.referenceTable.tableName }
                         .filter { it.referenceTable.catalog == binding.referenceTable.catalog }
@@ -344,7 +344,7 @@ public abstract class BaseTable<E : Any>(
      * If the [withReferences] flag is set to true and there are any reference bindings to other tables, this function
      * will create the referenced entity objects by recursively calling [createEntity] itself.
      *
-     * Otherwise if the [withReferences] flag is set to false, it will threat all reference bindings as nested bindings
+     * Otherwise, if the [withReferences] flag is set to false, it will treat all reference bindings as nested bindings
      * to the referenced entities' primary keys. For example the binding `c.references(Departments) { it.department }`,
      * it is equivalent to `c.bindTo { it.department.id }` in this case, that avoids unnecessary object creations
      * and some exceptions raised by conflict column names.
@@ -383,16 +383,16 @@ public abstract class BaseTable<E : Any>(
     }
 
     private fun toString(withAlias: Boolean) = buildString {
-        if (catalog != null && catalog.isNotBlank()) {
+        if (!catalog.isNullOrBlank()) {
             append("$catalog.")
         }
-        if (schema != null && schema.isNotBlank()) {
+        if (!schema.isNullOrBlank()) {
             append("$schema.")
         }
 
         append(tableName)
 
-        if (withAlias && alias != null && alias.isNotBlank()) {
+        if (withAlias && !alias.isNullOrBlank()) {
             append(" $alias")
         }
     }

@@ -73,10 +73,10 @@ public open class Table<E : Entity<E>>(
 
     /**
      * Bind the column to a reference table, equivalent to a foreign key in relational databases.
-     * Entity sequence APIs would automatically left join all references (recursively) by default.
+     * Entity sequence APIs would automatically left-join all references (recursively) by default.
      *
-     * Note: Since [Column] is immutable, this function will create a new [Column] instance and replace the origin
-     * registered one.
+     * Note: Since [Column] is immutable, this function will create a new [Column] instance and replace
+     * the origin registered one.
      *
      * @param referenceTable the reference table, will be copied by calling its [aliased] function with
      * an alias like `_refN`.

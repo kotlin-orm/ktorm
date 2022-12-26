@@ -422,7 +422,7 @@ public fun BaseTable<*>.monthDay(name: String): Column<MonthDay> {
 }
 
 /**
- * [SqlType] implementation used to save [MonthDay] instances, formating them to strings with pattern `MM-dd`.
+ * [SqlType] implementation used to save [MonthDay] instances, formatting them to strings with pattern `MM-dd`.
  */
 public object MonthDaySqlType : SqlType<MonthDay>(Types.VARCHAR, "varchar") {
     private val formatter = DateTimeFormatterBuilder()
@@ -448,7 +448,7 @@ public fun BaseTable<*>.yearMonth(name: String): Column<YearMonth> {
 }
 
 /**
- * [SqlType] implementation used to save [YearMonth] instances, formating them to strings with pattern `yyyy-MM`.
+ * [SqlType] implementation used to save [YearMonth] instances, formatting them to strings with pattern `yyyy-MM`.
  */
 @Suppress("MagicNumber")
 public object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
