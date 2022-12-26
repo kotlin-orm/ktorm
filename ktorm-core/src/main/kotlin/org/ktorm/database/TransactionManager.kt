@@ -79,7 +79,7 @@ public interface Transaction : Closeable {
     public fun rollback()
 
     /**
-     * Close the transaction and release its underlying resources (eg. the backend connection).
+     * Close the transaction and release its underlying resources (e.g. the backend connection).
      */
     override fun close()
 }

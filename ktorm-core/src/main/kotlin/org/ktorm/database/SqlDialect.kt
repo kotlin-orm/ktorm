@@ -35,7 +35,7 @@ import java.util.ServiceLoader
  * parameter to the dialect implementation while creating database instances via [Database.connect] functions.
  *
  * Since version 2.4, Ktorm's dialect modules start following the convention of JDK [ServiceLoader] SPI, so we don't
- * need to specify the `dialect` parameter explicitly anymore while creating [Database] instances. Ktorm auto detects
+ * need to specify the `dialect` parameter explicitly anymore while creating [Database] instances. Ktorm auto-detects
  * one for us from the classpath. We just need to insure the dialect module exists in the dependencies.
  */
 public interface SqlDialect {

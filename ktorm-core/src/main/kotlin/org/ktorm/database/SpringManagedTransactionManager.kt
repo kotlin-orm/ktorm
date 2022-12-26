@@ -24,7 +24,7 @@ import javax.sql.DataSource
 /**
  * [TransactionManager] implementation that delegates all transactions to the Spring framework.
  *
- * This class enables the Spring support, and its used by [Database] instances created
+ * This class enables the Spring support, and it's used by [Database] instances created
  * by [Database.connectWithSpringSupport] function. Once the Spring support enabled, the
  * transaction management will be delegated to the Spring framework, so the [Database.useTransaction]
  * function is not available anymore, applications should use Spring's [Transactional] annotation instead.
@@ -32,7 +32,6 @@ import javax.sql.DataSource
  * @property dataSource the data source used to obtained connections, typically comes from Spring's application context.
  */
 public class SpringManagedTransactionManager(public val dataSource: DataSource) : TransactionManager {
-
     private val proxy = dataSource as? TransactionAwareDataSourceProxy ?: TransactionAwareDataSourceProxy(dataSource)
 
     override val defaultIsolation: TransactionIsolation? = null
