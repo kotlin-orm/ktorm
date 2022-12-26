@@ -60,8 +60,8 @@ import kotlin.reflect.jvm.jvmErasure
  * value table. However, what if the value doesn't exist while we are getting a property? Ktorm defines a set of
  * rules for this situation:
  *
- * - If the value doesn’t exist and the property’s type is nullable (eg. `var name: String?`), then we’ll return null.
- * - If the value doesn’t exist and the property’s type is not nullable (eg. `var name: String`), then we can not
+ * - If the value doesn't exist and the property’s type is nullable (e.g. `var name: String?`), then we’ll return null.
+ * - If the value doesn't exist and the property’s type is not nullable (e.g. `var name: String`), then we can not
  * return null anymore, because the null value here can cause an unexpected null pointer exception, we’ll return the
  * type’s default value instead.
  *
@@ -77,7 +77,7 @@ import kotlin.reflect.jvm.jvmErasure
  * - For collection types (such as [Set], [List], [Map], etc), the default value is a new created mutable collection
  * of the concrete type.
  * - For any other types, the default value is an instance created by its no-args constructor. If the constructor
- * doesn’t exist, an exception is thrown.
+ * doesn't exist, an exception is thrown.
  *
  * Moreover, there is a cache mechanism for default values, that ensures a property always returns the same default
  * value instance even if it’s called twice or more. This can avoid some counterintuitive bugs.
@@ -149,7 +149,7 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Using this function, we need to note that:
      *
      * 1. This function requires a primary key specified in the table object via [Table.primaryKey],
-     * otherwise Ktorm doesn’t know how to identify entity objects and will throw an exception.
+     * otherwise Ktorm doesn't know how to identify entity objects and will throw an exception.
      *
      * 2. The entity object calling this function must be ATTACHED to the database first. In Ktorm’s implementation,
      * every entity object holds a reference `fromDatabase`. For entity objects obtained by sequence APIs, their
@@ -177,7 +177,7 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Similar to [flushChanges], we need to note that:
      *
      * 1. The function requires a primary key specified in the table object via [Table.primaryKey],
-     * otherwise, Ktorm doesn’t know how to identify entity objects.
+     * otherwise, Ktorm doesn't know how to identify entity objects.
      *
      * 2. The entity object calling this function must be ATTACHED to the database first.
      *
@@ -190,7 +190,7 @@ public interface Entity<E : Entity<E>> : Serializable {
     /**
      * Obtain a property's value by its name.
      *
-     * Note that this function doesn't follows the rules of default values discussed in the class level documentation.
+     * Note that this function doesn't follow the rules of default values discussed in the class level documentation.
      * If the value doesn't exist, we will return `null` simply.
      */
     public operator fun get(name: String): Any?

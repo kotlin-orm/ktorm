@@ -125,7 +125,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E):
 }
 
 /**
- * Remove all of the elements of this sequence that satisfy the given [predicate].
+ * Remove all the elements of this sequence that satisfy the given [predicate].
  *
  * @since 2.7
  */
@@ -239,6 +239,7 @@ private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
 private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
+    @Suppress("ConvertArgumentToSet")
     for (column in table.columns - table.primaryKeys) {
         if (column.binding != null && implementation.hasColumnValue(column.binding)) {
             assignments[column] = implementation.getColumnValue(column.binding)

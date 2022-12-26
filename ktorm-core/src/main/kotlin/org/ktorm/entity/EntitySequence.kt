@@ -66,10 +66,10 @@ import kotlin.math.min
  * - **Intermediate operations:** these functions don’t execute the internal queries but return new-created sequence
  * objects applying some modifications. For example, the [filter] function creates a new sequence object with the filter
  * condition given by its parameter. The return types of intermediate operations are usually [EntitySequence], so we
- * can chaining call other sequence functions continuously.
+ * can call other sequence functions continuously in chaining style.
  *
  * - **Terminal operations:** the return types of these functions are usually a collection or a computed result, as
- * they execute the queries right now, obtain their results and perform some calculations on them. Eg. [toList],
+ * they execute the queries right now, obtain their results and perform some calculations on them. E.g. [toList],
  * [reduce], etc.
  *
  * For the list of sequence operations available, see the extension functions below.
@@ -655,7 +655,7 @@ public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDesce
  * Returns a sequence containing all elements except first [n] elements.
  *
  * Note that this function is implemented based on the pagination feature of the specific databases. It's known that
- * there is a uniform standard for SQL language, but the SQL standard doesn’t say how to implement paging queries,
+ * there is a uniform standard for SQL language, but the SQL standard doesn't say how to implement paging queries,
  * different databases provide different implementations on that. So we have to enable a dialect if we need to use this
  * function, otherwise an exception will be thrown.
  *
@@ -674,7 +674,7 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): Entity
  * Returns a sequence containing first [n] elements.
  *
  * Note that this function is implemented based on the pagination feature of the specific databases. It's known that
- * there is a uniform standard for SQL language, but the SQL standard doesn’t say how to implement paging queries,
+ * there is a uniform standard for SQL language, but the SQL standard doesn't say how to implement paging queries,
  * different databases provide different implementations on that. So we have to enable a dialect if we need to use this
  * function, otherwise an exception will be thrown.
  *
@@ -874,7 +874,7 @@ public inline fun <E : Any, K, V> EntitySequence<E, *>.associate(transform: (E) 
  * Return a [Map] containing the elements from the given sequence indexed by the key returned from [keySelector]
  * function applied to each element.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original sequence.
  *
@@ -888,7 +888,7 @@ public inline fun <E : Any, K> EntitySequence<E, *>.associateBy(keySelector: (E)
  * Return a [Map] containing the values provided by [valueTransform] and indexed by [keySelector] functions
  * applied to elements of the given sequence.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original sequence.
  *
@@ -935,7 +935,7 @@ public inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, 
  * Populate and return the [destination] mutable map with key-value pairs, where key is provided by the [keySelector]
  * function applied to each element of the given sequence and value is the element itself.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The operation is terminal.
  */
@@ -949,9 +949,9 @@ public inline fun <E : Any, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.
 
 /**
  * Populate and return the [destination] mutable map with key-value pairs, where key is provided by the [keySelector]
- * function and and value is provided by the [valueTransform] function applied to elements of the given sequence.
+ * function and value is provided by the [valueTransform] function applied to elements of the given sequence.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The operation is terminal.
  */
