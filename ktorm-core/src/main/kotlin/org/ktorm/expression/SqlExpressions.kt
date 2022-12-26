@@ -23,7 +23,7 @@ import org.ktorm.schema.SqlType
 /**
  * Root class of SQL expressions or statements.
  *
- * SQL expressions are tree structures, and can be regarded as SQL's abstract syntax trees (AST).
+ * SQL expressions are tree structures, and can be regarded as SQL abstract syntax trees (AST).
  *
  * Subclasses must satisfy the following rules:
  *
@@ -660,7 +660,7 @@ public data class UpdateExpression(
  * Delete expression, represents the `delete` statement in SQL.
  *
  * @property table the table to be deleted.
- * @property where the delete condition.
+ * @property where the condition.
  */
 public data class DeleteExpression(
     val table: TableExpression,

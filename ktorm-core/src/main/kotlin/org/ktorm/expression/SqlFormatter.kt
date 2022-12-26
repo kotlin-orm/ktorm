@@ -27,7 +27,7 @@ import org.ktorm.database.DialectFeatureNotSupportedException
  * @property beautifySql mark if we should output beautiful SQL strings with line-wrapping and indentation.
  * @property indentSize the indent size.
  * @property sql return the executable SQL string after the visit completes.
- * @property parameters return the SQL's execution parameters after the visit completes.
+ * @property parameters return the SQL execution parameters after the visit completes.
  */
 @Suppress("VariableNaming")
 public abstract class SqlFormatter(
@@ -262,16 +262,16 @@ public abstract class SqlFormatter(
     }
 
     override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.catalog != null && expr.catalog.isNotBlank()) {
+        if (!expr.catalog.isNullOrBlank()) {
             write("${expr.catalog.quoted}.")
         }
-        if (expr.schema != null && expr.schema.isNotBlank()) {
+        if (!expr.schema.isNullOrBlank()) {
             write("${expr.schema.quoted}.")
         }
 
         write("${expr.name.quoted} ")
 
-        if (expr.tableAlias != null && expr.tableAlias.isNotBlank()) {
+        if (!expr.tableAlias.isNullOrBlank()) {
             // writeKeyword("as ")
             write("${expr.tableAlias.quoted} ")
         }
@@ -292,13 +292,13 @@ public abstract class SqlFormatter(
 
     override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
         if (expr.table != null) {
-            if (expr.table.tableAlias != null && expr.table.tableAlias.isNotBlank()) {
+            if (!expr.table.tableAlias.isNullOrBlank()) {
                 write("${expr.table.tableAlias.quoted}.")
             } else {
-                if (expr.table.catalog != null && expr.table.catalog.isNotBlank()) {
+                if (!expr.table.catalog.isNullOrBlank()) {
                     write("${expr.table.catalog.quoted}.")
                 }
-                if (expr.table.schema != null && expr.table.schema.isNotBlank()) {
+                if (!expr.table.schema.isNullOrBlank()) {
                     write("${expr.table.schema.quoted}.")
                 }
 
@@ -312,7 +312,7 @@ public abstract class SqlFormatter(
     }
 
     override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
-        if (expr.declaredName != null && expr.declaredName.isNotBlank()) {
+        if (!expr.declaredName.isNullOrBlank()) {
             checkColumnName(expr.declaredName)
             write("${expr.declaredName.quoted} ")
         } else {
@@ -335,10 +335,8 @@ public abstract class SqlFormatter(
         visit(expr.expression)
 
         val column = expr.expression as? ColumnExpression<*>
-        val hasDeclaredName = expr.declaredName != null && expr.declaredName.isNotBlank()
-
-        if (hasDeclaredName && (column == null || column.name != expr.declaredName)) {
-            checkColumnName(expr.declaredName!!)
+        if (!expr.declaredName.isNullOrBlank() && (column == null || column.name != expr.declaredName)) {
+            checkColumnName(expr.declaredName)
             writeKeyword("as ")
             write("${expr.declaredName.quoted} ")
         }
