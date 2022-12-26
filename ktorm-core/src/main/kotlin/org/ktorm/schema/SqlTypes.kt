@@ -16,7 +16,6 @@
 
 package org.ktorm.schema
 
-import org.postgresql.PGStatement
 import java.math.BigDecimal
 import java.sql.*
 import java.sql.Date
@@ -505,15 +504,14 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<
  * @property enumClass the enum class.
  */
 public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.OTHER, "enum") {
-    private val hasPostgresqlDriver by lazy {
-        runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
-    }
+    private val pgStatementClass =
+        try { Class.forName("org.postgresql.PGStatement") } catch (_: ClassNotFoundException) { null }
 
     override fun setParameter(ps: PreparedStatement, index: Int, parameter: C?) {
         if (parameter != null) {
             doSetParameter(ps, index, parameter)
         } else {
-            if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
+            if (pgStatementClass != null && ps.isWrapperFor(pgStatementClass)) {
                 ps.setNull(index, Types.OTHER)
             } else {
                 ps.setNull(index, Types.VARCHAR)
@@ -522,7 +520,7 @@ public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
-        if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
+        if (pgStatementClass != null && ps.isWrapperFor(pgStatementClass)) {
             ps.setObject(index, parameter.name, Types.OTHER)
         } else {
             ps.setString(index, parameter.name)
