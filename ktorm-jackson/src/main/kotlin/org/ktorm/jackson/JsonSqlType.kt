@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.ktorm.schema.*
-import org.postgresql.PGStatement
-import org.postgresql.util.PGobject
+import java.lang.reflect.InvocationTargetException
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
@@ -59,16 +58,27 @@ public class JsonSqlType<T : Any>(
     public val objectMapper: ObjectMapper,
     public val javaType: JavaType
 ) : SqlType<T>(Types.OTHER, "json") {
+    // Access postgresql API by reflection, because it is not a JDK 9 module,
+    // we are not able to require it in module-info.java.
+    private val pgStatementClass = loadClass("org.postgresql.PGStatement")
+    private val pgObjectClass = loadClass("org.postgresql.util.PGobject")
+    private val pgObjectConstructor = pgObjectClass?.getDeclaredConstructor()
+    private val setTypeMethod = pgObjectClass?.getMethod("setType", String::class.java)
+    private val setValueMethod = pgObjectClass?.getMethod("setValue", String::class.java)
 
-    private val hasPostgresqlDriver by lazy {
-        runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
+    private fun loadClass(name: String): Class<*>? {
+        try {
+            return Class.forName(name)
+        } catch (_: ClassNotFoundException) {
+            return null
+        }
     }
 
     override fun setParameter(ps: PreparedStatement, index: Int, parameter: T?) {
         if (parameter != null) {
             doSetParameter(ps, index, parameter)
         } else {
-            if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
+            if (pgStatementClass != null && ps.isWrapperFor(pgStatementClass)) {
                 ps.setNull(index, Types.OTHER)
             } else {
                 ps.setNull(index, Types.VARCHAR)
@@ -77,13 +87,17 @@ public class JsonSqlType<T : Any>(
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: T) {
-        if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
-            val obj = PGobject()
-            obj.type = "json"
-            obj.value = objectMapper.writeValueAsString(parameter)
-            ps.setObject(index, obj)
-        } else {
+        if (pgStatementClass == null || !ps.isWrapperFor(pgStatementClass)) {
             ps.setString(index, objectMapper.writeValueAsString(parameter))
+        } else {
+            try {
+                val obj = pgObjectConstructor!!.newInstance()
+                setTypeMethod!!.invoke(obj, "json")
+                setValueMethod!!.invoke(obj, objectMapper.writeValueAsString(parameter))
+                ps.setObject(index, obj)
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
         }
     }
 

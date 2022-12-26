@@ -8,7 +8,6 @@ dependencies {
     api("com.fasterxml.jackson.core:jackson-databind:2.12.3")
     api("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
-    compileOnly("org.postgresql:postgresql:42.2.5")
 }
 
 val generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
