@@ -107,17 +107,17 @@ public class Database(
     public val transactionManager: TransactionManager,
 
     /**
-     * The dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
+     * The dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
      */
     public val dialect: SqlDialect = detectDialectImplementation(),
 
     /**
-     * The logger used to output logs, auto detects an implementation by default.
+     * The logger used to output logs, auto-detects an implementation by default.
      */
     public val logger: Logger = detectLoggerImplementation(),
 
     /**
-     * Function used to translate SQL exceptions so as to rethrow them to users.
+     * Function used to translate SQL exceptions to rethrow them to users.
      */
     public val exceptionTranslator: ((SQLException) -> Throwable)? = null,
 
@@ -173,7 +173,7 @@ public class Database(
     public val extraNameCharacters: String
 
     /**
-     * Whether this database treats mixed case unquoted SQL identifiers as case sensitive and as a result
+     * Whether this database treats mixed case unquoted SQL identifiers as case-sensitive and as a result
      * stores them in mixed case.
      *
      * @since 3.1.0
@@ -181,7 +181,7 @@ public class Database(
     public val supportsMixedCaseIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * Whether this database treats mixed case unquoted SQL identifiers as case-insensitive and
      * stores them in mixed case.
      *
      * @since 3.1.0
@@ -189,7 +189,7 @@ public class Database(
     public val storesMixedCaseIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * Whether this database treats mixed case unquoted SQL identifiers as case-insensitive and
      * stores them in upper case.
      *
      * @since 3.1.0
@@ -197,7 +197,7 @@ public class Database(
     public val storesUpperCaseIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case unquoted SQL identifiers as case insensitive and
+     * Whether this database treats mixed case unquoted SQL identifiers as case-insensitive and
      * stores them in lower case.
      *
      * @since 3.1.0
@@ -205,7 +205,7 @@ public class Database(
     public val storesLowerCaseIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case quoted SQL identifiers as case sensitive and as a result
+     * Whether this database treats mixed case quoted SQL identifiers as case-sensitive and as a result
      * stores them in mixed case.
      *
      * @since 3.1.0
@@ -213,7 +213,7 @@ public class Database(
     public val supportsMixedCaseQuotedIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * Whether this database treats mixed case quoted SQL identifiers as case-insensitive and
      * stores them in mixed case.
      *
      * @since 3.1.0
@@ -221,7 +221,7 @@ public class Database(
     public val storesMixedCaseQuotedIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * Whether this database treats mixed case quoted SQL identifiers as case-insensitive and
      * stores them in upper case.
      *
      * @since 3.1.0
@@ -229,7 +229,7 @@ public class Database(
     public val storesUpperCaseQuotedIdentifiers: Boolean
 
     /**
-     * Whether this database treats mixed case quoted SQL identifiers as case insensitive and
+     * Whether this database treats mixed case quoted SQL identifiers as case-insensitive and
      * stores them in lower case.
      *
      * @since 3.1.0
@@ -371,7 +371,7 @@ public class Database(
 
     /**
      * Format the given [expression] to a SQL string with its execution arguments, then create
-     * a [PreparedStatement] from the this database using the SQL string and execute the specific
+     * a [PreparedStatement] for the database using the SQL string and execute the specific
      * callback function with it. After the callback function completes, the statement will be
      * closed automatically.
      *
@@ -522,8 +522,8 @@ public class Database(
         /**
          * Connect to a database by a specific [connector] function.
          *
-         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+         * @param logger logger used to output logs, auto-detects an implementation by default.
          * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @param connector the connector function used to obtain SQL connections.
@@ -549,8 +549,8 @@ public class Database(
          * Connect to a database using a [DataSource].
          *
          * @param dataSource the data source used to obtain SQL connections.
-         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+         * @param logger logger used to output logs, auto-detects an implementation by default.
          * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @return the new-created database object.
@@ -576,10 +576,10 @@ public class Database(
          *
          * @param url the URL of the database to be connected.
          * @param driver the full qualified name of the JDBC driver class.
-         * @param user the user name of the database.
+         * @param user the username of the database.
          * @param password the password of the database.
-         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+         * @param logger logger used to output logs, auto-detects an implementation by default.
          * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @return the new-created database object.
@@ -594,7 +594,7 @@ public class Database(
             alwaysQuoteIdentifiers: Boolean = false,
             generateSqlInUpperCase: Boolean? = null
         ): Database {
-            if (driver != null && driver.isNotBlank()) {
+            if (!driver.isNullOrBlank()) {
                 Class.forName(driver)
             }
 
@@ -618,8 +618,8 @@ public class Database(
          * to Spring's [DataAccessException] and rethrow it.
          *
          * @param dataSource the data source used to obtain SQL connections.
-         * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
-         * @param logger logger used to output logs, auto detects an implementation by default.
+         * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+         * @param logger logger used to output logs, auto-detects an implementation by default.
          * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
          * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
          * @return the new-created database object.

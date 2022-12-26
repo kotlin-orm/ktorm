@@ -3,6 +3,8 @@ module ktorm.core {
     requires transitive java.sql.rowset;
     requires transitive kotlin.stdlib;
     requires transitive kotlin.reflect;
+    requires static spring.jdbc;
+    requires static spring.tx;
     exports org.ktorm.database;
     exports org.ktorm.dsl;
     exports org.ktorm.entity;
