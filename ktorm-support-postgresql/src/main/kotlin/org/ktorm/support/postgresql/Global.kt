@@ -81,7 +81,7 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a
- * special SQL using PostgreSQL's bulk insert syntax, instead of based on JDBC batch operations.
+ * special SQL using PostgreSQL bulk insert syntax, instead of based on JDBC batch operations.
  * For this reason, its performance is much better than [batchInsert].
  *
  * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.

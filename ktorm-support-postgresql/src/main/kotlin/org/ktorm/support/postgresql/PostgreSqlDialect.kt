@@ -297,7 +297,7 @@ public open class PostgreSqlFormatter(
 }
 
 /**
- * Base class designed to visit or modify PostgreSQL's expression trees using visitor pattern.
+ * Base class designed to visit or modify PostgreSQL expression trees using visitor pattern.
  *
  * For detailed documents, see [SqlExpressionVisitor].
  */

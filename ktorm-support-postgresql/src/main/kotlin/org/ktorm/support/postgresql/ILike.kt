@@ -26,7 +26,7 @@ import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
 
 /**
- * ILike expression, represents PostgreSQL's `ilike` keyword.
+ * ILike expression, represents PostgreSQL `ilike` keyword.
  *
  * @property left the expression's left operand.
  * @property right the expression's right operand.

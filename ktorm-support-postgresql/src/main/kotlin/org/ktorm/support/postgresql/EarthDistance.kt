@@ -50,7 +50,7 @@ public enum class CubeExpressionType(private val value: String) {
 }
 
 /**
- * Expression class represents PostgreSQL's `Cube` operations.
+ * Expression class represents PostgreSQL `Cube` operations.
  *
  * @property type the expression's type.
  * @property left the expression's left operand.
