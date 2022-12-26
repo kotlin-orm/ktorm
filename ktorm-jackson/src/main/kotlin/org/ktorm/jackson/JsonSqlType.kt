@@ -90,6 +90,7 @@ public class JsonSqlType<T : Any>(
         if (pgStatementClass == null || !ps.isWrapperFor(pgStatementClass)) {
             ps.setString(index, objectMapper.writeValueAsString(parameter))
         } else {
+            @Suppress("SwallowedException")
             try {
                 val obj = pgObjectConstructor!!.newInstance()
                 setTypeMethod!!.invoke(obj, "json")
