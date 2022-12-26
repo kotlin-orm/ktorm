@@ -27,7 +27,7 @@ import org.ktorm.logging.LogLevel.*
  * underlying logging system is implementation dependent. The implementation should ensure, though, that this ordering
  * behaves are expected.
  *
- * By default, Ktorm auto detects a logging implementation from the classpath while creating [Database] instances.
+ * By default, Ktorm auto-detects a logging implementation from the classpath while creating [Database] instances.
  * If you want to output logs using a specific logging framework, you can choose an adapter implementation of this
  * interface and explicitly set the [Database.logger] property.
  *

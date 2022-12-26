@@ -69,9 +69,11 @@ public class ConsoleLogger(public val threshold: LogLevel) : Logger {
             val out = if (level >= LogLevel.WARN) System.err else System.out
             out.println("[$level] $msg")
 
-            // Workaround for the compiler bug, see https://youtrack.jetbrains.com/issue/KT-34826
-            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-            (e as? java.lang.Throwable)?.printStackTrace(out)
+            if (e != null) {
+                // Workaround for the compiler bug, see https://youtrack.jetbrains.com/issue/KT-34826
+                @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "KotlinConstantConditions")
+                (e as java.lang.Throwable).printStackTrace(out)
+            }
         }
     }
 }
