@@ -162,7 +162,7 @@ public open class SQLiteFormatter(
 }
 
 /**
- * Base class designed to visit or modify SQLite's expression trees using visitor pattern.
+ * Base class designed to visit or modify SQLite expression trees using visitor pattern.
  *
  * For detailed documents, see [SqlExpressionVisitor].
  */

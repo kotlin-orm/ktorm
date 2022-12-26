@@ -5,6 +5,6 @@ plugins {
 
 dependencies {
     api(project(":ktorm-core"))
-    api("org.xerial:sqlite-jdbc:3.39.2.0")
     testImplementation(project(":ktorm-core", configuration = "testOutput"))
+    testImplementation("org.xerial:sqlite-jdbc:3.39.2.0")
 }
