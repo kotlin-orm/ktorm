@@ -385,7 +385,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         }
     }
 
-    @Suppress("OverridingDeprecatedMember")
+    @Deprecated("Deprecated in java.sql.ResultSet")
     override fun getBigDecimal(columnIndex: Int, scale: Int): BigDecimal? {
         val decimal = getBigDecimal(columnIndex)
         decimal?.setScale(scale)
@@ -486,7 +486,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         }
     }
 
-    @Suppress("OverridingDeprecatedMember")
+    @Deprecated("Deprecated in java.sql.ResultSet")
     override fun getUnicodeStream(columnIndex: Int): InputStream? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
@@ -539,9 +539,11 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         return getDouble(findColumn(columnLabel))
     }
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in java.sql.ResultSet")
     override fun getBigDecimal(columnLabel: String, scale: Int): BigDecimal? {
-        return getBigDecimal(findColumn(columnLabel), scale)
+        val index = findColumn(columnLabel)
+        return getBigDecimal(index, scale)
     }
 
     override fun getBytes(columnLabel: String): ByteArray? {
@@ -564,9 +566,11 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         return getAsciiStream(findColumn(columnLabel))
     }
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in java.sql.ResultSet")
     override fun getUnicodeStream(columnLabel: String): InputStream? {
-        return getUnicodeStream(findColumn(columnLabel))
+        val index = findColumn(columnLabel)
+        return getUnicodeStream(index)
     }
 
     override fun getBinaryStream(columnLabel: String): InputStream? {
@@ -681,7 +685,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     }
 
     override fun getRow(): Int {
-        if (_cursor > -1 && _cursor < _values.size && _values.isNotEmpty()) {
+        if (_cursor > -1 && _cursor < _values.size) {
             return _cursor + 1
         } else {
             return 0
