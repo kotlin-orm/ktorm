@@ -77,8 +77,9 @@ public class KtormModule : Module() {
                 val msg = "" +
                     "Default typing is not supported because some hacking magic based on reflection failed. " +
                     "Please disable the default typing functionality by ObjectMapper.disableDefaultTyping(), " +
-                    "or add the following to the VM arguments: " +
-                    "--add-opens com.fasterxml.jackson.databind/com.fasterxml.jackson.databind=ktorm.jackson"
+                    "or add the following VM arguments: " +
+                    "--add-opens com.fasterxml.jackson.databind/com.fasterxml.jackson.databind=ktorm.jackson " +
+                    "--add-opens com.fasterxml.jackson.databind/com.fasterxml.jackson.databind.jsontype.impl=ktorm.jackson "
                 throw UnsupportedOperationException(msg, e)
             } else {
                 throw e
