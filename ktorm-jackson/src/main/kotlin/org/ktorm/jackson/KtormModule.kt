@@ -74,7 +74,11 @@ public class KtormModule : Module() {
         } catch (e: Throwable) {
             // Some reflection operation (setAccessible) may fail in JDK 9 or above.
             if (e.javaClass.name == "java.lang.reflect.InaccessibleObjectException") {
-                val msg = "Default typing is not supported because some hacking magic based on reflection failed."
+                val msg = "" +
+                    "Default typing is not supported because some hacking magic based on reflection failed. " +
+                    "Please disable the default typing functionality by ObjectMapper.disableDefaultTyping(), " +
+                    "or add the following to the VM arguments: " +
+                    "--add-opens com.fasterxml.jackson.databind/com.fasterxml.jackson.databind=ktorm.jackson"
                 throw UnsupportedOperationException(msg, e)
             } else {
                 throw e
