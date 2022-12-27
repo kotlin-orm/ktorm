@@ -1,6 +1,5 @@
 package org.ktorm.support.sqlserver
 
-import microsoft.sql.DateTimeOffset
 import org.junit.Test
 import org.ktorm.database.use
 import org.ktorm.dsl.*
@@ -12,8 +11,10 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.datetime
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
-import java.sql.Timestamp
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 /**
  * Create by vince on Jul 12, 2019.
@@ -127,14 +128,22 @@ class CommonTest : BaseSqlServerTest() {
     }
 
     @Test
-    fun testGetColumn() {
+    fun testDateTimeOffset() {
+        for (row in database.from(Foo).select()) {
+            assert(row[Foo.bar].toString() == "2012-10-25T12:32:10+01:00")
+            assert(row[Foo.bar1].toString() == "2012-10-25T19:32:10")
+        }
+    }
+
+    @Test
+    fun testDateTimeOffset1() {
         database.update(Foo) {
-            set(it.bar, DateTimeOffset.valueOf(Timestamp(0), 8 * 60))
+            set(it.bar, OffsetDateTime.of(LocalDateTime.of(2023, 1, 1, 12, 30), ZoneOffset.ofHours(7)))
         }
 
         for (row in database.from(Foo).select()) {
-            println(row[Foo.bar])
-            println(row[Foo.bar1])
+            assert(row[Foo.bar].toString() == "2023-01-01T12:30+07:00")
+            assert(row[Foo.bar1].toString() == "2012-10-25T19:32:10")
         }
     }
 
