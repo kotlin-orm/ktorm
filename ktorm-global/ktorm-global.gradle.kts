@@ -1,6 +1,6 @@
 
 plugins {
-    id("ktorm.module-conventions")
+    id("ktorm.module")
 }
 
 dependencies {

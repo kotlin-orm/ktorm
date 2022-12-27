@@ -1,7 +1,7 @@
 
 plugins {
-    id("ktorm.module-conventions")
-    id("ktorm.tuples-generation")
+    id("ktorm.module")
+    id("ktorm.tuples-codegen")
 }
 
 dependencies {

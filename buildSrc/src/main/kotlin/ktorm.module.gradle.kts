@@ -8,7 +8,7 @@ plugins {
     id("org.moditect.gradleplugin")
     id("io.gitlab.arturbosch.detekt")
     id("ktorm.source-header-check")
-    id("ktorm.maven-publish")
+    id("ktorm.publish")
 }
 
 repositories {
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    api(kotlin("stdlib-jdk8"))
+    api(kotlin("stdlib"))
     api(kotlin("reflect"))
     testImplementation(kotlin("test-junit"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${detekt.toolVersion}")
