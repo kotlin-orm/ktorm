@@ -37,6 +37,7 @@ public fun BaseTable<*>.datetimeoffset(name: String): Column<OffsetDateTime> {
 /**
  * [SqlType] implementation represents SQL Server `datetimeoffset` SQL type.
  */
+@Suppress("SpacingAroundColon", "MagicNumber")
 public object DateTimeOffsetSqlType
     : SqlType<OffsetDateTime>(typeCode = -155 /* microsoft.sql.Types.DATETIMEOFFSET */, typeName = "datetimeoffset") {
     // Access sqlserver API by reflection, because it is not a JDK 9 module,
