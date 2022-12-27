@@ -28,6 +28,11 @@ import java.sql.Timestamp
 import java.time.OffsetDateTime
 
 /**
+ * Type code constant copied from microsoft.sql.Types.DATETIMEOFFSET.
+ */
+private const val TYPE_CODE_DATETIMEOFFSET = -155
+
+/**
  * Define a column typed of [DateTimeOffsetSqlType].
  */
 public fun BaseTable<*>.datetimeoffset(name: String): Column<OffsetDateTime> {
@@ -37,9 +42,7 @@ public fun BaseTable<*>.datetimeoffset(name: String): Column<OffsetDateTime> {
 /**
  * [SqlType] implementation represents SQL Server `datetimeoffset` SQL type.
  */
-@Suppress("SpacingAroundColon", "MagicNumber")
-public object DateTimeOffsetSqlType
-    : SqlType<OffsetDateTime>(typeCode = -155 /* microsoft.sql.Types.DATETIMEOFFSET */, typeName = "datetimeoffset") {
+public object DateTimeOffsetSqlType : SqlType<OffsetDateTime>(TYPE_CODE_DATETIMEOFFSET, "datetimeoffset") {
     // Access sqlserver API by reflection, because it is not a JDK 9 module,
     // we are not able to require it in module-info.java.
     private val cls = Class.forName("microsoft.sql.DateTimeOffset")
