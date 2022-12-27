@@ -74,6 +74,7 @@ public class KtormModule : Module() {
         } catch (e: Throwable) {
             // Some reflection operation (setAccessible) may fail in JDK 9 or above.
             if (e.javaClass.name == "java.lang.reflect.InaccessibleObjectException") {
+                @Suppress("MaxLineLength")
                 val msg = "" +
                     "Default typing is not supported because some hacking magic based on reflection failed. " +
                     "Please disable the default typing functionality by ObjectMapper.disableDefaultTyping(), " +

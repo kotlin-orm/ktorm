@@ -425,7 +425,6 @@ style:
     excludePackageStatements: true
     excludeImportStatements: true
     excludeCommentStatements: false
-    excludeRawStrings: true
   MayBeConst:
     active: true
   ModifierOrder:
