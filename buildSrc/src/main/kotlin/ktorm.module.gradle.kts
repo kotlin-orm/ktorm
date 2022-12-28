@@ -61,7 +61,7 @@ tasks {
             allWarningsAsErrors = true
             freeCompilerArgs = listOf(
                 "-Xexplicit-api=strict",
-                "-Xopt-in=kotlin.RequiresOptIn"
+                "-opt-in=kotlin.RequiresOptIn"
             )
         }
     }

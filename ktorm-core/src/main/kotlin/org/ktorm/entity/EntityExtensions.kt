@@ -154,9 +154,10 @@ internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: 
 
 internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
     for (pk in this.fromTable?.primaryKeys.orEmpty()) {
-        when (pk.binding) {
+        val binding = pk.binding ?: continue
+        when (binding) {
             is ReferenceBinding -> {
-                if (parent == null && pk.binding.onProperty.name == name) {
+                if (parent == null && binding.onProperty.name == name) {
                     return true
                 }
             }
@@ -177,7 +178,7 @@ internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
                     }
                 }
 
-                if (namesPath.withIndex().all { (i, names) -> pk.binding.properties[i].name in names }) {
+                if (namesPath.withIndex().all { (i, names) -> binding.properties[i].name in names }) {
                     return true
                 }
             }
