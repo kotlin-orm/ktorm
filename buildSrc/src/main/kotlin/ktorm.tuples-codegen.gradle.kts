@@ -356,8 +356,6 @@ tasks {
     }
 }
 
-kotlin {
-    sourceSets.main {
-        kotlin.srcDir(generatedSourceDir)
-    }
+sourceSets.main {
+    kotlin.srcDir(generatedSourceDir)
 }
