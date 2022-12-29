@@ -60,18 +60,16 @@ class EntityTest : BaseTest() {
         assert(employee.nameWithSuffix(":") == "vince:")
     }
 
-    @Suppress("DEPRECATION")
     interface Animal<T : Animal<T>> : Entity<T> {
         fun say1() = "animal1"
         fun say2() = "animal2"
-        @JvmDefault fun say3() = "animal3"
+        fun say3() = "animal3"
     }
 
-    @Suppress("DEPRECATION")
     interface Dog : Animal<Dog> {
         override fun say1() = "${super.say1()} --> dog1"
-        @JvmDefault override fun say2() = "${super.say2()} --> dog2"
-        @JvmDefault override fun say3() = "${super.say3()} --> dog3"
+        override fun say2() = "${super.say2()} --> dog2"
+        override fun say3() = "${super.say3()} --> dog3"
     }
 
     @Test
