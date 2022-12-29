@@ -84,12 +84,10 @@ public inline fun <reified T> typeOf(): Type {
 }
 
 /**
- * Obtain the full kotlin generic type information of the reified type argument [T],
- * usage: `kotlinTypeOf<List<String>>()`.
- *
- * Note: Do not use this function until the bug [KT-28616](https://youtrack.jetbrains.com/issue/KT-28616) fixed.
+ * Obtain the full generic type information of the reified type argument [T], usage: `kotlinTypeOf<List<String>>()`.
  */
-@Deprecated("Do not use this function until the bug KT-28616 fixed.", level = DeprecationLevel.HIDDEN)
 public inline fun <reified T> kotlinTypeOf(): KType {
-    return typeRef<T>().referencedKotlinType
+    // Compiler bug: https://youtrack.jetbrains.com/issue/KT-28616
+    // return typeRef<T>().referencedKotlinType
+    return kotlin.reflect.typeOf<T>()
 }
