@@ -59,19 +59,14 @@ tasks {
         kotlinOptions {
             jvmTarget = "1.8"
             allWarningsAsErrors = true
-            freeCompilerArgs = listOf(
-                "-Xexplicit-api=strict",
-                "-opt-in=kotlin.RequiresOptIn"
-            )
+            freeCompilerArgs = listOf("-Xexplicit-api=strict")
         }
     }
 
     compileTestKotlin {
         kotlinOptions {
             jvmTarget = "1.8"
-            freeCompilerArgs = listOf(
-                "-Xjvm-default=enable"
-            )
+            freeCompilerArgs = listOf("-Xjvm-default=enable")
         }
     }
 
