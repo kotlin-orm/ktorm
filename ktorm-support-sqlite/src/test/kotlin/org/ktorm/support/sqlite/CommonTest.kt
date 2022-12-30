@@ -42,7 +42,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids.size == 2)
@@ -56,7 +56,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testBothLimitAndOffsetAreNotPositive() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3, 2, 1))
@@ -68,7 +68,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testLimitWithoutOffset() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3))
@@ -80,7 +80,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testOffsetWithoutLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2, 1))
@@ -92,7 +92,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testOffsetWithLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2))
@@ -107,7 +107,7 @@ class CommonTest : BaseSQLiteTest() {
             .orderBy(Departments.id.desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         query = database
             .from(Employees)
@@ -115,7 +115,7 @@ class CommonTest : BaseSQLiteTest() {
             .orderBy((Employees.id + 1).desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         query = database
             .from(Employees)
@@ -123,28 +123,28 @@ class CommonTest : BaseSQLiteTest() {
             .groupBy(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
 
         query = database
             .from(Employees)
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
 
         query = database
             .from(Employees)
             .select(max(Employees.salary))
             .limit(0, 1)
 
-        assert(query.totalRecords == 1)
+        assert(query.totalRecordsInAllPages == 1)
 
         query = database
             .from(Employees)
             .select(Employees.name)
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
     }
 
     @Test

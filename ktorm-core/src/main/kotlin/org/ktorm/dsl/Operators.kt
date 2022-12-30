@@ -685,7 +685,7 @@ public fun ColumnDeclaring<out Number>.toLong(): CastingExpression<Long> {
  * Cast the current column or expression's type to [Int].
  */
 @JvmName("booleanToInt")
-@Deprecated("This function will be removed in the future. ", replaceWith = ReplaceWith("this.cast(IntSqlType)"))
+@Deprecated("This function will be removed in the future. ", ReplaceWith("this.cast(IntSqlType)"))
 public fun ColumnDeclaring<Boolean>.toInt(): CastingExpression<Int> {
     return this.cast(IntSqlType)
 }

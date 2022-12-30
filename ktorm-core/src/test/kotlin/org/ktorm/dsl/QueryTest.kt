@@ -183,7 +183,7 @@ class QueryTest : BaseTest() {
     fun testLimit() {
         try {
             val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
-            assert(query.totalRecords == 4)
+            assert(query.totalRecordsInAllPages == 4)
 
             val ids = query.map { it[Employees.id] }
             assert(ids[0] == 4)

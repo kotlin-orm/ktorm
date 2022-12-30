@@ -92,12 +92,18 @@ public class Query(public val database: Database, public val expression: QueryEx
 
     /**
      * The total record count of this query ignoring the pagination params.
+     */
+    @Deprecated("The property is deprecated, use totalRecordsInAllPages instead", ReplaceWith("totalRecordsInAllPages"))
+    public val totalRecords: Int get() = totalRecordsInAllPages
+
+    /**
+     * The total record count of this query ignoring the pagination params.
      *
      * If the query doesn't limit the results via [Query.limit] function, return the size of the result set. Or if
      * it does, return the total record count of the query ignoring the offset and limit parameters. This property
      * is provided to support pagination, we can calculate the page count through dividing it by our page size.
      */
-    public val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
+    public val totalRecordsInAllPages: Int by lazy(LazyThreadSafetyMode.NONE) {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {

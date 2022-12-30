@@ -55,11 +55,9 @@ import kotlin.math.min
  * }
  * ```
  *
- * This class wraps a [Query] object, and it’s iterator exactly wraps the query’s iterator. While an entity sequence is
+ * This class wraps a [Query] object, and it’s iterator exactly wraps the query’s iterator. When an entity sequence is
  * iterated, its internal query is executed, and the [entityExtractor] function is applied to create an entity object
- * for each row. As for other properties in sequences (such as [sql], [rowSet], [totalRecords], etc), all of them
- * delegates the callings to their internal query objects, and their usages are totally the same as the corresponding
- * properties in [Query] class.
+ * for each row.
  *
  * Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups:
  *
@@ -118,10 +116,16 @@ public class EntitySequence<E : Any, T : BaseTable<E>>(
 
     /**
      * The total records count of this query ignoring the pagination params.
-     *
-     * This property is delegated to [Query.totalRecords], more details can be found in its documentation.
      */
-    public val totalRecords: Int get() = query.totalRecords
+    @Deprecated("The property is deprecated, use totalRecordsInAllPages instead", ReplaceWith("totalRecordsInAllPages"))
+    public val totalRecords: Int get() = totalRecordsInAllPages
+
+    /**
+     * The total records count of this query ignoring the pagination params.
+     *
+     * This property is delegated to [Query.totalRecordsInAllPages], more details can be found in its documentation.
+     */
+    public val totalRecordsInAllPages: Int get() = query.totalRecordsInAllPages
 
     /**
      * Return a copy of this [EntitySequence] with the [expression] modified.
