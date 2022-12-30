@@ -3,7 +3,6 @@ package org.ktorm.support.oracle
 import org.junit.Test
 import org.ktorm.database.use
 import org.ktorm.dsl.*
-import org.ktorm.entity.count
 import org.ktorm.entity.filter
 import org.ktorm.entity.mapTo
 import org.ktorm.entity.sequenceOf
@@ -35,7 +34,7 @@ class CommonTest : BaseOracleTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }

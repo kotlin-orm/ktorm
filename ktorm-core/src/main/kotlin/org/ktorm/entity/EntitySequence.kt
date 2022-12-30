@@ -161,13 +161,23 @@ public class EntitySequence<E : Any, T : BaseTable<E>>(
 
 /**
  * Create an [EntitySequence] from the specific table.
- *
- * @since 2.7
  */
 public fun <E : Any, T : BaseTable<E>> Database.sequenceOf(
-    table: T,
-    withReferences: Boolean = true
+    table: T, withReferences: Boolean = true
 ): EntitySequence<E, T> {
+    val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
+    val entityExtractor = { row: QueryRowSet -> table.createEntity(row, withReferences) }
+    return EntitySequence(this, table, query.expression as SelectExpression, entityExtractor)
+}
+
+/**
+ * Create an [EntitySequence] from the specific table.
+ */
+@JvmName("sequenceOfNothing")
+@Deprecated("Entity sequence not supported because the table doesn't bind to an entity class, use SQL DSL instead. ")
+public fun <T : BaseTable<Nothing>> Database.sequenceOf(
+    table: T, withReferences: Boolean = true
+): EntitySequence<Nothing, T> {
     val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
     val entityExtractor = { row: QueryRowSet -> table.createEntity(row, withReferences) }
     return EntitySequence(this, table, query.expression as SelectExpression, entityExtractor)

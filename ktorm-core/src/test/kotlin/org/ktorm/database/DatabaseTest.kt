@@ -2,12 +2,9 @@ package org.ktorm.database
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.dsl.delete
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.insert
+import org.ktorm.dsl.*
 import org.ktorm.entity.count
 import org.ktorm.entity.defaultValue
-import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
 
@@ -48,7 +45,7 @@ class DatabaseTest : BaseTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }

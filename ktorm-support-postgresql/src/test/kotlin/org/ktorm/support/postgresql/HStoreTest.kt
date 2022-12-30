@@ -3,10 +3,7 @@ package org.ktorm.support.postgresql
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.update
-import org.ktorm.entity.mapColumns
-import org.ktorm.entity.sequenceOf
+import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
@@ -47,7 +44,8 @@ class HStoreTest : BasePostgreSqlTest() {
     }
 
     private inline fun <T : Any> get(op: (Metadatas) -> ColumnDeclaring<T>): T? {
-        return database.sequenceOf(Metadatas).mapColumns { op(it) }.first()
+        val column = op(Metadatas)
+        return database.from(Metadatas).select(column).map { row -> column.sqlType.getResult(row, 1) }.first()
     }
 
     @Test
