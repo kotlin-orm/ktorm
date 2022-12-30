@@ -168,7 +168,7 @@ internal fun EntityImplementation.isPrimaryKey(name: String): Boolean {
                 var curr: EntityImplementation = this
                 while (true) {
                     val parent = curr.parent ?: break
-                    val children = parent.values.filterValues { it == curr }
+                    val children = parent.values.filterValues { it is Entity<*> && it.implementation === curr }
 
                     if (children.isEmpty()) {
                         break
