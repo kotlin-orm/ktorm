@@ -17,30 +17,31 @@
 package org.ktorm.expression
 
 /**
- * Base class designed to visit or modify SQL expression trees using visitor pattern.
+ * Base interface designed to visit or modify SQL expression trees using visitor pattern.
  *
- * This class provides a general [visit] function to dispatch different type of expression nodes to the specific
+ * This interface provides a general [visit] function to dispatch different type of expression nodes to their specific
  * `visit*` functions. Custom expression types that are unknown to Ktorm will be dispatched to [visitUnknown].
  *
- * For each expression type, there is a corresponding `visit*` function in this class; for [SelectExpression], it's
+ * For each expression type, there is a corresponding `visit*` function in this interface; for [SelectExpression], it's
  * [visitSelect]; for [TableExpression], it's [visitTable]; and so on. Those functions generally accept an expression
  * instance of the specific type and dispatch the children nodes to their own `visit*` functions. Finally, after all
  * children nodes are visited, the parent expression instance will be directly returned if no children are modified.
  *
- * To modify an expression tree, we need to override a `visit*` function, and return a new-created expression in it.
- * Then the parent's `visit*` function will detect it and create a new parent expression using the modified child node
- * returned by us. That's recursive, so the ancestor nodes also returns new-created instances. Finally, when we call
- * [visit], a new expression tree will be returned with our modifications applied.
+ * As SQL expressions are immutable, to modify an expression, we need to override a child `visit*` function, and return
+ * a new-created expression in it. Then its parent's `visit*` function will notice the change and create a new parent
+ * expression using the modified child node returned by us. As the process is recursive, the ancestor nodes also returns
+ * new-created instances. Finally, as a result of calling [visit], a new expression tree will be returned with our
+ * modifications applied.
  *
  * [SqlFormatter] is a typical example used to format expressions as executable SQL strings.
  */
-public open class SqlExpressionVisitor {
+public interface SqlExpressionVisitor {
 
     /**
      * Dispatch different type of expression nodes to the specific `visit*` functions. Custom expression types that
      * are unknown to Ktorm will be dispatched to [visitUnknown].
      */
-    public open fun visit(expr: SqlExpression): SqlExpression {
+    public fun visit(expr: SqlExpression): SqlExpression {
         return when (expr) {
             is ScalarExpression<*> -> visitScalar(expr)
             is QueryExpression -> visitQuery(expr)
@@ -55,7 +56,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
+    public fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
             is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
             is CastingExpression -> visitCasting(expr)
@@ -76,7 +77,7 @@ public open class SqlExpressionVisitor {
         return result as ScalarExpression<T>
     }
 
-    protected open fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
+    public fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         return when (expr) {
             is TableExpression -> visitTable(expr)
             is JoinExpression -> visitJoin(expr)
@@ -85,14 +86,14 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitQuery(expr: QueryExpression): QueryExpression {
+    public fun visitQuery(expr: QueryExpression): QueryExpression {
         return when (expr) {
             is SelectExpression -> visitSelect(expr)
             is UnionExpression -> visitUnion(expr)
         }
     }
 
-    protected open fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
+    public fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
         val expression = visit(expr.expression)
 
         if (expression === expr.expression) {
@@ -103,7 +104,7 @@ public open class SqlExpressionVisitor {
     }
 
     @Suppress("UNCHECKED_CAST")
-    protected open fun <T : SqlExpression> visitExpressionList(
+    public fun <T : SqlExpression> visitExpressionList(
         original: List<T>,
         subVisitor: (T) -> T = { visit(it) as T }
     ): List<T> {
@@ -122,7 +123,7 @@ public open class SqlExpressionVisitor {
         return if (changed) result else original
     }
 
-    protected open fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
+    public fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
         val operand = visitScalar(expr.operand)
 
         if (operand === expr.operand) {
@@ -132,7 +133,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
+    public fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
         val left = visitScalar(expr.left)
         val right = visitScalar(expr.right)
 
@@ -143,11 +144,11 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitTable(expr: TableExpression): TableExpression {
+    public fun visitTable(expr: TableExpression): TableExpression {
         return expr
     }
 
-    protected open fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
+    public fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
         val table = expr.table?.let { visitTable(it) }
 
         if (table === expr.table) {
@@ -157,7 +158,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitColumnDeclaring(
+    public fun <T : Any> visitColumnDeclaring(
         expr: ColumnDeclaringExpression<T>
     ): ColumnDeclaringExpression<T> {
         val expression = visitScalar(expr.expression)
@@ -169,7 +170,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
+    public fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
         val expression = visitScalar(expr.expression)
 
         if (expression === expr.expression) {
@@ -179,21 +180,21 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitColumnDeclaringList(
+    public fun visitColumnDeclaringList(
         original: List<ColumnDeclaringExpression<*>>
     ): List<ColumnDeclaringExpression<*>> {
         return visitExpressionList(original)
     }
 
-    protected open fun visitOrderByList(original: List<OrderByExpression>): List<OrderByExpression> {
+    public fun visitOrderByList(original: List<OrderByExpression>): List<OrderByExpression> {
         return visitExpressionList(original)
     }
 
-    protected open fun visitGroupByList(original: List<ScalarExpression<*>>): List<ScalarExpression<*>> {
+    public fun visitGroupByList(original: List<ScalarExpression<*>>): List<ScalarExpression<*>> {
         return visitExpressionList(original)
     }
 
-    protected open fun visitSelect(expr: SelectExpression): SelectExpression {
+    public fun visitSelect(expr: SelectExpression): SelectExpression {
         val columns = visitColumnDeclaringList(expr.columns)
         val from = visitQuerySource(expr.from)
         val where = expr.where?.let { visitScalar(it) }
@@ -222,7 +223,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitUnion(expr: UnionExpression): UnionExpression {
+    public fun visitUnion(expr: UnionExpression): UnionExpression {
         val left = visitQuery(expr.left)
         val right = visitQuery(expr.right)
         val orderBy = visitOrderByList(expr.orderBy)
@@ -234,7 +235,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitJoin(expr: JoinExpression): JoinExpression {
+    public fun visitJoin(expr: JoinExpression): JoinExpression {
         val left = visitQuerySource(expr.left)
         val right = visitQuerySource(expr.right)
         val condition = expr.condition?.let { visitScalar(it) }
@@ -246,7 +247,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
+    public fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
         val left = visitScalar(expr.left)
         val query = expr.query?.let { visitQuery(it) }
         val values = expr.values?.let { visitExpressionList(it) }
@@ -258,7 +259,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitExists(expr: ExistsExpression): ExistsExpression {
+    public fun visitExists(expr: ExistsExpression): ExistsExpression {
         val query = visitQuery(expr.query)
 
         if (query === expr.query) {
@@ -268,7 +269,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
+    public fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
         val argument = expr.argument?.let { visitScalar(it) }
 
         if (argument === expr.argument) {
@@ -278,7 +279,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
+    public fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
         val expression = visitScalar(expr.expression)
         val lower = visitScalar(expr.lower)
         val upper = visitScalar(expr.upper)
@@ -290,11 +291,11 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
+    public fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
         return expr
     }
 
-    protected open fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
+    public fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
         val arguments = visitExpressionList(expr.arguments)
 
         if (arguments === expr.arguments) {
@@ -304,7 +305,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
+    public fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
         val operand = expr.operand?.let { visitScalar(it) }
         val whenClauses = visitWhenClauses(expr.whenClauses)
         val elseClause = expr.elseClause?.let { visitScalar(it) }
@@ -316,7 +317,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun <T : Any> visitWhenClauses(
+    public fun <T : Any> visitWhenClauses(
         originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
     ): List<Pair<ScalarExpression<*>, ScalarExpression<T>>> {
         val resultClauses = ArrayList<Pair<ScalarExpression<*>, ScalarExpression<T>>>()
@@ -335,7 +336,7 @@ public open class SqlExpressionVisitor {
         return if (changed) resultClauses else originalClauses
     }
 
-    protected open fun <T : Any> visitColumnAssignment(
+    public fun <T : Any> visitColumnAssignment(
         expr: ColumnAssignmentExpression<T>
     ): ColumnAssignmentExpression<T> {
         val column = visitColumn(expr.column)
@@ -348,13 +349,13 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitColumnAssignments(
+    public fun visitColumnAssignments(
         original: List<ColumnAssignmentExpression<*>>
     ): List<ColumnAssignmentExpression<*>> {
         return visitExpressionList(original)
     }
 
-    protected open fun visitInsert(expr: InsertExpression): InsertExpression {
+    public fun visitInsert(expr: InsertExpression): InsertExpression {
         val table = visitTable(expr.table)
         val assignments = visitColumnAssignments(expr.assignments)
 
@@ -365,7 +366,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
+    public fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         val table = visitTable(expr.table)
         val columns = visitExpressionList(expr.columns)
         val query = visitQuery(expr.query)
@@ -377,7 +378,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitUpdate(expr: UpdateExpression): UpdateExpression {
+    public fun visitUpdate(expr: UpdateExpression): UpdateExpression {
         val table = visitTable(expr.table)
         val assignments = visitColumnAssignments(expr.assignments)
         val where = expr.where?.let { visitScalar(it) }
@@ -389,7 +390,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitDelete(expr: DeleteExpression): DeleteExpression {
+    public fun visitDelete(expr: DeleteExpression): DeleteExpression {
         val table = visitTable(expr.table)
         val where = expr.where?.let { visitScalar(it) }
 
@@ -400,7 +401,7 @@ public open class SqlExpressionVisitor {
         }
     }
 
-    protected open fun visitUnknown(expr: SqlExpression): SqlExpression {
+    public fun visitUnknown(expr: SqlExpression): SqlExpression {
         return expr
     }
 }

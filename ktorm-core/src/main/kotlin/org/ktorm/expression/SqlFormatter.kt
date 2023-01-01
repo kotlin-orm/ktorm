@@ -20,8 +20,9 @@ import org.ktorm.database.Database
 import org.ktorm.database.DialectFeatureNotSupportedException
 
 /**
- * Subclass of [SqlExpressionVisitor], visiting SQL expression trees using visitor pattern. After the visit completes,
- * the executable SQL string will be generated in the [sql] property with its execution parameters in [parameters].
+ * Implementation of [SqlExpressionVisitor], visiting SQL expression trees using visitor pattern. After a visit
+ * completes, the executable SQL string will be generated in the [sql] property with its execution parameters
+ * in [parameters].
  *
  * @property database the current database object used to obtain metadata such as identifier quote string.
  * @property beautifySql mark if we should output beautiful SQL strings with line-wrapping and indentation.
@@ -34,7 +35,7 @@ public abstract class SqlFormatter(
     public val database: Database,
     public val beautifySql: Boolean,
     public val indentSize: Int
-) : SqlExpressionVisitor() {
+) : SqlExpressionVisitor {
 
     protected var _depth: Int = 0
     protected val _builder: StringBuilder = StringBuilder()
