@@ -40,28 +40,18 @@ public open class PostgreSqlDialect : SqlDialect {
 }
 
 /**
- * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
+ * Base interface designed to visit or modify PostgreSQL expression trees using visitor pattern.
+ *
+ * For detailed documents, see [SqlExpressionVisitor].
  */
-public open class PostgreSqlFormatter(
-    database: Database, beautifySql: Boolean, indentSize: Int
-) : SqlFormatter(database, beautifySql, indentSize) {
-
-    override fun checkColumnName(name: String) {
-        val maxLength = database.maxColumnNameLength
-        if (maxLength > 0 && name.length > maxLength) {
-            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
-        }
-    }
+public interface PostgreSqlExpressionVisitor : SqlExpressionVisitor {
 
     override fun visit(expr: SqlExpression): SqlExpression {
-        val result = when (expr) {
+        return when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
             is BulkInsertExpression -> visitBulkInsert(expr)
             else -> super.visit(expr)
         }
-
-        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
-        return result
     }
 
     override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
@@ -75,6 +65,134 @@ public open class PostgreSqlFormatter(
 
         @Suppress("UNCHECKED_CAST")
         return result as ScalarExpression<T>
+    }
+
+    public fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitColumnAssignments(expr.assignments)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val returningColumns = visitExpressionList(expr.returningColumns)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictColumns === expr.conflictColumns
+            && updateAssignments === expr.updateAssignments
+            && returningColumns === expr.returningColumns
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictColumns = conflictColumns,
+                updateAssignments = updateAssignments,
+                returningColumns = returningColumns
+            )
+        }
+    }
+
+    public fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitBulkInsertAssignments(expr.assignments)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val returningColumns = visitExpressionList(expr.returningColumns)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictColumns === expr.conflictColumns
+            && updateAssignments === expr.updateAssignments
+            && returningColumns === expr.returningColumns
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictColumns = conflictColumns,
+                updateAssignments = updateAssignments,
+                returningColumns = returningColumns
+            )
+        }
+    }
+
+    public fun visitBulkInsertAssignments(
+        assignments: List<List<ColumnAssignmentExpression<*>>>
+    ): List<List<ColumnAssignmentExpression<*>>> {
+        val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
+        var changed = false
+
+        for (row in assignments) {
+            val visited = visitColumnAssignments(row)
+            result += visited
+
+            if (visited !== row) {
+                changed = true
+            }
+        }
+
+        return if (changed) result else assignments
+    }
+
+    public fun visitILike(expr: ILikeExpression): ILikeExpression {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    public fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    public fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    public fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
+        return expr
+    }
+}
+
+/**
+ * [SqlFormatter] implementation for PostgreSQL, formatting SQL expressions as strings with their execution arguments.
+ */
+public open class PostgreSqlFormatter(
+    database: Database, beautifySql: Boolean, indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize), PostgreSqlExpressionVisitor {
+
+    override fun checkColumnName(name: String) {
+        val maxLength = database.maxColumnNameLength
+        if (maxLength > 0 && name.length > maxLength) {
+            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
+        }
+    }
+
+    override fun visit(expr: SqlExpression): SqlExpression {
+        val result = super<PostgreSqlExpressionVisitor>.visit(expr)
+        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        return result
     }
 
     override fun visitTable(expr: TableExpression): TableExpression {
@@ -96,7 +214,7 @@ public open class PostgreSqlFormatter(
     }
 
     override fun visitSelect(expr: SelectExpression): SelectExpression {
-        super.visitSelect(expr)
+        super<SqlFormatter>.visitSelect(expr)
 
         val locking = expr.extraProperties["locking"] as LockingClause?
         if (locking != null) {
@@ -147,84 +265,7 @@ public open class PostgreSqlFormatter(
         }
     }
 
-    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
-        writeKeyword("ilike ")
-
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
-        }
-
-        return expr
-    }
-
-    protected open fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
-        writeKeyword("${expr.type} ")
-
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
-        }
-
-        return expr
-    }
-
-    protected open fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
-        writeKeyword("${expr.type} ")
-
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
-        }
-
-        return expr
-    }
-
-    protected open fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
-        writeKeyword("default ")
-        return expr
-    }
-
-    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+    override fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments.map { it.column })
@@ -256,7 +297,7 @@ public open class PostgreSqlFormatter(
         return expr
     }
 
-    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+    override fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments[0].map { it.column })
@@ -294,140 +335,81 @@ public open class PostgreSqlFormatter(
 
         return expr
     }
-}
 
-/**
- * Base class designed to visit or modify PostgreSQL expression trees using visitor pattern.
- *
- * For detailed documents, see [SqlExpressionVisitor].
- */
-public open class PostgreSqlExpressionVisitor : SqlExpressionVisitor() {
-
-    override fun visit(expr: SqlExpression): SqlExpression {
-        return when (expr) {
-            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
-            is BulkInsertExpression -> visitBulkInsert(expr)
-            else -> super.visit(expr)
-        }
-    }
-
-    override fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
-        val result = when (expr) {
-            is ILikeExpression -> visitILike(expr)
-            is HStoreExpression -> visitHStore(expr)
-            is CubeExpression -> visitCube(expr)
-            is DefaultValueExpression -> visitDefaultValue(expr)
-            else -> super.visitScalar(expr)
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        return result as ScalarExpression<T>
-    }
-
-    protected open fun visitILike(expr: ILikeExpression): ILikeExpression {
-        val left = visitScalar(expr.left)
-        val right = visitScalar(expr.right)
-
-        if (left === expr.left && right === expr.right) {
-            return expr
+    override fun visitILike(expr: ILikeExpression): ILikeExpression {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
         } else {
-            return expr.copy(left = left, right = right)
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
         }
-    }
 
-    protected open fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
-        val left = visitScalar(expr.left)
-        val right = visitScalar(expr.right)
+        writeKeyword("ilike ")
 
-        if (left === expr.left && right === expr.right) {
-            return expr
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
         } else {
-            return expr.copy(left = left, right = right)
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
         }
+
+        return expr
     }
 
-    protected open fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
-        val left = visitScalar(expr.left)
-        val right = visitScalar(expr.right)
-
-        if (left === expr.left && right === expr.right) {
-            return expr
+    override fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
         } else {
-            return expr.copy(left = left, right = right)
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
         }
-    }
 
-    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-        val table = visitTable(expr.table)
-        val assignments = visitColumnAssignments(expr.assignments)
-        val conflictColumns = visitExpressionList(expr.conflictColumns)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
-        val returningColumns = visitExpressionList(expr.returningColumns)
+        writeKeyword("${expr.type} ")
 
-        @Suppress("ComplexCondition")
-        if (table === expr.table
-            && assignments === expr.assignments
-            && conflictColumns === expr.conflictColumns
-            && updateAssignments === expr.updateAssignments
-            && returningColumns === expr.returningColumns
-        ) {
-            return expr
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
         } else {
-            return expr.copy(
-                table = table,
-                assignments = assignments,
-                conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments,
-                returningColumns = returningColumns
-            )
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
         }
+
+        return expr
     }
 
-    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        val table = visitTable(expr.table)
-        val assignments = visitBulkInsertAssignments(expr.assignments)
-        val conflictColumns = visitExpressionList(expr.conflictColumns)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
-        val returningColumns = visitExpressionList(expr.returningColumns)
-
-        @Suppress("ComplexCondition")
-        if (table === expr.table
-            && assignments === expr.assignments
-            && conflictColumns === expr.conflictColumns
-            && updateAssignments === expr.updateAssignments
-            && returningColumns === expr.returningColumns
-        ) {
-            return expr
+    override fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
         } else {
-            return expr.copy(
-                table = table,
-                assignments = assignments,
-                conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments,
-                returningColumns = returningColumns
-            )
-        }
-    }
-
-    protected open fun visitBulkInsertAssignments(
-        assignments: List<List<ColumnAssignmentExpression<*>>>
-    ): List<List<ColumnAssignmentExpression<*>>> {
-        val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
-        var changed = false
-
-        for (row in assignments) {
-            val visited = visitColumnAssignments(row)
-            result += visited
-
-            if (visited !== row) {
-                changed = true
-            }
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
         }
 
-        return if (changed) result else assignments
+        writeKeyword("${expr.type} ")
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
+        return expr
     }
 
-    protected open fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
+    override fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
+        writeKeyword("default ")
         return expr
     }
 }
