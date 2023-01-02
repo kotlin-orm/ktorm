@@ -55,19 +55,106 @@ public open class SQLiteDialect : SqlDialect {
 }
 
 /**
- * [SqlFormatter] implementation for SQLite, formatting SQL expressions as strings with their execution arguments.
+ * Base interface designed to visit or modify SQLite expression trees using visitor pattern.
+ *
+ * For detailed documents, see [SqlExpressionVisitor].
  */
-public open class SQLiteFormatter(
-    database: Database, beautifySql: Boolean, indentSize: Int
-) : SqlFormatter(database, beautifySql, indentSize) {
+public interface SQLiteExpressionVisitor : SqlExpressionVisitor {
 
     override fun visit(expr: SqlExpression): SqlExpression {
-        val result = when (expr) {
+        return when (expr) {
             is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
             is BulkInsertExpression -> visitBulkInsert(expr)
             else -> super.visit(expr)
         }
+    }
 
+    public fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitColumnAssignments(expr.assignments)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val where = expr.where?.let { visitScalar(it) }
+        val returningColumns = visitExpressionList(expr.returningColumns)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictColumns === expr.conflictColumns
+            && updateAssignments === expr.updateAssignments
+            && where === expr.where
+            && returningColumns === expr.returningColumns
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictColumns = conflictColumns,
+                updateAssignments = updateAssignments,
+                where = where,
+                returningColumns = returningColumns
+            )
+        }
+    }
+
+    public fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+        val table = visitTable(expr.table)
+        val assignments = visitBulkInsertAssignments(expr.assignments)
+        val conflictColumns = visitExpressionList(expr.conflictColumns)
+        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val where = expr.where?.let { visitScalar(it) }
+        val returningColumns = visitExpressionList(expr.returningColumns)
+
+        @Suppress("ComplexCondition")
+        if (table === expr.table
+            && assignments === expr.assignments
+            && conflictColumns === expr.conflictColumns
+            && updateAssignments === expr.updateAssignments
+            && where === expr.where
+            && returningColumns === expr.returningColumns
+        ) {
+            return expr
+        } else {
+            return expr.copy(
+                table = table,
+                assignments = assignments,
+                conflictColumns = conflictColumns,
+                updateAssignments = updateAssignments,
+                where = where,
+                returningColumns = returningColumns
+            )
+        }
+    }
+
+    public fun visitBulkInsertAssignments(
+        assignments: List<List<ColumnAssignmentExpression<*>>>
+    ): List<List<ColumnAssignmentExpression<*>>> {
+        val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
+        var changed = false
+
+        for (row in assignments) {
+            val visited = visitColumnAssignments(row)
+            result += visited
+
+            if (visited !== row) {
+                changed = true
+            }
+        }
+
+        return if (changed) result else assignments
+    }
+}
+
+/**
+ * [SqlFormatter] implementation for SQLite, formatting SQL expressions as strings with their execution arguments.
+ */
+public open class SQLiteFormatter(
+    database: Database, beautifySql: Boolean, indentSize: Int
+) : SqlFormatter(database, beautifySql, indentSize), SQLiteExpressionVisitor {
+
+    override fun visit(expr: SqlExpression): SqlExpression {
+        val result = super<SQLiteExpressionVisitor>.visit(expr)
         check(result === expr) { "SqlFormatter cannot modify the expression trees." }
         return result
     }
@@ -79,7 +166,7 @@ public open class SQLiteFormatter(
         _parameters += ArgumentExpression(expr.limit ?: Int.MAX_VALUE, IntSqlType)
     }
 
-    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
+    override fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments.map { it.column })
@@ -116,7 +203,7 @@ public open class SQLiteFormatter(
         return expr
     }
 
-    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
+    override fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
         writeInsertColumnNames(expr.assignments[0].map { it.column })
@@ -158,97 +245,5 @@ public open class SQLiteFormatter(
         }
 
         return expr
-    }
-}
-
-/**
- * Base class designed to visit or modify SQLite expression trees using visitor pattern.
- *
- * For detailed documents, see [SqlExpressionVisitor].
- */
-public open class SQLiteExpressionVisitor : SqlExpressionVisitor() {
-
-    override fun visit(expr: SqlExpression): SqlExpression {
-        return when (expr) {
-            is InsertOrUpdateExpression -> visitInsertOrUpdate(expr)
-            is BulkInsertExpression -> visitBulkInsert(expr)
-            else -> super.visit(expr)
-        }
-    }
-
-    protected open fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
-        val table = visitTable(expr.table)
-        val assignments = visitColumnAssignments(expr.assignments)
-        val conflictColumns = visitExpressionList(expr.conflictColumns)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
-        val where = expr.where?.let { visitScalar(it) }
-        val returningColumns = visitExpressionList(expr.returningColumns)
-
-        @Suppress("ComplexCondition")
-        if (table === expr.table
-            && assignments === expr.assignments
-            && conflictColumns === expr.conflictColumns
-            && updateAssignments === expr.updateAssignments
-            && where === expr.where
-            && returningColumns === expr.returningColumns
-        ) {
-            return expr
-        } else {
-            return expr.copy(
-                table = table,
-                assignments = assignments,
-                conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments,
-                where = where,
-                returningColumns = returningColumns
-            )
-        }
-    }
-
-    protected open fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
-        val table = visitTable(expr.table)
-        val assignments = visitBulkInsertAssignments(expr.assignments)
-        val conflictColumns = visitExpressionList(expr.conflictColumns)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
-        val where = expr.where?.let { visitScalar(it) }
-        val returningColumns = visitExpressionList(expr.returningColumns)
-
-        @Suppress("ComplexCondition")
-        if (table === expr.table
-            && assignments === expr.assignments
-            && conflictColumns === expr.conflictColumns
-            && updateAssignments === expr.updateAssignments
-            && where === expr.where
-            && returningColumns === expr.returningColumns
-        ) {
-            return expr
-        } else {
-            return expr.copy(
-                table = table,
-                assignments = assignments,
-                conflictColumns = conflictColumns,
-                updateAssignments = updateAssignments,
-                where = where,
-                returningColumns = returningColumns
-            )
-        }
-    }
-
-    protected open fun visitBulkInsertAssignments(
-        assignments: List<List<ColumnAssignmentExpression<*>>>
-    ): List<List<ColumnAssignmentExpression<*>>> {
-        val result = ArrayList<List<ColumnAssignmentExpression<*>>>()
-        var changed = false
-
-        for (row in assignments) {
-            val visited = visitColumnAssignments(row)
-            result += visited
-
-            if (visited !== row) {
-                changed = true
-            }
-        }
-
-        return if (changed) result else assignments
     }
 }
