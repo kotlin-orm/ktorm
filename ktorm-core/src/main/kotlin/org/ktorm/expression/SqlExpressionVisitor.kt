@@ -118,7 +118,7 @@ public interface SqlExpressionVisitor {
     }
 
     /**
-     * Helper function that visiting a list of expressions.
+     * Helper function for visiting a list of expressions.
      */
     @Suppress("UNCHECKED_CAST")
     public fun <T : SqlExpression> visitExpressionList(
@@ -369,7 +369,7 @@ public interface SqlExpressionVisitor {
     }
 
     /**
-     * Helper function for visiting when clauses for [CaseWhenExpression]
+     * Helper function for visiting when clauses of [CaseWhenExpression]
      */
     public fun <T : Any> visitWhenClauses(
         originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
