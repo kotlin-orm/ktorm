@@ -35,6 +35,7 @@ package org.ktorm.expression
  *
  * [SqlFormatter] is a typical example used to format expressions as executable SQL strings.
  */
+@Suppress("ComplexInterface")
 public interface SqlExpressionVisitor {
 
     /**
@@ -369,7 +370,7 @@ public interface SqlExpressionVisitor {
     }
 
     /**
-     * Helper function for visiting when clauses of [CaseWhenExpression]
+     * Helper function for visiting when clauses of [CaseWhenExpression].
      */
     public fun <T : Any> visitWhenClauses(
         originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
