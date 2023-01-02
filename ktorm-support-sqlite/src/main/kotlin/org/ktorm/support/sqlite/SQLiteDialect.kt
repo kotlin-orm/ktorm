@@ -71,9 +71,9 @@ public interface SQLiteExpressionVisitor : SqlExpressionVisitor {
 
     public fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         val table = visitTable(expr.table)
-        val assignments = visitColumnAssignments(expr.assignments)
+        val assignments = visitExpressionList(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val updateAssignments = visitExpressionList(expr.updateAssignments)
         val where = expr.where?.let { visitScalar(it) }
         val returningColumns = visitExpressionList(expr.returningColumns)
 
@@ -102,7 +102,7 @@ public interface SQLiteExpressionVisitor : SqlExpressionVisitor {
         val table = visitTable(expr.table)
         val assignments = visitBulkInsertAssignments(expr.assignments)
         val conflictColumns = visitExpressionList(expr.conflictColumns)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val updateAssignments = visitExpressionList(expr.updateAssignments)
         val where = expr.where?.let { visitScalar(it) }
         val returningColumns = visitExpressionList(expr.returningColumns)
 
@@ -134,7 +134,7 @@ public interface SQLiteExpressionVisitor : SqlExpressionVisitor {
         var changed = false
 
         for (row in assignments) {
-            val visited = visitColumnAssignments(row)
+            val visited = visitExpressionList(row)
             result += visited
 
             if (visited !== row) {
@@ -181,7 +181,7 @@ public open class SQLiteFormatter(
                 writeKeyword("do nothing ")
             } else {
                 writeKeyword("do update set ")
-                visitColumnAssignments(expr.updateAssignments)
+                writeColumnAssignments(expr.updateAssignments)
 
                 if (expr.where != null) {
                     writeKeyword("where ")
@@ -225,7 +225,7 @@ public open class SQLiteFormatter(
                 writeKeyword("do nothing ")
             } else {
                 writeKeyword("do update set ")
-                visitColumnAssignments(expr.updateAssignments)
+                writeColumnAssignments(expr.updateAssignments)
 
                 if (expr.where != null) {
                     writeKeyword("where ")

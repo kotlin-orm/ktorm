@@ -377,7 +377,7 @@ public abstract class SqlFormatter(
         if (expr.groupBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             writeKeyword("group by ")
-            visitGroupByList(expr.groupBy)
+            visitExpressionList(expr.groupBy)
         }
         if (expr.having != null) {
             newLine(Indentation.SAME)
@@ -387,7 +387,7 @@ public abstract class SqlFormatter(
         if (expr.orderBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             writeKeyword("order by ")
-            visitOrderByList(expr.orderBy)
+            visitExpressionList(expr.orderBy)
         }
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
@@ -456,7 +456,7 @@ public abstract class SqlFormatter(
         if (expr.orderBy.isNotEmpty()) {
             newLine(Indentation.SAME)
             writeKeyword("order by ")
-            visitOrderByList(expr.orderBy)
+            visitExpressionList(expr.orderBy)
         }
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
@@ -559,24 +559,6 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun visitColumnAssignments(
-        original: List<ColumnAssignmentExpression<*>>
-    ): List<ColumnAssignmentExpression<*>> {
-        for ((i, assignment) in original.withIndex()) {
-            if (i > 0) {
-                removeLastBlank()
-                write(", ")
-            }
-
-            checkColumnName(assignment.column.name)
-            write("${assignment.column.name.quoted} ")
-            write("= ")
-            visit(assignment.expression)
-        }
-
-        return original
-    }
-
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         writeKeyword("insert into ")
         visitTable(expr.table)
@@ -619,7 +601,7 @@ public abstract class SqlFormatter(
         visitTable(expr.table)
         writeKeyword("set ")
 
-        visitColumnAssignments(expr.assignments)
+        writeColumnAssignments(expr.assignments)
 
         if (expr.where != null) {
             writeKeyword("where ")
@@ -627,6 +609,20 @@ public abstract class SqlFormatter(
         }
 
         return expr
+    }
+
+    protected fun writeColumnAssignments(original: List<ColumnAssignmentExpression<*>>) {
+        for ((i, assignment) in original.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+
+            checkColumnName(assignment.column.name)
+            write("${assignment.column.name.quoted} ")
+            write("= ")
+            visit(assignment.expression)
+        }
     }
 
     override fun visitDelete(expr: DeleteExpression): DeleteExpression {

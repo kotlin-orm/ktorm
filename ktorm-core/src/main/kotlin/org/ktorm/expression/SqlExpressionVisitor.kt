@@ -38,7 +38,7 @@ package org.ktorm.expression
 public interface SqlExpressionVisitor {
 
     /**
-     * Dispatch different type of expression nodes to the specific `visit*` functions. Custom expression types that
+     * Dispatch different type of expression nodes to their specific `visit*` functions. Custom expression types that
      * are unknown to Ktorm will be dispatched to [visitUnknown].
      */
     public fun visit(expr: SqlExpression): SqlExpression {
@@ -56,6 +56,11 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a general [ScalarExpression], this function dispatches different type of scalar expressions
+     * to their specific `visit*` functions. Custom expression types that are unknown to Ktorm will be dispatched to
+     * [visitUnknown]
+     */
     public fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
             is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
@@ -77,6 +82,9 @@ public interface SqlExpressionVisitor {
         return result as ScalarExpression<T>
     }
 
+    /**
+     * Function that visits a [QuerySourceExpression].
+     */
     public fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         return when (expr) {
             is TableExpression -> visitTable(expr)
@@ -86,6 +94,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [QueryExpression].
+     */
     public fun visitQuery(expr: QueryExpression): QueryExpression {
         return when (expr) {
             is SelectExpression -> visitSelect(expr)
@@ -93,6 +104,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [CastingExpression].
+     */
     public fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
         val expression = visit(expr.expression)
 
@@ -103,6 +117,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Helper function that visiting a list of expressions.
+     */
     @Suppress("UNCHECKED_CAST")
     public fun <T : SqlExpression> visitExpressionList(
         original: List<T>,
@@ -123,6 +140,9 @@ public interface SqlExpressionVisitor {
         return if (changed) result else original
     }
 
+    /**
+     * Function that visits an [UnaryExpression].
+     */
     public fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
         val operand = visitScalar(expr.operand)
 
@@ -133,6 +153,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [BinaryExpression].
+     */
     public fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
         val left = visitScalar(expr.left)
         val right = visitScalar(expr.right)
@@ -144,10 +167,16 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [TableExpression].
+     */
     public fun visitTable(expr: TableExpression): TableExpression {
         return expr
     }
 
+    /**
+     * Function that visits a [ColumnExpression].
+     */
     public fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
         val table = expr.table?.let { visitTable(it) }
 
@@ -158,6 +187,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [ColumnDeclaringExpression].
+     */
     public fun <T : Any> visitColumnDeclaring(
         expr: ColumnDeclaringExpression<T>
     ): ColumnDeclaringExpression<T> {
@@ -170,6 +202,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [OrderByExpression].
+     */
     public fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
         val expression = visitScalar(expr.expression)
 
@@ -180,27 +215,16 @@ public interface SqlExpressionVisitor {
         }
     }
 
-    public fun visitColumnDeclaringList(
-        original: List<ColumnDeclaringExpression<*>>
-    ): List<ColumnDeclaringExpression<*>> {
-        return visitExpressionList(original)
-    }
-
-    public fun visitOrderByList(original: List<OrderByExpression>): List<OrderByExpression> {
-        return visitExpressionList(original)
-    }
-
-    public fun visitGroupByList(original: List<ScalarExpression<*>>): List<ScalarExpression<*>> {
-        return visitExpressionList(original)
-    }
-
+    /**
+     * Function that visits a [SelectExpression].
+     */
     public fun visitSelect(expr: SelectExpression): SelectExpression {
-        val columns = visitColumnDeclaringList(expr.columns)
+        val columns = visitExpressionList(expr.columns)
         val from = visitQuerySource(expr.from)
         val where = expr.where?.let { visitScalar(it) }
-        val groupBy = visitGroupByList(expr.groupBy)
+        val groupBy = visitExpressionList(expr.groupBy)
         val having = expr.having?.let { visitScalar(it) }
-        val orderBy = visitOrderByList(expr.orderBy)
+        val orderBy = visitExpressionList(expr.orderBy)
 
         @Suppress("ComplexCondition")
         if (columns === expr.columns
@@ -223,10 +247,13 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [UnionExpression].
+     */
     public fun visitUnion(expr: UnionExpression): UnionExpression {
         val left = visitQuery(expr.left)
         val right = visitQuery(expr.right)
-        val orderBy = visitOrderByList(expr.orderBy)
+        val orderBy = visitExpressionList(expr.orderBy)
 
         if (left === expr.left && right === expr.right && orderBy === expr.orderBy) {
             return expr
@@ -235,6 +262,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [JoinExpression].
+     */
     public fun visitJoin(expr: JoinExpression): JoinExpression {
         val left = visitQuerySource(expr.left)
         val right = visitQuerySource(expr.right)
@@ -247,6 +277,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [InListExpression].
+     */
     public fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
         val left = visitScalar(expr.left)
         val query = expr.query?.let { visitQuery(it) }
@@ -259,6 +292,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [ExistsExpression].
+     */
     public fun visitExists(expr: ExistsExpression): ExistsExpression {
         val query = visitQuery(expr.query)
 
@@ -269,6 +305,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [AggregateExpression].
+     */
     public fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
         val argument = expr.argument?.let { visitScalar(it) }
 
@@ -279,6 +318,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [BetweenExpression].
+     */
     public fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
         val expression = visitScalar(expr.expression)
         val lower = visitScalar(expr.lower)
@@ -291,10 +333,16 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [ArgumentExpression].
+     */
     public fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
         return expr
     }
 
+    /**
+     * Function that visits a [FunctionExpression].
+     */
     public fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
         val arguments = visitExpressionList(expr.arguments)
 
@@ -305,6 +353,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [CaseWhenExpression].
+     */
     public fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
         val operand = expr.operand?.let { visitScalar(it) }
         val whenClauses = visitWhenClauses(expr.whenClauses)
@@ -317,6 +368,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Helper function for visiting when clauses for [CaseWhenExpression]
+     */
     public fun <T : Any> visitWhenClauses(
         originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
     ): List<Pair<ScalarExpression<*>, ScalarExpression<T>>> {
@@ -336,6 +390,9 @@ public interface SqlExpressionVisitor {
         return if (changed) resultClauses else originalClauses
     }
 
+    /**
+     * Function that visits a [ColumnAssignmentExpression].
+     */
     public fun <T : Any> visitColumnAssignment(
         expr: ColumnAssignmentExpression<T>
     ): ColumnAssignmentExpression<T> {
@@ -349,15 +406,12 @@ public interface SqlExpressionVisitor {
         }
     }
 
-    public fun visitColumnAssignments(
-        original: List<ColumnAssignmentExpression<*>>
-    ): List<ColumnAssignmentExpression<*>> {
-        return visitExpressionList(original)
-    }
-
+    /**
+     * Function that visits an [InsertExpression].
+     */
     public fun visitInsert(expr: InsertExpression): InsertExpression {
         val table = visitTable(expr.table)
-        val assignments = visitColumnAssignments(expr.assignments)
+        val assignments = visitExpressionList(expr.assignments)
 
         if (table === expr.table && assignments === expr.assignments) {
             return expr
@@ -366,6 +420,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [InsertFromQueryExpression].
+     */
     public fun visitInsertFromQuery(expr: InsertFromQueryExpression): InsertFromQueryExpression {
         val table = visitTable(expr.table)
         val columns = visitExpressionList(expr.columns)
@@ -378,9 +435,12 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an [UpdateExpression].
+     */
     public fun visitUpdate(expr: UpdateExpression): UpdateExpression {
         val table = visitTable(expr.table)
-        val assignments = visitColumnAssignments(expr.assignments)
+        val assignments = visitExpressionList(expr.assignments)
         val where = expr.where?.let { visitScalar(it) }
 
         if (table === expr.table && assignments === expr.assignments && where === expr.where) {
@@ -390,6 +450,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits a [DeleteExpression].
+     */
     public fun visitDelete(expr: DeleteExpression): DeleteExpression {
         val table = visitTable(expr.table)
         val where = expr.where?.let { visitScalar(it) }
@@ -401,6 +464,9 @@ public interface SqlExpressionVisitor {
         }
     }
 
+    /**
+     * Function that visits an unknown expression.
+     */
     public fun visitUnknown(expr: SqlExpression): SqlExpression {
         return expr
     }

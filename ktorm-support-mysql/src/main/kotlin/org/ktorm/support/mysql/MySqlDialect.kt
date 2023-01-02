@@ -67,8 +67,8 @@ public interface MySqlExpressionVisitor : SqlExpressionVisitor {
 
     public fun visitInsertOrUpdate(expr: InsertOrUpdateExpression): InsertOrUpdateExpression {
         val table = visitTable(expr.table)
-        val assignments = visitColumnAssignments(expr.assignments)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val assignments = visitExpressionList(expr.assignments)
+        val updateAssignments = visitExpressionList(expr.updateAssignments)
 
         if (table === expr.table && assignments === expr.assignments && updateAssignments === expr.updateAssignments) {
             return expr
@@ -80,7 +80,7 @@ public interface MySqlExpressionVisitor : SqlExpressionVisitor {
     public fun visitBulkInsert(expr: BulkInsertExpression): BulkInsertExpression {
         val table = visitTable(expr.table)
         val assignments = visitBulkInsertAssignments(expr.assignments)
-        val updateAssignments = visitColumnAssignments(expr.updateAssignments)
+        val updateAssignments = visitExpressionList(expr.updateAssignments)
 
         if (table === expr.table && assignments === expr.assignments && updateAssignments === expr.updateAssignments) {
             return expr
@@ -96,7 +96,7 @@ public interface MySqlExpressionVisitor : SqlExpressionVisitor {
         var changed = false
 
         for (row in assignments) {
-            val visited = visitColumnAssignments(row)
+            val visited = visitExpressionList(row)
             result += visited
 
             if (visited !== row) {
@@ -207,7 +207,7 @@ public open class MySqlFormatter(
 
         if (expr.updateAssignments.isNotEmpty()) {
             writeKeyword("on duplicate key update ")
-            visitColumnAssignments(expr.updateAssignments)
+            writeColumnAssignments(expr.updateAssignments)
         }
 
         return expr
@@ -229,7 +229,7 @@ public open class MySqlFormatter(
 
         if (expr.updateAssignments.isNotEmpty()) {
             writeKeyword("on duplicate key update ")
-            visitColumnAssignments(expr.updateAssignments)
+            writeColumnAssignments(expr.updateAssignments)
         }
 
         return expr
