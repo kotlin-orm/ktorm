@@ -329,7 +329,7 @@ public fun Query.orderBy(vararg orders: OrderByExpression): Query {
     return orderBy(orders.asList())
 }
 
-private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {
+private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor {
     val declaringColumns = query.findDeclaringColumns()
 
     override fun visitOrderBy(expr: OrderByExpression): OrderByExpression {

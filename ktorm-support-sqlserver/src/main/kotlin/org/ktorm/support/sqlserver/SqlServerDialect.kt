@@ -102,7 +102,7 @@ public open class SqlServerFormatter(
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-        val visitor = object : SqlExpressionVisitor() {
+        val visitor = object : SqlExpressionVisitor {
             override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
                 val alias = (expr as? SelectExpression)?.columns?.find { it.expression == column }?.declaredName
                 if (alias == null && expr is SelectExpression && expr.columns.isNotEmpty()) {

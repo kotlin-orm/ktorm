@@ -339,7 +339,7 @@ public class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T
 /**
  * [SqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
  */
-internal object AliasRemover : SqlExpressionVisitor() {
+internal object AliasRemover : SqlExpressionVisitor {
 
     override fun visitTable(expr: TableExpression): TableExpression {
         if (expr.tableAlias == null) {

@@ -45,7 +45,7 @@ private fun SelectExpression.isSimpleSelect(): Boolean {
     return columns.all { it.expression is ColumnExpression }
 }
 
-private object OrderByRemover : SqlExpressionVisitor() {
+private object OrderByRemover : SqlExpressionVisitor {
 
     override fun visitSelect(expr: SelectExpression): SelectExpression {
         if (expr.orderBy.any { it.hasArgument() }) {
@@ -67,7 +67,7 @@ private object OrderByRemover : SqlExpressionVisitor() {
 private fun SqlExpression.hasArgument(): Boolean {
     var hasArgument = false
 
-    val visitor = object : SqlExpressionVisitor() {
+    val visitor = object : SqlExpressionVisitor {
         override fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
             hasArgument = true
             return expr

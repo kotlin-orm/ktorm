@@ -116,7 +116,7 @@ public class InsertOrUpdateStatementBuilder : MySqlAssignmentsBuilder() {
 /**
  * [MySqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
  */
-internal object AliasRemover : MySqlExpressionVisitor() {
+internal object AliasRemover : MySqlExpressionVisitor {
 
     override fun visitTable(expr: TableExpression): TableExpression {
         if (expr.tableAlias == null) {
