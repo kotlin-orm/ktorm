@@ -107,7 +107,7 @@ public class Query(public val database: Database, public val expression: QueryEx
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
-            val countExpr = expression.toCountExpression()
+            val countExpr = database.toCountExpression(expression)
             val rowSet = database.executeQuery(countExpr)
 
             if (rowSet.next()) {
