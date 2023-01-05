@@ -16,9 +16,7 @@
 
 package org.ktorm.database
 
-import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.QueryExpression
-import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.*
 import java.sql.Statement
 import java.util.ServiceLoader
 
@@ -39,6 +37,20 @@ import java.util.ServiceLoader
  * one for us from the classpath. We just need to insure the dialect module exists in the dependencies.
  */
 public interface SqlDialect {
+
+    /**
+     * Create a default visitor instance for this dialect using the specific [interceptor].
+     *
+     * Implementations might have their own sub-interface of [SqlExpressionVisitor] to support dialect-specific
+     * features, instances of the visitor interface can be created by [newVisitorInstance] function.
+     *
+     * @param interceptor an interceptor that can intercept the visit functions of visitor sub-interfaces.
+     * @return an instance of [SqlExpressionVisitor] that can be intercepted by [interceptor].
+     * @since 3.6.0
+     */
+    public fun createExpressionVisitor(interceptor: SqlExpressionVisitorInterceptor): SqlExpressionVisitor {
+        return SqlExpressionVisitor::class.newVisitorInstance(interceptor)
+    }
 
     /**
      * Create a [SqlFormatter] instance, formatting SQL expressions as strings with their execution arguments.

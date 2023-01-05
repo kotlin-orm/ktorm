@@ -17,13 +17,16 @@
 package org.ktorm.support.sqlite
 
 import org.ktorm.database.*
-import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.*
 
 /**
  * [SqlDialect] implementation for SQLite database.
  */
 public open class SQLiteDialect : SqlDialect {
+
+    override fun createExpressionVisitor(interceptor: SqlExpressionVisitorInterceptor): SqlExpressionVisitor {
+        return SQLiteExpressionVisitor::class.newVisitorInstance(interceptor)
+    }
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return SQLiteFormatter(database, beautifySql, indentSize)

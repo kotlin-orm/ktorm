@@ -20,10 +20,12 @@ import org.ktorm.entity.DefaultMethodHandler
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
-import kotlin.reflect.jvm.jvmName
+import kotlin.reflect.KClass
 
 /**
  * Interceptor that can intercept the visit functions for [SqlExpressionVisitor] and its sub-interfaces.
+ *
+ * @since 3.6.0
  */
 public interface SqlExpressionVisitorInterceptor {
 
@@ -38,25 +40,27 @@ public interface SqlExpressionVisitorInterceptor {
 }
 
 /**
- * Create a default visitor object for interface [T] using the specific [interceptor].
+ * Create a default visitor instance for [this] interface using the specific [interceptor].
+ *
+ * @since 3.6.0
  */
-public inline fun <reified T : SqlExpressionVisitor> newVisitor(interceptor: SqlExpressionVisitorInterceptor): T {
-    val c = T::class
-    if (!c.java.isInterface) {
-        throw IllegalArgumentException("${c.jvmName} is not an interface.")
+@Suppress("UNCHECKED_CAST")
+public fun <T : SqlExpressionVisitor> KClass<T>.newVisitorInstance(interceptor: SqlExpressionVisitorInterceptor): T {
+    val c = this.java
+    if (!c.isInterface) {
+        throw IllegalArgumentException("${c.name} is not an interface.")
     }
-    if (c.members.any { it.isAbstract }) {
-        throw IllegalArgumentException("${c.jvmName} cannot have any abstract members.")
+    if (this.members.any { it.isAbstract }) {
+        throw IllegalArgumentException("${c.name} cannot have any abstract members.")
     }
 
-    return Proxy.newProxyInstance(c.java.classLoader, arrayOf(c.java), VisitorInvocationHandler(interceptor)) as T
+    return Proxy.newProxyInstance(c.classLoader, arrayOf(c), VisitorInvocationHandler(interceptor)) as T
 }
 
 /**
  * Visitor invocation handler with intercepting ability.
  */
-@PublishedApi
-internal class VisitorInvocationHandler(val interceptor: SqlExpressionVisitorInterceptor) : InvocationHandler {
+private class VisitorInvocationHandler(val interceptor: SqlExpressionVisitorInterceptor) : InvocationHandler {
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         if (canIntercept(method)) {

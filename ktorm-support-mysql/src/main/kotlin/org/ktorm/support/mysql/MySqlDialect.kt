@@ -18,12 +18,19 @@ package org.ktorm.support.mysql
 
 import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
+import org.ktorm.expression.SqlExpressionVisitor
+import org.ktorm.expression.SqlExpressionVisitorInterceptor
 import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.newVisitorInstance
 
 /**
  * [SqlDialect] implementation for MySQL database.
  */
 public open class MySqlDialect : SqlDialect {
+
+    override fun createExpressionVisitor(interceptor: SqlExpressionVisitorInterceptor): SqlExpressionVisitor {
+        return MySqlExpressionVisitor::class.newVisitorInstance(interceptor)
+    }
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return MySqlFormatter(database, beautifySql, indentSize)
