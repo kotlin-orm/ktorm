@@ -17,6 +17,7 @@
 package org.ktorm.support.mysql
 
 import org.ktorm.database.Database
+import org.ktorm.dsl.AliasRemover
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.dsl.batchInsert
@@ -92,7 +93,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 ): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(table.asExpression(), builder.assignments)
     )
 
@@ -148,7 +149,7 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
 ): Int {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply(block)
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     )
 

@@ -349,9 +349,9 @@ public class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T
 }
 
 /**
- * Expression visitor interceptor used to removed table aliases, used by Ktorm internal.
+ * Expression visitor interceptor for removing table aliases, used by Ktorm internally.
  */
-internal object AliasRemover : SqlExpressionVisitorInterceptor {
+public object AliasRemover : SqlExpressionVisitorInterceptor {
 
     override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
         if (expr is TableExpression) {

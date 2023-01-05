@@ -17,10 +17,10 @@
 package org.ktorm.support.mysql
 
 import org.ktorm.database.Database
+import org.ktorm.dsl.AliasRemover
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.expression.ColumnAssignmentExpression
-import org.ktorm.expression.ColumnExpression
 import org.ktorm.expression.SqlExpression
 import org.ktorm.expression.TableExpression
 import org.ktorm.schema.BaseTable
@@ -78,7 +78,7 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
 ): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertOrUpdateExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     )
 
@@ -110,27 +110,5 @@ public class InsertOrUpdateStatementBuilder : MySqlAssignmentsBuilder() {
     public fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
         val builder = MySqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
-    }
-}
-
-/**
- * [MySqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
- */
-internal object AliasRemover : MySqlExpressionVisitor {
-
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.tableAlias == null) {
-            return expr
-        } else {
-            return expr.copy(tableAlias = null)
-        }
-    }
-
-    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.table == null) {
-            return expr
-        } else {
-            return expr.copy(table = null)
-        }
     }
 }
