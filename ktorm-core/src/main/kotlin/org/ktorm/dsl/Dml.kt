@@ -362,14 +362,6 @@ public object AliasRemover : SqlExpressionVisitorInterceptor {
             }
         }
 
-        if (expr is ColumnExpression<*>) {
-            if (expr.table == null) {
-                return expr
-            } else {
-                return expr.copy(table = null)
-            }
-        }
-
         return null
     }
 }
