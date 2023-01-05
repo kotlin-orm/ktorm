@@ -90,24 +90,12 @@ public open class SqlServerFormatter(
         val minRowNum = offset + 1
         val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
 
-        @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-        val visitor = object : SqlExpressionVisitor {
-            override fun <T : Any> visitColumn(column: ColumnExpression<T>): ColumnExpression<T> {
-                val alias = (expr as? SelectExpression)?.columns?.find { it.expression == column }?.declaredName
-                if (alias == null && expr is SelectExpression && expr.columns.isNotEmpty()) {
-                    throw IllegalStateException("Order-by column '${column.name}' must exist in the select clause.")
-                }
-
-                return column.copy(table = TableExpression(name = "", tableAlias = "_t1"), name = alias ?: column.name)
-            }
-        }
-
         writeKeyword("select * ")
         newLine(Indentation.SAME)
         writeKeyword("from (")
         newLine(Indentation.INNER)
         writeKeyword("select top $maxRowNum *, row_number() over(order by ")
-        visitExpressionList(expr.orderBy.map { visitor.visit(it) as OrderByExpression })
+        visitExpressionList(expr.upliftOrderByColumns())
         removeLastBlank()
         writeKeyword(") _rownum ")
         newLine(Indentation.SAME)
@@ -128,6 +116,27 @@ public open class SqlServerFormatter(
         write(") ${"_t2".quoted} ")
         newLine(Indentation.SAME)
         writeKeyword("where _rownum >= $minRowNum ")
+    }
+
+    private fun QueryExpression.upliftOrderByColumns(): List<OrderByExpression> {
+        val query = this
+
+        val interceptor = object : SqlExpressionVisitorInterceptor {
+            override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+                if (expr is ColumnExpression<*>) {
+                    val alias = (query as? SelectExpression)?.columns?.find { it.expression == expr }?.declaredName
+                    if (alias == null && query is SelectExpression && query.columns.isNotEmpty()) {
+                        throw IllegalStateException("Order-by column '${expr.name}' must exist in the select clause.")
+                    }
+
+                    return expr.copy(table = TableExpression(name = "", tableAlias = "_t1"), name = alias ?: expr.name)
+                }
+
+                return null
+            }
+        }
+
+        return orderBy.map { database.dialect.createExpressionVisitor(interceptor).visitOrderBy(it) }
     }
 
     override fun writePagination(expr: QueryExpression) {
