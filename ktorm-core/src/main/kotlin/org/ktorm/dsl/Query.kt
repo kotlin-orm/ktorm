@@ -315,8 +315,8 @@ public fun Query.orderBy(orders: Collection<OrderByExpression>): Query {
         when (expression) {
             is SelectExpression -> expression.copy(orderBy = orders.toList())
             is UnionExpression -> {
-                val replacer = OrderByReplacer(expression)
-                expression.copy(orderBy = orders.map { replacer.visit(it) as OrderByExpression })
+                val replacer = database.dialect.createExpressionVisitor(OrderByReplacer(expression))
+                expression.copy(orderBy = orders.map { replacer.visitOrderBy(it) })
             }
         }
     )
@@ -329,27 +329,37 @@ public fun Query.orderBy(vararg orders: OrderByExpression): Query {
     return orderBy(orders.asList())
 }
 
-private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor {
+/**
+ * For union queries, replace the order-by expressions with inner query's declared names.
+ */
+private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitorInterceptor {
     val declaringColumns = query.findDeclaringColumns()
 
-    override fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
-        val declaring = declaringColumns.find { it.declaredName != null && it.expression == expr.expression }
+    override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+        if (expr is OrderByExpression) {
+            val declaring = declaringColumns.find { it.declaredName != null && it.expression == expr.expression }
 
-        if (declaring == null) {
-            throw IllegalArgumentException("Could not find the ordering column in the union expression, column: $expr")
-        } else {
-            return OrderByExpression(
-                expression = ColumnExpression(
-                    table = null,
-                    name = declaring.declaredName!!,
-                    sqlType = declaring.expression.sqlType
-                ),
-                orderType = expr.orderType
-            )
+            if (declaring == null) {
+                throw IllegalArgumentException("Could not find the ordering column ($expr) in the union expression.")
+            } else {
+                return OrderByExpression(
+                    expression = ColumnExpression(
+                        table = null,
+                        name = declaring.declaredName!!,
+                        sqlType = declaring.expression.sqlType
+                    ),
+                    orderType = expr.orderType
+                )
+            }
         }
+
+        return null
     }
 }
 
+/**
+ * Return the declaring columns of [this] query.
+ */
 internal tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclaringExpression<*>> {
     return when (this) {
         is SelectExpression -> columns
