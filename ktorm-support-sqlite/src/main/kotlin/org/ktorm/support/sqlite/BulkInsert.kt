@@ -19,6 +19,7 @@ package org.ktorm.support.sqlite
 import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.database.asIterable
+import org.ktorm.dsl.AliasRemover
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.dsl.batchInsert
@@ -98,7 +99,7 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 ): Int {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(table.asExpression(), builder.assignments)
     )
 
@@ -258,7 +259,7 @@ private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
 ): CachedRowSet {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
@@ -486,7 +487,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertO
 /**
  * Build a bulk insert or update expression.
  */
-private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
+private fun <T : BaseTable<*>> Database.buildBulkInsertOrUpdateExpression(
     table: T, returning: List<Column<*>>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): SqlExpression {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
@@ -506,7 +507,7 @@ private fun <T : BaseTable<*>> buildBulkInsertOrUpdateExpression(
         throw IllegalStateException(msg)
     }
 
-    return AliasRemover.visit(
+    return dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(
             table = table.asExpression(),
             assignments = builder.assignments,

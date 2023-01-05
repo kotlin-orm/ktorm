@@ -18,6 +18,7 @@ package org.ktorm.support.sqlite
 
 import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
+import org.ktorm.dsl.AliasRemover
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.expression.*
@@ -82,7 +83,10 @@ public data class InsertOrUpdateExpression(
 public fun <T : BaseTable<*>> Database.insertOrUpdate(
     table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
-    val expression = AliasRemover.visit(buildInsertOrUpdateExpression(table, returning = emptyList(), block = block))
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+        buildInsertOrUpdateExpression(table, returning = emptyList(), block = block)
+    )
+
     return executeUpdate(expression)
 }
 
@@ -233,7 +237,10 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
 private fun <T : BaseTable<*>> Database.insertOrUpdateReturningRow(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): CachedRowSet? {
-    val expression = AliasRemover.visit(buildInsertOrUpdateExpression(table, returning, block))
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+        buildInsertOrUpdateExpression(table, returning, block)
+    )
+
     val rowSet = executeQuery(expression)
 
     if (rowSet.size() == 0) {
@@ -405,7 +412,7 @@ private fun <T : BaseTable<*>> Database.insertReturningRow(
 ): CachedRowSet {
     val builder = SQLiteAssignmentsBuilder().apply { block(table) }
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertOrUpdateExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
@@ -490,19 +497,5 @@ public class InsertOrUpdateOnConflictClauseBuilder : SQLiteAssignmentsBuilder() 
             name = column.name,
             sqlType = column.sqlType
         )
-    }
-}
-
-/**
- * [SQLiteExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
- */
-internal object AliasRemover : SQLiteExpressionVisitor {
-
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.tableAlias == null) {
-            return expr
-        } else {
-            return expr.copy(tableAlias = null)
-        }
     }
 }
