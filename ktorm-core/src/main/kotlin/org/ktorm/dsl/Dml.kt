@@ -47,7 +47,7 @@ import java.sql.Statement
 public fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(T) -> Unit): Int {
     val builder = UpdateStatementBuilder().apply { block(table) }
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         UpdateExpression(table.asExpression(), builder.assignments, builder.where?.asExpression())
     )
 
@@ -86,7 +86,7 @@ public fun <T : BaseTable<*>> Database.batchUpdate(
     block: BatchUpdateStatementBuilder<T>.() -> Unit
 ): IntArray {
     val builder = BatchUpdateStatementBuilder(table).apply(block)
-    val expressions = builder.expressions.map { AliasRemover.visit(it) }
+    val expressions = builder.expressions.map { dialect.createExpressionVisitor(AliasRemover).visit(it) }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
@@ -118,7 +118,10 @@ public fun <T : BaseTable<*>> Database.batchUpdate(
  */
 public fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -> Unit): Int {
     val builder = AssignmentsBuilder().apply { block(table) }
-    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+        InsertExpression(table.asExpression(), builder.assignments)
+    )
+
     return executeUpdate(expression)
 }
 
@@ -148,7 +151,10 @@ public fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilde
  */
 public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
     val builder = AssignmentsBuilder().apply { block(table) }
-    val expression = AliasRemover.visit(InsertExpression(table.asExpression(), builder.assignments))
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+        InsertExpression(table.asExpression(), builder.assignments)
+    )
+
     val (_, rowSet) = executeUpdateAndRetrieveKeys(expression)
 
     if (rowSet.next()) {
@@ -205,7 +211,7 @@ public fun <T : BaseTable<*>> Database.batchInsert(
     block: BatchInsertStatementBuilder<T>.() -> Unit
 ): IntArray {
     val builder = BatchInsertStatementBuilder(table).apply(block)
-    val expressions = builder.expressions.map { AliasRemover.visit(it) }
+    val expressions = builder.expressions.map { dialect.createExpressionVisitor(AliasRemover).visit(it) }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
@@ -233,7 +239,10 @@ public fun Query.insertTo(table: BaseTable<*>, vararg columns: Column<*>): Int {
  * @since 2.7
  */
 public fun <T : BaseTable<*>> Database.delete(table: T, predicate: (T) -> ColumnDeclaring<Boolean>): Int {
-    val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), predicate(table).asExpression()))
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+        DeleteExpression(table.asExpression(), predicate(table).asExpression())
+    )
+
     return executeUpdate(expression)
 }
 
@@ -243,7 +252,10 @@ public fun <T : BaseTable<*>> Database.delete(table: T, predicate: (T) -> Column
  * @since 2.7
  */
 public fun Database.deleteAll(table: BaseTable<*>): Int {
-    val expression = AliasRemover.visit(DeleteExpression(table.asExpression(), where = null))
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+        DeleteExpression(table.asExpression(), where = null)
+    )
+
     return executeUpdate(expression)
 }
 
@@ -337,23 +349,27 @@ public class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T
 }
 
 /**
- * [SqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
+ * Expression visitor interceptor used to removed table aliases, used by Ktorm internal.
  */
-internal object AliasRemover : SqlExpressionVisitor {
+internal object AliasRemover : SqlExpressionVisitorInterceptor {
 
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.tableAlias == null) {
-            return expr
-        } else {
-            return expr.copy(tableAlias = null)
+    override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+        if (expr is TableExpression) {
+            if (expr.tableAlias == null) {
+                return expr
+            } else {
+                return expr.copy(tableAlias = null)
+            }
         }
-    }
 
-    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.table == null) {
-            return expr
-        } else {
-            return expr.copy(table = null)
+        if (expr is ColumnExpression<*>) {
+            if (expr.table == null) {
+                return expr
+            } else {
+                return expr.copy(table = null)
+            }
         }
+
+        return null
     }
 }

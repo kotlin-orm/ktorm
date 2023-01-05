@@ -43,7 +43,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
 
     val assignments = entity.findInsertColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
 
-    val expression = AliasRemover.visit(
+    val expression = database.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = InsertExpression(
             table = sourceTable.asExpression(),
             assignments = assignments.map { (col, argument) ->
@@ -104,7 +104,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E):
 
     val assignments = entity.findUpdateColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
 
-    val expression = AliasRemover.visit(
+    val expression = database.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = UpdateExpression(
             table = sourceTable.asExpression(),
             assignments = assignments.map { (col, argument) ->
@@ -161,7 +161,7 @@ internal fun EntityImplementation.doFlushChanges(): Int {
 
     val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
 
-    val expression = AliasRemover.visit(
+    val expression = fromDatabase.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = UpdateExpression(
             table = fromTable.asExpression(),
             assignments = assignments.map { (col, argument) ->
@@ -188,7 +188,7 @@ internal fun EntityImplementation.doDelete(): Int {
     val fromDatabase = fromDatabase ?: error("The entity is not attached to any database yet.")
     val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
 
-    val expression = AliasRemover.visit(
+    val expression = fromDatabase.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = DeleteExpression(
             table = fromTable.asExpression(),
             where = constructIdentityCondition(fromTable)
