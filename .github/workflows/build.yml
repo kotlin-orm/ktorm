@@ -65,7 +65,7 @@ jobs:
             git config user.name 'vince'
             git config user.email 'me@liuwj.me'
             git add . 
-            git commit -m "update jacoco badges"
+            git commit -m "[github actions] update jacoco badges"
             git push "https://$GIT_PUSH_TOKEN@github.com/kotlin-orm/ktorm-docs.git" master
           fi
         env:
