@@ -27,13 +27,6 @@ public open class OracleFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
 
-    override fun checkColumnName(name: String) {
-        val maxLength = database.maxColumnNameLength
-        if (maxLength > 0 && name.length > maxLength) {
-            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
-        }
-    }
-
     override fun shouldQuote(identifier: String): Boolean {
         // Oracle doesn't support underscores as the first character for unquoted identifiers.
         return identifier.startsWith('_') || super.shouldQuote(identifier)

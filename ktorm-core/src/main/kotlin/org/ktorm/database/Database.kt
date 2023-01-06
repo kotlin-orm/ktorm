@@ -18,8 +18,7 @@ package org.ktorm.database
 
 import org.ktorm.dsl.Query
 import org.ktorm.entity.EntitySequence
-import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.SqlExpression
+import org.ktorm.expression.*
 import org.ktorm.logging.Logger
 import org.ktorm.logging.detectLoggerImplementation
 import org.springframework.dao.DataAccessException
@@ -364,9 +363,38 @@ public class Database(
         beautifySql: Boolean = false,
         indentSize: Int = 2
     ): Pair<String, List<ArgumentExpression<*>>> {
+        // Check column name length.
+        dialect.createExpressionVisitor(ColumnNameChecker()).visit(expression)
+
+        // Generate the SQL.
         val formatter = dialect.createSqlFormatter(this, beautifySql, indentSize)
         formatter.visit(expression)
         return Pair(formatter.sql, formatter.parameters)
+    }
+
+    /**
+     * Check column name length.
+     */
+    private inner class ColumnNameChecker : SqlExpressionVisitorInterceptor {
+
+        override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+            if (expr is ColumnExpression<*>) {
+                checkColumnName(expr.name)
+            }
+
+            if (expr is ColumnDeclaringExpression<*> && !expr.declaredName.isNullOrBlank()) {
+                checkColumnName(expr.declaredName)
+            }
+
+            return null
+        }
+
+        private fun checkColumnName(name: String) {
+            val maxLength = this@Database.maxColumnNameLength
+            if (maxLength > 0 && name.length > maxLength) {
+                throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
+            }
+        }
     }
 
     /**

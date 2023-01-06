@@ -27,13 +27,6 @@ public open class PostgreSqlFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize), PostgreSqlExpressionVisitor {
 
-    override fun checkColumnName(name: String) {
-        val maxLength = database.maxColumnNameLength
-        if (maxLength > 0 && name.length > maxLength) {
-            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
-        }
-    }
-
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super<PostgreSqlExpressionVisitor>.visit(expr)
         check(result === expr) { "SqlFormatter cannot modify the expression trees." }
@@ -134,7 +127,6 @@ public open class PostgreSqlFormatter(
 
             for ((i, column) in expr.returningColumns.withIndex()) {
                 if (i > 0) write(", ")
-                checkColumnName(column.name)
                 write(column.name.quoted)
             }
         }
@@ -173,7 +165,6 @@ public open class PostgreSqlFormatter(
 
             for ((i, column) in expr.returningColumns.withIndex()) {
                 if (i > 0) write(", ")
-                checkColumnName(column.name)
                 write(column.name.quoted)
             }
         }

@@ -92,8 +92,6 @@ public abstract class SqlFormatter(
         }
     }
 
-    protected open fun checkColumnName(name: String) { }
-
     protected open fun shouldQuote(identifier: String): Boolean {
         if (database.alwaysQuoteIdentifiers) {
             return true
@@ -307,14 +305,12 @@ public abstract class SqlFormatter(
             }
         }
 
-        checkColumnName(expr.name)
         write("${expr.name.quoted} ")
         return expr
     }
 
     override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
         if (!expr.declaredName.isNullOrBlank()) {
-            checkColumnName(expr.declaredName)
             write("${expr.declaredName.quoted} ")
         } else {
             if (expr.expression.removeBrackets) {
@@ -337,7 +333,6 @@ public abstract class SqlFormatter(
 
         val column = expr.expression as? ColumnExpression<*>
         if (!expr.declaredName.isNullOrBlank() && (column == null || column.name != expr.declaredName)) {
-            checkColumnName(expr.declaredName)
             writeKeyword("as ")
             write("${expr.declaredName.quoted} ")
         }
@@ -582,7 +577,6 @@ public abstract class SqlFormatter(
 
         for ((i, column) in columns.withIndex()) {
             if (i > 0) write(", ")
-            checkColumnName(column.name)
             write(column.name.quoted)
         }
 
@@ -618,7 +612,6 @@ public abstract class SqlFormatter(
                 write(", ")
             }
 
-            checkColumnName(assignment.column.name)
             write("${assignment.column.name.quoted} ")
             write("= ")
             visit(assignment.expression)

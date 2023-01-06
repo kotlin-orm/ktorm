@@ -26,13 +26,6 @@ public open class SqlServerFormatter(
     database: Database, beautifySql: Boolean, indentSize: Int
 ) : SqlFormatter(database, beautifySql, indentSize) {
 
-    override fun checkColumnName(name: String) {
-        val maxLength = database.maxColumnNameLength
-        if (maxLength > 0 && name.length > maxLength) {
-            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
-        }
-    }
-
     override fun visitQuery(expr: QueryExpression): QueryExpression {
         if (expr.offset == null && expr.limit == null) {
             return super.visitQuery(expr)
