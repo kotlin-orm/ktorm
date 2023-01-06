@@ -228,7 +228,6 @@ public inline fun Query.where(condition: () -> ColumnDeclaring<Boolean>): Query 
  */
 public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     var conditions: List<ColumnDeclaring<Boolean>> = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
-
     if (conditions.isEmpty()) {
         return this
     } else {
@@ -248,7 +247,6 @@ public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<
  */
 public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     var conditions: List<ColumnDeclaring<Boolean>> = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
-
     if (conditions.isEmpty()) {
         return this
     } else {
