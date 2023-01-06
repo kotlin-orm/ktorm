@@ -236,7 +236,7 @@ public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<
             conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] and chunk[1] else chunk[0] }
         }
 
-        return this.where { conditions[0] }
+        return this.where(conditions[0])
     }
 }
 
@@ -256,7 +256,7 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
             conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] or chunk[1] else chunk[0] }
         }
 
-        return this.where { conditions[0] }
+        return this.where(conditions[0])
     }
 }
 
@@ -266,7 +266,16 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
  * If the iterable is empty, the param [ifEmpty] will be returned.
  */
 public fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true): ColumnDeclaring<Boolean> {
-    return this.reduceOrNull { a, b -> a and b } ?: ArgumentExpression(ifEmpty, BooleanSqlType)
+    var conditions = this.toList()
+    if (conditions.isEmpty()) {
+        return ArgumentExpression(ifEmpty, BooleanSqlType)
+    } else {
+        while (conditions.size > 1) {
+            conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] and chunk[1] else chunk[0] }
+        }
+
+        return conditions[0]
+    }
 }
 
 /**
