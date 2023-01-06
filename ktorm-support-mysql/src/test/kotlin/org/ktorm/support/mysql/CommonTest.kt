@@ -446,8 +446,14 @@ class CommonTest : BaseMySqlTest() {
             set(it.col, "test")
         }
 
-        val name = database.from(t).select(t.col).map { it[t.col] }.first()
-        assert(name == "test")
+        try {
+            val name = database.from(t).select(t.col).map { it[t.col] }.first()
+            println(name)
+            throw java.lang.AssertionError("unexpected.")
+        } catch (e: IllegalStateException) {
+            println(e.message)
+            assert("too long" in e.message!!)
+        }
     }
 
     @Test
