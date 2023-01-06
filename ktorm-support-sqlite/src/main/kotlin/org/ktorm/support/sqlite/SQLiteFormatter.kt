@@ -72,7 +72,6 @@ public open class SQLiteFormatter(
 
             for ((i, column) in expr.returningColumns.withIndex()) {
                 if (i > 0) write(", ")
-                checkColumnName(column.name)
                 write(column.name.quoted)
             }
         }
@@ -116,7 +115,6 @@ public open class SQLiteFormatter(
 
             for ((i, column) in expr.returningColumns.withIndex()) {
                 if (i > 0) write(", ")
-                checkColumnName(column.name)
                 write(column.name.quoted)
             }
         }
