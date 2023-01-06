@@ -63,6 +63,15 @@ public fun <T : SqlExpressionVisitor> KClass<T>.newVisitorInstance(interceptor: 
 private class VisitorInvocationHandler(val interceptor: SqlExpressionVisitorInterceptor) : InvocationHandler {
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
+        if (method.declaringClass.kotlin == Any::class) {
+            return when (method.name) {
+                "equals" -> proxy === args!![0]
+                "hashCode" -> System.identityHashCode(proxy)
+                "toString" -> "Proxy\$${proxy.javaClass.interfaces[0].simpleName}(interceptor=$interceptor)"
+                else -> throw IllegalStateException("Unrecognized method: $method")
+            }
+        }
+
         if (canIntercept(method)) {
             val r = interceptor.intercept(args!![0] as SqlExpression, proxy as SqlExpressionVisitor)
             if (r != null) {
