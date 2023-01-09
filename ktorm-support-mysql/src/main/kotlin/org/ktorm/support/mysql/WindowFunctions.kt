@@ -22,7 +22,7 @@ import org.ktorm.expression.FrameExpression
 import org.ktorm.expression.FrameExtentType
 import org.ktorm.expression.FrameUnitType
 import org.ktorm.expression.OrderByExpression
-import org.ktorm.expression.WindowExpression
+import org.ktorm.expression.WindowSpecificationExpression
 import org.ktorm.expression.WindowFunctionExpression
 import org.ktorm.expression.WindowFunctionType
 import org.ktorm.schema.ColumnDeclaring
@@ -31,7 +31,7 @@ import org.ktorm.schema.SqlType
 /**
  * Most MySQL aggregate functions also can be used as window functions.
  */
-public infix fun <T : Any> AggregateExpression<T>.over(window: WindowExpression): WindowFunctionExpression<T> {
+public infix fun <T : Any> AggregateExpression<T>.over(window: WindowSpecificationExpression): WindowFunctionExpression<T> {
     val arguments = if (this.argument != null) {
         listOf(this.argument!!)
     } else {
@@ -48,7 +48,7 @@ public infix fun <T : Any> AggregateExpression<T>.over(window: WindowExpression)
 /**
  * Specify the window specification.
  */
-public infix fun <T : Any> WindowFunctionExpression<T>.over(window: WindowExpression): WindowFunctionExpression<T> {
+public infix fun <T : Any> WindowFunctionExpression<T>.over(window: WindowSpecificationExpression): WindowFunctionExpression<T> {
     return WindowFunctionExpression(
         functionName,
         arguments,
@@ -60,8 +60,8 @@ public infix fun <T : Any> WindowFunctionExpression<T>.over(window: WindowExpres
 /**
  * Specify the window partition-by clause.
  */
-public fun partitionBy(vararg columns: ColumnDeclaring<*>): WindowExpression {
-    return WindowExpression(
+public fun partitionBy(vararg columns: ColumnDeclaring<*>): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments = columns.map { it.asExpression() },
         orderByExpressions = emptyList(),
         frameUnit = null,
@@ -72,8 +72,8 @@ public fun partitionBy(vararg columns: ColumnDeclaring<*>): WindowExpression {
 /**
  * Specify the window order-by clause.
  */
-public fun orderBy(vararg orderByExpression: OrderByExpression): WindowExpression {
-    return WindowExpression(
+public fun orderBy(vararg orderByExpression: OrderByExpression): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments = emptyList(),
         orderByExpressions = orderByExpression.asList(),
         frameUnit = null,
@@ -84,8 +84,8 @@ public fun orderBy(vararg orderByExpression: OrderByExpression): WindowExpressio
 /**
  * Specify the window order-by clause.
  */
-public fun WindowExpression.orderBy(vararg orderByExpression: OrderByExpression): WindowExpression {
-    return WindowExpression(
+public fun WindowSpecificationExpression.orderBy(vararg orderByExpression: OrderByExpression): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments,
         orderByExpression.asList(),
         null,
@@ -151,11 +151,11 @@ public val CURRENT_ROW: FrameExpression<Int> = FrameExpression(
 /**
  * Translated to MySQL frame unit `rows between`.
  */
-public fun <A : Any, B : Any> WindowExpression.rowsBetween(
+public fun <A : Any, B : Any> WindowSpecificationExpression.rowsBetween(
     left: FrameExpression<A>,
     right: FrameExpression<B>
-): WindowExpression {
-    return WindowExpression(
+): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments,
         orderByExpressions,
         FrameUnitType.ROWS_BETWEEN,
@@ -166,11 +166,11 @@ public fun <A : Any, B : Any> WindowExpression.rowsBetween(
 /**
  * Translated to MySQL frame unit `range between`.
  */
-public fun <A : Any, B : Any> WindowExpression.rangeBetween(
+public fun <A : Any, B : Any> WindowSpecificationExpression.rangeBetween(
     left: FrameExpression<A>,
     right: FrameExpression<B>
-): WindowExpression {
-    return WindowExpression(
+): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments,
         orderByExpressions,
         FrameUnitType.RANGE_BETWEEN,
@@ -181,10 +181,10 @@ public fun <A : Any, B : Any> WindowExpression.rangeBetween(
 /**
  * Translated to MySQL frame unit `range`.
  */
-public fun <T : Any> WindowExpression.range(
+public fun <T : Any> WindowSpecificationExpression.range(
     frameExpression: FrameExpression<T>,
-): WindowExpression {
-    return WindowExpression(
+): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments,
         orderByExpressions,
         FrameUnitType.RANGE,
@@ -195,10 +195,10 @@ public fun <T : Any> WindowExpression.range(
 /**
  * Translated to MySQL frame unit `rows`.
  */
-public fun <T : Any> WindowExpression.row(
+public fun <T : Any> WindowSpecificationExpression.row(
     frameExpression: FrameExpression<T>,
-): WindowExpression {
-    return WindowExpression(
+): WindowSpecificationExpression {
+    return WindowSpecificationExpression(
         partitionArguments,
         orderByExpressions,
         FrameUnitType.ROWS,

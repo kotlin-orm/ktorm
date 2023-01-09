@@ -531,7 +531,7 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun visitWindow(expr: WindowExpression): WindowExpression {
+    override fun visitWindow(expr: WindowSpecificationExpression): WindowSpecificationExpression {
         if (expr.partitionArguments.isNotEmpty()) {
             writeKeyword("partition by ")
             visitExpressionList(expr.partitionArguments)

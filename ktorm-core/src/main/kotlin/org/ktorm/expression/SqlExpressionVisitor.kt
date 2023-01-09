@@ -356,9 +356,9 @@ public interface SqlExpressionVisitor {
     }
 
     /**
-     * Function that visits a [WindowExpression].
+     * Function that visits a [WindowSpecificationExpression].
      */
-    public fun visitWindow(expr: WindowExpression): WindowExpression {
+    public fun visitWindow(expr: WindowSpecificationExpression): WindowSpecificationExpression {
         return expr
     }
 

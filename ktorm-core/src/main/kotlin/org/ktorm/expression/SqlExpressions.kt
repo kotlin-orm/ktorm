@@ -570,9 +570,11 @@ public data class FunctionExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * The enum of window function type in a [WindowExpression].
+ * The enum of window function type in a [WindowSpecificationExpression].
+ *
+ * @since 3.6.0
  */
-public enum class WindowFunctionType(private val type: String) {
+public enum class WindowFunctionType(private val value: String) {
     // aggregate
     /**
      * The min function, translated to `min(column)` in SQL.
@@ -602,9 +604,14 @@ public enum class WindowFunctionType(private val type: String) {
     // non-aggregate
 
     /**
-     * The cume_dist function, translated to `cume_dist()` in SQL.
+     * The row_number function, translated to `row_number()` in SQL.
      */
-    CUME_DIST("cume_dist"),
+    ROW_NUMBER("row_number"),
+
+    /**
+     * The rank function, translated to `rank()` in SQL.
+     */
+    RANK("rank"),
 
     /**
      * The dense_rank function, translated to `dense_rank()` in SQL.
@@ -612,9 +619,14 @@ public enum class WindowFunctionType(private val type: String) {
     DENSE_RANK("dense_rank"),
 
     /**
-     * The first_value function, translated to `first_value(column)` in SQL.
+     * The percent_rank function, translated to `percent_rank()` in SQL.
      */
-    FIRST_VALUE("first_value"),
+    PERCENT_RANK("percent_rank"),
+
+    /**
+     * The cume_dist function, translated to `cume_dist()` in SQL.
+     */
+    CUME_DIST("cume_dist"),
 
     /**
      * The lag function, translated to `lag(column, offset, default_value)` in SQL.
@@ -622,14 +634,19 @@ public enum class WindowFunctionType(private val type: String) {
     LAG("lag"),
 
     /**
-     * The last_value function, translated to `last_value(column)` in SQL.
-     */
-    LAST_VALUE("last_value"),
-
-    /**
      * The lead function, translated to `lead(column, offset, default_value)` in SQL.
      */
     LEAD("lead"),
+
+    /**
+     * The first_value function, translated to `first_value(column)` in SQL.
+     */
+    FIRST_VALUE("first_value"),
+
+    /**
+     * The last_value function, translated to `last_value(column)` in SQL.
+     */
+    LAST_VALUE("last_value"),
 
     /**
      * The nth_value function, translated to `nth_value(column, n)` in SQL.
@@ -639,114 +656,126 @@ public enum class WindowFunctionType(private val type: String) {
     /**
      * The ntile function, translated to `ntile(n)` in SQL.
      */
-    NTILE("ntile"),
-
-    /**
-     * The percent_rank function, translated to `percent_rank()` in SQL.
-     */
-    PERCENT_RANK("percent_rank"),
-
-    /**
-     * The rank function, translated to `rank()` in SQL.
-     */
-    RANK("rank"),
-
-    /**
-     * The row_number function, translated to `row_number()` in SQL.
-     */
-    ROW_NUMBER("row_number");
+    NTILE("ntile");
 
     override fun toString(): String {
-        return type
+        return value
     }
 }
 
 /**
  * Window function expression, represents a SQL window function call.
  *
- * @property functionName the name of the window function.
- * @property arguments the argument passed to the window function.
- * @property window  window specification of the window function.
- * @since 3.6
+ * @property type the type of the window function.
+ * @property arguments the arguments passed to the window function.
+ * @property window the window specification.
+ * @since 3.6.0
  */
 public data class WindowFunctionExpression<T : Any>(
-    val functionName: WindowFunctionType,
+    val type: WindowFunctionType,
     val arguments: List<ScalarExpression<*>>,
-    val window: WindowExpression?,
+    val window: WindowSpecificationExpression,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : ScalarExpression<T>()
 
 /**
- * Window expression, represents either an anonymous or named window.
+ * Window specification expression.
  *
- *  @property partitionArguments column expression passed to the partition clause.
- *  @property orderByExpressions column expression passed to the orderBy clause.
- *  @property frameUnit frame unit of a window frame clause
- *  @property frameExpression frame clause of the window function.
- *
- *  @since 3.6
+ * @property partitionBy partition-by clause indicates how to divide the query rows into groups.
+ * @property orderBy order-by clause indicates how to sort rows in each partition.
+ * @property frameUnit frame unit indicates the type of relationship between the current row and frame rows.
+ * @property frameStart start bound of the window frame.
+ * @property frameEnd end bound of the window frame.
+ * @since 3.6.0
  */
-public data class WindowExpression(
-    val partitionArguments: List<ScalarExpression<*>>,
-    val orderByExpressions: List<OrderByExpression>,
-    val frameUnit: FrameUnitType?,
-    val frameExpression: Pair<FrameExpression<*>, FrameExpression<*>?>?,
+public data class WindowSpecificationExpression(
+    val partitionBy: List<ScalarExpression<*>> = emptyList(),
+    val orderBy: List<OrderByExpression> = emptyList(),
+    val frameUnit: WindowFrameUnitType? = null,
+    val frameStart: WindowFrameBoundExpression? = null,
+    val frameEnd: WindowFrameBoundExpression? = null,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
 ) : SqlExpression()
 
 /**
- * The enum type of frame unit in [WindowExpression].
+ * The enum type of window frame unit.
  *
- * @since 3.6
+ * @since 3.6.0
  */
-public enum class FrameUnitType(private val type: String) {
+public enum class WindowFrameUnitType(private val value: String) {
+
+    /**
+     * The frame is defined by beginning and ending row positions.
+     * Offsets are differences in row numbers from the current row number.
+     */
     ROWS("rows"),
-    RANGE("range"),
-    GROUPS("groups"),
-    ROWS_BETWEEN("rows between"),
-    RANGE_BETWEEN("range between"),
-    GROUPS_BETWEEN("groups between");
+
+    /**
+     * The frame is defined by rows within a value range.
+     * Offsets are differences in row values from the current row value.
+     */
+    RANGE("range");
 
     override fun toString(): String {
-        return type
+        return value
     }
 }
 
 /**
- * The enum type of frame extent type in [FrameExpression].
+ * The enum type of window frame bound.
  *
- * @since 3.6
+ * @since 3.6.0
  */
-public enum class FrameExtentType(private val type: String) {
+public enum class WindowFrameBoundType(private val value: String) {
+
+    /**
+     * For ROWS, the bound is the current row. For RANGE, the bound is the peers of the current row.
+     */
     CURRENT_ROW("current row"),
+
+    /**
+     * The bound is the first partition row.
+     */
     UNBOUNDED_PRECEDING("unbounded preceding"),
+
+    /**
+     * The bound is the last partition row.
+     */
     UNBOUNDED_FOLLOWING("unbounded following"),
+
+    /**
+     * For ROWS, the bound is N rows before the current row. For RANGE, the bound is the rows with values equal to
+     * the current row value minus N; if the current row value is NULL, the bound is the peers of the row.
+     */
     PRECEDING("preceding"),
+
+    /**
+     * For ROWS, the bound is N rows after the current row. For RANGE, the bound is the rows with values equal to
+     * the current row value plus N; if the current row value is NULL, the bound is the peers of the row.
+     */
     FOLLOWING("following");
 
     override fun toString(): String {
-        return type
+        return value
     }
 }
 
 /**
- * Frame expression, represents a SQL window function frame clause.
+ * Window frame bound expression.
  *
- * @property frameExtentType frame extent type of a frame clause.
- * @property argument frame argument passed to frame clause.
- *
- * @since 3.6
+ * @property type frame bound type.
+ * @property argument argument for the frame bound.
+ * @since 3.6.0
  */
-public data class FrameExpression<T : Any>(
-    val frameExtentType: FrameExtentType,
+public data class WindowFrameBoundExpression(
+    val type: WindowFrameBoundType,
     val argument: ScalarExpression<*>?,
-    override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
-) : ScalarExpression<T>()
+) : SqlExpression()
 
 /**
  * Case-when expression, represents a SQL case-when clause.
@@ -769,6 +798,7 @@ public data class FrameExpression<T : Any>(
  * @property operand the case operand, might be null for simple case-when clauses.
  * @property whenClauses pairs of when clauses and their results.
  * @property elseClause the result in case no when clauses are matched.
+ * @since 3.6.0
  */
 public data class CaseWhenExpression<T : Any>(
     val operand: ScalarExpression<*>?,
