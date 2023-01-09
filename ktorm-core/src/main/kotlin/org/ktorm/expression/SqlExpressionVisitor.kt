@@ -16,8 +16,6 @@
 
 package org.ktorm.expression
 
-import org.ktorm.database.DialectFeatureNotSupportedException
-
 /**
  * Base interface designed to visit or modify SQL expression trees using visitor pattern.
  *
@@ -357,20 +355,20 @@ public interface SqlExpressionVisitor {
         }
     }
 
-<<<<<<< HEAD
     /**
-     * Function that visits a [CaseWhenExpression].
+     * Function that visits a [WindowExpression].
      */
-    public fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
-=======
-    protected open fun visitWindow(expr: WindowExpression): WindowExpression {
+    public fun visitWindow(expr: WindowExpression): WindowExpression {
         return expr
     }
 
-    protected open fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
+    /**
+     * Function that visits a [WindowFunctionExpression].
+     */
+    public fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
         val arguments = visitExpressionList(expr.arguments)
         check(expr.window != null) {
-            throw DialectFeatureNotSupportedException("no anonymous or named windows found in window function expression `${expr.functionName}`.")
+            "no anonymous or named windows found in window function expression `${expr.functionName}`."
         }
         val window = visitWindow(expr.window)
         if (arguments === expr.arguments && expr.window === window) {
@@ -382,8 +380,10 @@ public interface SqlExpressionVisitor {
         )
     }
 
-    protected open fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
->>>>>>> a073b7e13c99c883da2efc10eba33d543ef5ab52
+    /**
+     * Function that visits a [CaseWhenExpression].
+     */
+    public fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
         val operand = expr.operand?.let { visitScalar(it) }
         val whenClauses = visitWhenClauses(expr.whenClauses)
         val elseClause = expr.elseClause?.let { visitScalar(it) }

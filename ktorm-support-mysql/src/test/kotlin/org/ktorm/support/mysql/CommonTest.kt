@@ -3,7 +3,6 @@ package org.ktorm.support.mysql
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
@@ -323,6 +322,7 @@ class CommonTest : BaseMySqlTest() {
 
         assert(name == "VINCE")
     }
+
     @Test
     fun testWindowFunctions_0() {
         // for those that are aggregate functions
@@ -355,7 +355,7 @@ class CommonTest : BaseMySqlTest() {
     @Test
     fun testWindowFunction_1(){
         // An exception should be thrown when no window is specified for a window function
-        assertFailsWith<DialectFeatureNotSupportedException> {
+        assertFailsWith<IllegalStateException> {
             val rank = rank().aliased("rank")
             database.from(Employees)
                 .select(Employees.name, Employees.departmentId, rank)

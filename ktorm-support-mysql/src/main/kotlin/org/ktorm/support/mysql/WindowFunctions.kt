@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,6 @@ import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.SqlType
 
 /**
- * since 3.6.0
- * Window functions are available since MySQL 5.7
- * reference: https://dev.mysql.com/doc/refman/8.0/en/window-functions.html
- *
- */
-
-
-/**
  * Most MySQL aggregate functions also can be used as window functions.
  */
 public infix fun <T : Any> AggregateExpression<T>.over(window: WindowExpression): WindowFunctionExpression<T> {
@@ -53,6 +45,9 @@ public infix fun <T : Any> AggregateExpression<T>.over(window: WindowExpression)
     )
 }
 
+/**
+ * Specify the window specification.
+ */
 public infix fun <T : Any> WindowFunctionExpression<T>.over(window: WindowExpression): WindowFunctionExpression<T> {
     return WindowFunctionExpression(
         functionName,
@@ -62,6 +57,9 @@ public infix fun <T : Any> WindowFunctionExpression<T>.over(window: WindowExpres
     )
 }
 
+/**
+ * Specify the window partition-by clause.
+ */
 public fun partitionBy(vararg columns: ColumnDeclaring<*>): WindowExpression {
     return WindowExpression(
         partitionArguments = columns.map { it.asExpression() },
@@ -71,6 +69,9 @@ public fun partitionBy(vararg columns: ColumnDeclaring<*>): WindowExpression {
     )
 }
 
+/**
+ * Specify the window order-by clause.
+ */
 public fun orderBy(vararg orderByExpression: OrderByExpression): WindowExpression {
     return WindowExpression(
         partitionArguments = emptyList(),
@@ -80,7 +81,9 @@ public fun orderBy(vararg orderByExpression: OrderByExpression): WindowExpressio
     )
 }
 
-
+/**
+ * Specify the window order-by clause.
+ */
 public fun WindowExpression.orderBy(vararg orderByExpression: OrderByExpression): WindowExpression {
     return WindowExpression(
         partitionArguments,
@@ -90,6 +93,9 @@ public fun WindowExpression.orderBy(vararg orderByExpression: OrderByExpression)
     )
 }
 
+/**
+ * Specify the window frame by `N preceding`.
+ */
 public fun Int.preceding(): FrameExpression<Int> {
     return FrameExpression(
         frameExtentType = FrameExtentType.PRECEDING,
@@ -101,6 +107,9 @@ public fun Int.preceding(): FrameExpression<Int> {
     )
 }
 
+/**
+ * Specify the window frame by `N following`.
+ */
 public fun Int.following(): FrameExpression<Int> {
     return FrameExpression(
         frameExtentType = FrameExtentType.FOLLOWING,
@@ -232,7 +241,6 @@ public fun denseRank(): WindowFunctionExpression<Int> {
         sqlType = SqlType.of()!!
     )
 }
-
 
 /**
  * MySQL percent_rank window function, translated to `percent_rank()`.
@@ -371,4 +379,3 @@ public fun <T : Any> lag(
         sqlType = column.sqlType
     )
 }
-

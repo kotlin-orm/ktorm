@@ -531,7 +531,7 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun visitWindow(expr: WindowExpression): WindowExpression{
+    override fun visitWindow(expr: WindowExpression): WindowExpression {
         if (expr.partitionArguments.isNotEmpty()) {
             writeKeyword("partition by ")
             visitExpressionList(expr.partitionArguments)
@@ -539,7 +539,7 @@ public abstract class SqlFormatter(
 
         if (expr.orderByExpressions.isNotEmpty()) {
             writeKeyword("order by ")
-            visitOrderByList(expr.orderByExpressions)
+            visitExpressionList(expr.orderByExpressions)
         }
         if (expr.frameUnit != null) {
             writeKeyword("${expr.frameUnit} ")
@@ -548,7 +548,7 @@ public abstract class SqlFormatter(
                 val second = expr.frameExpression.second
                 first.argument?.let { visit(it) }
                 writeKeyword("${first.frameExtentType} ")
-                if(second!=null){
+                if (second != null) {
                     writeKeyword("and ")
                     second.argument?.let { visit(it) }
                     writeKeyword("${second.frameExtentType}")
@@ -565,7 +565,7 @@ public abstract class SqlFormatter(
         removeLastBlank()
         writeKeyword(") over (")
         check(expr.window != null) {
-            throw DialectFeatureNotSupportedException("no anonymous or named windows found in window function expression `${expr.functionName}`.")
+            "no anonymous or named windows found in window function expression `${expr.functionName}`."
         }
 
         visitWindow(expr.window)

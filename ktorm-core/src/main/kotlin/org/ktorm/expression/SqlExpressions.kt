@@ -661,7 +661,6 @@ public enum class WindowFunctionType(private val type: String) {
     }
 }
 
-
 /**
  * Window function expression, represents a SQL window function call.
  *
@@ -692,18 +691,18 @@ public data class WindowFunctionExpression<T : Any>(
 public data class WindowExpression(
     val partitionArguments: List<ScalarExpression<*>>,
     val orderByExpressions: List<OrderByExpression>,
-    val frameUnit:FrameUnitType?,
-    val frameExpression: Pair<FrameExpression<*>,FrameExpression<*>?>?,
+    val frameUnit: FrameUnitType?,
+    val frameExpression: Pair<FrameExpression<*>, FrameExpression<*>?>?,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
-): SqlExpression()
+) : SqlExpression()
 
 /**
  * The enum type of frame unit in [WindowExpression].
  *
  * @since 3.6
  */
-public enum class FrameUnitType(private val type: String){
+public enum class FrameUnitType(private val type: String) {
     ROWS("rows"),
     RANGE("range"),
     GROUPS("groups"),
