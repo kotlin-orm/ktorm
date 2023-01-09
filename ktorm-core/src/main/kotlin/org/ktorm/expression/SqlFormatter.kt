@@ -531,6 +531,49 @@ public abstract class SqlFormatter(
         return expr
     }
 
+    override fun visitWindow(expr: WindowExpression): WindowExpression{
+        if (expr.partitionArguments.isNotEmpty()) {
+            writeKeyword("partition by ")
+            visitExpressionList(expr.partitionArguments)
+        }
+
+        if (expr.orderByExpressions.isNotEmpty()) {
+            writeKeyword("order by ")
+            visitOrderByList(expr.orderByExpressions)
+        }
+        if (expr.frameUnit != null) {
+            writeKeyword("${expr.frameUnit} ")
+            if (expr.frameExpression != null) {
+                val first = expr.frameExpression.first
+                val second = expr.frameExpression.second
+                first.argument?.let { visit(it) }
+                writeKeyword("${first.frameExtentType} ")
+                if(second!=null){
+                    writeKeyword("and ")
+                    second.argument?.let { visit(it) }
+                    writeKeyword("${second.frameExtentType}")
+                }
+            }
+        }
+        removeLastBlank()
+        return expr
+    }
+
+    override fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
+        writeKeyword("${expr.functionName}(")
+        visitExpressionList(expr.arguments)
+        removeLastBlank()
+        writeKeyword(") over (")
+        check(expr.window != null) {
+            throw DialectFeatureNotSupportedException("no anonymous or named windows found in window function expression `${expr.functionName}`.")
+        }
+
+        visitWindow(expr.window)
+
+        write(")")
+        return expr
+    }
+
     override fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
         writeKeyword("case ")
 

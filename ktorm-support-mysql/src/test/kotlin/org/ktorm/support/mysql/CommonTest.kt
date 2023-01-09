@@ -3,6 +3,7 @@ package org.ktorm.support.mysql
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.ktorm.database.DialectFeatureNotSupportedException
 import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
@@ -14,6 +15,8 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 /**
  * Created by vince on Dec 12, 2018.
@@ -319,6 +322,47 @@ class CommonTest : BaseMySqlTest() {
             .first()
 
         assert(name == "VINCE")
+    }
+    @Test
+    fun testWindowFunctions_0() {
+        // for those that are aggregate functions
+        val sum = (sum(Employees.salary) over partitionBy(Employees.departmentId)).aliased("sum")
+        val departmentSum = database.from(Employees)
+            .selectDistinct(Employees.departmentId, sum)
+            .associate { Pair(it[Employees.departmentId]!!, it[sum]!!) }
+        assertEquals(mapOf(1 to 150L, 2 to 300L), departmentSum)
+
+        // for those that are non-aggregate functions
+        val rank = (rank() over partitionBy(Employees.departmentId).orderBy(Employees.salary.desc())).aliased("rank")
+        val employeeSalaryRanks = database.from(Employees)
+            .select(Employees.name, Employees.departmentId, rank)
+            .map {
+                Triple(it[Employees.name], it[Employees.departmentId], it[rank])
+            }
+        val topSalaryEmployees = employeeSalaryRanks.filter {
+            it.third == 1
+        }.map { it.first }.toSet()
+        assertEquals(setOf("vince", "tom"), topSalaryEmployees)
+
+        // for those non-aggregate functions that require parameters
+        val group = (ntile(2) over orderBy(Employees.departmentId.asc())).aliased("group_num")
+        val employeeGroup = database.from(Employees).select(Employees.id, group).associate {
+           Pair(it[Employees.id]!!, it[group]!!)
+        }
+        assertEquals(mapOf(1 to 1, 2 to 1, 3 to 2, 4 to 2), employeeGroup)
+    }
+
+    @Test
+    fun testWindowFunction_1(){
+        // An exception should be thrown when no window is specified for a window function
+        assertFailsWith<DialectFeatureNotSupportedException> {
+            val rank = rank().aliased("rank")
+            database.from(Employees)
+                .select(Employees.name, Employees.departmentId, rank)
+                .forEach {
+                    println("${it[rank]}")
+                }
+        }
     }
 
     @Test
