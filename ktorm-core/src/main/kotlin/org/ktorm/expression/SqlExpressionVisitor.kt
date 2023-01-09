@@ -107,117 +107,6 @@ public interface SqlExpressionVisitor {
     }
 
     /**
-     * Function that visits a [CastingExpression].
-     */
-    public fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
-        val expression = visit(expr.expression)
-
-        if (expression === expr.expression) {
-            return expr
-        } else {
-            return expr.copy(expression = expression)
-        }
-    }
-
-    /**
-     * Helper function for visiting a list of expressions.
-     */
-    @Suppress("UNCHECKED_CAST")
-    public fun <T : SqlExpression> visitExpressionList(
-        original: List<T>,
-        subVisitor: (T) -> T = { visit(it) as T }
-    ): List<T> {
-        val result = ArrayList<T>()
-        var changed = false
-
-        for (expr in original) {
-            val visited = subVisitor(expr)
-            result += visited
-
-            if (visited !== expr) {
-                changed = true
-            }
-        }
-
-        return if (changed) result else original
-    }
-
-    /**
-     * Function that visits an [UnaryExpression].
-     */
-    public fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
-        val operand = visitScalar(expr.operand)
-
-        if (operand === expr.operand) {
-            return expr
-        } else {
-            return expr.copy(operand = operand)
-        }
-    }
-
-    /**
-     * Function that visits a [BinaryExpression].
-     */
-    public fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
-        val left = visitScalar(expr.left)
-        val right = visitScalar(expr.right)
-
-        if (left === expr.left && right === expr.right) {
-            return expr
-        } else {
-            return expr.copy(left = left, right = right)
-        }
-    }
-
-    /**
-     * Function that visits a [TableExpression].
-     */
-    public fun visitTable(expr: TableExpression): TableExpression {
-        return expr
-    }
-
-    /**
-     * Function that visits a [ColumnExpression].
-     */
-    public fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        val table = expr.table?.let { visitTable(it) }
-
-        if (table === expr.table) {
-            return expr
-        } else {
-            return expr.copy(table = table)
-        }
-    }
-
-    /**
-     * Function that visits a [ColumnDeclaringExpression].
-     */
-    public fun <T : Any> visitColumnDeclaring(
-        expr: ColumnDeclaringExpression<T>
-    ): ColumnDeclaringExpression<T> {
-        val expression = visitScalar(expr.expression)
-
-        if (expression === expr.expression) {
-            return expr
-        } else {
-            return expr.copy(expression = expression)
-        }
-    }
-
-    /**
-     * Function that visits an [OrderByExpression].
-     */
-    public fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
-        val expression = visitScalar(expr.expression)
-
-        if (expression === expr.expression) {
-            return expr
-        } else {
-            return expr.copy(expression = expression)
-        }
-    }
-
-    /**
      * Function that visits a [SelectExpression].
      */
     public fun visitSelect(expr: SelectExpression): SelectExpression {
@@ -261,175 +150,6 @@ public interface SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(left = left, right = right, orderBy = orderBy)
-        }
-    }
-
-    /**
-     * Function that visits a [JoinExpression].
-     */
-    public fun visitJoin(expr: JoinExpression): JoinExpression {
-        val left = visitQuerySource(expr.left)
-        val right = visitQuerySource(expr.right)
-        val condition = expr.condition?.let { visitScalar(it) }
-
-        if (left === expr.left && right === expr.right && condition === expr.condition) {
-            return expr
-        } else {
-            return expr.copy(left = left, right = right, condition = condition)
-        }
-    }
-
-    /**
-     * Function that visits an [InListExpression].
-     */
-    public fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
-        val left = visitScalar(expr.left)
-        val query = expr.query?.let { visitQuery(it) }
-        val values = expr.values?.let { visitExpressionList(it) }
-
-        if (left === expr.left && query === expr.query && values === expr.values) {
-            return expr
-        } else {
-            return expr.copy(left = left, query = query, values = values)
-        }
-    }
-
-    /**
-     * Function that visits an [ExistsExpression].
-     */
-    public fun visitExists(expr: ExistsExpression): ExistsExpression {
-        val query = visitQuery(expr.query)
-
-        if (query === expr.query) {
-            return expr
-        } else {
-            return expr.copy(query = query)
-        }
-    }
-
-    /**
-     * Function that visits an [AggregateExpression].
-     */
-    public fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
-        val argument = expr.argument?.let { visitScalar(it) }
-
-        if (argument === expr.argument) {
-            return expr
-        } else {
-            return expr.copy(argument = argument)
-        }
-    }
-
-    /**
-     * Function that visits a [BetweenExpression].
-     */
-    public fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
-        val expression = visitScalar(expr.expression)
-        val lower = visitScalar(expr.lower)
-        val upper = visitScalar(expr.upper)
-
-        if (expression === expr.expression && lower === expr.lower && upper === expr.upper) {
-            return expr
-        } else {
-            return expr.copy(expression = expression, lower = lower, upper = upper)
-        }
-    }
-
-    /**
-     * Function that visits an [ArgumentExpression].
-     */
-    public fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
-        return expr
-    }
-
-    /**
-     * Function that visits a [FunctionExpression].
-     */
-    public fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
-        val arguments = visitExpressionList(expr.arguments)
-
-        if (arguments === expr.arguments) {
-            return expr
-        } else {
-            return expr.copy(arguments = arguments)
-        }
-    }
-
-    /**
-     * Function that visits a [WindowSpecificationExpression].
-     */
-    public fun visitWindow(expr: WindowSpecificationExpression): WindowSpecificationExpression {
-        return expr
-    }
-
-    /**
-     * Function that visits a [WindowFunctionExpression].
-     */
-    public fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
-        val arguments = visitExpressionList(expr.arguments)
-        check(expr.window != null) {
-            "no anonymous or named windows found in window function expression `${expr.functionName}`."
-        }
-        val window = visitWindow(expr.window)
-        if (arguments === expr.arguments && expr.window === window) {
-            return expr
-        }
-        return expr.copy(
-            arguments = arguments,
-            window = window
-        )
-    }
-
-    /**
-     * Function that visits a [CaseWhenExpression].
-     */
-    public fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
-        val operand = expr.operand?.let { visitScalar(it) }
-        val whenClauses = visitWhenClauses(expr.whenClauses)
-        val elseClause = expr.elseClause?.let { visitScalar(it) }
-
-        if (operand === expr.operand && whenClauses === expr.whenClauses && elseClause === expr.elseClause) {
-            return expr
-        } else {
-            return expr.copy(operand = operand, whenClauses = whenClauses, elseClause = elseClause)
-        }
-    }
-
-    /**
-     * Helper function for visiting when clauses of [CaseWhenExpression].
-     */
-    public fun <T : Any> visitWhenClauses(
-        originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
-    ): List<Pair<ScalarExpression<*>, ScalarExpression<T>>> {
-        val resultClauses = ArrayList<Pair<ScalarExpression<*>, ScalarExpression<T>>>()
-        var changed = false
-
-        for ((condition, result) in originalClauses) {
-            val visitedCondition = visitScalar(condition)
-            val visitedResult = visitScalar(result)
-            resultClauses += Pair(visitedCondition, visitedResult)
-
-            if (visitedCondition !== condition || visitedResult !== result) {
-                changed = true
-            }
-        }
-
-        return if (changed) resultClauses else originalClauses
-    }
-
-    /**
-     * Function that visits a [ColumnAssignmentExpression].
-     */
-    public fun <T : Any> visitColumnAssignment(
-        expr: ColumnAssignmentExpression<T>
-    ): ColumnAssignmentExpression<T> {
-        val column = visitColumn(expr.column)
-        val expression = visitScalar(expr.expression)
-
-        if (column === expr.column && expression === expr.expression) {
-            return expr
-        } else {
-            return expr.copy(column, expression)
         }
     }
 
@@ -488,6 +208,308 @@ public interface SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(table = table, where = where)
+        }
+    }
+
+    /**
+     * Helper function for visiting a list of expressions.
+     */
+    @Suppress("UNCHECKED_CAST")
+    public fun <T : SqlExpression> visitExpressionList(
+        original: List<T>,
+        subVisitor: (T) -> T = { visit(it) as T }
+    ): List<T> {
+        val result = ArrayList<T>()
+        var changed = false
+
+        for (expr in original) {
+            val visited = subVisitor(expr)
+            result += visited
+
+            if (visited !== expr) {
+                changed = true
+            }
+        }
+
+        return if (changed) result else original
+    }
+
+    /**
+     * Function that visits a [JoinExpression].
+     */
+    public fun visitJoin(expr: JoinExpression): JoinExpression {
+        val left = visitQuerySource(expr.left)
+        val right = visitQuerySource(expr.right)
+        val condition = expr.condition?.let { visitScalar(it) }
+
+        if (left === expr.left && right === expr.right && condition === expr.condition) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right, condition = condition)
+        }
+    }
+
+    /**
+     * Function that visits a [TableExpression].
+     */
+    public fun visitTable(expr: TableExpression): TableExpression {
+        return expr
+    }
+
+    /**
+     * Function that visits a [ColumnExpression].
+     */
+    public fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
+        val table = expr.table?.let { visitTable(it) }
+
+        if (table === expr.table) {
+            return expr
+        } else {
+            return expr.copy(table = table)
+        }
+    }
+
+    /**
+     * Function that visits a [ColumnDeclaringExpression].
+     */
+    public fun <T : Any> visitColumnDeclaring(
+        expr: ColumnDeclaringExpression<T>
+    ): ColumnDeclaringExpression<T> {
+        val expression = visitScalar(expr.expression)
+
+        if (expression === expr.expression) {
+            return expr
+        } else {
+            return expr.copy(expression = expression)
+        }
+    }
+
+    /**
+     * Function that visits a [ColumnAssignmentExpression].
+     */
+    public fun <T : Any> visitColumnAssignment(
+        expr: ColumnAssignmentExpression<T>
+    ): ColumnAssignmentExpression<T> {
+        val column = visitColumn(expr.column)
+        val expression = visitScalar(expr.expression)
+
+        if (column === expr.column && expression === expr.expression) {
+            return expr
+        } else {
+            return expr.copy(column, expression)
+        }
+    }
+
+    /**
+     * Function that visits an [OrderByExpression].
+     */
+    public fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
+        val expression = visitScalar(expr.expression)
+
+        if (expression === expr.expression) {
+            return expr
+        } else {
+            return expr.copy(expression = expression)
+        }
+    }
+
+    /**
+     * Function that visits an [UnaryExpression].
+     */
+    public fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
+        val operand = visitScalar(expr.operand)
+
+        if (operand === expr.operand) {
+            return expr
+        } else {
+            return expr.copy(operand = operand)
+        }
+    }
+
+    /**
+     * Function that visits a [BinaryExpression].
+     */
+    public fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
+        val left = visitScalar(expr.left)
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
+    }
+
+    /**
+     * Function that visits an [ArgumentExpression].
+     */
+    public fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
+        return expr
+    }
+
+    /**
+     * Function that visits a [CastingExpression].
+     */
+    public fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
+        val expression = visit(expr.expression)
+
+        if (expression === expr.expression) {
+            return expr
+        } else {
+            return expr.copy(expression = expression)
+        }
+    }
+
+    /**
+     * Function that visits an [InListExpression].
+     */
+    public fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
+        val left = visitScalar(expr.left)
+        val query = expr.query?.let { visitQuery(it) }
+        val values = expr.values?.let { visitExpressionList(it) }
+
+        if (left === expr.left && query === expr.query && values === expr.values) {
+            return expr
+        } else {
+            return expr.copy(left = left, query = query, values = values)
+        }
+    }
+
+    /**
+     * Function that visits an [ExistsExpression].
+     */
+    public fun visitExists(expr: ExistsExpression): ExistsExpression {
+        val query = visitQuery(expr.query)
+
+        if (query === expr.query) {
+            return expr
+        } else {
+            return expr.copy(query = query)
+        }
+    }
+
+    /**
+     * Function that visits a [BetweenExpression].
+     */
+    public fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
+        val expression = visitScalar(expr.expression)
+        val lower = visitScalar(expr.lower)
+        val upper = visitScalar(expr.upper)
+
+        if (expression === expr.expression && lower === expr.lower && upper === expr.upper) {
+            return expr
+        } else {
+            return expr.copy(expression = expression, lower = lower, upper = upper)
+        }
+    }
+
+    /**
+     * Function that visits a [CaseWhenExpression].
+     */
+    public fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
+        val operand = expr.operand?.let { visitScalar(it) }
+        val whenClauses = visitWhenClauses(expr.whenClauses)
+        val elseClause = expr.elseClause?.let { visitScalar(it) }
+
+        if (operand === expr.operand && whenClauses === expr.whenClauses && elseClause === expr.elseClause) {
+            return expr
+        } else {
+            return expr.copy(operand = operand, whenClauses = whenClauses, elseClause = elseClause)
+        }
+    }
+
+    /**
+     * Helper function for visiting when clauses of [CaseWhenExpression].
+     */
+    public fun <T : Any> visitWhenClauses(
+        originalClauses: List<Pair<ScalarExpression<*>, ScalarExpression<T>>>
+    ): List<Pair<ScalarExpression<*>, ScalarExpression<T>>> {
+        val resultClauses = ArrayList<Pair<ScalarExpression<*>, ScalarExpression<T>>>()
+        var changed = false
+
+        for ((condition, result) in originalClauses) {
+            val visitedCondition = visitScalar(condition)
+            val visitedResult = visitScalar(result)
+            resultClauses += Pair(visitedCondition, visitedResult)
+
+            if (visitedCondition !== condition || visitedResult !== result) {
+                changed = true
+            }
+        }
+
+        return if (changed) resultClauses else originalClauses
+    }
+
+    /**
+     * Function that visits a [FunctionExpression].
+     */
+    public fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
+        val arguments = visitExpressionList(expr.arguments)
+
+        if (arguments === expr.arguments) {
+            return expr
+        } else {
+            return expr.copy(arguments = arguments)
+        }
+    }
+
+    /**
+     * Function that visits an [AggregateExpression].
+     */
+    public fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
+        val argument = expr.argument?.let { visitScalar(it) }
+
+        if (argument === expr.argument) {
+            return expr
+        } else {
+            return expr.copy(argument = argument)
+        }
+    }
+
+    /**
+     * Function that visits a [WindowFunctionExpression].
+     */
+    public fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
+        val arguments = visitExpressionList(expr.arguments)
+        val window = visitWindowSpecification(expr.window)
+
+        if (arguments === expr.arguments && window === expr.window) {
+            return expr
+        } else {
+            return expr.copy(arguments = arguments, window = window)
+        }
+    }
+
+    /**
+     * Function that visits a [WindowSpecificationExpression].
+     */
+    public fun visitWindowSpecification(expr: WindowSpecificationExpression): WindowSpecificationExpression {
+        val partitionBy = visitExpressionList(expr.partitionBy)
+        val orderBy = visitExpressionList(expr.orderBy)
+        val frameStart = expr.frameStart?.let { visitWindowFrameBound(it) }
+        val frameEnd = expr.frameEnd?.let { visitWindowFrameBound(it) }
+
+        if (partitionBy === expr.partitionBy
+            && orderBy === expr.orderBy
+            && frameStart === expr.frameStart
+            && frameEnd === expr.frameEnd
+        ) {
+            return expr
+        } else {
+            return expr.copy(partitionBy = partitionBy, orderBy = orderBy, frameStart = frameStart, frameEnd = frameEnd)
+        }
+    }
+
+    /**
+     * Function that visits a [WindowFrameBoundExpression].
+     */
+    public fun visitWindowFrameBound(expr: WindowFrameBoundExpression): WindowFrameBoundExpression {
+        val argument = expr.argument?.let { visitScalar(it) }
+
+        if (argument == expr.argument) {
+            return expr
+        } else {
+            return expr.copy(argument = argument)
         }
     }
 
