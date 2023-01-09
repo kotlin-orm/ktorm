@@ -146,6 +146,11 @@ publishing {
                         name.set("夜里的向日葵")
                         email.set("641571835@qq.com")
                     }
+                    developer {
+                        id.set("michaelfyc")
+                        name.set("michaelfyc")
+                        email.set("michael.fyc@outlook.com")
+                    }
                 }
             }
         }
