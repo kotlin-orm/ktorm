@@ -570,9 +570,8 @@ public abstract class SqlFormatter(
             visitExpressionList(expr.orderBy)
         }
 
-        if (expr.frameUnit != null) {
+        if (expr.frameUnit != null && expr.frameStart != null) {
             writeKeyword("${expr.frameUnit} ")
-            check(expr.frameStart != null) { "Window frame must have a bound: $expr" }
 
             if (expr.frameEnd == null) {
                 visitWindowFrameBound(expr.frameStart)
