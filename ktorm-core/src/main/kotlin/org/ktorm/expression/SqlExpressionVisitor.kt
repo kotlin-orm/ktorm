@@ -72,9 +72,9 @@ public interface SqlExpressionVisitor {
             is BinaryExpression -> visitBinary(expr)
             is ArgumentExpression -> visitArgument(expr)
             is CastingExpression -> visitCasting(expr)
-            is InListExpression<*> -> visitInList(expr)
+            is InListExpression -> visitInList(expr)
             is ExistsExpression -> visitExists(expr)
-            is BetweenExpression<*> -> visitBetween(expr)
+            is BetweenExpression -> visitBetween(expr)
             is CaseWhenExpression -> visitCaseWhen(expr)
             is FunctionExpression -> visitFunction(expr)
             is AggregateExpression -> visitAggregate(expr)
@@ -365,7 +365,7 @@ public interface SqlExpressionVisitor {
     /**
      * Function that visits an [InListExpression].
      */
-    public fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
+    public fun visitInList(expr: InListExpression): InListExpression {
         val left = visitScalar(expr.left)
         val query = expr.query?.let { visitQuery(it) }
         val values = expr.values?.let { visitExpressionList(it) }
@@ -393,7 +393,7 @@ public interface SqlExpressionVisitor {
     /**
      * Function that visits a [BetweenExpression].
      */
-    public fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
+    public fun visitBetween(expr: BetweenExpression): BetweenExpression {
         val expression = visitScalar(expr.expression)
         val lower = visitScalar(expr.lower)
         val upper = visitScalar(expr.upper)

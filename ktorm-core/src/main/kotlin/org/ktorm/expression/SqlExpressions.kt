@@ -531,10 +531,10 @@ public data class CastingExpression<T : Any>(
  * @property values the expression's right operand collection, cannot be used along with the [query] property.
  * @property notInList mark if this expression is translated to `not in`.
  */
-public data class InListExpression<T : Any>(
-    val left: ScalarExpression<T>,
+public data class InListExpression(
+    val left: ScalarExpression<*>,
     val query: QueryExpression? = null,
-    val values: List<ScalarExpression<T>>? = null,
+    val values: List<ScalarExpression<*>>? = null,
     val notInList: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
     override val isLeafNode: Boolean = false,
@@ -563,10 +563,10 @@ public data class ExistsExpression(
  * @property upper the upper bound of the range.
  * @property notBetween mark if this expression is translated to `not between`.
  */
-public data class BetweenExpression<T : Any>(
-    val expression: ScalarExpression<T>,
-    val lower: ScalarExpression<T>,
-    val upper: ScalarExpression<T>,
+public data class BetweenExpression(
+    val expression: ScalarExpression<*>,
+    val lower: ScalarExpression<*>,
+    val upper: ScalarExpression<*>,
     val notBetween: Boolean = false,
     override val sqlType: SqlType<Boolean> = BooleanSqlType,
     override val isLeafNode: Boolean = false,

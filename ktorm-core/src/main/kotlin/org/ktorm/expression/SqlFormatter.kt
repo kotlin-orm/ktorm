@@ -543,7 +543,7 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
+    override fun visitInList(expr: InListExpression): InListExpression {
         visit(expr.left)
 
         if (expr.notInList) {
@@ -577,7 +577,7 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
+    override fun visitBetween(expr: BetweenExpression): BetweenExpression {
         visit(expr.expression)
 
         if (expr.notBetween) {
