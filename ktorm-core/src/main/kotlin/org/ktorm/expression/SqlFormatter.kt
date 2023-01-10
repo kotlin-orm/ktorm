@@ -48,13 +48,6 @@ public abstract class SqlFormatter(
         INNER, OUTER, SAME
     }
 
-    protected fun removeLastBlank() {
-        val lastIndex = _builder.lastIndex
-        if (_builder[lastIndex] == ' ') {
-            _builder.deleteCharAt(lastIndex)
-        }
-    }
-
     protected fun newLine(indent: Indentation) {
         when (indent) {
             Indentation.INNER -> _depth++
@@ -89,6 +82,13 @@ public abstract class SqlFormatter(
                     _builder.append(keyword.lowercase())
                 }
             }
+        }
+    }
+
+    protected fun removeLastBlank() {
+        val lastIndex = _builder.lastIndex
+        if (_builder[lastIndex] == ' ') {
+            _builder.deleteCharAt(lastIndex)
         }
     }
 
@@ -191,169 +191,28 @@ public abstract class SqlFormatter(
         return result
     }
 
-    override fun <T : SqlExpression> visitExpressionList(original: List<T>, subVisitor: (T) -> T): List<T> {
-        for ((i, expr) in original.withIndex()) {
-            if (i > 0) {
-                removeLastBlank()
-                write(", ")
+    override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
+        when (expr) {
+            is TableExpression -> {
+                visitTable(expr)
             }
-            subVisitor(expr)
-        }
-        return original
-    }
-
-    override fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
-        write("? ")
-        _parameters += expr
-        return expr
-    }
-
-    override fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
-        if (expr.type == UnaryExpressionType.IS_NULL || expr.type == UnaryExpressionType.IS_NOT_NULL) {
-            if (expr.operand.removeBrackets) {
-                visit(expr.operand)
-            } else {
+            is JoinExpression -> {
+                visitJoin(expr)
+            }
+            is QueryExpression -> {
                 write("(")
-                visit(expr.operand)
+                newLine(Indentation.INNER)
+                visitQuery(expr)
                 removeLastBlank()
+                newLine(Indentation.OUTER)
                 write(") ")
+                expr.tableAlias?.let { write("${it.quoted} ") }
             }
-
-            writeKeyword("${expr.type} ")
-        } else {
-            writeKeyword("${expr.type} ")
-
-            if (expr.operand.removeBrackets) {
-                visit(expr.operand)
-            } else {
-                write("(")
-                visit(expr.operand)
-                removeLastBlank()
-                write(") ")
+            else -> {
+                visitUnknown(expr)
             }
         }
 
-        return expr
-    }
-
-    override fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
-        writeKeyword("${expr.type} ")
-
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
-        }
-
-        return expr
-    }
-
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (!expr.catalog.isNullOrBlank()) {
-            write("${expr.catalog.quoted}.")
-        }
-        if (!expr.schema.isNullOrBlank()) {
-            write("${expr.schema.quoted}.")
-        }
-
-        write("${expr.name.quoted} ")
-
-        if (!expr.tableAlias.isNullOrBlank()) {
-            // writeKeyword("as ")
-            write("${expr.tableAlias.quoted} ")
-        }
-
-        return expr
-    }
-
-    override fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
-        writeKeyword("${expr.type}(")
-
-        if (expr.isDistinct) {
-            writeKeyword("distinct ")
-        }
-
-        if (expr.argument != null) {
-            visitScalar(expr.argument)
-        } else {
-            if (expr.type == AggregateType.COUNT) {
-                write("* ")
-            }
-        }
-
-        removeLastBlank()
-        write(") ")
-        return expr
-    }
-
-    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.table != null) {
-            if (!expr.table.tableAlias.isNullOrBlank()) {
-                write("${expr.table.tableAlias.quoted}.")
-            } else {
-                if (!expr.table.catalog.isNullOrBlank()) {
-                    write("${expr.table.catalog.quoted}.")
-                }
-                if (!expr.table.schema.isNullOrBlank()) {
-                    write("${expr.table.schema.quoted}.")
-                }
-
-                write("${expr.table.name.quoted}.")
-            }
-        }
-
-        write("${expr.name.quoted} ")
-        return expr
-    }
-
-    override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
-        if (!expr.declaredName.isNullOrBlank()) {
-            write("${expr.declaredName.quoted} ")
-        } else {
-            if (expr.expression.removeBrackets) {
-                visit(expr.expression)
-            } else {
-                write("(")
-                visit(expr.expression)
-                removeLastBlank()
-                write(") ")
-            }
-        }
-
-        return expr
-    }
-
-    protected fun <T : Any> visitColumnDeclaringAtSelectClause(
-        expr: ColumnDeclaringExpression<T>
-    ): ColumnDeclaringExpression<T> {
-        visit(expr.expression)
-
-        val column = expr.expression as? ColumnExpression<*>
-        if (!expr.declaredName.isNullOrBlank() && (column == null || column.name != expr.declaredName)) {
-            writeKeyword("as ")
-            write("${expr.declaredName.quoted} ")
-        }
-
-        return expr
-    }
-
-    override fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
-        visit(expr.expression)
-        if (expr.orderType == OrderType.DESCENDING) {
-            writeKeyword("desc ")
-        }
         return expr
     }
 
@@ -399,47 +258,6 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
-        when (expr) {
-            is TableExpression -> {
-                visitTable(expr)
-            }
-            is JoinExpression -> {
-                visitJoin(expr)
-            }
-            is QueryExpression -> {
-                write("(")
-                newLine(Indentation.INNER)
-                visitQuery(expr)
-                removeLastBlank()
-                newLine(Indentation.OUTER)
-                write(") ")
-                expr.tableAlias?.let { write("${it.quoted} ") }
-            }
-            else -> {
-                visitUnknown(expr)
-            }
-        }
-
-        return expr
-    }
-
-    override fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
-        writeKeyword("cast(")
-
-        if (expr.expression.removeBrackets) {
-            visit(expr.expression)
-        } else {
-            write("(")
-            visit(expr.expression)
-            removeLastBlank()
-            write(") ")
-        }
-
-        writeKeyword("as ${expr.sqlType.typeName}) ")
-        return expr
-    }
-
     override fun visitUnion(expr: UnionExpression): UnionExpression {
         when (expr.left) {
             is SelectExpression -> visitQuerySource(expr.left)
@@ -469,156 +287,6 @@ public abstract class SqlFormatter(
     }
 
     protected abstract fun writePagination(expr: QueryExpression)
-
-    override fun visitJoin(expr: JoinExpression): JoinExpression {
-        visitQuerySource(expr.left)
-        newLine(Indentation.SAME)
-        writeKeyword("${expr.type} ")
-        visitQuerySource(expr.right)
-
-        if (expr.condition != null) {
-            writeKeyword("on ")
-            visit(expr.condition)
-        }
-
-        return expr
-    }
-
-    override fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
-        visit(expr.left)
-
-        if (expr.notInList) {
-            writeKeyword("not in ")
-        } else {
-            writeKeyword("in ")
-        }
-
-        if (expr.query != null) {
-            visitQuerySource(expr.query)
-        }
-        if (expr.values != null) {
-            write("(")
-            visitExpressionList(expr.values)
-            removeLastBlank()
-            write(") ")
-        }
-        return expr
-    }
-
-    override fun visitExists(expr: ExistsExpression): ExistsExpression {
-        if (expr.notExists) {
-            writeKeyword("not exists ")
-        } else {
-            writeKeyword("exists ")
-        }
-
-        visitQuerySource(expr.query)
-
-        return expr
-    }
-
-    override fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
-        visit(expr.expression)
-
-        if (expr.notBetween) {
-            writeKeyword("not between ")
-        } else {
-            writeKeyword("between ")
-        }
-
-        visit(expr.lower)
-        writeKeyword("and ")
-        visit(expr.upper)
-        return expr
-    }
-
-    override fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
-        writeKeyword("${expr.functionName}(")
-        visitExpressionList(expr.arguments)
-        removeLastBlank()
-        write(") ")
-        return expr
-    }
-
-    override fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
-        writeKeyword("${expr.type}(")
-
-        if (expr.arguments.isNotEmpty()) {
-            visitExpressionList(expr.arguments)
-        } else {
-            if (expr.type == WindowFunctionType.COUNT) {
-                write("* ")
-            }
-        }
-
-        removeLastBlank()
-        writeKeyword(") over ")
-        visitWindowSpecification(expr.window)
-        return expr
-    }
-
-    override fun visitWindowSpecification(expr: WindowSpecificationExpression): WindowSpecificationExpression {
-        write("(")
-
-        if (expr.partitionBy.isNotEmpty()) {
-            writeKeyword("partition by ")
-            visitExpressionList(expr.partitionBy)
-        }
-
-        if (expr.orderBy.isNotEmpty()) {
-            writeKeyword("order by ")
-            visitExpressionList(expr.orderBy)
-        }
-
-        if (expr.frameUnit != null && expr.frameStart != null) {
-            writeKeyword("${expr.frameUnit} ")
-
-            if (expr.frameEnd == null) {
-                visitWindowFrameBound(expr.frameStart)
-            } else {
-                writeKeyword("between ")
-                visitWindowFrameBound(expr.frameStart)
-                writeKeyword("and ")
-                visitWindowFrameBound(expr.frameEnd)
-            }
-        }
-
-        removeLastBlank()
-        write(") ")
-        return expr
-    }
-
-    override fun visitWindowFrameBound(expr: WindowFrameBoundExpression): WindowFrameBoundExpression {
-        if (expr.type == WindowFrameBoundType.PRECEDING || expr.type == WindowFrameBoundType.FOLLOWING) {
-            visitScalar(expr.argument!!)
-        }
-
-        writeKeyword("${expr.type} ")
-        return expr
-    }
-
-    override fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
-        writeKeyword("case ")
-
-        if (expr.operand != null) {
-            visit(expr.operand)
-        }
-
-        for ((condition, result) in expr.whenClauses) {
-            writeKeyword("when ")
-            visit(condition)
-            writeKeyword("then ")
-            visit(result)
-        }
-
-        if (expr.elseClause != null) {
-            writeKeyword("else ")
-            visit(expr.elseClause)
-        }
-
-        writeKeyword("end ")
-        return expr
-    }
 
     override fun visitInsert(expr: InsertExpression): InsertExpression {
         writeKeyword("insert into ")
@@ -693,6 +361,338 @@ public abstract class SqlFormatter(
             visit(expr.where)
         }
 
+        return expr
+    }
+
+    override fun <T : SqlExpression> visitExpressionList(original: List<T>, subVisitor: (T) -> T): List<T> {
+        for ((i, expr) in original.withIndex()) {
+            if (i > 0) {
+                removeLastBlank()
+                write(", ")
+            }
+            subVisitor(expr)
+        }
+        return original
+    }
+
+    override fun visitJoin(expr: JoinExpression): JoinExpression {
+        visitQuerySource(expr.left)
+        newLine(Indentation.SAME)
+        writeKeyword("${expr.type} ")
+        visitQuerySource(expr.right)
+
+        if (expr.condition != null) {
+            writeKeyword("on ")
+            visit(expr.condition)
+        }
+
+        return expr
+    }
+
+    override fun visitTable(expr: TableExpression): TableExpression {
+        if (!expr.catalog.isNullOrBlank()) {
+            write("${expr.catalog.quoted}.")
+        }
+        if (!expr.schema.isNullOrBlank()) {
+            write("${expr.schema.quoted}.")
+        }
+
+        write("${expr.name.quoted} ")
+
+        if (!expr.tableAlias.isNullOrBlank()) {
+            // writeKeyword("as ")
+            write("${expr.tableAlias.quoted} ")
+        }
+
+        return expr
+    }
+
+    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
+        if (expr.table != null) {
+            if (!expr.table.tableAlias.isNullOrBlank()) {
+                write("${expr.table.tableAlias.quoted}.")
+            } else {
+                if (!expr.table.catalog.isNullOrBlank()) {
+                    write("${expr.table.catalog.quoted}.")
+                }
+                if (!expr.table.schema.isNullOrBlank()) {
+                    write("${expr.table.schema.quoted}.")
+                }
+
+                write("${expr.table.name.quoted}.")
+            }
+        }
+
+        write("${expr.name.quoted} ")
+        return expr
+    }
+
+    override fun <T : Any> visitColumnDeclaring(expr: ColumnDeclaringExpression<T>): ColumnDeclaringExpression<T> {
+        if (!expr.declaredName.isNullOrBlank()) {
+            write("${expr.declaredName.quoted} ")
+        } else {
+            if (expr.expression.removeBrackets) {
+                visit(expr.expression)
+            } else {
+                write("(")
+                visit(expr.expression)
+                removeLastBlank()
+                write(") ")
+            }
+        }
+
+        return expr
+    }
+
+    protected fun <T : Any> visitColumnDeclaringAtSelectClause(
+        expr: ColumnDeclaringExpression<T>
+    ): ColumnDeclaringExpression<T> {
+        visit(expr.expression)
+
+        val column = expr.expression as? ColumnExpression<*>
+        if (!expr.declaredName.isNullOrBlank() && (column == null || column.name != expr.declaredName)) {
+            writeKeyword("as ")
+            write("${expr.declaredName.quoted} ")
+        }
+
+        return expr
+    }
+
+    override fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
+        visit(expr.expression)
+        if (expr.orderType == OrderType.DESCENDING) {
+            writeKeyword("desc ")
+        }
+        return expr
+    }
+
+    override fun <T : Any> visitUnary(expr: UnaryExpression<T>): UnaryExpression<T> {
+        if (expr.type == UnaryExpressionType.IS_NULL || expr.type == UnaryExpressionType.IS_NOT_NULL) {
+            if (expr.operand.removeBrackets) {
+                visit(expr.operand)
+            } else {
+                write("(")
+                visit(expr.operand)
+                removeLastBlank()
+                write(") ")
+            }
+
+            writeKeyword("${expr.type} ")
+        } else {
+            writeKeyword("${expr.type} ")
+
+            if (expr.operand.removeBrackets) {
+                visit(expr.operand)
+            } else {
+                write("(")
+                visit(expr.operand)
+                removeLastBlank()
+                write(") ")
+            }
+        }
+
+        return expr
+    }
+
+    override fun <T : Any> visitBinary(expr: BinaryExpression<T>): BinaryExpression<T> {
+        if (expr.left.removeBrackets) {
+            visit(expr.left)
+        } else {
+            write("(")
+            visit(expr.left)
+            removeLastBlank()
+            write(") ")
+        }
+
+        writeKeyword("${expr.type} ")
+
+        if (expr.right.removeBrackets) {
+            visit(expr.right)
+        } else {
+            write("(")
+            visit(expr.right)
+            removeLastBlank()
+            write(") ")
+        }
+
+        return expr
+    }
+
+    override fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
+        write("? ")
+        _parameters += expr
+        return expr
+    }
+
+    override fun <T : Any> visitCasting(expr: CastingExpression<T>): CastingExpression<T> {
+        writeKeyword("cast(")
+
+        if (expr.expression.removeBrackets) {
+            visit(expr.expression)
+        } else {
+            write("(")
+            visit(expr.expression)
+            removeLastBlank()
+            write(") ")
+        }
+
+        writeKeyword("as ${expr.sqlType.typeName}) ")
+        return expr
+    }
+
+    override fun <T : Any> visitInList(expr: InListExpression<T>): InListExpression<T> {
+        visit(expr.left)
+
+        if (expr.notInList) {
+            writeKeyword("not in ")
+        } else {
+            writeKeyword("in ")
+        }
+
+        if (expr.query != null) {
+            visitQuerySource(expr.query)
+        }
+        if (expr.values != null) {
+            write("(")
+            visitExpressionList(expr.values)
+            removeLastBlank()
+            write(") ")
+        }
+        return expr
+    }
+
+    override fun visitExists(expr: ExistsExpression): ExistsExpression {
+        if (expr.notExists) {
+            writeKeyword("not exists ")
+        } else {
+            writeKeyword("exists ")
+        }
+
+        visitQuerySource(expr.query)
+
+        return expr
+    }
+
+    override fun <T : Any> visitBetween(expr: BetweenExpression<T>): BetweenExpression<T> {
+        visit(expr.expression)
+
+        if (expr.notBetween) {
+            writeKeyword("not between ")
+        } else {
+            writeKeyword("between ")
+        }
+
+        visit(expr.lower)
+        writeKeyword("and ")
+        visit(expr.upper)
+        return expr
+    }
+
+    override fun <T : Any> visitCaseWhen(expr: CaseWhenExpression<T>): CaseWhenExpression<T> {
+        writeKeyword("case ")
+
+        if (expr.operand != null) {
+            visit(expr.operand)
+        }
+
+        for ((condition, result) in expr.whenClauses) {
+            writeKeyword("when ")
+            visit(condition)
+            writeKeyword("then ")
+            visit(result)
+        }
+
+        if (expr.elseClause != null) {
+            writeKeyword("else ")
+            visit(expr.elseClause)
+        }
+
+        writeKeyword("end ")
+        return expr
+    }
+
+    override fun <T : Any> visitFunction(expr: FunctionExpression<T>): FunctionExpression<T> {
+        writeKeyword("${expr.functionName}(")
+        visitExpressionList(expr.arguments)
+        removeLastBlank()
+        write(") ")
+        return expr
+    }
+
+    override fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
+        writeKeyword("${expr.type}(")
+
+        if (expr.isDistinct) {
+            writeKeyword("distinct ")
+        }
+
+        if (expr.argument != null) {
+            visitScalar(expr.argument)
+        } else {
+            if (expr.type == AggregateType.COUNT) {
+                write("* ")
+            }
+        }
+
+        removeLastBlank()
+        write(") ")
+        return expr
+    }
+
+    override fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
+        writeKeyword("${expr.type}(")
+
+        if (expr.arguments.isNotEmpty()) {
+            visitExpressionList(expr.arguments)
+        } else {
+            if (expr.type == WindowFunctionType.COUNT) {
+                write("* ")
+            }
+        }
+
+        removeLastBlank()
+        writeKeyword(") over ")
+        visitWindowSpecification(expr.window)
+        return expr
+    }
+
+    override fun visitWindowSpecification(expr: WindowSpecificationExpression): WindowSpecificationExpression {
+        write("(")
+
+        if (expr.partitionBy.isNotEmpty()) {
+            writeKeyword("partition by ")
+            visitExpressionList(expr.partitionBy)
+        }
+
+        if (expr.orderBy.isNotEmpty()) {
+            writeKeyword("order by ")
+            visitExpressionList(expr.orderBy)
+        }
+
+        if (expr.frameUnit != null && expr.frameStart != null) {
+            writeKeyword("${expr.frameUnit} ")
+
+            if (expr.frameEnd == null) {
+                visitWindowFrameBound(expr.frameStart)
+            } else {
+                writeKeyword("between ")
+                visitWindowFrameBound(expr.frameStart)
+                writeKeyword("and ")
+                visitWindowFrameBound(expr.frameEnd)
+            }
+        }
+
+        removeLastBlank()
+        write(") ")
+        return expr
+    }
+
+    override fun visitWindowFrameBound(expr: WindowFrameBoundExpression): WindowFrameBoundExpression {
+        if (expr.type == WindowFrameBoundType.PRECEDING || expr.type == WindowFrameBoundType.FOLLOWING) {
+            visitScalar(expr.argument!!)
+        }
+
+        writeKeyword("${expr.type} ")
         return expr
     }
 
