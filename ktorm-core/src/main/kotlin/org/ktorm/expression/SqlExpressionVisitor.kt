@@ -47,12 +47,14 @@ public interface SqlExpressionVisitor {
             is ScalarExpression<*> -> visitScalar(expr)
             is QueryExpression -> visitQuery(expr)
             is QuerySourceExpression -> visitQuerySource(expr)
-            is OrderByExpression -> visitOrderBy(expr)
-            is ColumnAssignmentExpression<*> -> visitColumnAssignment(expr)
             is InsertExpression -> visitInsert(expr)
             is InsertFromQueryExpression -> visitInsertFromQuery(expr)
             is UpdateExpression -> visitUpdate(expr)
             is DeleteExpression -> visitDelete(expr)
+            is ColumnAssignmentExpression<*> -> visitColumnAssignment(expr)
+            is OrderByExpression -> visitOrderBy(expr)
+            is WindowSpecificationExpression -> visitWindowSpecification(expr)
+            is WindowFrameBoundExpression -> visitWindowFrameBound(expr)
             else -> visitUnknown(expr)
         }
     }
@@ -64,19 +66,19 @@ public interface SqlExpressionVisitor {
      */
     public fun <T : Any> visitScalar(expr: ScalarExpression<T>): ScalarExpression<T> {
         val result = when (expr) {
+            is ColumnExpression -> visitColumn(expr)
             is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
-            is CastingExpression -> visitCasting(expr)
             is UnaryExpression -> visitUnary(expr)
             is BinaryExpression -> visitBinary(expr)
-            is ColumnExpression -> visitColumn(expr)
+            is ArgumentExpression -> visitArgument(expr)
+            is CastingExpression -> visitCasting(expr)
             is InListExpression<*> -> visitInList(expr)
             is ExistsExpression -> visitExists(expr)
-            is AggregateExpression -> visitAggregate(expr)
             is BetweenExpression<*> -> visitBetween(expr)
-            is ArgumentExpression -> visitArgument(expr)
-            is FunctionExpression -> visitFunction(expr)
-            is WindowFunctionExpression -> visitWindowFunction(expr)
             is CaseWhenExpression -> visitCaseWhen(expr)
+            is FunctionExpression -> visitFunction(expr)
+            is AggregateExpression -> visitAggregate(expr)
+            is WindowFunctionExpression -> visitWindowFunction(expr)
             else -> visitUnknown(expr)
         }
 
@@ -89,9 +91,9 @@ public interface SqlExpressionVisitor {
      */
     public fun visitQuerySource(expr: QuerySourceExpression): QuerySourceExpression {
         return when (expr) {
-            is TableExpression -> visitTable(expr)
-            is JoinExpression -> visitJoin(expr)
             is QueryExpression -> visitQuery(expr)
+            is JoinExpression -> visitJoin(expr)
+            is TableExpression -> visitTable(expr)
             else -> visitUnknown(expr) as QuerySourceExpression
         }
     }
