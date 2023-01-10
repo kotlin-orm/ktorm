@@ -280,9 +280,11 @@ public abstract class SqlFormatter(
             writeKeyword("order by ")
             visitExpressionList(expr.orderBy)
         }
+
         if (expr.offset != null || expr.limit != null) {
             writePagination(expr)
         }
+
         return expr
     }
 
@@ -370,6 +372,7 @@ public abstract class SqlFormatter(
                 removeLastBlank()
                 write(", ")
             }
+
             subVisitor(expr)
         }
         return original
@@ -552,12 +555,14 @@ public abstract class SqlFormatter(
         if (expr.query != null) {
             visitQuerySource(expr.query)
         }
+
         if (expr.values != null) {
             write("(")
             visitExpressionList(expr.values)
             removeLastBlank()
             write(") ")
         }
+
         return expr
     }
 
@@ -569,7 +574,6 @@ public abstract class SqlFormatter(
         }
 
         visitQuerySource(expr.query)
-
         return expr
     }
 
