@@ -280,10 +280,19 @@ public abstract class SqlFormatter(
 
     override fun <T : Any> visitAggregate(expr: AggregateExpression<T>): AggregateExpression<T> {
         writeKeyword("${expr.type}(")
+
         if (expr.isDistinct) {
             writeKeyword("distinct ")
         }
-        expr.argument?.let { visit(it) } ?: write("*")
+
+        if (expr.argument != null) {
+            visitScalar(expr.argument)
+        } else {
+            if (expr.type == AggregateType.COUNT) {
+                write("* ")
+            }
+        }
+
         removeLastBlank()
         write(") ")
         return expr
@@ -531,46 +540,61 @@ public abstract class SqlFormatter(
         return expr
     }
 
-    override fun visitWindow(expr: WindowSpecificationExpression): WindowSpecificationExpression {
-        if (expr.partitionArguments.isNotEmpty()) {
-            writeKeyword("partition by ")
-            visitExpressionList(expr.partitionArguments)
-        }
+    override fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
+        writeKeyword("${expr.type}(")
 
-        if (expr.orderByExpressions.isNotEmpty()) {
-            writeKeyword("order by ")
-            visitExpressionList(expr.orderByExpressions)
-        }
-        if (expr.frameUnit != null) {
-            writeKeyword("${expr.frameUnit} ")
-            if (expr.frameExpression != null) {
-                val first = expr.frameExpression.first
-                val second = expr.frameExpression.second
-                first.argument?.let { visit(it) }
-                writeKeyword("${first.frameExtentType} ")
-                if (second != null) {
-                    writeKeyword("and ")
-                    second.argument?.let { visit(it) }
-                    writeKeyword("${second.frameExtentType}")
-                }
+        if (expr.arguments.isNotEmpty()) {
+            visitExpressionList(expr.arguments)
+        } else {
+            if (expr.type == WindowFunctionType.COUNT) {
+                write("* ")
             }
         }
+
         removeLastBlank()
+        writeKeyword(") over ")
+        visitWindowSpecification(expr.window)
         return expr
     }
 
-    override fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
-        writeKeyword("${expr.functionName}(")
-        visitExpressionList(expr.arguments)
-        removeLastBlank()
-        writeKeyword(") over (")
-        check(expr.window != null) {
-            "no anonymous or named windows found in window function expression `${expr.functionName}`."
+    override fun visitWindowSpecification(expr: WindowSpecificationExpression): WindowSpecificationExpression {
+        write("(")
+
+        if (expr.partitionBy.isNotEmpty()) {
+            writeKeyword("partition by ")
+            visitExpressionList(expr.partitionBy)
         }
 
-        visitWindow(expr.window)
+        if (expr.orderBy.isNotEmpty()) {
+            writeKeyword("order by ")
+            visitExpressionList(expr.orderBy)
+        }
 
-        write(")")
+        if (expr.frameUnit != null) {
+            writeKeyword("${expr.frameUnit} ")
+            check(expr.frameStart != null) { "Window frame must have a bound: $expr" }
+
+            if (expr.frameEnd == null) {
+                visitWindowFrameBound(expr.frameStart)
+            } else {
+                writeKeyword("between ")
+                visitWindowFrameBound(expr.frameStart)
+                writeKeyword("and ")
+                visitWindowFrameBound(expr.frameEnd)
+            }
+        }
+
+        removeLastBlank()
+        write(") ")
+        return expr
+    }
+
+    override fun visitWindowFrameBound(expr: WindowFrameBoundExpression): WindowFrameBoundExpression {
+        if (expr.type == WindowFrameBoundType.PRECEDING || expr.type == WindowFrameBoundType.FOLLOWING) {
+            visitScalar(expr.argument!!)
+        }
+
+        writeKeyword("${expr.type} ")
         return expr
     }
 
