@@ -33,24 +33,6 @@ public open class PostgreSqlFormatter(
         return result
     }
 
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.catalog != null && expr.catalog!!.isNotBlank()) {
-            write("${expr.catalog!!.quoted}.")
-        }
-        if (expr.schema != null && expr.schema!!.isNotBlank()) {
-            write("${expr.schema!!.quoted}.")
-        }
-
-        write("${expr.name.quoted} ")
-
-        if (expr.tableAlias != null && expr.tableAlias!!.isNotBlank()) {
-            writeKeyword("as ") // The 'as' keyword is required for update statements in PostgreSQL.
-            write("${expr.tableAlias!!.quoted} ")
-        }
-
-        return expr
-    }
-
     override fun visitSelect(expr: SelectExpression): SelectExpression {
         super<SqlFormatter>.visitSelect(expr)
 
@@ -167,6 +149,24 @@ public open class PostgreSqlFormatter(
                 if (i > 0) write(", ")
                 write(column.name.quoted)
             }
+        }
+
+        return expr
+    }
+
+    override fun visitTable(expr: TableExpression): TableExpression {
+        if (!expr.catalog.isNullOrBlank()) {
+            write("${expr.catalog!!.quoted}.")
+        }
+        if (!expr.schema.isNullOrBlank()) {
+            write("${expr.schema!!.quoted}.")
+        }
+
+        write("${expr.name.quoted} ")
+
+        if (!expr.tableAlias.isNullOrBlank()) {
+            writeKeyword("as ") // The 'as' keyword is required for update statements in PostgreSQL.
+            write("${expr.tableAlias!!.quoted} ")
         }
 
         return expr
