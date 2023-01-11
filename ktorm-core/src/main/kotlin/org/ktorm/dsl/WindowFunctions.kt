@@ -153,6 +153,7 @@ public fun ntile(n: Int): WindowFunctionExpression<Int> {
 
 
 
+
 /**
  * Most MySQL aggregate functions also can be used as window functions.
  */
