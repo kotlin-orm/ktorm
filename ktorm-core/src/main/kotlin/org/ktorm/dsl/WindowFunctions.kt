@@ -158,7 +158,7 @@ public fun ntile(n: Int): WindowFunctionExpression<Int> {
  */
 public infix fun <T : Any> AggregateExpression<T>.over(window: WindowSpecificationExpression): WindowFunctionExpression<T> {
     val arguments = if (this.argument != null) {
-        listOf(this.argument!!)
+        listOf(this.argument)
     } else {
         emptyList()
     }
