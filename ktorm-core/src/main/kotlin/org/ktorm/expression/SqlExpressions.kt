@@ -671,7 +671,7 @@ public data class AggregateExpression<T : Any>(
 ) : ScalarExpression<T>()
 
 /**
- * The enum of window function type in a [WindowSpecificationExpression].
+ * The enum of window function type.
  *
  * @since 3.6.0
  */
