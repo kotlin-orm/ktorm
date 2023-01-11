@@ -30,7 +30,7 @@ public open class MySqlFormatter(
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super<MySqlExpressionVisitor>.visit(expr)
-        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        check(result === expr) { "SqlFormatter cannot modify the expression tree." }
         return result
     }
 

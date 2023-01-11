@@ -29,7 +29,7 @@ public open class PostgreSqlFormatter(
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super<PostgreSqlExpressionVisitor>.visit(expr)
-        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        check(result === expr) { "SqlFormatter cannot modify the expression tree." }
         return result
     }
 

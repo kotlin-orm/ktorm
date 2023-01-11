@@ -32,7 +32,7 @@ public open class SQLiteFormatter(
 
     override fun visit(expr: SqlExpression): SqlExpression {
         val result = super<SQLiteExpressionVisitor>.visit(expr)
-        check(result === expr) { "SqlFormatter cannot modify the expression trees." }
+        check(result === expr) { "SqlFormatter cannot modify the expression tree." }
         return result
     }
 
