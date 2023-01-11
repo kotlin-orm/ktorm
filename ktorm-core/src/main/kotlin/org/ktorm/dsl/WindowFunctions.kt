@@ -14,19 +14,144 @@
  * limitations under the License.
  */
 
-package org.ktorm.support.mysql
+package org.ktorm.dsl
 
 import org.ktorm.expression.AggregateExpression
 import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.FrameExpression
-import org.ktorm.expression.FrameExtentType
-import org.ktorm.expression.FrameUnitType
 import org.ktorm.expression.OrderByExpression
 import org.ktorm.expression.WindowSpecificationExpression
 import org.ktorm.expression.WindowFunctionExpression
 import org.ktorm.expression.WindowFunctionType
+import org.ktorm.expression.WindowFunctionType.*
 import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.DoubleSqlType
+import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.SqlType
+
+/**
+ * The row_number window function, translated to `row_number()` in SQL.
+ */
+public fun rowNumber(): WindowFunctionExpression<Int> {
+    return WindowFunctionExpression(ROW_NUMBER, emptyList(), WindowSpecificationExpression(), IntSqlType)
+}
+
+/**
+ * The rank window function, translated to `rank()` in SQL.
+ */
+public fun rank(): WindowFunctionExpression<Int> {
+    return WindowFunctionExpression(RANK, emptyList(), WindowSpecificationExpression(), IntSqlType)
+}
+
+/**
+ * The dense_rank window function, translated to `dense_rank()` in SQL.
+ */
+public fun denseRank(): WindowFunctionExpression<Int> {
+    return WindowFunctionExpression(DENSE_RANK, emptyList(), WindowSpecificationExpression(), IntSqlType)
+}
+
+/**
+ * The percent_rank window function, translated to `percent_rank()` in SQL.
+ */
+public fun percentRank(): WindowFunctionExpression<Double> {
+    return WindowFunctionExpression(PERCENT_RANK, emptyList(), WindowSpecificationExpression(), DoubleSqlType)
+}
+
+/**
+ * The cume_dist window function, translated to `cume_dist()` in SQL.
+ */
+public fun cumeDist(): WindowFunctionExpression<Double> {
+    return WindowFunctionExpression(CUME_DIST, emptyList(), WindowSpecificationExpression(), DoubleSqlType)
+}
+
+/**
+ * The lag window function, translated to `lag(expr, offset[, defVal])` in SQL.
+ */
+public fun <T : Any> lag(expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? = null): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = LAG,
+        arguments = listOfNotNull(
+            expr.asExpression(),
+            ArgumentExpression(offset, IntSqlType),
+            defVal?.let { ArgumentExpression(it, expr.sqlType) }
+        ),
+        window = WindowSpecificationExpression(),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The lead window function, translated to `lead(expr, offset[, defVal])` in SQL.
+ */
+public fun <T : Any> lead(expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? = null): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = LEAD,
+        arguments = listOfNotNull(
+            expr.asExpression(),
+            ArgumentExpression(offset, IntSqlType),
+            defVal?.let { ArgumentExpression(it, expr.sqlType) }
+        ),
+        window = WindowSpecificationExpression(),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The first_value window function, translated to `first_value(expr)` in SQL.
+ */
+public fun <T : Any> firstValue(expr: ColumnDeclaring<T>): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = FIRST_VALUE,
+        arguments = listOf(expr.asExpression()),
+        window = WindowSpecificationExpression(),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The last_value window function, translated to `last_value(expr)` in SQL.
+ */
+public fun <T : Any> lastValue(expr: ColumnDeclaring<T>): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = LAST_VALUE,
+        arguments = listOf(expr.asExpression()),
+        window = WindowSpecificationExpression(),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The nth_value window function, translated to `nth_value(expr, n)` in SQL.
+ */
+public fun <T : Any> nthValue(expr: ColumnDeclaring<T>, n: Int): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = NTH_VALUE,
+        arguments = listOf(expr.asExpression(), ArgumentExpression(n, IntSqlType)),
+        window = WindowSpecificationExpression(),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The ntile window function, translated to `ntile(n)` in SQL.
+ */
+public fun ntile(n: Int): WindowFunctionExpression<Int> {
+    return WindowFunctionExpression(
+        type = NTILE,
+        arguments = listOf(ArgumentExpression(n, IntSqlType)),
+        window = WindowSpecificationExpression(),
+        sqlType = IntSqlType
+    )
+}
+
+
+
+
+
+
+
+
+
+
 
 /**
  * Most MySQL aggregate functions also can be used as window functions.
@@ -203,179 +328,5 @@ public fun <T : Any> WindowSpecificationExpression.row(
         orderByExpressions,
         FrameUnitType.ROWS,
         Pair(frameExpression, null)
-    )
-}
-
-/**
- * MySQL rank window function, translated to `rank()`.
- */
-public fun rank(): WindowFunctionExpression<Int> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.RANK,
-        arguments = emptyList(),
-        window = null,
-        sqlType = SqlType.of()!!
-    )
-}
-
-/**
- * MySQL row_number window function, translated to `row_number()`.
- */
-public fun rowNumber(): WindowFunctionExpression<Int> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.ROW_NUMBER,
-        arguments = emptyList(),
-        window = null,
-        sqlType = SqlType.of()!!
-    )
-}
-
-/**
- * MySQL dense_rank window function, translated to `dense_rank()`.
- */
-public fun denseRank(): WindowFunctionExpression<Int> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.DENSE_RANK,
-        arguments = emptyList(),
-        window = null,
-        sqlType = SqlType.of()!!
-    )
-}
-
-/**
- * MySQL percent_rank window function, translated to `percent_rank()`.
- */
-public fun percentRank(): WindowFunctionExpression<Double> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.PERCENT_RANK,
-        arguments = emptyList(),
-        window = null,
-        sqlType = SqlType.of()!!
-    )
-}
-
-/**
- * MySQL cume_dist window function, translated to `cume_dist()`.
- */
-public fun cumeDist(): WindowFunctionExpression<Int> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.CUME_DIST,
-        arguments = emptyList(),
-        window = null,
-        sqlType = SqlType.of()!!
-    )
-}
-
-/**
- * MySQL first_value window function, translated to `first_value(column)`.
- */
-public fun <T : Any> firstValue(column: ColumnDeclaring<T>): WindowFunctionExpression<T> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.FIRST_VALUE,
-        arguments = listOf(column.asExpression()),
-        window = null,
-        sqlType = column.sqlType
-    )
-}
-
-/**
- * MySQL last_value window function, translated to `last_value(column)`.
- */
-public fun <T : Any> lastValue(column: ColumnDeclaring<T>): WindowFunctionExpression<T> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.LAST_VALUE,
-        arguments = listOf(column.asExpression()),
-        window = null,
-        sqlType = column.sqlType
-    )
-}
-
-/**
- * MySQL ntile window function, translated to `ntile(n)`.
- */
-public fun ntile(n: Int): WindowFunctionExpression<Int> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.NTILE,
-        arguments = listOf(
-            ArgumentExpression(
-                n,
-                SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually.")
-            )
-        ),
-        window = null,
-        sqlType = SqlType.of()!!
-    )
-}
-
-/**
- * MySQL nth_value window function, translated to `nth_value(column, n)`.
- */
-public fun <T : Any> nthValue(column: ColumnDeclaring<T>, n: Int): WindowFunctionExpression<T> {
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.NTH_VALUE,
-        arguments = listOf(
-            column.asExpression(),
-            ArgumentExpression(n, SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually."))
-        ),
-        window = null,
-        sqlType = column.sqlType
-    )
-}
-
-/**
- * MySQL lead window function, translated to `lead(column, offset, <defaultValue>)`.
- */
-public fun <T : Any> lead(
-    column: ColumnDeclaring<T>,
-    offset: Int,
-    defaultValue: Int? = null
-): WindowFunctionExpression<T> {
-    val arguments = mutableListOf(
-        column.asExpression(),
-        ArgumentExpression(offset, SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually."))
-    )
-    if (defaultValue != null) {
-        arguments.add(
-            ArgumentExpression(
-                defaultValue,
-                SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually.")
-            )
-        )
-    }
-
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.LEAD,
-        arguments = arguments,
-        window = null,
-        sqlType = column.sqlType
-    )
-}
-
-/**
- * MySQL lag window function, translated to `lag(column, offset, <defaultValue>)`.
- */
-public fun <T : Any> lag(
-    column: ColumnDeclaring<T>,
-    offset: Int,
-    defaultValue: Int? = null
-): WindowFunctionExpression<T> {
-    val arguments = mutableListOf(
-        column.asExpression(),
-        ArgumentExpression(offset, SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually."))
-    )
-    if (defaultValue != null) {
-        arguments.add(
-            ArgumentExpression(
-                defaultValue,
-                SqlType.of() ?: error("Cannot detect the param's SqlType, please specify manually.")
-            )
-        )
-    }
-
-    return WindowFunctionExpression(
-        functionName = WindowFunctionType.LAG,
-        arguments = arguments,
-        window = null,
-        sqlType = column.sqlType
     )
 }
