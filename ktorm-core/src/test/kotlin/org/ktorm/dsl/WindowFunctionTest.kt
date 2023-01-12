@@ -81,4 +81,16 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("marry:50:1", "vince:100:2", "penny:100:2", "tom:200:3"), results.toSet())
     }
+
+    @Test
+    fun testPercentRank() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, Employees.salary, percentRank().over { orderBy(Employees.salary.asc()) })
+            .map { row ->
+                String.format("%s:%d:%.2f", row.getString(1), row.getLong(2), row.getDouble(3))
+            }
+
+        assertEquals(setOf("marry:50:0.00", "vince:100:0.33", "penny:100:0.33", "tom:200:1.00"), results.toSet())
+    }
 }
