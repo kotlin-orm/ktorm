@@ -664,7 +664,7 @@ public enum class AggregateType(private val value: String) {
 public data class AggregateExpression<T : Any>(
     val type: AggregateType,
     val argument: ScalarExpression<*>?,
-    val isDistinct: Boolean,
+    val isDistinct: Boolean = false,
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()
@@ -770,12 +770,14 @@ public enum class WindowFunctionType(private val value: String) {
  * @property type the type of the window function.
  * @property arguments the arguments passed to the window function.
  * @property window the window specification.
+ * @property isDistinct mark if this function is distinct.
  * @since 3.6.0
  */
 public data class WindowFunctionExpression<T : Any>(
     val type: WindowFunctionType,
     val arguments: List<ScalarExpression<*>>,
-    val window: WindowSpecificationExpression,
+    val isDistinct: Boolean = false,
+    val window: WindowSpecificationExpression = WindowSpecificationExpression(),
     override val sqlType: SqlType<T>,
     override val isLeafNode: Boolean = false,
     override val extraProperties: Map<String, Any> = emptyMap()

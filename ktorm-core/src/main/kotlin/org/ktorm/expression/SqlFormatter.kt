@@ -646,6 +646,10 @@ public abstract class SqlFormatter(
     override fun <T : Any> visitWindowFunction(expr: WindowFunctionExpression<T>): WindowFunctionExpression<T> {
         writeKeyword("${expr.type}(")
 
+        if (expr.isDistinct) {
+            writeKeyword("distinct ")
+        }
+
         if (expr.arguments.isNotEmpty()) {
             visitExpressionList(expr.arguments)
         } else {
