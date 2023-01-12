@@ -212,7 +212,7 @@ public fun <T : Any> WindowFunctionExpression<T>.over(
  *
  * @since 3.6.0
  */
-public fun <T : Any> WindowFunctionExpression<T>.over(
+public inline fun <T : Any> WindowFunctionExpression<T>.over(
     configure: WindowSpecificationExpression.() -> WindowSpecificationExpression
 ): WindowFunctionExpression<T> {
     return over(window().configure())
@@ -240,7 +240,7 @@ public fun <T : Any> AggregateExpression<T>.over(
  *
  * @since 3.6.0
  */
-public fun <T : Any> AggregateExpression<T>.over(
+public inline fun <T : Any> AggregateExpression<T>.over(
     configure: WindowSpecificationExpression.() -> WindowSpecificationExpression
 ): WindowFunctionExpression<T> {
     return over(window().configure())
