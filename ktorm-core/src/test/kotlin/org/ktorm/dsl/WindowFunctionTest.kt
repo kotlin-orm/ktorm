@@ -93,4 +93,16 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("marry:50:0.00", "vince:100:0.33", "penny:100:0.33", "tom:200:1.00"), results.toSet())
     }
+
+    @Test
+    fun testCumeDist() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, Employees.salary, cumeDist().over { orderBy(Employees.salary.asc()) })
+            .map { row ->
+                String.format("%s:%d:%.2f", row.getString(1), row.getLong(2), row.getDouble(3))
+            }
+
+        assertEquals(setOf("marry:50:0.25", "vince:100:0.75", "penny:100:0.75", "tom:200:1.00"), results.toSet())
+    }
 }
