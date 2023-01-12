@@ -128,7 +128,7 @@ public fun ntile(n: Int): WindowFunctionExpression<Int> {
  * Specify the window specification for this window function.
  */
 public fun <T : Any> WindowFunctionExpression<T>.over(
-    window: WindowSpecificationExpression
+    window: WindowSpecificationExpression = window()
 ): WindowFunctionExpression<T> {
     return this.copy(window = window)
 }
@@ -139,14 +139,14 @@ public fun <T : Any> WindowFunctionExpression<T>.over(
 public fun <T : Any> WindowFunctionExpression<T>.over(
     configure: WindowSpecificationExpression.() -> WindowSpecificationExpression
 ): WindowFunctionExpression<T> {
-    return over(window.configure())
+    return over(window().configure())
 }
 
 /**
  * Use this aggregate function as a window function and specify its window specification.
  */
 public fun <T : Any> AggregateExpression<T>.over(
-    window: WindowSpecificationExpression
+    window: WindowSpecificationExpression = window()
 ): WindowFunctionExpression<T> {
     return WindowFunctionExpression(
         type = WindowFunctionType.valueOf(this.type.name),

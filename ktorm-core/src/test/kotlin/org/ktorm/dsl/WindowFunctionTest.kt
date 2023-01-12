@@ -45,4 +45,16 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(mapOf(1 to 1, 2 to 1, 3 to 2, 4 to 2), groups)
     }
+
+    @Test
+    fun testRowNumber() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, rowNumber())
+            .joinToString { row ->
+                row.getString(1) + ":" + row.getInt(2)
+            }
+
+        assertEquals("vince:1, marry:2, tom:3, penny:4", results)
+    }
 }
