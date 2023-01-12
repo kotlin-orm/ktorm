@@ -151,6 +151,10 @@ publishing {
                         name.set("michaelfyc")
                         email.set("michael.fyc@outlook.com")
                     }
+                    developer {
+                        id.set("brohacz")
+                        name.set("Michal Brosig")
+                    }
                 }
             }
         }
