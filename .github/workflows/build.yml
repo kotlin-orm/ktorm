@@ -53,6 +53,7 @@ jobs:
 
       - name: Upload Jacoco Badges
         if: matrix.java == '8'
+        continue-on-error: true
         run: |
           REPO_DIR=~/.ktorm/temp/repo/ktorm-docs
           git clone --depth=1 --branch=master https://github.com/kotlin-orm/ktorm-docs.git "$REPO_DIR"
