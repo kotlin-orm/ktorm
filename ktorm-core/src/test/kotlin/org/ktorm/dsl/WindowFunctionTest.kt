@@ -69,4 +69,16 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("marry:50:1", "vince:100:2", "penny:100:2", "tom:200:4"), results.toSet())
     }
+
+    @Test
+    fun testDenseRank() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, Employees.salary, denseRank().over { orderBy(Employees.salary.asc()) })
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getInt(3)}"
+            }
+
+        assertEquals(setOf("marry:50:1", "vince:100:2", "penny:100:2", "tom:200:3"), results.toSet())
+    }
 }
