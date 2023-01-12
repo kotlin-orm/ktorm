@@ -7,7 +7,7 @@ plugins {
 dependencies {
     compileOnly("org.springframework:spring-jdbc:5.0.10.RELEASE")
     compileOnly("org.springframework:spring-tx:5.0.10.RELEASE")
-    testImplementation("com.h2database:h2:1.4.197")
+    testImplementation("com.h2database:h2:1.4.198")
     testImplementation("org.slf4j:slf4j-simple:1.7.25")
 }
 

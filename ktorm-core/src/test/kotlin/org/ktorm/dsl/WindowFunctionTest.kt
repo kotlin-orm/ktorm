@@ -1,0 +1,48 @@
+package org.ktorm.dsl
+
+import org.junit.Test
+import org.ktorm.BaseTest
+import kotlin.test.assertEquals
+
+/**
+ * Created by vince at Jan 12, 2023.
+ */
+class WindowFunctionTest : BaseTest() {
+
+    @Test
+    fun testWindowFunctions() {
+        // for those that are aggregate functions
+        val sums = database
+            .from(Employees)
+            .selectDistinct(Employees.departmentId, sum(Employees.salary).over { partitionBy(Employees.departmentId) })
+            .associate { row ->
+                Pair(row.getInt(1), row.getLong(2))
+            }
+
+        assertEquals(mapOf(1 to 150L, 2 to 300L), sums)
+
+        // for those that are non-aggregate functions
+        val ranks = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.departmentId,
+                rank().over { partitionBy(Employees.departmentId).orderBy(Employees.salary.desc()) }
+            )
+            .map { row ->
+                Triple(row.getString(1), row.getInt(2), row.getInt(3))
+            }
+
+        assertEquals(setOf("vince", "tom"), ranks.filter { it.third == 1 }.map { it.first }.toSet())
+
+        // for those non-aggregate functions that require parameters
+        val groups = database
+            .from(Employees)
+            .select(Employees.id, ntile(2).over { orderBy(Employees.departmentId.asc()) })
+            .associate { row ->
+                Pair(row.getInt(1), row.getInt(2))
+            }
+
+        assertEquals(mapOf(1 to 1, 2 to 1, 3 to 2, 4 to 2), groups)
+    }
+}

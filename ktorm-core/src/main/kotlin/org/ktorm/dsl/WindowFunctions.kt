@@ -127,16 +127,25 @@ public fun ntile(n: Int): WindowFunctionExpression<Int> {
 /**
  * Specify the window specification for this window function.
  */
-public infix fun <T : Any> WindowFunctionExpression<T>.over(
+public fun <T : Any> WindowFunctionExpression<T>.over(
     window: WindowSpecificationExpression
 ): WindowFunctionExpression<T> {
     return this.copy(window = window)
 }
 
 /**
+ * Specify the window specification for this window function.
+ */
+public fun <T : Any> WindowFunctionExpression<T>.over(
+    configure: WindowSpecificationExpression.() -> WindowSpecificationExpression
+): WindowFunctionExpression<T> {
+    return over(window.configure())
+}
+
+/**
  * Use this aggregate function as a window function and specify its window specification.
  */
-public infix fun <T : Any> AggregateExpression<T>.over(
+public fun <T : Any> AggregateExpression<T>.over(
     window: WindowSpecificationExpression
 ): WindowFunctionExpression<T> {
     return WindowFunctionExpression(
@@ -146,6 +155,15 @@ public infix fun <T : Any> AggregateExpression<T>.over(
         window = window,
         sqlType = this.sqlType
     )
+}
+
+/**
+ * Use this aggregate function as a window function and specify its window specification.
+ */
+public fun <T : Any> AggregateExpression<T>.over(
+    configure: WindowSpecificationExpression.() -> WindowSpecificationExpression
+): WindowFunctionExpression<T> {
+    return over(window().configure())
 }
 
 /**

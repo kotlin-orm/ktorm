@@ -491,6 +491,7 @@ public interface SqlExpressionVisitor {
         val frameStart = expr.frameStart?.let { visitWindowFrameBound(it) }
         val frameEnd = expr.frameEnd?.let { visitWindowFrameBound(it) }
 
+        @Suppress("ComplexCondition")
         if (partitionBy === expr.partitionBy
             && orderBy === expr.orderBy
             && frameStart === expr.frameStart
