@@ -52,9 +52,21 @@ class WindowFunctionTest : BaseTest() {
             .from(Employees)
             .select(Employees.name, rowNumber())
             .joinToString { row ->
-                row.getString(1) + ":" + row.getInt(2)
+                "${row.getString(1)}:${row.getInt(2)}"
             }
 
         assertEquals("vince:1, marry:2, tom:3, penny:4", results)
+    }
+
+    @Test
+    fun testRank() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, Employees.salary, rank().over { orderBy(Employees.salary.asc()) })
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getInt(3)}"
+            }
+
+        assertEquals(setOf("marry:50:1", "vince:100:2", "penny:100:2", "tom:200:4"), results.toSet())
     }
 }
