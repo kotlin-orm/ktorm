@@ -201,4 +201,49 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("marry:50:101", "vince:100:201", "penny:100:2", "tom:200:2"), results.toSet())
     }
+
+    @Test
+    fun testFirstValue() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                firstValue(Employees.salary).over { partitionBy(Employees.departmentId).orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("vince:50", "marry:50", "tom:100", "penny:100"), results.toSet())
+    }
+
+    @Test
+    fun testLastValue() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                lastValue(Employees.salary + 1).over { partitionBy(Employees.departmentId).orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("vince:101", "marry:51", "tom:201", "penny:101"), results.toSet())
+    }
+
+    @Test
+    fun testNthValue() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                nthValue(Employees.salary, 2).over { partitionBy(Employees.departmentId).orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("vince:100", "marry:null", "tom:200", "penny:null"), results.toSet())
+    }
 }
