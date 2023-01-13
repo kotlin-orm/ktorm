@@ -109,9 +109,57 @@ public fun cumeDist(): WindowFunctionExpression<Double> {
  *
  * @since 3.6.0
  */
-public fun <T : Any> lag(expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? = null): WindowFunctionExpression<T> {
+public fun <T : Any> lag(
+    expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? = null
+): WindowFunctionExpression<T> {
     return WindowFunctionExpression(
         type = WindowFunctionType.LAG,
+        arguments = listOfNotNull(
+            expr.asExpression(),
+            ArgumentExpression(offset, IntSqlType),
+            defVal?.let { ArgumentExpression(it, expr.sqlType) }
+        ),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The lag window function, translated to `lag(expr, offset[, defVal])` in SQL.
+ *
+ * Return the value of [expr] from the row that lags (precedes) the current row by [offset] rows within its partition.
+ * If there is no such row, the return value is [defVal]. For example, if offset is 3, the return value is default
+ * for the first three rows.
+ *
+ * @since 3.6.0
+ */
+public fun <T : Any> lag(
+    expr: ColumnDeclaring<T>, offset: Int, defVal: ColumnDeclaring<T>
+): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = WindowFunctionType.LAG,
+        arguments = listOfNotNull(
+            expr.asExpression(),
+            ArgumentExpression(offset, IntSqlType),
+            defVal.asExpression()
+        ),
+        sqlType = expr.sqlType
+    )
+}
+
+/**
+ * The lead window function, translated to `lead(expr, offset[, defVal])` in SQL.
+ *
+ * Return the value of [expr] from the row that leads (follows) the current row by [offset] rows within its partition.
+ * If there is no such row, the return value is [defVal]. For example, if offset is 3, the return value is default
+ * for the last three rows.
+ *
+ * @since 3.6.0
+ */
+public fun <T : Any> lead(
+    expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? = null
+): WindowFunctionExpression<T> {
+    return WindowFunctionExpression(
+        type = WindowFunctionType.LEAD,
         arguments = listOfNotNull(
             expr.asExpression(),
             ArgumentExpression(offset, IntSqlType),
@@ -130,13 +178,15 @@ public fun <T : Any> lag(expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? =
  *
  * @since 3.6.0
  */
-public fun <T : Any> lead(expr: ColumnDeclaring<T>, offset: Int = 1, defVal: T? = null): WindowFunctionExpression<T> {
+public fun <T : Any> lead(
+    expr: ColumnDeclaring<T>, offset: Int, defVal: ColumnDeclaring<T>
+): WindowFunctionExpression<T> {
     return WindowFunctionExpression(
         type = WindowFunctionType.LEAD,
         arguments = listOfNotNull(
             expr.asExpression(),
             ArgumentExpression(offset, IntSqlType),
-            defVal?.let { ArgumentExpression(it, expr.sqlType) }
+            defVal.asExpression()
         ),
         sqlType = expr.sqlType
     )

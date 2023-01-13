@@ -105,4 +105,100 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("marry:50:0.25", "vince:100:0.75", "penny:100:0.75", "tom:200:1.00"), results.toSet())
     }
+
+    @Test
+    fun testLag() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.salary,
+                lag(Employees.salary).over { orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("marry:50:null", "vince:100:50", "penny:100:100", "tom:200:100"), results.toSet())
+    }
+
+    @Test
+    fun testLagWithDefaultValue() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.salary,
+                lag(Employees.salary, 1, -1).over { orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("marry:50:-1", "vince:100:50", "penny:100:100", "tom:200:100"), results.toSet())
+    }
+
+    @Test
+    fun testLagWithDefaultValueByExpression() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.salary,
+                lag(Employees.salary + 1, 2, Employees.departmentId.toLong()).over { orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("marry:50:1", "vince:100:1", "penny:100:51", "tom:200:101"), results.toSet())
+    }
+
+    @Test
+    fun testLead() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.salary,
+                lead(Employees.salary).over { orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("marry:50:100", "vince:100:100", "penny:100:200", "tom:200:null"), results.toSet())
+    }
+
+    @Test
+    fun testLeadWithDefaultValue() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.salary,
+                lead(Employees.salary, 1, -1).over { orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("marry:50:100", "vince:100:100", "penny:100:200", "tom:200:-1"), results.toSet())
+    }
+
+    @Test
+    fun testLeadWithDefaultValueByExpression() {
+        val results = database
+            .from(Employees)
+            .select(
+                Employees.name,
+                Employees.salary,
+                lead(Employees.salary + 1, 2, Employees.departmentId.toLong()).over { orderBy(Employees.salary.asc()) }
+            )
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
+            }
+
+        assertEquals(setOf("marry:50:101", "vince:100:201", "penny:100:2", "tom:200:2"), results.toSet())
+    }
 }
