@@ -246,4 +246,16 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("vince:100", "marry:null", "tom:200", "penny:null"), results.toSet())
     }
+
+    @Test
+    fun testNtile() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, ntile(3).over { orderBy(Employees.salary.asc()) })
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("marry:1", "vince:1", "penny:2", "tom:3"), results.toSet())
+    }
 }
