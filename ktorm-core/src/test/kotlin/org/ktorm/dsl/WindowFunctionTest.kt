@@ -306,4 +306,28 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("vince:100", "marry:100", "tom:200", "penny:200"), results.toSet())
     }
+
+    @Test
+    fun testAvg() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, avg(Employees.salary).over())
+            .map { row ->
+                String.format("%s:%.2f", row.getString(1), row.getDouble(2))
+            }
+
+        assertEquals(setOf("vince:113.00", "marry:113.00", "tom:113.00", "penny:113.00"), results.toSet())
+    }
+
+    @Test
+    fun testRunningAvg() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, avg(Employees.salary).over { orderBy(Employees.id.asc()) })
+            .map { row ->
+                String.format("%s:%.2f", row.getString(1), row.getDouble(2))
+            }
+
+        assertEquals(setOf("vince:100.00", "marry:75.00", "tom:117.00", "penny:113.00"), results.toSet())
+    }
 }
