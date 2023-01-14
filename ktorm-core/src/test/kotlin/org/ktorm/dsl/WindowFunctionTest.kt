@@ -253,9 +253,33 @@ class WindowFunctionTest : BaseTest() {
             .from(Employees)
             .select(Employees.name, ntile(3).over { orderBy(Employees.salary.asc()) })
             .map { row ->
-                "${row.getString(1)}:${row.getLong(2)}"
+                "${row.getString(1)}:${row.getInt(2)}"
             }
 
         assertEquals(setOf("marry:1", "vince:1", "penny:2", "tom:3"), results.toSet())
+    }
+
+    @Test
+    fun testMin() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, min(Employees.salary).over())
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("vince:50", "marry:50", "tom:50", "penny:50"), results.toSet())
+    }
+
+    @Test
+    fun testRunningMin() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, min(Employees.salary).over { orderBy(Employees.id.asc()) })
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("vince:100", "marry:50", "tom:50", "penny:50"), results.toSet())
     }
 }
