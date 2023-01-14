@@ -282,4 +282,28 @@ class WindowFunctionTest : BaseTest() {
 
         assertEquals(setOf("vince:100", "marry:50", "tom:50", "penny:50"), results.toSet())
     }
+
+    @Test
+    fun testMax() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, max(Employees.salary).over())
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("vince:200", "marry:200", "tom:200", "penny:200"), results.toSet())
+    }
+
+    @Test
+    fun testRunningMax() {
+        val results = database
+            .from(Employees)
+            .select(Employees.name, max(Employees.salary).over { orderBy(Employees.id.asc()) })
+            .map { row ->
+                "${row.getString(1)}:${row.getLong(2)}"
+            }
+
+        assertEquals(setOf("vince:100", "marry:100", "tom:200", "penny:200"), results.toSet())
+    }
 }
