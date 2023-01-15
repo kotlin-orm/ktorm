@@ -135,4 +135,16 @@ public open class SqlServerFormatter(
     override fun writePagination(expr: QueryExpression) {
         throw AssertionError("Never happen.")
     }
+
+    override fun visitWindowFrameBound(expr: WindowFrameBoundExpression): WindowFrameBoundExpression {
+        if (expr.type == WindowFrameBoundType.PRECEDING || expr.type == WindowFrameBoundType.FOLLOWING) {
+            // SQL Server doesn't support arguments for `N preceding` & `N following`,
+            // we have to write literal number to the generated SQL.
+            val argument = expr.argument as ArgumentExpression
+            write("${argument.value} ")
+        }
+
+        writeKeyword("${expr.type} ")
+        return expr
+    }
 }
