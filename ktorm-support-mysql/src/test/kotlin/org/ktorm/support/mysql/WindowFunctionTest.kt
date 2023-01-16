@@ -2,6 +2,11 @@ package org.ktorm.support.mysql
 
 import org.junit.Test
 import org.ktorm.dsl.*
+import org.ktorm.dsl.WindowFrames.currentRow
+import org.ktorm.dsl.WindowFrames.following
+import org.ktorm.dsl.WindowFrames.preceding
+import org.ktorm.dsl.WindowFrames.unboundedFollowing
+import org.ktorm.dsl.WindowFrames.unboundedPreceding
 import kotlin.test.assertEquals
 
 class WindowFunctionTest : BaseMySqlTest() {
@@ -406,7 +411,7 @@ class WindowFunctionTest : BaseMySqlTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.id.asc()).rows(WindowFrames.preceding(1)) }
+                sum(Employees.salary).over { orderBy(Employees.id.asc()).rows(preceding(1)) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -421,10 +426,7 @@ class WindowFunctionTest : BaseMySqlTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.id.asc()).rowsBetween(
-                    WindowFrames.currentRow(),
-                    WindowFrames.following(1)
-                ) }
+                sum(Employees.salary).over { orderBy(Employees.id.asc()).rowsBetween(currentRow(), following(1)) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -439,7 +441,7 @@ class WindowFunctionTest : BaseMySqlTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.salary.asc()).range(WindowFrames.preceding(100)) }
+                sum(Employees.salary).over { orderBy(Employees.salary.asc()).range(preceding(100)) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -454,10 +456,7 @@ class WindowFunctionTest : BaseMySqlTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.id.asc()).rangeBetween(
-                    WindowFrames.unboundedPreceding(),
-                    WindowFrames.unboundedFollowing()
-                ) }
+                sum(Employees.salary).over { orderBy(Employees.id.asc()).rangeBetween(unboundedPreceding(), unboundedFollowing()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"

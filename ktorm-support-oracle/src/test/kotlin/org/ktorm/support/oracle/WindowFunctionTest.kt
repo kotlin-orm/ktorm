@@ -2,6 +2,11 @@ package org.ktorm.support.oracle
 
 import org.junit.Test
 import org.ktorm.dsl.*
+import org.ktorm.dsl.WindowFrames.currentRow
+import org.ktorm.dsl.WindowFrames.following
+import org.ktorm.dsl.WindowFrames.preceding
+import org.ktorm.dsl.WindowFrames.unboundedFollowing
+import org.ktorm.dsl.WindowFrames.unboundedPreceding
 import kotlin.test.assertEquals
 
 class WindowFunctionTest : BaseOracleTest() {
@@ -47,7 +52,7 @@ class WindowFunctionTest : BaseOracleTest() {
     fun testRowNumber() {
         val results = database
             .from(Employees)
-            .select(Employees.name, rowNumber())
+            .select(Employees.name, rowNumber().over { orderBy(Employees.id.asc()) })
             .joinToString { row ->
                 "${row.getString(1)}:${row.getInt(2)}"
             }
@@ -110,9 +115,8 @@ class WindowFunctionTest : BaseOracleTest() {
             .select(
                 Employees.name,
                 Employees.salary,
-                lag(Employees.salary).over { orderBy(Employees.salary.asc()) }
+                lag(Employees.salary).over { orderBy(Employees.salary.asc(), Employees.id.asc()) }
             )
-            .orderBy(Employees.salary.asc(), Employees.id.asc())
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
             }
@@ -127,7 +131,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .select(
                 Employees.name,
                 Employees.salary,
-                lag(Employees.salary, 1, -1).over { orderBy(Employees.salary.asc()) }
+                lag(Employees.salary, 1, -1).over { orderBy(Employees.salary.asc(), Employees.id.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
@@ -143,7 +147,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .select(
                 Employees.name,
                 Employees.salary,
-                lag(Employees.salary + 1, 2, Employees.salary + 2).over { orderBy(Employees.salary.asc()) }
+                lag(Employees.salary + 1, 2, Employees.salary + 2).over { orderBy(Employees.salary.asc(), Employees.id.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
@@ -159,7 +163,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .select(
                 Employees.name,
                 Employees.salary,
-                lead(Employees.salary).over { orderBy(Employees.salary.asc()) }
+                lead(Employees.salary).over { orderBy(Employees.salary.asc(), Employees.id.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
@@ -175,7 +179,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .select(
                 Employees.name,
                 Employees.salary,
-                lead(Employees.salary, 1, -1).over { orderBy(Employees.salary.asc()) }
+                lead(Employees.salary, 1, -1).over { orderBy(Employees.salary.asc(), Employees.id.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
@@ -191,7 +195,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .select(
                 Employees.name,
                 Employees.salary,
-                lead(Employees.salary + 1, 2, Employees.salary + 2).over { orderBy(Employees.salary.asc()) }
+                lead(Employees.salary + 1, 2, Employees.salary + 2).over { orderBy(Employees.salary.asc(), Employees.id.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}:${row.getLong(3).takeUnless { row.wasNull() }}"
@@ -206,8 +210,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                firstValue(Employees.salary).over { partitionBy(Employees.departmentId).orderBy(
-                    Employees.salary.asc()) }
+                firstValue(Employees.salary).over { partitionBy(Employees.departmentId).orderBy(Employees.salary.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -222,8 +225,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                lastValue(Employees.salary + 1).over { partitionBy(Employees.departmentId).orderBy(
-                    Employees.salary.asc()) }
+                lastValue(Employees.salary + 1).over { partitionBy(Employees.departmentId).orderBy(Employees.salary.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -238,8 +240,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                nthValue(Employees.salary, 2).over { partitionBy(Employees.departmentId).orderBy(
-                    Employees.salary.asc()) }
+                nthValue(Employees.salary, 2).over { partitionBy(Employees.departmentId).orderBy(Employees.salary.asc()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2).takeUnless { row.wasNull() }}"
@@ -252,8 +253,7 @@ class WindowFunctionTest : BaseOracleTest() {
     fun testNtile() {
         val results = database
             .from(Employees)
-            .select(Employees.name, ntile(3).over { orderBy(Employees.salary.asc()) })
-            .orderBy(Employees.salary.asc(), Employees.id.asc())
+            .select(Employees.name, ntile(3).over { orderBy(Employees.salary.asc(), Employees.id.asc()) })
             .map { row ->
                 "${row.getString(1)}:${row.getInt(2)}"
             }
@@ -411,7 +411,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.id.asc()).rows(WindowFrames.preceding(1)) }
+                sum(Employees.salary).over { orderBy(Employees.id.asc()).rows(preceding(1)) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -426,10 +426,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.id.asc()).rowsBetween(
-                    WindowFrames.currentRow(),
-                    WindowFrames.following(1)
-                ) }
+                sum(Employees.salary).over { orderBy(Employees.id.asc()).rowsBetween(currentRow(), following(1)) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -444,7 +441,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.salary.asc()).range(WindowFrames.preceding(100)) }
+                sum(Employees.salary).over { orderBy(Employees.salary.asc()).range(preceding(100)) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
@@ -459,10 +456,7 @@ class WindowFunctionTest : BaseOracleTest() {
             .from(Employees)
             .select(
                 Employees.name,
-                sum(Employees.salary).over { orderBy(Employees.id.asc()).rangeBetween(
-                    WindowFrames.unboundedPreceding(),
-                    WindowFrames.unboundedFollowing()
-                ) }
+                sum(Employees.salary).over { orderBy(Employees.id.asc()).rangeBetween(unboundedPreceding(), unboundedFollowing()) }
             )
             .map { row ->
                 "${row.getString(1)}:${row.getLong(2)}"
