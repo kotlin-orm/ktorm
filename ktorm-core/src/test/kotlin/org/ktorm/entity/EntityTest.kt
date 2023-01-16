@@ -46,6 +46,24 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testEquals() {
+        val e1 = Employee {
+            id = 1
+            name = "vince"
+        }
+
+        val e2 = Employee {
+            id = 1
+            name = "vince"
+            manager = null
+        }
+
+        println(e1)
+        println(e2)
+        assert(e1 == e2)
+    }
+
+    @Test
     fun testDefaultMethod() {
         for (method in Employee::class.java.methods) {
             println(method)
