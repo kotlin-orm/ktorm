@@ -449,4 +449,39 @@ class WindowFunctionTest : BaseSqlServerTest() {
 
         assertEquals(setOf("vince:450", "marry:450", "tom:450", "penny:450"), results.toSet())
     }
+
+    @Test
+    fun testTotalRecords() {
+        val query = database
+            .from(Employees)
+            .select(
+                Employees.id,
+                Employees.name,
+                Employees.salary,
+                rank().over { orderBy(Employees.salary.asc(), Employees.id.asc()) }.aliased("r")
+            )
+            .orderBy(Employees.salary.asc(), Employees.id.asc())
+            .limit(0, 2)
+
+        val results = query.map { row -> "${row.getString(2)}:${row.getLong(3)}:${row.getInt(4)}" }
+        assertEquals(setOf("marry:50:1", "vince:100:2"), results.toSet())
+        assertEquals(4, query.totalRecordsInAllPages)
+    }
+
+    @Test
+    fun testTotalRecordsWithoutOrderBy() {
+        val query = database
+            .from(Employees)
+            .select(
+                Employees.id,
+                Employees.name,
+                Employees.salary,
+                rank().over { orderBy(Employees.salary.asc(), Employees.id.asc()) }.aliased("r")
+            )
+            .limit(0, 2)
+
+        val results = query.map { row -> "${row.getString(2)}:${row.getLong(3)}:${row.getInt(4)}" }
+        assertEquals(setOf("marry:50:1", "vince:100:2"), results.toSet())
+        assertEquals(4, query.totalRecordsInAllPages)
+    }
 }
