@@ -243,16 +243,15 @@ internal class EntityImplementation(
     }
 
     override fun hashCode(): Int {
-        var result = 31 + entityClass.hashCode()
+        var hash = entityClass.hashCode()
 
         for ((name, value) in values) {
             if (value != null) {
-                result = 31 * result + name.hashCode()
-                result = 31 * result + value.hashCode()
+                hash += name.hashCode() xor value.hashCode()
             }
         }
 
-        return result
+        return hash
     }
 
     override fun toString(): String {

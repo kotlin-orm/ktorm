@@ -12,6 +12,8 @@ import java.io.ObjectOutputStream
 import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.jvm.jvmErasure
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * Created by vince on Dec 09, 2018.
@@ -43,54 +45,6 @@ class EntityTest : BaseTest() {
 
         assert(employee["job"] == null)
         assert(employee.job == "")
-    }
-
-    @Test
-    fun testEquals() {
-        val e1 = Employee {
-            id = 1
-            name = "vince"
-        }
-
-        val e2 = Employee {
-            id = 1
-            name = "vince"
-            manager = null
-        }
-
-        println(e1)
-        println(e2)
-        assert(e1 == e2)
-        assert(e2 == e1)
-        assert(e1 !== e2)
-        assert(e1.hashCode() == e2.hashCode())
-    }
-
-    @Test
-    fun testEqualsForNestedEntities() {
-        val p1 = Parent {
-            child = Child {
-                grandChild = GrandChild {
-                    id = 1
-                }
-            }
-        }
-
-        val p2 = Parent {
-            child = Child {
-                grandChild = GrandChild {
-                    id = 1
-                    name = null
-                }
-            }
-        }
-
-        println(p1)
-        println(p2)
-        assert(p1 == p2)
-        assert(p2 == p1)
-        assert(p1 !== p2)
-        assert(p1.hashCode() == p2.hashCode())
     }
 
     @Test
@@ -379,6 +333,80 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testHasColumnValueAttached() {
+        val sofiaDepartment = Department {
+            name = "Sofia Office"
+            location = LocationWrapper("Sofia")
+        }
+
+        database.departments.add(sofiaDepartment)
+
+        val now = LocalDate.now()
+        val employeeManager = Employee {
+            name = "Simpson"
+            job = "Manager"
+            hireDate = now
+            department = sofiaDepartment
+            salary = 100
+        }
+
+        database.employees.add(employeeManager)
+
+        val employee1 = Employee {
+            name = "McDonald"
+            job = "Engineer"
+            hireDate = now
+            department = sofiaDepartment
+            salary = 100
+        }
+
+        val e1 = with(database.employees) {
+            add(employee1)
+            find { it.id eq employee1.id }
+        }
+
+        assertNotNull(e1)
+        assert(!e1.implementation.hasColumnValue(Employees.managerId.binding!!))
+        assertNull(e1.implementation.getColumnValue(Employees.managerId.binding!!))
+
+        val employee2 = Employee {
+            name = "Smith"
+            job = "Engineer"
+            hireDate = now
+            department = sofiaDepartment
+            manager = null
+            salary = 100
+        }
+
+        val e2 = with(database.employees) {
+            add(employee2)
+            find { it.id eq employee2.id }
+        }
+
+        assertNotNull(e2)
+        assert(!e2.implementation.hasColumnValue(Employees.managerId.binding!!))
+        assertNull(e2.implementation.getColumnValue(Employees.managerId.binding!!))
+
+        val employee3 = Employee {
+            name = "Dennis"
+            job = "Engineer"
+            hireDate = now
+            department = sofiaDepartment
+            manager = employeeManager
+            salary = 100
+        }
+
+        val e3 = with(database.employees) {
+            add(employee3)
+            find { it.id eq employee3.id }
+        }
+
+        assertNotNull(e3)
+        assert(e3.implementation.hasColumnValue(Employees.managerId.binding!!))
+        assertNotNull(e3.implementation.getColumnValue(Employees.managerId.binding!!))
+    }
+
+    @Test
     fun testUpdatePrimaryKey() {
         try {
             val parent = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
@@ -658,7 +686,13 @@ class EntityTest : BaseTest() {
             salary = 50
         }
 
+        println(employee1)
+        println(employee2)
+        println(employee1.hashCode())
         assert(employee1 == employee2)
+        assert(employee2 == employee1)
+        assert(employee1 !== employee2)
+        assert(employee1.hashCode() == employee2.hashCode())
     }
 
     @Test
@@ -671,6 +705,82 @@ class EntityTest : BaseTest() {
             name = "name"
         }
 
+        println(employee)
+        println(department)
+        println(employee.hashCode())
+        println(department.hashCode())
         assert(employee != department)
+    }
+
+    @Test
+    fun testEqualsWithNullValues() {
+        val e1 = Employee {
+            id = 1
+            name = "vince"
+        }
+
+        val e2 = Employee {
+            id = 1
+            name = "vince"
+            manager = null
+        }
+
+        println(e1)
+        println(e2)
+        println(e1.hashCode())
+        assert(e1 == e2)
+        assert(e2 == e1)
+        assert(e1 !== e2)
+        assert(e1.hashCode() == e2.hashCode())
+    }
+
+    @Test
+    fun testEqualsForNestedEntities() {
+        val p1 = Parent {
+            child = Child {
+                grandChild = GrandChild {
+                    id = 1
+                }
+            }
+        }
+
+        val p2 = Parent {
+            child = Child {
+                grandChild = GrandChild {
+                    id = 1
+                    name = null
+                }
+            }
+        }
+
+        println(p1)
+        println(p2)
+        println(p1.hashCode())
+        assert(p1 == p2)
+        assert(p2 == p1)
+        assert(p1 !== p2)
+        assert(p1.hashCode() == p2.hashCode())
+    }
+
+    @Test
+    fun testValueNullEquality() {
+        val departmentTransient = Department {
+            name = "Sofia Office"
+            location = LocationWrapper("Sofia")
+            mixedCase = null // explicitly initialized to null
+        }
+
+        database.departments.add(departmentTransient)
+
+        val departmentAttached = database.departments.find { it.name eq "Sofia Office" }
+        assertNotNull(departmentAttached)
+
+        println(departmentTransient)
+        println(departmentAttached)
+        println(departmentTransient.hashCode())
+        assert(departmentTransient == departmentAttached)
+        assert(departmentAttached == departmentTransient)
+        assert(departmentTransient !== departmentAttached)
+        assert(departmentTransient.hashCode() == departmentAttached.hashCode())
     }
 }
