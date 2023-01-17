@@ -61,6 +61,36 @@ class EntityTest : BaseTest() {
         println(e1)
         println(e2)
         assert(e1 == e2)
+        assert(e2 == e1)
+        assert(e1 !== e2)
+        assert(e1.hashCode() == e2.hashCode())
+    }
+
+    @Test
+    fun testEqualsForNestedEntities() {
+        val p1 = Parent {
+            child = Child {
+                grandChild = GrandChild {
+                    id = 1
+                }
+            }
+        }
+
+        val p2 = Parent {
+            child = Child {
+                grandChild = GrandChild {
+                    id = 1
+                    name = null
+                }
+            }
+        }
+
+        println(p1)
+        println(p2)
+        assert(p1 == p2)
+        assert(p2 == p1)
+        assert(p1 !== p2)
+        assert(p1.hashCode() == p2.hashCode())
     }
 
     @Test
@@ -286,6 +316,7 @@ class EntityTest : BaseTest() {
     interface GrandChild : Entity<GrandChild> {
         companion object : Entity.Factory<GrandChild>()
         var id: Int?
+        var name: String?
     }
 
     object Parents : Table<Parent>("t_employee") {
