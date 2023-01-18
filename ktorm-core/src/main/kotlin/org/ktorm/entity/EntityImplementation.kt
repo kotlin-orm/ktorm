@@ -201,7 +201,7 @@ internal class EntityImplementation(
 
     @Suppress("UNCHECKED_CAST")
     private fun readObject(input: ObjectInputStream) {
-        val javaClass = Class.forName(input.readUTF())
+        val javaClass = Class.forName(input.readUTF(), true, Thread.currentThread().contextClassLoader)
         entityClass = javaClass.kotlin
         values = input.readObject() as LinkedHashMap<String, Any?>
         changedProperties = LinkedHashSet()
