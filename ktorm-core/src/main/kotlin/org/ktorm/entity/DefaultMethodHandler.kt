@@ -120,7 +120,11 @@ internal class DefaultMethodHandler(
                     val handle = unreflectSpecial(method)
                     DefaultMethodHandler(javaDefaultMethodHandle = handle)
                 } else {
-                    val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
+                    val cls = Class.forName(
+                        method.declaringClass.name + "\$DefaultImpls",
+                        true,
+                        method.declaringClass.classLoader
+                    )
                     val impl = cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
                     DefaultMethodHandler(kotlinDefaultImplMethod = impl)
                 }
