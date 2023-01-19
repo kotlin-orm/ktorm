@@ -4,6 +4,7 @@ import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.entity.*
 import java.time.LocalDate
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Dec 08, 2018.
@@ -43,6 +44,9 @@ class DmlTest : BaseTest() {
                 it.id inList query
             }
         }
+
+        val sum = database.employees.sumBy { it.salary }
+        assertEquals(2150, sum)
     }
 
     @Test
