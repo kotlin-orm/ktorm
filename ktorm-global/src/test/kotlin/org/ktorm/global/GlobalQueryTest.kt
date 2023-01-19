@@ -205,7 +205,7 @@ class GlobalQueryTest : BaseGlobalTest() {
             .select(Employees.salary.cast(TextSqlType))
             .where { Employees.salary eq 200 }
             .map { row ->
-                when(val value = row.getObject(1)) {
+                when (val value = row.getObject(1)) {
                     is Clob -> value.characterStream.use { it.readText() }
                     else -> value
                 }

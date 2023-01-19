@@ -84,4 +84,20 @@ public open class OracleFormatter(
     override fun writePagination(expr: QueryExpression) {
         throw AssertionError("Never happen.")
     }
+
+    override fun visitUnion(expr: UnionExpression): UnionExpression {
+        if (expr.orderBy.isEmpty()) {
+            return super.visitUnion(expr)
+        }
+
+        // Use sub-query when there are order-by columns.
+        writeKeyword("select * ")
+        newLine(Indentation.SAME)
+        writeKeyword("from ")
+        visitQuerySource(expr.copy(orderBy = emptyList(), tableAlias = null))
+        newLine(Indentation.SAME)
+        writeKeyword("order by ")
+        visitExpressionList(expr.orderBy)
+        return expr
+    }
 }

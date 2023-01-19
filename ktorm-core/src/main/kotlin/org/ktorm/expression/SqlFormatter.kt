@@ -260,18 +260,22 @@ public abstract class SqlFormatter(
 
     override fun visitUnion(expr: UnionExpression): UnionExpression {
         when (expr.left) {
-            is SelectExpression -> visitQuerySource(expr.left)
+            is SelectExpression -> visitSelect(expr.left)
             is UnionExpression -> visitUnion(expr.left)
         }
 
         if (expr.isUnionAll) {
+            newLine(Indentation.SAME)
             writeKeyword("union all ")
+            newLine(Indentation.SAME)
         } else {
+            newLine(Indentation.SAME)
             writeKeyword("union ")
+            newLine(Indentation.SAME)
         }
 
         when (expr.right) {
-            is SelectExpression -> visitQuerySource(expr.right)
+            is SelectExpression -> visitSelect(expr.right)
             is UnionExpression -> visitUnion(expr.right)
         }
 
