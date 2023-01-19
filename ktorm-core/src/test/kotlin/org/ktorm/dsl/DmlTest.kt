@@ -30,6 +30,22 @@ class DmlTest : BaseTest() {
     }
 
     @Test
+    fun testUpdateWithNestedQuery() {
+        val query = database
+            .from(Employees)
+            .innerJoin(Departments, on = Employees.departmentId eq Departments.id)
+            .select(Employees.id)
+            .where(Employees.id gte 3)
+
+        database.update(Employees) {
+            set(it.salary, 1000)
+            where {
+                it.id inList query
+            }
+        }
+    }
+
+    @Test
     fun testBatchUpdate() {
         database.batchUpdate(Departments) {
             for (i in 1..2) {
