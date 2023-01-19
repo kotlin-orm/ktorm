@@ -93,7 +93,8 @@ public abstract class SqlType<T : Any>(public val typeCode: Int, public val type
             }
 
             override fun doGetResult(rs: ResultSet, index: Int): R? {
-                return underlyingType.doGetResult(rs, index)?.let(fromUnderlyingValue)
+                val result = underlyingType.doGetResult(rs, index)
+                return if (rs.wasNull()) null else fromUnderlyingValue(result!!)
             }
         }
     }
