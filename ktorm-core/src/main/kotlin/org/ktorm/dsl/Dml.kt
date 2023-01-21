@@ -16,6 +16,7 @@
 
 package org.ktorm.dsl
 
+import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.expression.*
 import org.ktorm.schema.BaseTable
@@ -159,7 +160,7 @@ public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Ass
 
     if (rowSet.next()) {
         val pk = table.singlePrimaryKey { "Key retrieval is not supported for compound primary keys." }
-        val generatedKey = pk.sqlType.getResult(rowSet, 1) ?: error("Generated key is null.")
+        val generatedKey = rowSet.getGeneratedKey(pk) ?: error("Generated key is null.")
 
         if (logger.isDebugEnabled()) {
             logger.debug("Generated Key: $generatedKey")
@@ -169,6 +170,23 @@ public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Ass
     } else {
         error("No generated key returns by database.")
     }
+}
+
+/**
+ * Get generated key from the row set.
+ */
+internal fun <T : Any> CachedRowSet.getGeneratedKey(primaryKey: Column<T>): T? {
+    if (metaData.columnCount == 1) {
+        return primaryKey.sqlType.getResult(this, 1)
+    }
+
+    for (index in 1..metaData.columnCount) {
+        if (metaData.getColumnName(index).equals(primaryKey.name, ignoreCase = true)) {
+            return primaryKey.sqlType.getResult(this, index)
+        }
+    }
+
+    throw IllegalStateException("Cannot find column `${primaryKey.name}` in the returned row set.")
 }
 
 /**

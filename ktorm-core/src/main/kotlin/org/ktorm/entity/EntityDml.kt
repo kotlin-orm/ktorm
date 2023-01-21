@@ -71,7 +71,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
         val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
 
         if (rowSet.next()) {
-            val generatedKey = primaryKeys[0].sqlType.getResult(rowSet, 1)
+            val generatedKey = rowSet.getGeneratedKey(primaryKeys[0])
             if (generatedKey != null) {
                 if (database.logger.isDebugEnabled()) {
                     database.logger.debug("Generated Key: $generatedKey")
