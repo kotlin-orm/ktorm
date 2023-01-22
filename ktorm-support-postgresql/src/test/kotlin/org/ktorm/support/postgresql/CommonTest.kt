@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Feb 13, 2019.
@@ -212,5 +213,11 @@ class CommonTest : BasePostgreSqlTest() {
         val e = Entity.create<TestMultiGeneratedKey>()
         e.v = "test~~"
         database.sequenceOf(TestMultiGeneratedKeys).add(e)
+
+        val e1 = database.sequenceOf(TestMultiGeneratedKeys).first()
+        println(e1)
+        assertEquals(1, e1.id)
+        assertEquals("test~~", e1.v)
+        assert(e1.k.isNotEmpty())
     }
 }

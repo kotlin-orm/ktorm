@@ -23,6 +23,12 @@ create table t_user(
    age int
 );
 
+create table t_multi_generated_key(
+    id int not null primary key auto_increment,
+    k varchar(128) default (uuid()),
+    v varchar(128)
+);
+
 insert into t_department(name, location) values ('tech', 'Guangzhou');
 insert into t_department(name, location) values ('finance', 'Beijing');
 

@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Dec 12, 2018.
@@ -531,5 +532,30 @@ class CommonTest : BaseMySqlTest() {
             .map { it[TableWithEnum.current_mood] }
             .first()
         assertThat(mood1, equalTo(null))
+    }
+
+    interface TestMultiGeneratedKey : Entity<TestMultiGeneratedKey> {
+        var id: Int
+        var k: String
+        var v: String
+    }
+
+    object TestMultiGeneratedKeys : Table<TestMultiGeneratedKey>("t_multi_generated_key") {
+        val id = int("id").primaryKey().bindTo { it.id }
+        val k = varchar("k").bindTo { it.k }
+        val v = varchar("v").bindTo { it.v }
+    }
+
+    @Test
+    fun testMultiGeneratedKey() {
+        val e = Entity.create<TestMultiGeneratedKey>()
+        e.v = "test~~"
+        database.sequenceOf(TestMultiGeneratedKeys).add(e)
+
+        val e1 = database.sequenceOf(TestMultiGeneratedKeys).first()
+        println(e1)
+        assertEquals(1, e1.id)
+        assertEquals("test~~", e1.v)
+        assert(e1.k.isNotEmpty())
     }
 }
