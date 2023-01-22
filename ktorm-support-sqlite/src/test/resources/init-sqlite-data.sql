@@ -15,6 +15,12 @@ create table t_employee(
   department_id integer not null
 );
 
+create table t_multi_generated_key(
+  id integer primary key autoincrement,
+  k text not null default ((strftime('%s','now'))),
+  v text not null
+);
+
 insert into t_department(name, location) values ('tech', 'Guangzhou');
 insert into t_department(name, location) values ('finance', 'Beijing');
 
