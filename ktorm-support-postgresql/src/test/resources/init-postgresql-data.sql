@@ -1,5 +1,6 @@
 create extension if not exists hstore;
 create extension if not exists earthdistance cascade;
+create extension if not exists "uuid-ossp";
 
 create table t_department(
   id serial primary key,
@@ -16,6 +17,12 @@ create table t_employee(
   hire_date date not null,
   salary bigint not null,
   department_id int not null
+);
+
+create table t_multi_generated_key(
+    id serial primary key,
+    k varchar(128) not null default uuid_generate_v4(),
+    v varchar(128)
 );
 
 create table t_metadata(

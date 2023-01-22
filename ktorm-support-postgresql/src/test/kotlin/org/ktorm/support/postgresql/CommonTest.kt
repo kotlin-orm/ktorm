@@ -194,4 +194,23 @@ class CommonTest : BasePostgreSqlTest() {
             .first()
         assertThat(mood1, equalTo(null))
     }
+
+    interface TestMultiGeneratedKey : Entity<TestMultiGeneratedKey> {
+        var id: Int
+        var k: String
+        var v: String
+    }
+
+    object TestMultiGeneratedKeys : Table<TestMultiGeneratedKey>("t_multi_generated_key") {
+        val id = int("id").primaryKey().bindTo { it.id }
+        val k = varchar("k").bindTo { it.k }
+        val v = varchar("v").bindTo { it.v }
+    }
+
+    @Test
+    fun testMultiGeneratedKey() {
+        val e = Entity.create<TestMultiGeneratedKey>()
+        e.v = "test~~"
+        database.sequenceOf(TestMultiGeneratedKeys).add(e)
+    }
 }
