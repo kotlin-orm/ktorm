@@ -16,7 +16,6 @@
 
 package org.ktorm.support.sqlite
 
-import org.ktorm.database.CachedRowSet
 import org.ktorm.database.Database
 import org.ktorm.database.asIterable
 import org.ktorm.dsl.AliasRemover
@@ -97,12 +96,7 @@ public data class BulkInsertExpression(
 public fun <T : BaseTable<*>> Database.bulkInsert(
     table: T, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): Int {
-    val builder = BulkInsertStatementBuilder(table).apply { block(table) }
-
-    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
-        BulkInsertExpression(table.asExpression(), builder.assignments)
-    )
-
+    val expression = buildBulkInsertExpression(table, returning = emptyList(), block = block)
     return executeUpdate(expression)
 }
 
@@ -149,7 +143,8 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
 public fun <T : BaseTable<*>, C : Any> Database.bulkInsertReturning(
     table: T, returning: Column<C>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): List<C?> {
-    val rowSet = bulkInsertReturningRowSet(table, listOf(returning), block)
+    val expression = buildBulkInsertExpression(table, listOf(returning), block)
+    val rowSet = executeQuery(expression)
     return rowSet.asIterable().map { row -> returning.sqlType.getResult(row, 1) }
 }
 
@@ -197,7 +192,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertReturning(
     table: T, returning: Pair<Column<C1>, Column<C2>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): List<Pair<C1?, C2?>> {
     val (c1, c2) = returning
-    val rowSet = bulkInsertReturningRowSet(table, listOf(c1, c2), block)
+    val expression = buildBulkInsertExpression(table, listOf(c1, c2), block)
+    val rowSet = executeQuery(expression)
     return rowSet.asIterable().map { row -> Pair(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2)) }
 }
 
@@ -245,7 +241,8 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertR
     table: T, returning: Triple<Column<C1>, Column<C2>, Column<C3>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
 ): List<Triple<C1?, C2?, C3?>> {
     val (c1, c2, c3) = returning
-    val rowSet = bulkInsertReturningRowSet(table, listOf(c1, c2, c3), block)
+    val expression = buildBulkInsertExpression(table, listOf(c1, c2, c3), block)
+    val rowSet = executeQuery(expression)
     return rowSet.asIterable().map { row ->
         Triple(c1.sqlType.getResult(row, 1), c2.sqlType.getResult(row, 2), c3.sqlType.getResult(row, 3))
     }
@@ -254,20 +251,26 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.bulkInsertR
 /**
  * Bulk insert records to the table, returning row set.
  */
-private fun <T : BaseTable<*>> Database.bulkInsertReturningRowSet(
+private fun <T : BaseTable<*>> Database.buildBulkInsertExpression(
     table: T, returning: List<Column<*>>, block: BulkInsertStatementBuilder<T>.(T) -> Unit
-): CachedRowSet {
+): SqlExpression {
     val builder = BulkInsertStatementBuilder(table).apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no items in the bulk operation.")
+    }
+    for (assignments in builder.assignments) {
+        if (assignments.isEmpty()) {
+            throw IllegalArgumentException("There are no columns to insert in the statement.")
+        }
+    }
 
-    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
+    return dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(
             table = table.asExpression(),
             assignments = builder.assignments,
             returningColumns = returning.map { it.asExpression() }
         )
     )
-
-    return executeQuery(expression)
 }
 
 /**
@@ -491,6 +494,14 @@ private fun <T : BaseTable<*>> Database.buildBulkInsertOrUpdateExpression(
     table: T, returning: List<Column<*>>, block: BulkInsertOrUpdateStatementBuilder<T>.(T) -> Unit
 ): SqlExpression {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no items in the bulk operation.")
+    }
+    for (assignments in builder.assignments) {
+        if (assignments.isEmpty()) {
+            throw IllegalArgumentException("There are no columns to insert in the statement.")
+        }
+    }
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
     if (conflictColumns.isEmpty()) {

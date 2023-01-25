@@ -83,10 +83,7 @@ public data class InsertOrUpdateExpression(
 public fun <T : BaseTable<*>> Database.insertOrUpdate(
     table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
-    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
-        buildInsertOrUpdateExpression(table, returning = emptyList(), block = block)
-    )
-
+    val expression = buildInsertOrUpdateExpression(table, returning = emptyList(), block = block)
     return executeUpdate(expression)
 }
 
@@ -237,10 +234,7 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any, C3 : Any> Database.insertOrUpd
 private fun <T : BaseTable<*>> Database.insertOrUpdateReturningRow(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): CachedRowSet? {
-    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
-        buildInsertOrUpdateExpression(table, returning, block)
-    )
-
+    val expression = buildInsertOrUpdateExpression(table, returning, block)
     val rowSet = executeQuery(expression)
 
     if (rowSet.size() == 0) {
@@ -260,10 +254,13 @@ private fun <T : BaseTable<*>> Database.insertOrUpdateReturningRow(
 /**
  * Build an insert or update expression.
  */
-private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
+private fun <T : BaseTable<*>> Database.buildInsertOrUpdateExpression(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
-): InsertOrUpdateExpression {
+): SqlExpression {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
     if (conflictColumns.isEmpty()) {
@@ -280,13 +277,15 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
         throw IllegalStateException(msg)
     }
 
-    return InsertOrUpdateExpression(
-        table = table.asExpression(),
-        assignments = builder.assignments,
-        conflictColumns = conflictColumns.map { it.asExpression() },
-        updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
-        where = builder.where?.asExpression(),
-        returningColumns = returning.map { it.asExpression() }
+    return dialect.createExpressionVisitor(AliasRemover).visit(
+        InsertOrUpdateExpression(
+            table = table.asExpression(),
+            assignments = builder.assignments,
+            conflictColumns = conflictColumns.map { it.asExpression() },
+            updateAssignments = if (builder.doNothing) emptyList() else builder.updateAssignments,
+            where = builder.where?.asExpression(),
+            returningColumns = returning.map { it.asExpression() }
+        )
     )
 }
 
@@ -411,6 +410,9 @@ private fun <T : BaseTable<*>> Database.insertReturningRow(
     table: T, returning: List<Column<*>>, block: AssignmentsBuilder.(T) -> Unit
 ): CachedRowSet {
     val builder = SQLiteAssignmentsBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
 
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertOrUpdateExpression(
