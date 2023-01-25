@@ -258,6 +258,9 @@ private fun <T : BaseTable<*>> buildInsertOrUpdateExpression(
     table: T, returning: List<Column<*>>, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): InsertOrUpdateExpression {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
 
     val conflictColumns = builder.conflictColumns.ifEmpty { table.primaryKeys }
     if (conflictColumns.isEmpty()) {
@@ -404,6 +407,9 @@ private fun <T : BaseTable<*>> Database.insertReturningRow(
     table: T, returning: List<Column<*>>, block: AssignmentsBuilder.(T) -> Unit
 ): CachedRowSet {
     val builder = PostgreSqlAssignmentsBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
 
     val expression = InsertOrUpdateExpression(
         table = table.asExpression(),
