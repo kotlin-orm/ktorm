@@ -92,6 +92,14 @@ public fun <T : BaseTable<*>> Database.bulkInsert(
     table: T, block: BulkInsertStatementBuilder<T>.() -> Unit
 ): Int {
     val builder = BulkInsertStatementBuilder(table).apply(block)
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no items in the bulk operation.")
+    }
+    for (assignments in builder.assignments) {
+        if (assignments.isEmpty()) {
+            throw IllegalArgumentException("There are no columns to insert in the statement.")
+        }
+    }
 
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(table.asExpression(), builder.assignments)
@@ -148,6 +156,14 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
     table: T, block: BulkInsertOrUpdateStatementBuilder<T>.() -> Unit
 ): Int {
     val builder = BulkInsertOrUpdateStatementBuilder(table).apply(block)
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no items in the bulk operation.")
+    }
+    for (assignments in builder.assignments) {
+        if (assignments.isEmpty()) {
+            throw IllegalArgumentException("There are no columns to insert in the statement.")
+        }
+    }
 
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         BulkInsertExpression(table.asExpression(), builder.assignments, builder.updateAssignments)

@@ -90,14 +90,16 @@ public fun <T : BaseTable<*>> Database.batchUpdate(
     block: BatchUpdateStatementBuilder<T>.() -> Unit
 ): IntArray {
     val builder = BatchUpdateStatementBuilder(table).apply(block)
-
-    val expressions = builder.expressions.map { expr ->
+    if (builder.expressions.isEmpty()) {
+        throw IllegalArgumentException("There are no items in the batch operation.")
+    }
+    for (expr in builder.expressions) {
         if (expr.assignments.isEmpty()) {
             throw IllegalArgumentException("There are no columns to update in the statement.")
-        } else {
-            dialect.createExpressionVisitor(AliasRemover).visit(expr)
         }
     }
+
+    val expressions = builder.expressions.map { dialect.createExpressionVisitor(AliasRemover).visit(it) }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
@@ -247,14 +249,16 @@ public fun <T : BaseTable<*>> Database.batchInsert(
     block: BatchInsertStatementBuilder<T>.() -> Unit
 ): IntArray {
     val builder = BatchInsertStatementBuilder(table).apply(block)
-
-    val expressions = builder.expressions.map { expr ->
+    if (builder.expressions.isEmpty()) {
+        throw IllegalArgumentException("There are no items in the batch operation.")
+    }
+    for (expr in builder.expressions) {
         if (expr.assignments.isEmpty()) {
             throw IllegalArgumentException("There are no columns to insert in the statement.")
-        } else {
-            dialect.createExpressionVisitor(AliasRemover).visit(expr)
         }
     }
+
+    val expressions = builder.expressions.map { dialect.createExpressionVisitor(AliasRemover).visit(it) }
 
     if (expressions.isEmpty()) {
         return IntArray(0)

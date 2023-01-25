@@ -77,6 +77,9 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
     table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
 
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertOrUpdateExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
