@@ -41,7 +41,10 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
     checkForDml()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
-    val assignments = entity.findInsertColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = entity.findInsertColumns(sourceTable)
+    if (assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no property values to insert in the entity.")
+    }
 
     val expression = database.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = InsertExpression(
@@ -102,7 +105,10 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E):
     checkForDml()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
-    val assignments = entity.findUpdateColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = entity.findUpdateColumns(sourceTable)
+    if (assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no property values to update in the entity.")
+    }
 
     val expression = database.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = UpdateExpression(
@@ -159,7 +165,11 @@ internal fun EntityImplementation.doFlushChanges(): Int {
     val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
     checkUnexpectedDiscarding(fromTable)
 
-    val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = findChangedColumns(fromTable)
+    if (assignments.isEmpty()) {
+        // Ignore the flushChanges call.
+        return 0
+    }
 
     val expression = fromDatabase.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = UpdateExpression(

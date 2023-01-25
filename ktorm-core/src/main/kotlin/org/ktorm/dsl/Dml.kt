@@ -47,6 +47,9 @@ import java.sql.Statement
  */
 public fun <T : BaseTable<*>> Database.update(table: T, block: UpdateStatementBuilder.(T) -> Unit): Int {
     val builder = UpdateStatementBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to update in the statement.")
+    }
 
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         UpdateExpression(table.asExpression(), builder.assignments, builder.where?.asExpression())
@@ -87,7 +90,14 @@ public fun <T : BaseTable<*>> Database.batchUpdate(
     block: BatchUpdateStatementBuilder<T>.() -> Unit
 ): IntArray {
     val builder = BatchUpdateStatementBuilder(table).apply(block)
-    val expressions = builder.expressions.map { dialect.createExpressionVisitor(AliasRemover).visit(it) }
+
+    val expressions = builder.expressions.map { expr ->
+        if (expr.assignments.isEmpty()) {
+            throw IllegalArgumentException("There are no columns to update in the statement.")
+        } else {
+            dialect.createExpressionVisitor(AliasRemover).visit(expr)
+        }
+    }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
@@ -119,6 +129,10 @@ public fun <T : BaseTable<*>> Database.batchUpdate(
  */
 public fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilder.(T) -> Unit): Int {
     val builder = AssignmentsBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
+
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertExpression(table.asExpression(), builder.assignments)
     )
@@ -152,6 +166,10 @@ public fun <T : BaseTable<*>> Database.insert(table: T, block: AssignmentsBuilde
  */
 public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: AssignmentsBuilder.(T) -> Unit): Any {
     val builder = AssignmentsBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
+
     val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertExpression(table.asExpression(), builder.assignments)
     )
@@ -229,7 +247,14 @@ public fun <T : BaseTable<*>> Database.batchInsert(
     block: BatchInsertStatementBuilder<T>.() -> Unit
 ): IntArray {
     val builder = BatchInsertStatementBuilder(table).apply(block)
-    val expressions = builder.expressions.map { dialect.createExpressionVisitor(AliasRemover).visit(it) }
+
+    val expressions = builder.expressions.map { expr ->
+        if (expr.assignments.isEmpty()) {
+            throw IllegalArgumentException("There are no columns to insert in the statement.")
+        } else {
+            dialect.createExpressionVisitor(AliasRemover).visit(expr)
+        }
+    }
 
     if (expressions.isEmpty()) {
         return IntArray(0)
@@ -242,6 +267,10 @@ public fun <T : BaseTable<*>> Database.batchInsert(
  * Insert the current [Query]'s results into the given table, useful when transfer data from a table to another table.
  */
 public fun Query.insertTo(table: BaseTable<*>, vararg columns: Column<*>): Int {
+    if (columns.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
+
     val expression = InsertFromQueryExpression(
         table = table.asExpression(),
         columns = columns.map { it.asExpression() },
@@ -335,7 +364,7 @@ public class UpdateStatementBuilder : AssignmentsBuilder() {
  */
 @KtormDsl
 public class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T) {
-    internal val expressions = ArrayList<SqlExpression>()
+    internal val expressions = ArrayList<UpdateExpression>()
 
     /**
      * Add an update statement to the current batch operation.
@@ -353,7 +382,7 @@ public class BatchUpdateStatementBuilder<T : BaseTable<*>>(internal val table: T
  */
 @KtormDsl
 public class BatchInsertStatementBuilder<T : BaseTable<*>>(internal val table: T) {
-    internal val expressions = ArrayList<SqlExpression>()
+    internal val expressions = ArrayList<InsertExpression>()
 
     /**
      * Add an insert statement to the current batch operation.
