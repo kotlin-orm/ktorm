@@ -131,13 +131,15 @@ public fun QuerySource.joinReferencesAndSelect(): Query {
         .select(joinedTables.flatMap { it.columns })
 }
 
-private fun BaseTable<*>.joinReferences(
-    querySource: QuerySource,
-    joinedTables: MutableList<BaseTable<*>>
-): QuerySource {
+/**
+ * Left join all reference tables and return a [QuerySource].
+ */
+private fun BaseTable<*>.joinReferences(result: QuerySource, joinedTables: MutableList<BaseTable<*>>): QuerySource {
+    infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
+        return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
+    }
 
-    var curr = querySource
-
+    var curr = result
     joinedTables += this
 
     for (column in columns) {
@@ -155,8 +157,4 @@ private fun BaseTable<*>.joinReferences(
     }
 
     return curr
-}
-
-private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
-    return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
 }
