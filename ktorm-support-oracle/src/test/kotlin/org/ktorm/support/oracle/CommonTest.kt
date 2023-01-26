@@ -106,7 +106,7 @@ class CommonTest : BaseOracleTest() {
 
     @Test
     fun testSchema() {
-        val t = object : Table<Department>("t_department", schema = username.uppercase()) {
+        val t = object : Table<Department>("t_department", schema = container.username.uppercase()) {
             val id = int("id").primaryKey().bindTo { it.id }
             val name = varchar("name").bindTo { it.name }
         }

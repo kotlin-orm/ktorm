@@ -1,22 +1,20 @@
 package org.ktorm.support.oracle
 
+import org.junit.ClassRule
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
 import org.testcontainers.containers.OracleContainer
-import java.sql.Connection
-import java.sql.DriverManager
-import kotlin.concurrent.thread
 
 abstract class BaseOracleTest : BaseTest() {
 
     override fun init() {
-        database = Database.connect(alwaysQuoteIdentifiers = true) {
-            object : Connection by connection {
-                override fun close() {
-                    // do nothing...
-                }
-            }
-        }
+        database = Database.connect(
+            url = container.jdbcUrl,
+            driver = container.driverClassName,
+            user = container.username,
+            password = container.password,
+            alwaysQuoteIdentifiers = true
+        )
 
         execSqlScript("init-oracle-data.sql")
     }
@@ -25,28 +23,11 @@ abstract class BaseOracleTest : BaseTest() {
         execSqlScript("drop-oracle-data.sql")
     }
 
-    companion object : OracleContainer("zerda/oracle-database:11.2.0.2-xe") {
-        lateinit var connection: Connection
-
-        init {
+    companion object {
+        @JvmField
+        @ClassRule
+        val container = OracleContainer("zerda/oracle-database:11.2.0.2-xe")
             // At least 1 GB memory is required by Oracle.
-            withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize((1 * 1024 * 1024 * 1024).toLong()) }
-            // Start the container when it's first used.
-            start()
-            // Stop the container when the process exits.
-            Runtime.getRuntime().addShutdownHook(thread(start = false) { stop() })
-        }
-
-        override fun start() {
-            super.start()
-
-            Class.forName(driverClassName)
-            connection = DriverManager.getConnection(jdbcUrl, username, password)
-        }
-
-        override fun stop() {
-            connection.close()
-            super.stop()
-        }
+            .withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize((1 * 1024 * 1024 * 1024).toLong()) }
     }
 }
