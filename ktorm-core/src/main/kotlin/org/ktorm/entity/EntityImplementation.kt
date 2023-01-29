@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,38 +160,38 @@ internal class EntityImplementation(
 
         for ((name, value) in values) {
             if (value is Entity<*>) {
+                // Copy entity and modify the parent reference.
                 val copied = value.copy()
-
-                // Keep the parent relationship.
-                if (copied.implementation.parent == this) {
+                if (copied.implementation.parent === this) {
                     copied.implementation.parent = entity.implementation
                 }
 
                 entity.implementation.values[name] = copied
             } else {
+                fun serialize(obj: Any): ByteArray {
+                    ByteArrayOutputStream().use { buffer ->
+                        ObjectOutputStream(buffer).use { output ->
+                            output.writeObject(obj)
+                            output.flush()
+                            return buffer.toByteArray()
+                        }
+                    }
+                }
+
+                fun deserialize(bytes: ByteArray): Any {
+                    ByteArrayInputStream(bytes).use { buffer ->
+                        ObjectInputStream(buffer).use { input ->
+                            return input.readObject()
+                        }
+                    }
+                }
+
+                // Deep copy value by serialization.
                 entity.implementation.values[name] = value?.let { deserialize(serialize(it)) }
             }
         }
 
         return entity
-    }
-
-    private fun serialize(obj: Any): ByteArray {
-        ByteArrayOutputStream().use { buffer ->
-            ObjectOutputStream(buffer).use { output ->
-                output.writeObject(obj)
-                output.flush()
-                return buffer.toByteArray()
-            }
-        }
-    }
-
-    private fun deserialize(bytes: ByteArray): Any {
-        ByteArrayInputStream(bytes).use { buffer ->
-            ObjectInputStream(buffer).use { input ->
-                return input.readObject()
-            }
-        }
     }
 
     private fun writeObject(output: ObjectOutputStream) {
@@ -201,31 +201,74 @@ internal class EntityImplementation(
 
     @Suppress("UNCHECKED_CAST")
     private fun readObject(input: ObjectInputStream) {
-        val javaClass = Class.forName(input.readUTF())
+        val javaClass = Class.forName(input.readUTF(), true, Thread.currentThread().contextClassLoader)
         entityClass = javaClass.kotlin
         values = input.readObject() as LinkedHashMap<String, Any?>
         changedProperties = LinkedHashSet()
     }
 
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-
-        return when (other) {
-            is EntityImplementation -> entityClass == other.entityClass && values == other.values
-            is Entity<*> -> entityClass == other.implementation.entityClass && values == other.implementation.values
-            else -> false
+        val o = when (other) {
+            is Entity<*> -> other.implementation
+            is EntityImplementation -> other
+            else -> return false
         }
+
+        if (this === o) {
+            return true
+        }
+
+        if (entityClass != o.entityClass) {
+            return false
+        }
+
+        // Do not check size because null values are skipped.
+        // if (values.size != o.values.size) {
+        //     return false
+        // }
+
+        for ((name, value) in values) {
+            if (value != null && value != o.values[name]) {
+                return false
+            }
+        }
+
+        for ((name, value) in o.values) {
+            if (value != null && value != values[name]) {
+                return false
+            }
+        }
+
+        return true
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + entityClass.hashCode()
-        result = 31 * result + values.hashCode()
-        return result
+        var hash = entityClass.hashCode()
+
+        for ((name, value) in values) {
+            if (value != null) {
+                hash += name.hashCode() xor value.hashCode()
+            }
+        }
+
+        return hash
     }
 
     override fun toString(): String {
-        return entityClass.simpleName + values
+        return buildString {
+            append(entityClass.simpleName).append("(")
+
+            var i = 0
+            for ((name, value) in values) {
+                if (i++ > 0) {
+                    append(", ")
+                }
+
+                append(name).append("=").append(value)
+            }
+
+            append(")")
+        }
     }
 
     companion object {

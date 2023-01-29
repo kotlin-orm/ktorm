@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@
 package org.ktorm.dsl
 
 import org.ktorm.database.Database
-import org.ktorm.expression.*
+import org.ktorm.expression.BinaryExpression
+import org.ktorm.expression.BinaryExpressionType
+import org.ktorm.expression.JoinExpression
+import org.ktorm.expression.JoinType
+import org.ktorm.expression.QuerySourceExpression
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.ColumnDeclaring
@@ -47,7 +51,7 @@ public fun Database.from(table: BaseTable<*>): QuerySource {
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `cross join` in SQL.
+ * Perform a cross join and return a new [QuerySource], translated to `cross join` in SQL.
  */
 public fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -61,7 +65,7 @@ public fun QuerySource.crossJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolea
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `inner join` in SQL.
+ * Perform an inner join and return a new [QuerySource], translated to `inner join` in SQL.
  */
 public fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -75,7 +79,7 @@ public fun QuerySource.innerJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolea
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `left join` in SQL.
+ * Perform a left join and return a new [QuerySource], translated to `left join` in SQL.
  */
 public fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
@@ -89,12 +93,26 @@ public fun QuerySource.leftJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean
 }
 
 /**
- * Join the right table and return a new [QuerySource], translated to `right join` in SQL.
+ * Perform a right join and return a new [QuerySource], translated to `right join` in SQL.
  */
 public fun QuerySource.rightJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
     return this.copy(
         expression = JoinExpression(
             type = JoinType.RIGHT_JOIN,
+            left = expression,
+            right = right.asExpression(),
+            condition = on?.asExpression()
+        )
+    )
+}
+
+/**
+ * Perform a full join and return a new [QuerySource], translated to `full join` in SQL.
+ */
+public fun QuerySource.fullJoin(right: BaseTable<*>, on: ColumnDeclaring<Boolean>? = null): QuerySource {
+    return this.copy(
+        expression = JoinExpression(
+            type = JoinType.FULL_JOIN,
             left = expression,
             right = right.asExpression(),
             condition = on?.asExpression()
@@ -113,13 +131,15 @@ public fun QuerySource.joinReferencesAndSelect(): Query {
         .select(joinedTables.flatMap { it.columns })
 }
 
-private fun BaseTable<*>.joinReferences(
-    querySource: QuerySource,
-    joinedTables: MutableList<BaseTable<*>>
-): QuerySource {
+/**
+ * Left join all reference tables and return a [QuerySource].
+ */
+private fun BaseTable<*>.joinReferences(result: QuerySource, joinedTables: MutableList<BaseTable<*>>): QuerySource {
+    infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
+        return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
+    }
 
-    var curr = querySource
-
+    var curr = result
     joinedTables += this
 
     for (column in columns) {
@@ -137,8 +157,4 @@ private fun BaseTable<*>.joinReferences(
     }
 
     return curr
-}
-
-private infix fun ColumnDeclaring<*>.eq(column: ColumnDeclaring<*>): BinaryExpression<Boolean> {
-    return BinaryExpression(BinaryExpressionType.EQUAL, asExpression(), column.asExpression(), BooleanSqlType)
 }

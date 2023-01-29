@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
 
 /**
- * ILike expression, represents PostgreSQL's `ilike` keyword.
+ * ILike expression, represents PostgreSQL `ilike` keyword.
  *
  * @property left the expression's left operand.
  * @property right the expression's right operand.

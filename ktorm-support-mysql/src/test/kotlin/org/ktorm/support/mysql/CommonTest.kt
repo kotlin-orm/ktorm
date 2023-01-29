@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Dec 12, 2018.
@@ -39,7 +40,7 @@ class CommonTest : BaseMySqlTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }
@@ -47,7 +48,7 @@ class CommonTest : BaseMySqlTest() {
     @Test
     fun testLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids.size == 2)
@@ -61,7 +62,7 @@ class CommonTest : BaseMySqlTest() {
     @Test
     fun testBothLimitAndOffsetAreNotPositive() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3, 2, 1))
@@ -73,7 +74,7 @@ class CommonTest : BaseMySqlTest() {
     @Test
     fun testLimitWithoutOffset() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3))
@@ -85,7 +86,7 @@ class CommonTest : BaseMySqlTest() {
     @Test
     fun testOffsetWithoutLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2, 1))
@@ -97,7 +98,7 @@ class CommonTest : BaseMySqlTest() {
     @Test
     fun testOffsetWithLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2))
@@ -208,7 +209,7 @@ class CommonTest : BaseMySqlTest() {
             .orderBy(Departments.id.desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         query = database
             .from(Employees)
@@ -216,7 +217,7 @@ class CommonTest : BaseMySqlTest() {
             .orderBy((Employees.id + 1).desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         query = database
             .from(Employees)
@@ -224,28 +225,28 @@ class CommonTest : BaseMySqlTest() {
             .groupBy(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
 
         query = database
             .from(Employees)
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
 
         query = database
             .from(Employees)
             .select(max(Employees.salary))
             .limit(0, 1)
 
-        assert(query.totalRecords == 1)
+        assert(query.totalRecordsInAllPages == 1)
 
         query = database
             .from(Employees)
             .select(Employees.name)
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
     }
 
     @Test
@@ -336,11 +337,11 @@ class CommonTest : BaseMySqlTest() {
     fun testSum() {
         val countRich = database
             .from(Employees)
-            .select(sum(Employees.salary.gte(100L).toInt()))
-            .map { row -> row.getInt(1) }
+            .select(sum(Employees.salary.toDouble()))
+            .map { row -> row.getObject(1) }
 
         assert(countRich.size == 1)
-        assert(countRich.first() == 3)
+        assert(countRich.first() == 450.0)
     }
 
     @Test
@@ -446,8 +447,14 @@ class CommonTest : BaseMySqlTest() {
             set(it.col, "test")
         }
 
-        val name = database.from(t).select(t.col).map { it[t.col] }.first()
-        assert(name == "test")
+        try {
+            val name = database.from(t).select(t.col).map { it[t.col] }.first()
+            println(name)
+            throw java.lang.AssertionError("unexpected.")
+        } catch (e: IllegalStateException) {
+            println(e.message)
+            assert("too long" in e.message!!)
+        }
     }
 
     @Test
@@ -470,7 +477,7 @@ class CommonTest : BaseMySqlTest() {
             set(it.d, now)
         }
 
-        val d = database.sequenceOf(t).mapColumns { it.d }.first()
+        val d = database.from(t).select(t.d).map { it[t.d] }[0]
         println(d)
         assert(d == now)
     }
@@ -498,17 +505,57 @@ class CommonTest : BaseMySqlTest() {
             set(it.current_mood, Mood.SAD)
         }
 
-        val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
+        val count = database
+            .from(TableWithEnum)
+            .select(count())
+            .where(TableWithEnum.current_mood eq Mood.SAD)
+            .map { it.getInt(1) }
+            .first()
         assertThat(count, equalTo(1))
 
-        val mood = database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        val mood = database
+            .from(TableWithEnum)
+            .select(TableWithEnum.current_mood)
+            .where(TableWithEnum.id eq 1)
+            .map { it[TableWithEnum.current_mood] }
+            .first()
         assertThat(mood, equalTo(Mood.SAD))
 
         database.insert(TableWithEnum) {
             set(it.current_mood, null)
         }
 
-        val mood1 = database.sequenceOf(TableWithEnum).filter { it.id eq 2 }.mapColumns { it.current_mood }.first()
+        val mood1 = database
+            .from(TableWithEnum)
+            .select(TableWithEnum.current_mood)
+            .where(TableWithEnum.id eq 2)
+            .map { it[TableWithEnum.current_mood] }
+            .first()
         assertThat(mood1, equalTo(null))
+    }
+
+    interface TestMultiGeneratedKey : Entity<TestMultiGeneratedKey> {
+        var id: Int
+        var k: String
+        var v: String
+    }
+
+    object TestMultiGeneratedKeys : Table<TestMultiGeneratedKey>("t_multi_generated_key") {
+        val id = int("id").primaryKey().bindTo { it.id }
+        val k = varchar("k").bindTo { it.k }
+        val v = varchar("v").bindTo { it.v }
+    }
+
+    @Test
+    fun testMultiGeneratedKey() {
+        val e = Entity.create<TestMultiGeneratedKey>()
+        e.v = "test~~"
+        database.sequenceOf(TestMultiGeneratedKeys).add(e)
+
+        val e1 = database.sequenceOf(TestMultiGeneratedKeys).first()
+        println(e1)
+        assertEquals(1, e1.id)
+        assertEquals("test~~", e1.v)
+        assert(e1.k.isNotEmpty())
     }
 }

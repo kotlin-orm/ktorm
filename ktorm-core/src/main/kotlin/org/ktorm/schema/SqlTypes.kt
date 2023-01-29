@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.ktorm.schema
 
-import org.postgresql.PGStatement
 import java.math.BigDecimal
 import java.sql.*
 import java.sql.Date
@@ -423,7 +422,7 @@ public fun BaseTable<*>.monthDay(name: String): Column<MonthDay> {
 }
 
 /**
- * [SqlType] implementation used to save [MonthDay] instances, formating them to strings with pattern `MM-dd`.
+ * [SqlType] implementation used to save [MonthDay] instances, formatting them to strings with pattern `MM-dd`.
  */
 public object MonthDaySqlType : SqlType<MonthDay>(Types.VARCHAR, "varchar") {
     private val formatter = DateTimeFormatterBuilder()
@@ -449,7 +448,7 @@ public fun BaseTable<*>.yearMonth(name: String): Column<YearMonth> {
 }
 
 /**
- * [SqlType] implementation used to save [YearMonth] instances, formating them to strings with pattern `yyyy-MM`.
+ * [SqlType] implementation used to save [YearMonth] instances, formatting them to strings with pattern `yyyy-MM`.
  */
 @Suppress("MagicNumber")
 public object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
@@ -505,15 +504,14 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<
  * @property enumClass the enum class.
  */
 public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.OTHER, "enum") {
-    private val hasPostgresqlDriver by lazy {
-        runCatching { Class.forName("org.postgresql.Driver") }.isSuccess
-    }
+    private val pgStatementClass =
+        try { Class.forName("org.postgresql.PGStatement") } catch (_: ClassNotFoundException) { null }
 
     override fun setParameter(ps: PreparedStatement, index: Int, parameter: C?) {
         if (parameter != null) {
             doSetParameter(ps, index, parameter)
         } else {
-            if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
+            if (pgStatementClass != null && ps.isWrapperFor(pgStatementClass)) {
                 ps.setNull(index, Types.OTHER)
             } else {
                 ps.setNull(index, Types.VARCHAR)
@@ -522,7 +520,7 @@ public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<
     }
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
-        if (hasPostgresqlDriver && ps.isWrapperFor(PGStatement::class.java)) {
+        if (pgStatementClass != null && ps.isWrapperFor(pgStatementClass)) {
             ps.setObject(index, parameter.name, Types.OTHER)
         } else {
             ps.setString(index, parameter.name)

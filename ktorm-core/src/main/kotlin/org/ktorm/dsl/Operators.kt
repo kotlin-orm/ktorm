@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -568,14 +568,14 @@ public infix fun <T : Any> T.neq(expr: ColumnDeclaring<T>): BinaryExpression<Boo
 /**
  * Between operator, translated to `between .. and ..` in SQL.
  */
-public infix fun <T : Comparable<T>> ColumnDeclaring<T>.between(range: ClosedRange<T>): BetweenExpression<T> {
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.between(range: ClosedRange<T>): BetweenExpression {
     return BetweenExpression(asExpression(), wrapArgument(range.start), wrapArgument(range.endInclusive))
 }
 
 /**
  * Not-between operator, translated to `not between .. and ..` in SQL.
  */
-public infix fun <T : Comparable<T>> ColumnDeclaring<T>.notBetween(range: ClosedRange<T>): BetweenExpression<T> {
+public infix fun <T : Comparable<T>> ColumnDeclaring<T>.notBetween(range: ClosedRange<T>): BetweenExpression {
     return BetweenExpression(
         expression = asExpression(),
         lower = wrapArgument(range.start),
@@ -589,42 +589,42 @@ public infix fun <T : Comparable<T>> ColumnDeclaring<T>.notBetween(range: Closed
 /**
  * In-list operator, translated to the `in` keyword in SQL.
  */
-public fun <T : Any> ColumnDeclaring<T>.inList(vararg list: T): InListExpression<T> {
+public fun <T : Any> ColumnDeclaring<T>.inList(vararg list: T): InListExpression {
     return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) })
 }
 
 /**
  * In-list operator, translated to the `in` keyword in SQL.
  */
-public infix fun <T : Any> ColumnDeclaring<T>.inList(list: Collection<T>): InListExpression<T> {
+public infix fun <T : Any> ColumnDeclaring<T>.inList(list: Collection<T>): InListExpression {
     return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) })
 }
 
 /**
  * In-list operator, translated to the `in` keyword in SQL.
  */
-public infix fun <T : Any> ColumnDeclaring<T>.inList(query: Query): InListExpression<T> {
+public infix fun ColumnDeclaring<*>.inList(query: Query): InListExpression {
     return InListExpression(left = asExpression(), query = query.expression)
 }
 
 /**
  * Not-in-list operator, translated to the `not in` keyword in SQL.
  */
-public fun <T : Any> ColumnDeclaring<T>.notInList(vararg list: T): InListExpression<T> {
+public fun <T : Any> ColumnDeclaring<T>.notInList(vararg list: T): InListExpression {
     return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) }, notInList = true)
 }
 
 /**
  * Not-in-list operator, translated to the `not in` keyword in SQL.
  */
-public infix fun <T : Any> ColumnDeclaring<T>.notInList(list: Collection<T>): InListExpression<T> {
+public infix fun <T : Any> ColumnDeclaring<T>.notInList(list: Collection<T>): InListExpression {
     return InListExpression(left = asExpression(), values = list.map { wrapArgument(it) }, notInList = true)
 }
 
 /**
  * Not-in-list operator, translated to the `not in` keyword in SQL.
  */
-public infix fun <T : Any> ColumnDeclaring<T>.notInList(query: Query): InListExpression<T> {
+public infix fun ColumnDeclaring<*>.notInList(query: Query): InListExpression {
     return InListExpression(left = asExpression(), query = query.expression, notInList = true)
 }
 
@@ -685,6 +685,7 @@ public fun ColumnDeclaring<out Number>.toLong(): CastingExpression<Long> {
  * Cast the current column or expression's type to [Int].
  */
 @JvmName("booleanToInt")
+@Deprecated("This function will be removed in the future. ", ReplaceWith("this.cast(IntSqlType)"))
 public fun ColumnDeclaring<Boolean>.toInt(): CastingExpression<Int> {
     return this.cast(IntSqlType)
 }

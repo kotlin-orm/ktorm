@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import java.sql.ResultSet
  * obtain rows from a query just like it's a common Kotlin collection.
  *
  * Query objects are immutable. Query DSL functions are provided as its extension functions normally. We can
- * chaining call these functions to modify them and create new query objects. Here is a simple example:
+ * call these functions in chaining style to modify them and create new query objects. Here is a simple example:
  *
  * ```kotlin
  * val query = database
@@ -92,16 +92,22 @@ public class Query(public val database: Database, public val expression: QueryEx
 
     /**
      * The total record count of this query ignoring the pagination params.
+     */
+    @Deprecated("The property is deprecated, use totalRecordsInAllPages instead", ReplaceWith("totalRecordsInAllPages"))
+    public val totalRecords: Int get() = totalRecordsInAllPages
+
+    /**
+     * The total record count of this query ignoring the pagination params.
      *
-     * If the query doesn't limits the results via [Query.limit] function, return the size of the result set. Or if
+     * If the query doesn't limit the results via [Query.limit] function, return the size of the result set. Or if
      * it does, return the total record count of the query ignoring the offset and limit parameters. This property
      * is provided to support pagination, we can calculate the page count through dividing it by our page size.
      */
-    public val totalRecords: Int by lazy(LazyThreadSafetyMode.NONE) {
+    public val totalRecordsInAllPages: Int by lazy(LazyThreadSafetyMode.NONE) {
         if (expression.offset == null && expression.limit == null) {
             rowSet.size()
         } else {
-            val countExpr = expression.toCountExpression()
+            val countExpr = database.toCountExpression(expression)
             val rowSet = database.executeQuery(countExpr)
 
             if (rowSet.next()) {
@@ -222,7 +228,6 @@ public inline fun Query.where(condition: () -> ColumnDeclaring<Boolean>): Query 
  */
 public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     var conditions: List<ColumnDeclaring<Boolean>> = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
-
     if (conditions.isEmpty()) {
         return this
     } else {
@@ -230,7 +235,7 @@ public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<
             conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] and chunk[1] else chunk[0] }
         }
 
-        return this.where { conditions[0] }
+        return this.where(conditions[0])
     }
 }
 
@@ -242,7 +247,6 @@ public inline fun Query.whereWithConditions(block: (MutableList<ColumnDeclaring<
  */
 public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclaring<Boolean>>) -> Unit): Query {
     var conditions: List<ColumnDeclaring<Boolean>> = ArrayList<ColumnDeclaring<Boolean>>().apply(block)
-
     if (conditions.isEmpty()) {
         return this
     } else {
@@ -250,7 +254,7 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
             conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] or chunk[1] else chunk[0] }
         }
 
-        return this.where { conditions[0] }
+        return this.where(conditions[0])
     }
 }
 
@@ -260,7 +264,16 @@ public inline fun Query.whereWithOrConditions(block: (MutableList<ColumnDeclarin
  * If the iterable is empty, the param [ifEmpty] will be returned.
  */
 public fun Iterable<ColumnDeclaring<Boolean>>.combineConditions(ifEmpty: Boolean = true): ColumnDeclaring<Boolean> {
-    return this.reduceOrNull { a, b -> a and b } ?: ArgumentExpression(ifEmpty, BooleanSqlType)
+    var conditions = this.toList()
+    if (conditions.isEmpty()) {
+        return ArgumentExpression(ifEmpty, BooleanSqlType)
+    } else {
+        while (conditions.size > 1) {
+            conditions = conditions.chunked(2) { chunk -> if (chunk.size == 2) chunk[0] and chunk[1] else chunk[0] }
+        }
+
+        return conditions[0]
+    }
 }
 
 /**
@@ -309,8 +322,8 @@ public fun Query.orderBy(orders: Collection<OrderByExpression>): Query {
         when (expression) {
             is SelectExpression -> expression.copy(orderBy = orders.toList())
             is UnionExpression -> {
-                val replacer = OrderByReplacer(expression)
-                expression.copy(orderBy = orders.map { replacer.visit(it) as OrderByExpression })
+                val replacer = database.dialect.createExpressionVisitor(OrderByReplacer(expression))
+                expression.copy(orderBy = orders.map { replacer.visitOrderBy(it) })
             }
         }
     )
@@ -323,27 +336,37 @@ public fun Query.orderBy(vararg orders: OrderByExpression): Query {
     return orderBy(orders.asList())
 }
 
-private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitor() {
+/**
+ * For union queries, replace the order-by expressions with inner query's declared names.
+ */
+private class OrderByReplacer(query: UnionExpression) : SqlExpressionVisitorInterceptor {
     val declaringColumns = query.findDeclaringColumns()
 
-    override fun visitOrderBy(expr: OrderByExpression): OrderByExpression {
-        val declaring = declaringColumns.find { it.declaredName != null && it.expression == expr.expression }
+    override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+        if (expr is OrderByExpression) {
+            val declaring = declaringColumns.find { it.declaredName != null && it.expression == expr.expression }
 
-        if (declaring == null) {
-            throw IllegalArgumentException("Could not find the ordering column in the union expression, column: $expr")
-        } else {
-            return OrderByExpression(
-                expression = ColumnExpression(
-                    table = null,
-                    name = declaring.declaredName!!,
-                    sqlType = declaring.expression.sqlType
-                ),
-                orderType = expr.orderType
-            )
+            if (declaring == null) {
+                throw IllegalArgumentException("Could not find the ordering column ($expr) in the union expression.")
+            } else {
+                return OrderByExpression(
+                    expression = ColumnExpression(
+                        table = null,
+                        name = declaring.declaredName!!,
+                        sqlType = declaring.expression.sqlType
+                    ),
+                    orderType = expr.orderType
+                )
+            }
         }
+
+        return null
     }
 }
 
+/**
+ * Return the declaring columns of [this] query.
+ */
 internal tailrec fun QueryExpression.findDeclaringColumns(): List<ColumnDeclaringExpression<*>> {
     return when (this) {
         is SelectExpression -> columns
@@ -391,7 +414,7 @@ public fun Query.limit(n: Int): Query {
  * Specify the pagination parameters of this query.
  *
  * This function requires a dialect enabled, different SQLs will be generated with different dialects. For example,
- * `limit ?, ?` by MySQL, `limit m offset n` by PostgreSQL.
+ * `limit ?, ?` for MySQL, `limit m offset n` for PostgreSQL.
  *
  * Note that if the numbers aren't positive, they will be ignored.
  */
@@ -536,7 +559,7 @@ public inline fun <R> Query.mapIndexed(transform: (index: Int, row: QueryRowSet)
 }
 
 /**
- * Apply the given [transform] function the each row and its index and append the results to the given [destination].
+ * Apply the given [transform] function to each row and its index and append the results to the given [destination].
  *
  * The [transform] function takes the index of a row and the row itself and returns the result of the transform
  * applied to the row.
@@ -565,7 +588,7 @@ public inline fun <R : Any> Query.mapIndexedNotNull(transform: (index: Int, row:
 }
 
 /**
- * Apply the given [transform] function the each row and its index and append only the non-null results to
+ * Apply the given [transform] function to each row and its index and append only the non-null results to
  * the given [destination].
  *
  * The [transform] function takes the index of a row and the row itself and returns the result of the transform
@@ -646,7 +669,7 @@ public inline fun <K, V> Query.associate(transform: (row: QueryRowSet) -> Pair<K
  * Return a [Map] containing the values provided by [valueTransform] and indexed by [keySelector] functions applied to
  * rows of the query.
  *
- * If any two rows would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two rows have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original query results.
  *
@@ -679,7 +702,7 @@ public inline fun <K, V, M : MutableMap<in K, in V>> Query.associateTo(
  * Populate and return the [destination] mutable map with key-value pairs, where key is provided by the [keySelector]
  * function and value is provided by the [valueTransform] function applied to rows of the query.
  *
- * If any two rows would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two rows have the same key returned by [keySelector] the last one gets added to the map.
  *
  * @since 3.0.0
  */

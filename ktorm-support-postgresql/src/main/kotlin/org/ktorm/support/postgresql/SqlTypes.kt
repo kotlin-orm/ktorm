@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.ktorm.support.postgresql
 import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.SqlType
-import org.postgresql.util.PGobject
+import java.lang.reflect.InvocationTargetException
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
@@ -86,7 +86,7 @@ public object HStoreSqlType : SqlType<HStore>(Types.OTHER, "hstore") {
 
 /**
  * Represents a box suitable for an indexed search using the cube @> operator.
- * Part of PostgreSQL's `cube` SQL extension.
+ * Part of PostgreSQL `cube` SQL extension.
  * https://www.postgresql.org/docs/9.5/cube.html
  */
 public data class Cube(val x: DoubleArray, val y: DoubleArray) {
@@ -121,31 +121,41 @@ public fun BaseTable<*>.cube(name: String): Column<Cube> {
 
 /**
  * Represents a Cube by storing 2 n-dimensional points
- * Part of PostgreSQL's `cube` SQL extension.
+ * Part of PostgreSQL `cube` SQL extension.
  * https://www.postgresql.org/docs/9.5/cube.html
  */
 public object CubeSqlType : SqlType<Cube>(Types.OTHER, "cube") {
+    // Access postgresql API by reflection, because it is not a JDK 9 module,
+    // we are not able to require it in module-info.java.
+    private val pgObjectClass = Class.forName("org.postgresql.util.PGobject")
+    private val getValueMethod = pgObjectClass.getMethod("getValue")
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Cube) {
         ps.setObject(index, parameter, Types.OTHER)
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): Cube? {
-        val obj = rs.getObject(index) as PGobject?
+        val obj = pgObjectClass.cast(rs.getObject(index))
         if (obj == null) {
             return null
         } else {
-            // (1, 2, 3), (4, 5, 6)
-            val numbers = obj.value.replace("(", "").replace(")", "").split(",").map { it.trim().toDouble() }
-            val (x, y) = numbers.chunked(numbers.size / 2).map { it.toDoubleArray() }
-            return Cube(x, y)
+            @Suppress("SwallowedException")
+            try {
+                // (1, 2, 3), (4, 5, 6)
+                val value = getValueMethod.invoke(obj) as String
+                val numbers = value.replace("(", "").replace(")", "").split(",").map { it.trim().toDouble() }
+                val (x, y) = numbers.chunked(numbers.size / 2).map { it.toDoubleArray() }
+                return Cube(x, y)
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
         }
     }
 }
 
 /**
  * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
- * Part of PostgreSQL's `earthdistance` extension.
+ * Part of PostgreSQL `earthdistance` extension.
  * https://www.postgresql.org/docs/12/earthdistance.html
  */
 public typealias Earth = Triple<Double, Double, Double>
@@ -159,22 +169,32 @@ public fun BaseTable<*>.earth(name: String): Column<Earth> {
 
 /**
  * Cube-based earth abstraction, using 3 coordinates representing the x, y, and z distance from the center of the Earth.
- * Part of PostgreSQL's `earthdistance` SQL extension.
+ * Part of PostgreSQL `earthdistance` SQL extension.
  */
 public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
+    // Access postgresql API by reflection, because it is not a JDK 9 module,
+    // we are not able to require it in module-info.java.
+    private val pgObjectClass = Class.forName("org.postgresql.util.PGobject")
+    private val getValueMethod = pgObjectClass.getMethod("getValue")
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Earth) {
         ps.setObject(index, parameter, Types.OTHER)
     }
 
     override fun doGetResult(rs: ResultSet, index: Int): Earth? {
-        val obj = rs.getObject(index) as PGobject?
+        val obj = pgObjectClass.cast(rs.getObject(index))
         if (obj == null) {
             return null
         } else {
-            // (1, 2, 3)
-            val (x, y, z) = obj.value.removeSurrounding("(", ")").split(",").map { it.trim().toDouble() }
-            return Earth(x, y, z)
+            @Suppress("SwallowedException")
+            try {
+                // (1, 2, 3)
+                val value = getValueMethod.invoke(obj) as String
+                val (x, y, z) = value.removeSurrounding("(", ")").split(",").map { it.trim().toDouble() }
+                return Earth(x, y, z)
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
         }
     }
 }

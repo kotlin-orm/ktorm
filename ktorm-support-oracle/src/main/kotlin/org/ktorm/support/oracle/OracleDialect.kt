@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package org.ktorm.support.oracle
 
 import org.ktorm.database.Database
 import org.ktorm.database.SqlDialect
-import org.ktorm.expression.*
-import org.ktorm.schema.IntSqlType
+import org.ktorm.expression.SqlFormatter
 
 /**
  * [SqlDialect] implementation for Oracle database.
@@ -28,78 +27,5 @@ public open class OracleDialect : SqlDialect {
 
     override fun createSqlFormatter(database: Database, beautifySql: Boolean, indentSize: Int): SqlFormatter {
         return OracleFormatter(database, beautifySql, indentSize)
-    }
-}
-
-/**
- * [SqlFormatter] implementation for Oracle, formatting SQL expressions as strings with their execution arguments.
- */
-public open class OracleFormatter(
-    database: Database, beautifySql: Boolean, indentSize: Int
-) : SqlFormatter(database, beautifySql, indentSize) {
-
-    override fun checkColumnName(name: String) {
-        val maxLength = database.maxColumnNameLength
-        if (maxLength > 0 && name.length > maxLength) {
-            throw IllegalStateException("The identifier '$name' is too long. Maximum length is $maxLength")
-        }
-    }
-
-    override fun shouldQuote(identifier: String): Boolean {
-        // Oracle doesn't support underscores as the first character for unquoted identifiers.
-        return identifier.startsWith('_') || super.shouldQuote(identifier)
-    }
-
-    override fun visitQuery(expr: QueryExpression): QueryExpression {
-        if (expr.offset == null && expr.limit == null) {
-            return super.visitQuery(expr)
-        }
-
-        // forUpdate() function in the core lib was removed, uncomment the following lines
-        // when we add this feature back in the Oracle dialect.
-        // if (expr is SelectExpression && expr.forUpdate) {
-        //     throw DialectFeatureNotSupportedException("Locking is not supported when using offset/limit params.")
-        // }
-
-        val offset = expr.offset ?: 0
-        val minRowNum = offset + 1
-        val maxRowNum = expr.limit?.let { offset + it } ?: Int.MAX_VALUE
-
-        val tempTableName = "_t"
-
-        writeKeyword("select * ")
-        newLine(Indentation.SAME)
-        writeKeyword("from (")
-        newLine(Indentation.INNER)
-        writeKeyword("select ")
-        write("${tempTableName.quoted}.*, ")
-        writeKeyword("rownum ")
-        write("${"_rn".quoted} ")
-        newLine(Indentation.SAME)
-        writeKeyword("from ")
-
-        visitQuerySource(
-            when (expr) {
-                is SelectExpression -> expr.copy(tableAlias = tempTableName, offset = null, limit = null)
-                is UnionExpression -> expr.copy(tableAlias = tempTableName, offset = null, limit = null)
-            }
-        )
-
-        newLine(Indentation.SAME)
-        writeKeyword("where rownum <= ?")
-        newLine(Indentation.OUTER)
-        write(") ")
-        newLine(Indentation.SAME)
-        writeKeyword("where ")
-        write("${"_rn".quoted} >= ? ")
-
-        _parameters += ArgumentExpression(maxRowNum, IntSqlType)
-        _parameters += ArgumentExpression(minRowNum, IntSqlType)
-
-        return expr
-    }
-
-    override fun writePagination(expr: QueryExpression) {
-        throw AssertionError("Never happen.")
     }
 }

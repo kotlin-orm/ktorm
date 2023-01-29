@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,12 @@ public class ConsoleLogger(public val threshold: LogLevel) : Logger {
         if (level >= threshold) {
             val out = if (level >= LogLevel.WARN) System.err else System.out
             out.println("[$level] $msg")
-            e?.printStackTrace(out)
+
+            if (e != null) {
+                // Workaround for the compiler bug, see https://youtrack.jetbrains.com/issue/KT-34826
+                @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "KotlinConstantConditions")
+                (e as java.lang.Throwable).printStackTrace(out)
+            }
         }
     }
 }

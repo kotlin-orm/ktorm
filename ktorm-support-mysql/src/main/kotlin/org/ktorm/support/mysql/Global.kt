@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public fun <T : BaseTable<*>> T.insertOrUpdate(block: InsertOrUpdateStatementBui
  * Construct a bulk insert expression in the given closure, then execute it and return the effected row count.
  *
  * The usage is almost the same as [batchInsert], but this function is implemented by generating a special SQL
- * using MySQL's bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
+ * using MySQL bulk insert syntax, instead of based on JDBC batch operations. For this reason, its performance
  * is much better than [batchInsert].
  *
  * The generated SQL is like: `insert into table (column1, column2) values (?, ?), (?, ?), (?, ?)...`.

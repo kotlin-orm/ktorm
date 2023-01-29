@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,12 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
     checkForDml()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
-    val assignments = entity.findInsertColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = entity.findInsertColumns(sourceTable)
+    if (assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no property values to insert in the entity.")
+    }
 
-    val expression = AliasRemover.visit(
+    val expression = database.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = InsertExpression(
             table = sourceTable.asExpression(),
             assignments = assignments.map { (col, argument) ->
@@ -71,7 +74,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.add(entity: E): In
         val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
 
         if (rowSet.next()) {
-            val generatedKey = primaryKeys[0].sqlType.getResult(rowSet, 1)
+            val generatedKey = rowSet.getGeneratedKey(primaryKeys[0])
             if (generatedKey != null) {
                 if (database.logger.isDebugEnabled()) {
                     database.logger.debug("Generated Key: $generatedKey")
@@ -102,9 +105,12 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E):
     checkForDml()
     entity.implementation.checkUnexpectedDiscarding(sourceTable)
 
-    val assignments = entity.findUpdateColumns(sourceTable).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = entity.findUpdateColumns(sourceTable)
+    if (assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no property values to update in the entity.")
+    }
 
-    val expression = AliasRemover.visit(
+    val expression = database.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = UpdateExpression(
             table = sourceTable.asExpression(),
             assignments = assignments.map { (col, argument) ->
@@ -125,7 +131,7 @@ public fun <E : Entity<E>, T : Table<E>> EntitySequence<E, T>.update(entity: E):
 }
 
 /**
- * Remove all of the elements of this sequence that satisfy the given [predicate].
+ * Remove all the elements of this sequence that satisfy the given [predicate].
  *
  * @since 2.7
  */
@@ -159,9 +165,13 @@ internal fun EntityImplementation.doFlushChanges(): Int {
     val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
     checkUnexpectedDiscarding(fromTable)
 
-    val assignments = findChangedColumns(fromTable).takeIf { it.isNotEmpty() } ?: return 0
+    val assignments = findChangedColumns(fromTable)
+    if (assignments.isEmpty()) {
+        // Ignore the flushChanges call.
+        return 0
+    }
 
-    val expression = AliasRemover.visit(
+    val expression = fromDatabase.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = UpdateExpression(
             table = fromTable.asExpression(),
             assignments = assignments.map { (col, argument) ->
@@ -188,7 +198,7 @@ internal fun EntityImplementation.doDelete(): Int {
     val fromDatabase = fromDatabase ?: error("The entity is not attached to any database yet.")
     val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
 
-    val expression = AliasRemover.visit(
+    val expression = fromDatabase.dialect.createExpressionVisitor(AliasRemover).visit(
         expr = DeleteExpression(
             table = fromTable.asExpression(),
             where = constructIdentityCondition(fromTable)
@@ -239,6 +249,7 @@ private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
 private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
 
+    @Suppress("ConvertArgumentToSet")
     for (column in table.columns - table.primaryKeys) {
         if (column.binding != null && implementation.hasColumnValue(column.binding)) {
             assignments[column] = implementation.getColumnValue(column.binding)

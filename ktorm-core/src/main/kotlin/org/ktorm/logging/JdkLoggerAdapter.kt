@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@ import java.util.logging.Level
 
 /**
  * Adapter [Logger] implementation integrating [java.util.logging] with Ktorm.
- *
- * @property logger a logger instance of JDK logging.
  */
-public class JdkLoggerAdapter(public val logger: java.util.logging.Logger) : Logger {
+public class JdkLoggerAdapter(loggerName: String) : Logger {
+    private val logger = java.util.logging.Logger.getLogger(loggerName)
 
     override fun isTraceEnabled(): Boolean {
         return logger.isLoggable(Level.FINEST)

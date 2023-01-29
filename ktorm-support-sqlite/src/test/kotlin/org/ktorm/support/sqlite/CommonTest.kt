@@ -3,12 +3,12 @@ package org.ktorm.support.sqlite
 import org.junit.Test
 import org.ktorm.database.use
 import org.ktorm.dsl.*
-import org.ktorm.entity.count
-import org.ktorm.entity.find
-import org.ktorm.entity.sequenceOf
+import org.ktorm.entity.*
 import org.ktorm.schema.Table
+import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import java.time.LocalDate
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Dec 12, 2018.
@@ -34,7 +34,7 @@ class CommonTest : BaseSQLiteTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }
@@ -42,7 +42,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids.size == 2)
@@ -56,7 +56,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testBothLimitAndOffsetAreNotPositive() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3, 2, 1))
@@ -68,7 +68,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testLimitWithoutOffset() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3))
@@ -80,7 +80,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testOffsetWithoutLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2, 1))
@@ -92,7 +92,7 @@ class CommonTest : BaseSQLiteTest() {
     @Test
     fun testOffsetWithLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2))
@@ -107,7 +107,7 @@ class CommonTest : BaseSQLiteTest() {
             .orderBy(Departments.id.desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         query = database
             .from(Employees)
@@ -115,7 +115,7 @@ class CommonTest : BaseSQLiteTest() {
             .orderBy((Employees.id + 1).desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         query = database
             .from(Employees)
@@ -123,28 +123,28 @@ class CommonTest : BaseSQLiteTest() {
             .groupBy(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
 
         query = database
             .from(Employees)
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
 
         query = database
             .from(Employees)
             .select(max(Employees.salary))
             .limit(0, 1)
 
-        assert(query.totalRecords == 1)
+        assert(query.totalRecordsInAllPages == 1)
 
         query = database
             .from(Employees)
             .select(Employees.name)
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
     }
 
     @Test
@@ -169,5 +169,30 @@ class CommonTest : BaseSQLiteTest() {
         for (employee in database.employees) {
             println(employee)
         }
+    }
+
+    interface TestMultiGeneratedKey : Entity<TestMultiGeneratedKey> {
+        var id: Int
+        var k: String
+        var v: String
+    }
+
+    object TestMultiGeneratedKeys : Table<TestMultiGeneratedKey>("t_multi_generated_key") {
+        val id = int("id").primaryKey().bindTo { it.id }
+        val k = varchar("k").bindTo { it.k }
+        val v = varchar("v").bindTo { it.v }
+    }
+
+    @Test
+    fun testMultiGeneratedKey() {
+        val e = Entity.create<TestMultiGeneratedKey>()
+        e.v = "test~~"
+        database.sequenceOf(TestMultiGeneratedKeys).add(e)
+
+        val e1 = database.sequenceOf(TestMultiGeneratedKeys).first()
+        println(e1)
+        assertEquals(1, e1.id)
+        assertEquals("test~~", e1.v)
+        assert(e1.k.isNotEmpty())
     }
 }

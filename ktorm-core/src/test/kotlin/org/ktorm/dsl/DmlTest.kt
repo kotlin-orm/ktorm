@@ -4,6 +4,7 @@ import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.entity.*
 import java.time.LocalDate
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Dec 08, 2018.
@@ -27,6 +28,25 @@ class DmlTest : BaseTest() {
         assert(employee.job == "engineer")
         assert(employee.manager == null)
         assert(employee.salary == 100L)
+    }
+
+    @Test
+    fun testUpdateWithNestedQuery() {
+        val query = database
+            .from(Employees)
+            .innerJoin(Departments, on = Employees.departmentId eq Departments.id)
+            .select(Employees.id)
+            .where(Employees.id gte 3)
+
+        database.update(Employees) {
+            set(it.salary, 1000)
+            where {
+                it.id inList query
+            }
+        }
+
+        val sum = database.employees.sumBy { it.salary }
+        assertEquals(2150, sum)
     }
 
     @Test

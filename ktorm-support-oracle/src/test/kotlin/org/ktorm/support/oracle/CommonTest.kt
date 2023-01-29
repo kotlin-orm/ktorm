@@ -3,7 +3,6 @@ package org.ktorm.support.oracle
 import org.junit.Test
 import org.ktorm.database.use
 import org.ktorm.dsl.*
-import org.ktorm.entity.count
 import org.ktorm.entity.filter
 import org.ktorm.entity.mapTo
 import org.ktorm.entity.sequenceOf
@@ -35,7 +34,7 @@ class CommonTest : BaseOracleTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }
@@ -43,7 +42,7 @@ class CommonTest : BaseOracleTest() {
     @Test
     fun testLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids[0] == 4)
@@ -56,7 +55,7 @@ class CommonTest : BaseOracleTest() {
     @Test
     fun testBothLimitAndOffsetAreNotPositive() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3, 2, 1))
@@ -68,7 +67,7 @@ class CommonTest : BaseOracleTest() {
     @Test
     fun testLimitWithoutOffset() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3))
@@ -80,7 +79,7 @@ class CommonTest : BaseOracleTest() {
     @Test
     fun testOffsetWithoutLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2, 1))
@@ -92,7 +91,7 @@ class CommonTest : BaseOracleTest() {
     @Test
     fun testOffsetWithLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2))
@@ -107,7 +106,7 @@ class CommonTest : BaseOracleTest() {
 
     @Test
     fun testSchema() {
-        val t = object : Table<Department>("t_department", schema = username.uppercase()) {
+        val t = object : Table<Department>("t_department", schema = container.username.uppercase()) {
             val id = int("id").primaryKey().bindTo { it.id }
             val name = varchar("name").bindTo { it.name }
         }
@@ -120,7 +119,7 @@ class CommonTest : BaseOracleTest() {
         }
 
         assert(database.sequenceOf(t).filter { it.id eq 1 }.mapTo(HashSet()) { it.name } == setOf("test"))
-        assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance"))
+        assert(database.sequenceOf(t.aliased("t")).mapTo(HashSet()) { it.name } == setOf("test", "finance", "ai"))
     }
 
     @Test

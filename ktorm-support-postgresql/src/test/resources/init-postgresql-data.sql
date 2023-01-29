@@ -1,5 +1,6 @@
 create extension if not exists hstore;
 create extension if not exists earthdistance cascade;
+create extension if not exists "uuid-ossp";
 
 create table t_department(
   id serial primary key,
@@ -18,6 +19,12 @@ create table t_employee(
   department_id int not null
 );
 
+create table t_multi_generated_key(
+    id serial primary key,
+    k varchar(128) not null default uuid_generate_v4(),
+    v varchar(128)
+);
+
 create table t_metadata(
   id serial primary key,
   attrs hstore,
@@ -33,6 +40,12 @@ create table t_enum(
 create table t_json (obj json, arr json);
 
 create table t_earthdistance(earth_field earth, cube_field cube);
+
+create table t_user(
+    id serial primary key,
+    username varchar default 'default',
+    age int
+);
 
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
 insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');

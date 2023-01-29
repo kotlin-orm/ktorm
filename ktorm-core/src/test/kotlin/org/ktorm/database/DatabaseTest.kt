@@ -2,13 +2,11 @@ package org.ktorm.database
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.dsl.delete
-import org.ktorm.dsl.eq
-import org.ktorm.dsl.insert
+import org.ktorm.dsl.*
 import org.ktorm.entity.count
 import org.ktorm.entity.defaultValue
-import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.Table
+import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 
 /**
@@ -48,7 +46,7 @@ class DatabaseTest : BaseTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }
@@ -110,4 +108,36 @@ class DatabaseTest : BaseTest() {
         assert(UInt::class.java.defaultValue !== UInt::class.java.defaultValue)
         assert(ULong::class.java.defaultValue !== ULong::class.java.defaultValue)
     }
+
+    enum class Status(val code: Int) {
+        ONE(1), TWO(2), THREE(3);
+
+        companion object {
+            fun forCode(code: Int): Status {
+                return values().first { it.code == code }
+            }
+        }
+    }
+
+    @Test
+    fun testTransformingNullValues() {
+        val t = object : Table<Nothing>("T_TEST_TRANSFORMING_NULL_VALUES") {
+            val status = int("STATUS").transform({ Status.forCode(it) }, { it.code })
+        }
+
+        database.useConnection { conn ->
+            conn.createStatement().use { statement ->
+                val sql = """CREATE TABLE T_TEST_TRANSFORMING_NULL_VALUES(STATUS INT)"""
+                statement.executeUpdate(sql)
+            }
+        }
+
+        database.insert(t) {
+            set(it.status, null)
+        }
+
+        val query = database.from(t).select(t.status)
+        assert(query.map { row -> row[t.status] }.first() == null)
+    }
+
 }

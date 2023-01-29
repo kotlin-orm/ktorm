@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,18 +56,34 @@ public class KtormModule : Module() {
         context.addSerializers(EntitySerializers())
         context.addDeserializers(EntityDeserializers())
 
-        val codec = context.getOwner<ObjectCodec>()
-        if (codec is ObjectMapper) {
-            val objectType = codec.constructType(Any::class.java)
+        try {
+            val codec = context.getOwner<ObjectCodec>()
+            if (codec is ObjectMapper) {
+                val objectType = codec.constructType(Any::class.java)
 
-            val serializerTyper = codec.serializationConfig.getDefaultTyper(objectType)
-            if (serializerTyper != null && serializerTyper is DefaultTypeResolverBuilder) {
-                codec.setConfig(codec.serializationConfig.with(EntityTypeResolverBuilder(serializerTyper)))
+                val serializerTyper = codec.serializationConfig.getDefaultTyper(objectType)
+                if (serializerTyper != null && serializerTyper is DefaultTypeResolverBuilder) {
+                    codec.setConfig(codec.serializationConfig.with(EntityTypeResolverBuilder(serializerTyper)))
+                }
+
+                val deserializerTyper = codec.deserializationConfig.getDefaultTyper(objectType)
+                if (deserializerTyper != null && deserializerTyper is DefaultTypeResolverBuilder) {
+                    codec.setConfig(codec.deserializationConfig.with(EntityTypeResolverBuilder(deserializerTyper)))
+                }
             }
-
-            val deserializerTyper = codec.deserializationConfig.getDefaultTyper(objectType)
-            if (deserializerTyper != null && deserializerTyper is DefaultTypeResolverBuilder) {
-                codec.setConfig(codec.deserializationConfig.with(EntityTypeResolverBuilder(deserializerTyper)))
+        } catch (e: Throwable) {
+            // Some reflection operation (setAccessible) may fail in JDK 9 or above.
+            if (e.javaClass.name == "java.lang.reflect.InaccessibleObjectException") {
+                @Suppress("MaxLineLength")
+                val msg = "" +
+                    "Default typing is not supported because some hacking magic based on reflection failed. " +
+                    "Please disable the default typing functionality by ObjectMapper.disableDefaultTyping(), " +
+                    "or add the following VM arguments: " +
+                    "--add-opens com.fasterxml.jackson.databind/com.fasterxml.jackson.databind=ktorm.jackson " +
+                    "--add-opens com.fasterxml.jackson.databind/com.fasterxml.jackson.databind.jsontype.impl=ktorm.jackson "
+                throw UnsupportedOperationException(msg, e)
+            } else {
+                throw e
             }
         }
     }

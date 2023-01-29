@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Feb 13, 2019.
@@ -39,7 +40,7 @@ class CommonTest : BasePostgreSqlTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }
@@ -166,17 +167,57 @@ class CommonTest : BasePostgreSqlTest() {
             set(it.current_mood, Mood.SAD)
         }
 
-        val count = database.sequenceOf(TableWithEnum).count { it.current_mood eq Mood.SAD }
+        val count = database
+            .from(TableWithEnum)
+            .select(count())
+            .where(TableWithEnum.current_mood eq Mood.SAD)
+            .map { it.getInt(1) }
+            .first()
         assertThat(count, equalTo(1))
 
-        val mood = database.sequenceOf(TableWithEnum).filter { it.id eq 1 }.mapColumns { it.current_mood }.first()
+        val mood = database
+            .from(TableWithEnum)
+            .select(TableWithEnum.current_mood)
+            .where(TableWithEnum.id eq 1)
+            .map { it[TableWithEnum.current_mood] }
+            .first()
         assertThat(mood, equalTo(Mood.HAPPY))
 
         database.insert(TableWithEnum) {
             set(it.current_mood, null)
         }
 
-        val mood1 = database.sequenceOf(TableWithEnum).filter { it.id eq 3 }.mapColumns { it.current_mood }.first()
+        val mood1 = database
+            .from(TableWithEnum)
+            .select(TableWithEnum.current_mood)
+            .where(TableWithEnum.id eq 3)
+            .map { it[TableWithEnum.current_mood] }
+            .first()
         assertThat(mood1, equalTo(null))
+    }
+
+    interface TestMultiGeneratedKey : Entity<TestMultiGeneratedKey> {
+        var id: Int
+        var k: String
+        var v: String
+    }
+
+    object TestMultiGeneratedKeys : Table<TestMultiGeneratedKey>("t_multi_generated_key") {
+        val id = int("id").primaryKey().bindTo { it.id }
+        val k = varchar("k").bindTo { it.k }
+        val v = varchar("v").bindTo { it.v }
+    }
+
+    @Test
+    fun testMultiGeneratedKey() {
+        val e = Entity.create<TestMultiGeneratedKey>()
+        e.v = "test~~"
+        database.sequenceOf(TestMultiGeneratedKeys).add(e)
+
+        val e1 = database.sequenceOf(TestMultiGeneratedKeys).first()
+        println(e1)
+        assertEquals(1, e1.id)
+        assertEquals("test~~", e1.v)
+        assert(e1.k.isNotEmpty())
     }
 }

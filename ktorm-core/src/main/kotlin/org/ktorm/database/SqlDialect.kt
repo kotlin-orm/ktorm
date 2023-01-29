@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.ktorm.database
 
-import org.ktorm.expression.ArgumentExpression
-import org.ktorm.expression.QueryExpression
-import org.ktorm.expression.SqlFormatter
+import org.ktorm.expression.*
 import java.sql.Statement
 import java.util.ServiceLoader
 
@@ -35,10 +33,24 @@ import java.util.ServiceLoader
  * parameter to the dialect implementation while creating database instances via [Database.connect] functions.
  *
  * Since version 2.4, Ktorm's dialect modules start following the convention of JDK [ServiceLoader] SPI, so we don't
- * need to specify the `dialect` parameter explicitly anymore while creating [Database] instances. Ktorm auto detects
+ * need to specify the `dialect` parameter explicitly anymore while creating [Database] instances. Ktorm auto-detects
  * one for us from the classpath. We just need to insure the dialect module exists in the dependencies.
  */
 public interface SqlDialect {
+
+    /**
+     * Create a default visitor instance for this dialect using the specific [interceptor].
+     *
+     * Implementations might have their own sub-interface of [SqlExpressionVisitor] to support dialect-specific
+     * features, instances of the visitor interface can be created by [newVisitorInstance] function.
+     *
+     * @param interceptor an interceptor that can intercept the visit functions of visitor sub-interfaces.
+     * @return an instance of [SqlExpressionVisitor] that can be intercepted by [interceptor].
+     * @since 3.6.0
+     */
+    public fun createExpressionVisitor(interceptor: SqlExpressionVisitorInterceptor): SqlExpressionVisitor {
+        return SqlExpressionVisitor::class.newVisitorInstance(interceptor)
+    }
 
     /**
      * Create a [SqlFormatter] instance, formatting SQL expressions as strings with their execution arguments.

@@ -54,7 +54,7 @@ complexity:
     includeStaticDeclarations: false
   ComplexMethod:
     active: true
-    threshold: 15
+    threshold: 20
     ignoreSingleWhenExpression: true
     ignoreSimpleWhenEntries: true
   LabeledExpression:
@@ -197,7 +197,7 @@ formatting:
     indentSize: 4
     continuationIndentSize: 4
   MaximumLineLength:
-    active: true
+    active: false
     maxLineLength: 120
   ModifierOrdering:
     active: true
@@ -409,7 +409,7 @@ style:
     maxJumpCount: 2
   MagicNumber:
     active: true
-    ignoreNumbers: '-1,0,1,2,3'
+    ignoreNumbers: '-1,0,1,2,3,60'
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
     ignoreConstantDeclaration: true
@@ -460,7 +460,7 @@ style:
   SpacingBetweenPackageAndImports:
     active: true
   ThrowsCount:
-    active: true
+    active: false
     max: 2
   TrailingWhitespace:
     active: true

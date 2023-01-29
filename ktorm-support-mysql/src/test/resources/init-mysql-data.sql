@@ -17,6 +17,18 @@ create table t_employee(
 
 create fulltext index employee_name_job on t_employee(name, job);
 
+create table t_user(
+   id int not null primary key auto_increment,
+   username varchar(128) default 'default',
+   age int
+);
+
+create table t_multi_generated_key(
+    id int not null primary key auto_increment,
+    k varchar(128) default (uuid()),
+    v varchar(128)
+);
+
 insert into t_department(name, location) values ('tech', 'Guangzhou');
 insert into t_department(name, location) values ('finance', 'Beijing');
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.ktorm.dsl
 
+import org.ktorm.database.Database
 import org.ktorm.expression.*
 
-internal fun QueryExpression.toCountExpression(): SelectExpression {
-    val expression = OrderByRemover.visit(this) as QueryExpression
+internal fun Database.toCountExpression(expr: QueryExpression): SelectExpression {
+    val expression = dialect.createExpressionVisitor(OrderByRemover(this)).visit(expr) as QueryExpression
     val count = count().aliased(null)
 
     if (expression is SelectExpression && expression.isSimpleSelect()) {
@@ -45,35 +46,42 @@ private fun SelectExpression.isSimpleSelect(): Boolean {
     return columns.all { it.expression is ColumnExpression }
 }
 
-private object OrderByRemover : SqlExpressionVisitor() {
+private class OrderByRemover(val database: Database) : SqlExpressionVisitorInterceptor {
 
-    override fun visitSelect(expr: SelectExpression): SelectExpression {
-        if (expr.orderBy.any { it.hasArgument() }) {
-            return expr
-        } else {
-            return expr.copy(orderBy = emptyList())
+    override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+        if (expr is SelectExpression) {
+            if (expr.orderBy.any { database.hasArgument(it) }) {
+                return expr
+            } else {
+                return expr.copy(orderBy = emptyList())
+            }
         }
-    }
 
-    override fun visitUnion(expr: UnionExpression): UnionExpression {
-        if (expr.orderBy.any { it.hasArgument() }) {
-            return expr
-        } else {
-            return expr.copy(orderBy = emptyList())
+        if (expr is UnionExpression) {
+            if (expr.orderBy.any { database.hasArgument(it) }) {
+                return expr
+            } else {
+                return expr.copy(orderBy = emptyList())
+            }
         }
+
+        return null
     }
 }
 
-private fun SqlExpression.hasArgument(): Boolean {
+private fun Database.hasArgument(expr: SqlExpression): Boolean {
     var hasArgument = false
 
-    val visitor = object : SqlExpressionVisitor() {
-        override fun <T : Any> visitArgument(expr: ArgumentExpression<T>): ArgumentExpression<T> {
-            hasArgument = true
-            return expr
+    val interceptor = object : SqlExpressionVisitorInterceptor {
+        override fun intercept(expr: SqlExpression, visitor: SqlExpressionVisitor): SqlExpression? {
+            if (expr is ArgumentExpression<*>) {
+                hasArgument = true
+            }
+
+            return null
         }
     }
 
-    visitor.visit(this)
+    dialect.createExpressionVisitor(interceptor).visit(expr)
     return hasArgument
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.ktorm.logging.LogLevel.*
  * underlying logging system is implementation dependent. The implementation should ensure, though, that this ordering
  * behaves are expected.
  *
- * By default, Ktorm auto detects a logging implementation from the classpath while creating [Database] instances.
+ * By default, Ktorm auto-detects a logging implementation from the classpath while creating [Database] instances.
  * If you want to output logs using a specific logging framework, you can choose an adapter implementation of this
  * interface and explicitly set the [Database.logger] property.
  *
@@ -139,30 +139,15 @@ public fun detectLoggerImplementation(): Logger {
         if (result == null) {
             try {
                 result = init()
-            } catch (ignored: Throwable) {
+            } catch (_: ClassNotFoundException) {
+            } catch (_: NoClassDefFoundError) {
             }
         }
     }
 
-    tryImplement {
-        Class.forName("android.util.Log")
-        AndroidLoggerAdapter(loggerName)
-    }
-
-    tryImplement {
-        val logger = org.slf4j.LoggerFactory.getLogger(loggerName)
-        Slf4jLoggerAdapter(logger)
-    }
-
-    tryImplement {
-        val logger = org.apache.commons.logging.LogFactory.getLog(loggerName)
-        CommonsLoggerAdapter(logger)
-    }
-
-    tryImplement {
-        val logger = java.util.logging.Logger.getLogger(loggerName)
-        JdkLoggerAdapter(logger)
-    }
-
+    tryImplement { AndroidLoggerAdapter(loggerName) }
+    tryImplement { Slf4jLoggerAdapter(loggerName) }
+    tryImplement { CommonsLoggerAdapter(loggerName) }
+    tryImplement { JdkLoggerAdapter(loggerName) }
     return result ?: ConsoleLogger(threshold = INFO)
 }

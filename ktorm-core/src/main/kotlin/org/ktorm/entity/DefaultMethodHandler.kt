@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,7 @@ internal class DefaultMethodHandler(
 
         private fun initLookupConstructor(): Constructor<Lookup>? {
             try {
+                // This branch only runs in JDK 1.8, so the reflection operation (setAccessible) is safe.
                 val c = Lookup::class.java.getDeclaredConstructor(Class::class.java, Int::class.javaPrimitiveType)
                 c.isAccessible = true
                 return c
@@ -110,12 +111,17 @@ internal class DefaultMethodHandler(
         }
 
         fun forMethod(method: Method): DefaultMethodHandler {
-            return handlersCache.computeIfAbsent(method) {
+            // Workaround for the compiler bug, see https://youtrack.jetbrains.com/issue/KT-34826
+            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "UNCHECKED_CAST")
+            val cache = handlersCache as java.util.Map<Method, DefaultMethodHandler>
+
+            return cache.computeIfAbsent(method) {
                 if (method.isDefault) {
                     val handle = unreflectSpecial(method)
                     DefaultMethodHandler(javaDefaultMethodHandle = handle)
                 } else {
-                    val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls")
+                    val classLoader = method.declaringClass.classLoader
+                    val cls = Class.forName(method.declaringClass.name + "\$DefaultImpls", true, classLoader)
                     val impl = cls.getMethod(method.name, method.declaringClass, *method.parameterTypes)
                     DefaultMethodHandler(kotlinDefaultImplMethod = impl)
                 }

@@ -1,6 +1,5 @@
 package org.ktorm.support.sqlserver
 
-import microsoft.sql.DateTimeOffset
 import org.junit.Test
 import org.ktorm.database.use
 import org.ktorm.dsl.*
@@ -12,8 +11,10 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.datetime
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
-import java.sql.Timestamp
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 /**
  * Create by vince on Jul 12, 2019.
@@ -39,7 +40,7 @@ class CommonTest : BaseSqlServerTest() {
             set(it.value, "test value")
         }
 
-        assert(database.sequenceOf(configs).count { it.key eq "test" } == 1)
+        assert(database.from(configs).select(count()).where(configs.key eq "test").map { it.getInt(1) }[0] == 1)
 
         database.delete(configs) { it.key eq "test" }
     }
@@ -50,7 +51,7 @@ class CommonTest : BaseSqlServerTest() {
     @Test
     fun testBothLimitAndOffsetAreNotPositive() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, -1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3, 2, 1))
@@ -62,7 +63,7 @@ class CommonTest : BaseSqlServerTest() {
     @Test
     fun testLimitWithoutOffset() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(4, 3))
@@ -74,7 +75,7 @@ class CommonTest : BaseSqlServerTest() {
     @Test
     fun testOffsetWithoutLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2, 1))
@@ -86,7 +87,7 @@ class CommonTest : BaseSqlServerTest() {
     @Test
     fun testOffsetWithLimit() {
         val query = database.from(Employees).select().orderBy(Employees.id.desc()).offset(2).limit(1)
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
 
         val ids = query.map { it[Employees.id] }
         assert(ids == listOf(2))
@@ -101,7 +102,7 @@ class CommonTest : BaseSqlServerTest() {
             .orderBy(Employees.id.desc())
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
         assert(query.rowSet.size() == 1)
 
         query = database
@@ -109,7 +110,7 @@ class CommonTest : BaseSqlServerTest() {
             .selectDistinct(Employees.departmentId)
             .limit(0, 1)
 
-        assert(query.totalRecords == 2)
+        assert(query.totalRecordsInAllPages == 2)
         assert(query.rowSet.size() == 1)
 
         query = database
@@ -117,7 +118,7 @@ class CommonTest : BaseSqlServerTest() {
             .select(Employees.name)
             .limit(0, 1)
 
-        assert(query.totalRecords == 4)
+        assert(query.totalRecordsInAllPages == 4)
         assert(query.rowSet.size() == 1)
     }
 
@@ -127,14 +128,22 @@ class CommonTest : BaseSqlServerTest() {
     }
 
     @Test
-    fun testGetColumn() {
+    fun testDateTimeOffset() {
+        for (row in database.from(Foo).select()) {
+            assert(row[Foo.bar].toString() == "2012-10-25T12:32:10+01:00")
+            assert(row[Foo.bar1].toString() == "2012-10-25T19:32:10")
+        }
+    }
+
+    @Test
+    fun testDateTimeOffset1() {
         database.update(Foo) {
-            set(it.bar, DateTimeOffset.valueOf(Timestamp(0), 8 * 60))
+            set(it.bar, OffsetDateTime.of(LocalDateTime.of(2023, 1, 1, 12, 30), ZoneOffset.ofHours(7)))
         }
 
         for (row in database.from(Foo).select()) {
-            println(row[Foo.bar])
-            println(row[Foo.bar1])
+            assert(row[Foo.bar].toString() == "2023-01-01T12:30+07:00")
+            assert(row[Foo.bar1].toString() == "2012-10-25T19:32:10")
         }
     }
 

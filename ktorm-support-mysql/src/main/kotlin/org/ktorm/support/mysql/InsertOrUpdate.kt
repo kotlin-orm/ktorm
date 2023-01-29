@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package org.ktorm.support.mysql
 
 import org.ktorm.database.Database
+import org.ktorm.dsl.AliasRemover
 import org.ktorm.dsl.AssignmentsBuilder
 import org.ktorm.dsl.KtormDsl
 import org.ktorm.expression.ColumnAssignmentExpression
-import org.ktorm.expression.ColumnExpression
 import org.ktorm.expression.SqlExpression
 import org.ktorm.expression.TableExpression
 import org.ktorm.schema.BaseTable
@@ -77,8 +77,11 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
     table: T, block: InsertOrUpdateStatementBuilder.(T) -> Unit
 ): Int {
     val builder = InsertOrUpdateStatementBuilder().apply { block(table) }
+    if (builder.assignments.isEmpty()) {
+        throw IllegalArgumentException("There are no columns to insert in the statement.")
+    }
 
-    val expression = AliasRemover.visit(
+    val expression = dialect.createExpressionVisitor(AliasRemover).visit(
         InsertOrUpdateExpression(table.asExpression(), builder.assignments, builder.updateAssignments)
     )
 
@@ -110,27 +113,5 @@ public class InsertOrUpdateStatementBuilder : MySqlAssignmentsBuilder() {
     public fun onDuplicateKey(block: AssignmentsBuilder.() -> Unit) {
         val builder = MySqlAssignmentsBuilder().apply(block)
         updateAssignments += builder.assignments
-    }
-}
-
-/**
- * [MySqlExpressionVisitor] implementation used to removed table aliases, used by Ktorm internal.
- */
-internal object AliasRemover : MySqlExpressionVisitor() {
-
-    override fun visitTable(expr: TableExpression): TableExpression {
-        if (expr.tableAlias == null) {
-            return expr
-        } else {
-            return expr.copy(tableAlias = null)
-        }
-    }
-
-    override fun <T : Any> visitColumn(expr: ColumnExpression<T>): ColumnExpression<T> {
-        if (expr.table == null) {
-            return expr
-        } else {
-            return expr.copy(table = null)
-        }
     }
 }

@@ -3,7 +3,11 @@ package org.ktorm.dsl
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.expression.ScalarExpression
+import org.ktorm.schema.TextSqlType
+import java.sql.Clob
 import kotlin.random.Random
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 
 /**
  * Created by vince on Dec 07, 2018.
@@ -180,7 +184,7 @@ class QueryTest : BaseTest() {
     fun testLimit() {
         try {
             val query = database.from(Employees).select().orderBy(Employees.id.desc()).limit(0, 2)
-            assert(query.totalRecords == 4)
+            assert(query.totalRecordsInAllPages == 4)
 
             val ids = query.map { it[Employees.id] }
             assert(ids[0] == 4)
@@ -201,6 +205,22 @@ class QueryTest : BaseTest() {
 
         assert(names.size == 3)
         println(names)
+    }
+
+    @Test
+    fun testCast() {
+        val salaries = database
+            .from(Employees)
+            .select(Employees.salary.cast(TextSqlType))
+            .where { Employees.salary eq 200 }
+            .map { row ->
+                when (val value = row.getObject(1)) {
+                    is Clob -> value.characterStream.use { it.readText() }
+                    else -> value
+                }
+            }
+
+        assertContentEquals(listOf("200"), salaries)
     }
 
     @Test
@@ -250,6 +270,25 @@ class QueryTest : BaseTest() {
         val query = database
             .from(Employees)
             .select(Employees.id)
+            .union(
+                database.from(Departments).select(Departments.id)
+            )
+            .union(
+                database.from(Departments).select(Departments.id)
+            )
+            .orderBy(Employees.id.desc())
+
+        println(query.sql)
+
+        val results = query.joinToString { row -> row.getString(1).orEmpty() }
+        assertEquals("4, 3, 2, 1", results)
+    }
+
+    @Test
+    fun testUnionAll() {
+        val query = database
+            .from(Employees)
+            .select(Employees.id)
             .unionAll(
                 database.from(Departments).select(Departments.id)
             )
@@ -258,9 +297,10 @@ class QueryTest : BaseTest() {
             )
             .orderBy(Employees.id.desc())
 
-        assert(query.rowSet.size() == 8)
-
         println(query.sql)
+
+        val results = query.joinToString { row -> row.getString(1).orEmpty() }
+        assertEquals("4, 3, 2, 2, 2, 1, 1, 1", results)
     }
 
     @Test
@@ -282,5 +322,65 @@ class QueryTest : BaseTest() {
         assert(names.size == 2)
         assert(names[0] == "0:vince")
         assert(names[1] == "1:marry")
+    }
+
+    @Test
+    fun testSimpleCaseWhen() {
+        val id = CASE(Employees.name)
+            .WHEN("vince").THEN(Employees.id)
+            .WHEN("marry").THEN(2)
+            .ELSE(3)
+            .END().aliased("n")
+
+        val results = database
+            .from(Employees)
+            .select(id)
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .mapIndexed { i, row -> "$i:${row[id]}" }
+
+        assert(results.size == 2)
+        assert(results[0] == "0:1")
+        assert(results[1] == "1:2")
+    }
+
+    @Test
+    fun testSearchedCaseWhen() {
+        val id = CASE()
+            .WHEN(Employees.name eq "vince").THEN(Employees.id)
+            .WHEN(Employees.name eq "marry").THEN(2)
+            .ELSE(3)
+            .END().aliased("n")
+
+        val results = database
+            .from(Employees)
+            .select(id)
+            .where { Employees.departmentId eq 1 }
+            .orderBy(Employees.salary.desc())
+            .mapIndexed { i, row -> "$i:${row[id]}" }
+
+        assert(results.size == 2)
+        assert(results[0] == "0:1")
+        assert(results[1] == "1:2")
+    }
+
+    @Test
+    fun testCaseWhenInWhere() {
+        val id = CASE(Employees.name)
+            .WHEN("vince").THEN(Employees.id)
+            .WHEN("marry").THEN(2)
+            .ELSE(3)
+            .END()
+
+        val results = database
+            .from(Employees)
+            .select(Employees.name)
+            .where { (Employees.departmentId eq 1) and (Employees.id eq id) }
+            .orderBy(Employees.salary.desc())
+            .mapIndexed { i, row -> "$i:${row[Employees.name]}" }
+
+        assert(results.size == 2)
+        assert(results[0] == "0:vince")
+        assert(results[1] == "1:marry")
     }
 }

@@ -131,6 +131,30 @@ publishing {
                         name.set("ccr")
                         email.set("2938137849@qq.com")
                     }
+                    developer {
+                        id.set("zuisong")
+                        name.set("zuisong")
+                        email.set("com.me@foxmail.com")
+                    }
+                    developer {
+                        id.set("svenallers")
+                        name.set("Sven Allers")
+                        email.set("sven.allers@gmx.de")
+                    }
+                    developer {
+                        id.set("lookup-cat")
+                        name.set("夜里的向日葵")
+                        email.set("641571835@qq.com")
+                    }
+                    developer {
+                        id.set("michaelfyc")
+                        name.set("michaelfyc")
+                        email.set("michael.fyc@outlook.com")
+                    }
+                    developer {
+                        id.set("brohacz")
+                        name.set("Michal Brosig")
+                    }
                 }
             }
         }

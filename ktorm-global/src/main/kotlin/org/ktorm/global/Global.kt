@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ public val Database.Companion.global: Database get() {
  * Connect to a database by a specific [connector] function and save the returned database instance
  * to [Database.Companion.global].
  *
- * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
- * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+ * @param logger logger used to output logs, auto-detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @param connector the connector function used to obtain SQL connections.
@@ -91,8 +91,8 @@ public fun Database.Companion.connectGlobally(
  * Connect to a database using a [DataSource] and save the returned database instance to [Database.Companion.global].
  *
  * @param dataSource the data source used to obtain SQL connections.
- * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
- * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+ * @param logger logger used to output logs, auto-detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
@@ -123,10 +123,10 @@ public fun Database.Companion.connectGlobally(
  *
  * @param url the URL of the database to be connected.
  * @param driver the full qualified name of the JDBC driver class.
- * @param user the user name of the database.
+ * @param user the username of the database.
  * @param password the password of the database.
- * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
- * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+ * @param logger logger used to output logs, auto-detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.
@@ -142,7 +142,7 @@ public fun Database.Companion.connectGlobally(
     alwaysQuoteIdentifiers: Boolean = false,
     generateSqlInUpperCase: Boolean? = null
 ): Database {
-    if (driver != null && driver.isNotBlank()) {
+    if (!driver.isNullOrBlank()) {
         Class.forName(driver)
     }
 
@@ -170,8 +170,8 @@ public fun Database.Companion.connectGlobally(
  * to Spring's [DataAccessException] and rethrow it.
  *
  * @param dataSource the data source used to obtain SQL connections.
- * @param dialect the dialect, auto detects an implementation by default using JDK [ServiceLoader] facility.
- * @param logger logger used to output logs, auto detects an implementation by default.
+ * @param dialect the dialect, auto-detects an implementation by default using JDK [ServiceLoader] facility.
+ * @param logger logger used to output logs, auto-detects an implementation by default.
  * @param alwaysQuoteIdentifiers whether we need to always quote SQL identifiers in the generated SQLs.
  * @param generateSqlInUpperCase whether we need to output the generated SQLs in upper case.
  * @return the new-created database object.

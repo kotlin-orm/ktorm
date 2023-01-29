@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 the original author or authors.
+ * Copyright 2018-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,21 +55,19 @@ import kotlin.math.min
  * }
  * ```
  *
- * This class wraps a [Query] object, and it’s iterator exactly wraps the query’s iterator. While an entity sequence is
+ * This class wraps a [Query] object, and it’s iterator exactly wraps the query’s iterator. When an entity sequence is
  * iterated, its internal query is executed, and the [entityExtractor] function is applied to create an entity object
- * for each row. As for other properties in sequences (such as [sql], [rowSet], [totalRecords], etc), all of them
- * delegates the callings to their internal query objects, and their usages are totally the same as the corresponding
- * properties in [Query] class.
+ * for each row.
  *
  * Most of the entity sequence APIs are provided as extension functions, which can be divided into two groups:
  *
  * - **Intermediate operations:** these functions don’t execute the internal queries but return new-created sequence
  * objects applying some modifications. For example, the [filter] function creates a new sequence object with the filter
  * condition given by its parameter. The return types of intermediate operations are usually [EntitySequence], so we
- * can chaining call other sequence functions continuously.
+ * can call other sequence functions continuously in chaining style.
  *
  * - **Terminal operations:** the return types of these functions are usually a collection or a computed result, as
- * they execute the queries right now, obtain their results and perform some calculations on them. Eg. [toList],
+ * they execute the queries right now, obtain their results and perform some calculations on them. E.g. [toList],
  * [reduce], etc.
  *
  * For the list of sequence operations available, see the extension functions below.
@@ -118,10 +116,16 @@ public class EntitySequence<E : Any, T : BaseTable<E>>(
 
     /**
      * The total records count of this query ignoring the pagination params.
-     *
-     * This property is delegated to [Query.totalRecords], more details can be found in its documentation.
      */
-    public val totalRecords: Int get() = query.totalRecords
+    @Deprecated("The property is deprecated, use totalRecordsInAllPages instead", ReplaceWith("totalRecordsInAllPages"))
+    public val totalRecords: Int get() = totalRecordsInAllPages
+
+    /**
+     * The total records count of this query ignoring the pagination params.
+     *
+     * This property is delegated to [Query.totalRecordsInAllPages], more details can be found in its documentation.
+     */
+    public val totalRecordsInAllPages: Int get() = query.totalRecordsInAllPages
 
     /**
      * Return a copy of this [EntitySequence] with the [expression] modified.
@@ -157,13 +161,23 @@ public class EntitySequence<E : Any, T : BaseTable<E>>(
 
 /**
  * Create an [EntitySequence] from the specific table.
- *
- * @since 2.7
  */
 public fun <E : Any, T : BaseTable<E>> Database.sequenceOf(
-    table: T,
-    withReferences: Boolean = true
+    table: T, withReferences: Boolean = true
 ): EntitySequence<E, T> {
+    val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
+    val entityExtractor = { row: QueryRowSet -> table.createEntity(row, withReferences) }
+    return EntitySequence(this, table, query.expression as SelectExpression, entityExtractor)
+}
+
+/**
+ * Create an [EntitySequence] from the specific table.
+ */
+@JvmName("sequenceOfNothing")
+@Deprecated("Entity sequence not supported because the table doesn't bind to an entity class, use SQL DSL instead. ")
+public fun <T : BaseTable<Nothing>> Database.sequenceOf(
+    table: T, withReferences: Boolean = true
+): EntitySequence<Nothing, T> {
     val query = if (withReferences) from(table).joinReferencesAndSelect() else from(table).select(table.columns)
     val entityExtractor = { row: QueryRowSet -> table.createEntity(row, withReferences) }
     return EntitySequence(this, table, query.expression as SelectExpression, entityExtractor)
@@ -655,7 +669,7 @@ public inline fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.sortedByDesce
  * Returns a sequence containing all elements except first [n] elements.
  *
  * Note that this function is implemented based on the pagination feature of the specific databases. It's known that
- * there is a uniform standard for SQL language, but the SQL standard doesn’t say how to implement paging queries,
+ * there is a uniform standard for SQL language, but the SQL standard doesn't say how to implement paging queries,
  * different databases provide different implementations on that. So we have to enable a dialect if we need to use this
  * function, otherwise an exception will be thrown.
  *
@@ -674,7 +688,7 @@ public fun <E : Any, T : BaseTable<E>> EntitySequence<E, T>.drop(n: Int): Entity
  * Returns a sequence containing first [n] elements.
  *
  * Note that this function is implemented based on the pagination feature of the specific databases. It's known that
- * there is a uniform standard for SQL language, but the SQL standard doesn’t say how to implement paging queries,
+ * there is a uniform standard for SQL language, but the SQL standard doesn't say how to implement paging queries,
  * different databases provide different implementations on that. So we have to enable a dialect if we need to use this
  * function, otherwise an exception will be thrown.
  *
@@ -874,7 +888,7 @@ public inline fun <E : Any, K, V> EntitySequence<E, *>.associate(transform: (E) 
  * Return a [Map] containing the elements from the given sequence indexed by the key returned from [keySelector]
  * function applied to each element.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original sequence.
  *
@@ -888,7 +902,7 @@ public inline fun <E : Any, K> EntitySequence<E, *>.associateBy(keySelector: (E)
  * Return a [Map] containing the values provided by [valueTransform] and indexed by [keySelector] functions
  * applied to elements of the given sequence.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The returned map preserves the entry iteration order of the original sequence.
  *
@@ -935,7 +949,7 @@ public inline fun <E : Any, K, V, M : MutableMap<in K, in V>> EntitySequence<E, 
  * Populate and return the [destination] mutable map with key-value pairs, where key is provided by the [keySelector]
  * function applied to each element of the given sequence and value is the element itself.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The operation is terminal.
  */
@@ -949,9 +963,9 @@ public inline fun <E : Any, K, M : MutableMap<in K, in E>> EntitySequence<E, *>.
 
 /**
  * Populate and return the [destination] mutable map with key-value pairs, where key is provided by the [keySelector]
- * function and and value is provided by the [valueTransform] function applied to elements of the given sequence.
+ * function and value is provided by the [valueTransform] function applied to elements of the given sequence.
  *
- * If any two elements would have the same key returned by [keySelector] the last one gets added to the map.
+ * If any two elements have the same key returned by [keySelector] the last one gets added to the map.
  *
  * The operation is terminal.
  */
