@@ -2,6 +2,9 @@ package org.ktorm.support.postgresql
 
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
+import org.ktorm.schema.Table
+import org.ktorm.schema.enum
+import org.ktorm.schema.int
 import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.concurrent.thread
 
@@ -16,12 +19,22 @@ abstract class BasePostgreSqlTest : BaseTest() {
         execSqlScript("drop-postgresql-data.sql")
     }
 
-    companion object : PostgreSQLContainer<Companion>("postgres:13-alpine") {
+    companion object : PostgreSQLContainer<Companion>("postgres:14-alpine") {
         init {
             // Start the container when it's first used.
             start()
             // Stop the container when the process exits.
             Runtime.getRuntime().addShutdownHook(thread(start = false) { stop() })
         }
+    }
+
+    enum class Mood {
+        HAPPY,
+        SAD
+    }
+
+    object TableWithEnum : Table<Nothing>("t_enum") {
+        val id = int("id").primaryKey()
+        val current_mood = enum<Mood>("current_mood")
     }
 }

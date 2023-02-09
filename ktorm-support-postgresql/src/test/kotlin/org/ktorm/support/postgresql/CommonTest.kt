@@ -7,7 +7,6 @@ import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.schema.Table
-import org.ktorm.schema.enum
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import java.util.concurrent.ExecutionException
@@ -149,16 +148,6 @@ class CommonTest : BasePostgreSqlTest() {
             assert("too long" in e.message!!)
         }
 
-    }
-
-    enum class Mood {
-        HAPPY,
-        SAD
-    }
-
-    object TableWithEnum : Table<Nothing>("t_enum") {
-        val id = int("id").primaryKey()
-        val current_mood = enum<Mood>("current_mood")
     }
 
     @Test
