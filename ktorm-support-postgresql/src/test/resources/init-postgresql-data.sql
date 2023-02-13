@@ -47,6 +47,17 @@ create table t_user(
     age int
 );
 
+create table t_textsearch(
+    id serial primary key,
+    original_text text,
+    textsearch tsvector
+);
+
+create table t_textsearch_query(
+    id serial primary key,
+    query tsquery
+);
+
 insert into t_department(name, location, "mixedCase") values ('tech', 'Guangzhou', 'one');
 insert into t_department(name, location, "mixedCase") values ('finance', 'Beijing', 'two');
 

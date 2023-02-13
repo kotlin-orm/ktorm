@@ -7,3 +7,5 @@ drop type if exists mood;
 drop table if exists t_json;
 drop table t_earthdistance;
 drop table if exists t_user;
+drop table if exists t_textsearch;
+drop table if exists t_textsearch_query;

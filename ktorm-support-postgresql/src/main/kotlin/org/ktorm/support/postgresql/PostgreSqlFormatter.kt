@@ -173,73 +173,35 @@ public open class PostgreSqlFormatter(
     }
 
     override fun visitILike(expr: ILikeExpression): ILikeExpression {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
+        writeSqlExpression(expr.left)
         writeKeyword("ilike ")
-
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
-        }
+        writeSqlExpression(expr.right)
 
         return expr
     }
 
     override fun <T : Any> visitHStore(expr: HStoreExpression<T>): HStoreExpression<T> {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
+        writeSqlExpression(expr.left)
         writeKeyword("${expr.type} ")
-
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
-        }
+        writeSqlExpression(expr.right)
 
         return expr
     }
 
     override fun <T : Any> visitCube(expr: CubeExpression<T>): CubeExpression<T> {
-        if (expr.left.removeBrackets) {
-            visit(expr.left)
-        } else {
-            write("(")
-            visit(expr.left)
-            removeLastBlank()
-            write(") ")
-        }
-
+        writeSqlExpression(expr.left)
         writeKeyword("${expr.type} ")
+        writeSqlExpression(expr.right)
 
-        if (expr.right.removeBrackets) {
-            visit(expr.right)
-        } else {
-            write("(")
-            visit(expr.right)
-            removeLastBlank()
-            write(") ")
+        return expr
+    }
+
+    public override fun <T : Any> visitTextSearch(expr: TextSearchExpression<T>): TextSearchExpression<T> {
+        if (expr.left != null) {
+            writeSqlExpression(expr.left)
         }
+        writeKeyword("${expr.type} ")
+        writeSqlExpression(expr.right)
 
         return expr
     }
