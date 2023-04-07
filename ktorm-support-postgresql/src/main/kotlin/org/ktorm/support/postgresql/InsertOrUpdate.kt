@@ -75,6 +75,29 @@ public data class InsertOrUpdateExpression(
  * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
+ * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ *
+ * ```kotlin
+ * database.insertOrUpdate(Employees) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * ```
+ *
  * @since 2.7
  * @param table the table to be inserted.
  * @param block the DSL block used to construct the expression.
@@ -114,6 +137,28 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  * values (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
  * returning id
+ * ```
+ * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ *
+ * ```kotlin
+ * database.insertOrUpdate(Employees) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
  * ```
  *
  * @since 3.4.0
@@ -162,6 +207,29 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
  * returning id, job
  * ```
  *
+ * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ *
+ * ```kotlin
+ * database.insertOrUpdate(Employees) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * ```
+ *
  * @since 3.4.0
  * @param table the table to be inserted.
  * @param returning the columns to return
@@ -208,6 +276,29 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
  * values (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
  * returning id, job, salary
+ * ```
+ *
+ * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ *
+ * ```kotlin
+ * database.insertOrUpdate(Employees) {
+ *     set(it.id, 1)
+ *     set(it.name, "vince")
+ *     set(it.job, "engineer")
+ *     set(it.salary, 1000)
+ *     set(it.hireDate, LocalDate.now())
+ *     set(it.departmentId, 1)
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
  * ```
  *
  * @since 3.4.0
