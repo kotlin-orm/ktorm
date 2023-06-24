@@ -45,10 +45,10 @@ public annotation class Column(
      * The SQL type of the column.
      *
      * If not specified, the SQL type will be automatically inferred by the annotated property's Kotlin type.
-     * The specified class must be a Kotlin singleton object or a normal class with a constructor that accepts a single
-     * [org.ktorm.schema.TypeReference] argument.
+     * The specified class must be a Kotlin singleton object or a normal class with a constructor that accepts
+     * a single [org.ktorm.schema.TypeReference] argument.
      */
-    val sqlType: KClass<*> = SqlType::class,
+    val sqlType: KClass<out SqlType<*>> = Nothing::class,
 
     /**
      * The name of the corresponding column property in the generated table class.
