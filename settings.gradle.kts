@@ -6,6 +6,7 @@ plugins {
 include("ktorm-core")
 include("ktorm-global")
 include("ktorm-jackson")
+include("ktorm-ksp-annotations")
 include("ktorm-support-mysql")
 include("ktorm-support-oracle")
 include("ktorm-support-postgresql")
