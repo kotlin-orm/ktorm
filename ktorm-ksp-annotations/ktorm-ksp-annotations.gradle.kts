@@ -4,6 +4,5 @@ plugins {
 }
 
 dependencies {
-    compileOnly(project(":ktorm-core"))
-    testImplementation(project(":ktorm-core"))
+    api(project(":ktorm-core"))
 }
