@@ -1,6 +1,9 @@
 
 plugins {
-    id("ktorm.module")
+    id("ktorm.base")
+    id("ktorm.modularity")
+    id("ktorm.publish")
+    id("ktorm.source-header-check")
 }
 
 dependencies {
