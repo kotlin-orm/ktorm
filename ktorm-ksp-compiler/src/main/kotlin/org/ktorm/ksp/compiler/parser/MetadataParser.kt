@@ -16,24 +16,21 @@
 
 package org.ktorm.ksp.compiler.parser
 
-import com.google.devtools.ksp.KspExperimental
-import com.google.devtools.ksp.getAnnotationsByType
-import com.google.devtools.ksp.isAbstract
-import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.*
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.symbol.ClassKind.*
 import org.ktorm.entity.Entity
-import org.ktorm.ksp.api.*
+import org.ktorm.ksp.annotation.*
 import org.ktorm.ksp.compiler.util.*
 import org.ktorm.ksp.spi.CodingNamingStrategy
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.DatabaseNamingStrategy
 import org.ktorm.ksp.spi.TableMetadata
-import org.ktorm.schema.SqlType
+import org.ktorm.schema.TypeReference
 import java.lang.reflect.InvocationTargetException
-import java.util.LinkedList
+import java.util.*
 import kotlin.reflect.jvm.jvmName
 
 @OptIn(KspExperimental::class)
@@ -154,15 +151,14 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
     }
 
     private fun parseColumnSqlType(property: KSPropertyDeclaration): KSType {
-        val annotation = property.annotations.find { anno ->
-            val annoType = anno.annotationType.resolve()
-            annoType.declaration.qualifiedName?.asString() == Column::class.jvmName
-        }
+        var sqlType = property.annotations
+            .filter { it.annotationType.resolve().getJvmName() == Column::class.jvmName }
+            .flatMap { it.arguments }
+            .filter { it.name?.asString() == Column::sqlType.name }
+            .map { it.value as KSType? }
+            .singleOrNull()
 
-        val argument = annotation?.arguments?.find { it.name?.asString() == Column::sqlType.name }
-
-        var sqlType = argument?.value as KSType?
-        if (sqlType?.declaration?.qualifiedName?.asString() == Nothing::class.jvmName) {
+        if (sqlType?.getJvmName() == Nothing::class.jvmName) {
             sqlType = null
         }
 
@@ -179,17 +175,25 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
 
         val declaration = sqlType.declaration as KSClassDeclaration
         if (declaration.classKind != OBJECT) {
-            val name = property.qualifiedName?.asString()
-            throw IllegalArgumentException(
-                "Parse sqlType error for property $name: the sqlType class must be a Kotlin singleton object."
-            )
-        }
+            if (declaration.isAbstract()) {
+                val name = property.qualifiedName?.asString()
+                throw IllegalArgumentException(
+                    "Parse sqlType error for property $name: the sqlType class cannot be abstract."
+                )
+            }
 
-        if (!declaration.isSubclassOf<SqlType<*>>() && !declaration.isSubclassOf<SqlTypeFactory>()) {
-            val name = property.qualifiedName?.asString()
-            throw IllegalArgumentException(
-                "Parse sqlType error for property $name: the sqlType class must be subtype of SqlType/SqlTypeFactory."
-            )
+            val hasConstructor = declaration.getConstructors()
+                .filter { it.parameters.size == 1 }
+                .filter { it.parameters[0].type.resolve().getJvmName() == TypeReference::class.jvmName }
+                .any()
+
+            if (!hasConstructor) {
+                val name = property.qualifiedName?.asString()
+                throw IllegalArgumentException(
+                    "Parse sqlType error for property $name: the sqlType class must be a Kotlin singleton object or" +
+                    "a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument."
+                )
+            }
         }
 
         return sqlType

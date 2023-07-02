@@ -28,15 +28,13 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
-import org.ktorm.ksp.api.EnumSqlTypeFactory
-import org.ktorm.ksp.api.SqlTypeFactory
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.schema.*
 
 internal fun KSPropertyDeclaration.getSqlType(resolver: Resolver): KSType? {
     val declaration = this.type.resolve().declaration as KSClassDeclaration
     if (declaration.classKind == ClassKind.ENUM_CLASS) {
-        return resolver.getClassDeclarationByName<EnumSqlTypeFactory>()?.asType(emptyList())
+        return resolver.getClassDeclarationByName<EnumSqlType<*>>()?.asType(emptyList())
     }
 
     val sqlType = when (declaration.qualifiedName?.asString()) {

@@ -100,3 +100,10 @@ internal fun KSType.isInline(): Boolean {
     val declaration = declaration as KSClassDeclaration
     return declaration.isAnnotationPresent(JvmInline::class) && declaration.modifiers.contains(Modifier.VALUE)
 }
+
+/**
+ * Return the JVM class name of [this] type.
+ */
+internal fun KSType.getJvmName(): String? {
+    return declaration.qualifiedName?.asString()
+}
