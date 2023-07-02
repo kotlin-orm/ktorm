@@ -23,7 +23,7 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import com.squareup.kotlinpoet.FileSpec
-import org.ktorm.ksp.api.Table
+import org.ktorm.ksp.annotation.Table
 import org.ktorm.ksp.compiler.generator.FileGenerator
 import org.ktorm.ksp.compiler.parser.MetadataParser
 import org.ktorm.ksp.compiler.util.isValid

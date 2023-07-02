@@ -58,9 +58,11 @@ public class JsonSqlType<T : Any>(
     public val objectMapper: ObjectMapper,
     public val javaType: JavaType
 ) : SqlType<T>(Types.OTHER, "json") {
+    public constructor(typeRef: TypeReference<T>) : this(sharedObjectMapper, typeRef)
     public constructor(
+        objectMapper: ObjectMapper,
         typeRef: TypeReference<T>
-    ) : this(sharedObjectMapper, sharedObjectMapper.constructType(typeRef.referencedType))
+    ) : this(objectMapper, objectMapper.constructType(typeRef.referencedType))
 
     // Access postgresql API by reflection, because it is not a JDK 9 module,
     // we are not able to require it in module-info.java.

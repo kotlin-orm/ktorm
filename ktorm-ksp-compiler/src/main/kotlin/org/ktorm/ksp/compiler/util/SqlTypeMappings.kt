@@ -26,7 +26,6 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
-import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.schema.*
@@ -97,30 +96,21 @@ internal fun ColumnMetadata.getRegisteringCodeBlock(): CodeBlock {
         return CodeBlock.of("%M(%S)", registerFun, name)
     }
 
-    if (sqlTypeName == "org.ktorm.ksp.api.EnumSqlTypeFactory") {
+    if (sqlTypeName == "org.ktorm.schema.EnumSqlType") {
         return CodeBlock.of("%M<%T>(%S)", MemberName("org.ktorm.schema", "enum", true), getKotlinType(), name)
     }
 
-    if (sqlTypeName == "org.ktorm.ksp.api.JsonSqlTypeFactory") {
+    if (sqlTypeName == "org.ktorm.jackson.JsonSqlType") {
         return CodeBlock.of("%M<%T>(%S)", MemberName("org.ktorm.jackson", "json", true), getKotlinType(), name)
     }
 
     val declaration = sqlType.declaration as KSClassDeclaration
-    if (declaration.isSubclassOf<SqlType<*>>()) {
+    if (declaration.classKind == ClassKind.OBJECT) {
+        return CodeBlock.of("registerColumn(%S,·%T)", name, sqlType.toTypeName())
+    } else {
+        // TODO: create SqlType by constructor
         return CodeBlock.of("registerColumn(%S,·%T)", name, sqlType.toTypeName())
     }
-
-    if (declaration.isSubclassOf<SqlTypeFactory>()) {
-        return CodeBlock.of(
-            "registerColumn(%S,·%T.createSqlType(%T::%N))",
-            name,
-            sqlType.toTypeName(),
-            table.entityClass.toClassName(),
-            entityProperty.simpleName.asString()
-        )
-    }
-
-    throw IllegalArgumentException("The sqlType class $sqlTypeName must be subtype of SqlType or SqlTypeFactory.")
 }
 
 @OptIn(KotlinPoetKspPreview::class)
