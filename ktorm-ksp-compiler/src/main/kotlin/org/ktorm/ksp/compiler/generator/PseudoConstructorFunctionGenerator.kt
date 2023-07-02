@@ -22,7 +22,7 @@ import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import org.ktorm.entity.Entity
-import org.ktorm.ksp.api.Undefined
+import org.ktorm.ksp.annotation.Undefined
 import org.ktorm.ksp.compiler.util.*
 import org.ktorm.ksp.spi.TableMetadata
 
