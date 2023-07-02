@@ -75,17 +75,14 @@ internal inline fun <reified T : Any> KSClassDeclaration.isSubclassOf(): Boolean
 internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeReference? {
     for (superType in this.superTypes) {
         val ksType = superType.resolve()
-        val declaration = ksType.declaration
 
-        if (declaration is KSClassDeclaration && declaration.qualifiedName?.asString() == name) {
+        if (ksType.getJvmName() == name) {
             return superType
         }
 
-        if (declaration is KSClassDeclaration) {
-            val result = declaration.findSuperTypeReference(name)
-            if (result != null) {
-                return result
-            }
+        val result = (ksType.declaration as KSClassDeclaration).findSuperTypeReference(name)
+        if (result != null) {
+            return result
         }
     }
 
