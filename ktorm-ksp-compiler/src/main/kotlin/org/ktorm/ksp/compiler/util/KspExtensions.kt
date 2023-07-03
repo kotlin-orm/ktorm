@@ -29,23 +29,16 @@ import kotlin.reflect.jvm.jvmName
 internal val KSPropertyDeclaration._type: KSType get() = type.resolve()
 
 /**
- * Return the resolved [KSType] of this annotation.
- */
-@Suppress("ObjectPropertyName")
-internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve()
-
-/**
  * Return the resolved [KSType] of this parameter.
  */
 @Suppress("ObjectPropertyName")
 internal val KSValueParameter._type: KSType get() = type.resolve()
 
 /**
- * Return the JVM class name of this type.
+ * Return the resolved [KSType] of this annotation.
  */
-internal fun KSType.getJvmName(): String? {
-    return declaration.qualifiedName?.asString()
-}
+@Suppress("ObjectPropertyName")
+internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve()
 
 /**
  * Check if this type is an inline class.
@@ -70,7 +63,7 @@ internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeRefe
     for (superType in this.superTypes) {
         val ksType = superType.resolve()
 
-        if (ksType.getJvmName() == name) {
+        if (ksType.declaration.qualifiedName?.asString() == name) {
             return superType
         }
 

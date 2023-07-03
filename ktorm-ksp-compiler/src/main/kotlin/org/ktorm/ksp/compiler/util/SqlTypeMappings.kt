@@ -31,11 +31,12 @@ import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.schema.*
 
 internal fun KSPropertyDeclaration.getSqlType(resolver: Resolver): KSType? {
-    if ((_type.declaration as KSClassDeclaration).classKind == ClassKind.ENUM_CLASS) {
+    val declaration = _type.declaration as KSClassDeclaration
+    if (declaration.classKind == ClassKind.ENUM_CLASS) {
         return resolver.getClassDeclarationByName<EnumSqlType<*>>()?.asType(emptyList())
     }
 
-    val sqlType = when (_type.getJvmName()) {
+    val sqlType = when (declaration.qualifiedName?.asString()) {
         "kotlin.Boolean" -> BooleanSqlType::class
         "kotlin.Int" -> IntSqlType::class
         "kotlin.Short" -> ShortSqlType::class
@@ -64,7 +65,7 @@ internal fun KSPropertyDeclaration.getSqlType(resolver: Resolver): KSType? {
 
 @OptIn(KotlinPoetKspPreview::class)
 internal fun ColumnMetadata.getRegisteringCodeBlock(): CodeBlock {
-    val sqlTypeName = sqlType.getJvmName()
+    val sqlTypeName = sqlType.declaration.qualifiedName?.asString()
     val registerFun = when (sqlTypeName) {
         "org.ktorm.schema.BooleanSqlType" -> MemberName("org.ktorm.schema", "boolean", true)
         "org.ktorm.schema.IntSqlType" -> MemberName("org.ktorm.schema", "int", true)

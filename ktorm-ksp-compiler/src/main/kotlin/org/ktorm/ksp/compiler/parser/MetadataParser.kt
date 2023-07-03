@@ -152,13 +152,13 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
 
     private fun parseColumnSqlType(property: KSPropertyDeclaration): KSType {
         var sqlType = property.annotations
-            .filter { it._annotationType.getJvmName() == Column::class.jvmName }
+            .filter { it._annotationType.declaration.qualifiedName?.asString() == Column::class.jvmName }
             .flatMap { it.arguments }
             .filter { it.name?.asString() == Column::sqlType.name }
             .map { it.value as KSType? }
             .singleOrNull()
 
-        if (sqlType?.getJvmName() == Nothing::class.jvmName) {
+        if (sqlType?.declaration?.qualifiedName?.asString() == Nothing::class.jvmName) {
             sqlType = null
         }
 
@@ -184,7 +184,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
 
             val hasConstructor = declaration.getConstructors()
                 .filter { it.parameters.size == 1 }
-                .filter { it.parameters[0]._type.getJvmName() == TypeReference::class.jvmName }
+                .filter { it.parameters[0]._type.declaration.qualifiedName?.asString() == TypeReference::class.jvmName }
                 .any()
 
             if (!hasConstructor) {
