@@ -152,6 +152,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     }
 
     private fun parseColumnSqlType(property: KSPropertyDeclaration): KSType {
+        val propName = property.qualifiedName?.asString()
         var sqlType = property.annotations
             .filter { it._annotationType.declaration.qualifiedName?.asString() == Column::class.jvmName }
             .flatMap { it.arguments }
@@ -168,18 +169,16 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         }
 
         if (sqlType == null) {
-            val name = property.qualifiedName?.asString()
             throw IllegalArgumentException(
-                "Parse sqlType error for property $name: cannot infer sqlType, please specify manually."
+                "Parse sqlType error for property $propName: cannot infer sqlType, please specify manually."
             )
         }
 
         val declaration = sqlType.declaration as KSClassDeclaration
         if (declaration.classKind != OBJECT) {
             if (declaration.isAbstract()) {
-                val name = property.qualifiedName?.asString()
                 throw IllegalArgumentException(
-                    "Parse sqlType error for property $name: the sqlType class cannot be abstract."
+                    "Parse sqlType error for property $propName: the sqlType class cannot be abstract."
                 )
             }
 
@@ -189,11 +188,10 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
                 .any()
 
             if (!hasConstructor) {
-                val name = property.qualifiedName?.asString()
-                throw IllegalArgumentException(
-                    "Parse sqlType error for property $name: the sqlType class must be a Kotlin singleton object or" +
+                val msg = "" +
+                    "Parse sqlType error for property $propName: the sqlType must be a Kotlin singleton object or " +
                     "a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument."
-                )
+                throw IllegalArgumentException(msg)
             }
         }
 

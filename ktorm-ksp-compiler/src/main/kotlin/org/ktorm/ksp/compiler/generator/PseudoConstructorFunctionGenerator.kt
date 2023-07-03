@@ -30,12 +30,12 @@ import org.ktorm.ksp.spi.TableMetadata
 internal object PseudoConstructorFunctionGenerator {
 
     fun generate(table: TableMetadata): FunSpec {
+        val kdoc = "" +
+            "Create an entity of [%L] and specify the initial values for each property, " +
+            "properties that doesn't have an initial value will leave unassigned. "
+
         return FunSpec.builder(table.entityClass.simpleName.asString())
-            .addKdoc(
-                "Create an entity of [%L] and specify the initial values for each property, " +
-                "properties that doesn't have an initial value will leave unassigned. ",
-                table.entityClass.simpleName.asString()
-            )
+            .addKdoc(kdoc, table.entityClass.simpleName.asString())
             .addParameters(buildParameters(table).asIterable())
             .returns(table.entityClass.toClassName())
             .addCode(buildFunctionBody(table))

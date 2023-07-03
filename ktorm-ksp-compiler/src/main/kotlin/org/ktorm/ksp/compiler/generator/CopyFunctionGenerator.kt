@@ -25,11 +25,12 @@ import org.ktorm.ksp.spi.TableMetadata
 internal object CopyFunctionGenerator {
 
     fun generate(table: TableMetadata): FunSpec {
+        val kdoc = "" +
+            "Return a deep copy of this entity (which has the same property values and tracked statuses), " +
+            "and alter the specified property values. "
+
         return FunSpec.builder("copy")
-            .addKdoc(
-                "Return a deep copy of this entity (which has the same property values and tracked statuses), " +
-                "and alter the specified property values. "
-            )
+            .addKdoc(kdoc)
             .receiver(table.entityClass.toClassName())
             .addParameters(PseudoConstructorFunctionGenerator.buildParameters(table).asIterable())
             .returns(table.entityClass.toClassName())
