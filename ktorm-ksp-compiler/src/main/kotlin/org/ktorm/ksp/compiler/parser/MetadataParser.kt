@@ -201,17 +201,16 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     }
 
     private fun parseRefColumnMetadata(property: KSPropertyDeclaration, table: TableMetadata): ColumnMetadata {
+        val propName = property.qualifiedName?.asString()
         if (property.isAnnotationPresent(Column::class)) {
-            val n = property.qualifiedName?.asString()
             throw IllegalStateException(
-                "Parse ref column error for property $n: @Column and @References cannot be used together."
+                "Parse ref column error for property $propName: @Column and @References cannot be used together."
             )
         }
 
         if (table.entityClass.classKind != INTERFACE) {
-            val n = property.qualifiedName?.asString()
             throw IllegalStateException(
-                "Parse ref column error for property $n: @References can only be used in interface-based entities."
+                "Parse ref column error for property $propName: @References only allowed in interface-based entities."
             )
         }
 
@@ -219,32 +218,28 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         table.checkCircularRef(refEntityClass)
 
         if (refEntityClass.classKind != INTERFACE) {
-            val n = property.qualifiedName?.asString()
             throw IllegalStateException(
-                "Parse ref column error for property $n: the referenced entity class must be an interface."
+                "Parse ref column error for property $propName: the referenced entity class must be an interface."
             )
         }
 
         if (!refEntityClass.isAnnotationPresent(Table::class)) {
-            val n = property.qualifiedName?.asString()
             throw IllegalStateException(
-                "Parse ref column error for property $n: the referenced entity class must be annotated with @Table."
+                "Parse ref column error for property $propName: the referenced entity must be annotated with @Table."
             )
         }
 
         val referenceTable = parseTableMetadata(refEntityClass)
         val primaryKeys = referenceTable.columns.filter { it.isPrimaryKey }
         if (primaryKeys.isEmpty()) {
-            val n = property.qualifiedName?.asString()
             throw IllegalStateException(
-                "Parse ref column error for property $n: the referenced table doesn't have a primary key."
+                "Parse ref column error for property $propName: the referenced table doesn't have a primary key."
             )
         }
 
         if (primaryKeys.size > 1) {
-            val n = property.qualifiedName?.asString()
             throw IllegalStateException(
-                "Parse ref column error for property $n: the referenced table cannot have compound primary keys."
+                "Parse ref column error for property $propName: the referenced table cannot have compound primary keys."
             )
         }
 
