@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:OptIn(KotlinPoetKspPreview::class)
+
 package org.ktorm.ksp.compiler.util
 
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -63,7 +65,6 @@ internal fun KSPropertyDeclaration.getSqlType(resolver: Resolver): KSType? {
     return sqlType?.qualifiedName?.let { resolver.getClassDeclarationByName(it)?.asType(emptyList()) }
 }
 
-@OptIn(KotlinPoetKspPreview::class)
 internal fun ColumnMetadata.getRegisteringCodeBlock(): CodeBlock {
     val sqlTypeName = sqlType.declaration.qualifiedName?.asString()
     val registerFun = when (sqlTypeName) {
@@ -112,7 +113,6 @@ internal fun ColumnMetadata.getRegisteringCodeBlock(): CodeBlock {
     }
 }
 
-@OptIn(KotlinPoetKspPreview::class)
 internal fun ColumnMetadata.getKotlinType(): TypeName {
     if (isReference) {
         return referenceTable!!.columns.single { it.isPrimaryKey }.getKotlinType()

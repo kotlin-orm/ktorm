@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:OptIn(KspExperimental::class)
+
 package org.ktorm.ksp.compiler.util
 
 import com.google.devtools.ksp.KspExperimental
@@ -43,7 +45,6 @@ internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve
 /**
  * Check if this type is an inline class.
  */
-@OptIn(KspExperimental::class)
 internal fun KSType.isInline(): Boolean {
     val declaration = declaration as KSClassDeclaration
     return declaration.isAnnotationPresent(JvmInline::class) && declaration.modifiers.contains(Modifier.VALUE)
