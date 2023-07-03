@@ -41,6 +41,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     private val _codingNamingStrategy = loadCodingNamingStrategy()
     private val _tablesCache = HashMap<String, TableMetadata>()
 
+    @Suppress("SwallowedException")
     private fun loadDatabaseNamingStrategy(): DatabaseNamingStrategy {
         val name = _options["ktorm.dbNamingStrategy"] ?: "lower-snake-case"
         if (name == "lower-snake-case") {
@@ -58,6 +59,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         }
     }
 
+    @Suppress("SwallowedException")
     private fun loadCodingNamingStrategy(): CodingNamingStrategy {
         val name = _options["ktorm.codingNamingStrategy"] ?: return DefaultCodingNamingStrategy
 
