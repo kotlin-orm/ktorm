@@ -41,6 +41,49 @@ internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve
 internal val KSValueParameter._type: KSType get() = type.resolve()
 
 /**
+ * Return the JVM class name of this type.
+ */
+internal fun KSType.getJvmName(): String? {
+    return declaration.qualifiedName?.asString()
+}
+
+/**
+ * Check if this type is an inline class.
+ */
+@OptIn(KspExperimental::class)
+internal fun KSType.isInline(): Boolean {
+    val declaration = declaration as KSClassDeclaration
+    return declaration.isAnnotationPresent(JvmInline::class) && declaration.modifiers.contains(Modifier.VALUE)
+}
+
+/**
+ * Check if this class is a subclass of [T].
+ */
+internal inline fun <reified T : Any> KSClassDeclaration.isSubclassOf(): Boolean {
+    return findSuperTypeReference(T::class.jvmName) != null
+}
+
+/**
+ * Find the specific super type reference for this class.
+ */
+internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeReference? {
+    for (superType in this.superTypes) {
+        val ksType = superType.resolve()
+
+        if (ksType.getJvmName() == name) {
+            return superType
+        }
+
+        val result = (ksType.declaration as KSClassDeclaration).findSuperTypeReference(name)
+        if (result != null) {
+            return result
+        }
+    }
+
+    return null
+}
+
+/**
  * Check if the given symbol is valid.
  */
 internal fun KSNode.isValid(): Boolean {
@@ -78,47 +121,4 @@ internal fun KSNode.isValid(): Boolean {
     }
 
     return this.accept(visitor, null)
-}
-
-/**
- * Check if this class is a subclass of [T].
- */
-internal inline fun <reified T : Any> KSClassDeclaration.isSubclassOf(): Boolean {
-    return findSuperTypeReference(T::class.jvmName) != null
-}
-
-/**
- * Find the specific super type reference for this class.
- */
-internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeReference? {
-    for (superType in this.superTypes) {
-        val ksType = superType.resolve()
-
-        if (ksType.getJvmName() == name) {
-            return superType
-        }
-
-        val result = (ksType.declaration as KSClassDeclaration).findSuperTypeReference(name)
-        if (result != null) {
-            return result
-        }
-    }
-
-    return null
-}
-
-/**
- * Check if this type is an inline class.
- */
-@OptIn(KspExperimental::class)
-internal fun KSType.isInline(): Boolean {
-    val declaration = declaration as KSClassDeclaration
-    return declaration.isAnnotationPresent(JvmInline::class) && declaration.modifiers.contains(Modifier.VALUE)
-}
-
-/**
- * Return the JVM class name of this type.
- */
-internal fun KSType.getJvmName(): String? {
-    return declaration.qualifiedName?.asString()
 }
