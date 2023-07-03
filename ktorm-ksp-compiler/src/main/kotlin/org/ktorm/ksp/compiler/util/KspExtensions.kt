@@ -25,19 +25,19 @@ import kotlin.reflect.jvm.jvmName
 /**
  * Return the resolved [KSType] of this property.
  */
-@Suppress("ObjectPropertyName")
+@Suppress("ObjectPropertyName", "TopLevelPropertyNaming")
 internal val KSPropertyDeclaration._type: KSType get() = type.resolve()
 
 /**
  * Return the resolved [KSType] of this parameter.
  */
-@Suppress("ObjectPropertyName")
+@Suppress("ObjectPropertyName", "TopLevelPropertyNaming")
 internal val KSValueParameter._type: KSType get() = type.resolve()
 
 /**
  * Return the resolved [KSType] of this annotation.
  */
-@Suppress("ObjectPropertyName")
+@Suppress("ObjectPropertyName", "TopLevelPropertyNaming")
 internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve()
 
 /**

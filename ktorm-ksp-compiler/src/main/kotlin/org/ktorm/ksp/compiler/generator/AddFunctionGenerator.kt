@@ -66,7 +66,7 @@ internal object AddFunctionGenerator {
 
             kdoc += "\n\n" +
                 "Note that this function will obtain the generated primary key from the database and fill it into " +
-                "the property [${pkName}] after the insertion completes. But this requires us not to set " +
+                "the property [$pkName] after the insertion completes. But this requires us not to set " +
                 "the primary key’s value beforehand, otherwise, if you do that, the given value will be " +
                 "inserted into the database, and no keys generated."
         }

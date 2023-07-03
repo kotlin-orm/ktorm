@@ -206,11 +206,12 @@ internal object TableClassGenerator {
     }
 
     private fun TypeSpec.Builder.configureAliasedFunction(table: TableMetadata): TypeSpec.Builder {
+        val kdoc = "" +
+            "Return a new-created table object with all properties (including the table name and columns " +
+            "and so on) being copied from this table, but applying a new alias given by the parameter."
+
         val func = FunSpec.builder("aliased")
-            .addKdoc(
-                "Return a new-created table object with all properties (including the table name and columns " +
-                "and so on) being copied from this table, but applying a new alias given by the parameter."
-            )
+            .addKdoc(kdoc)
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("alias", typeNameOf<String>())
             .returns(ClassName(table.entityClass.packageName.asString(), table.tableClassName))
