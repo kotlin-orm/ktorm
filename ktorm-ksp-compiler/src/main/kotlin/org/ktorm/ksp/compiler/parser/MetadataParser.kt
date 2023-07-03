@@ -152,7 +152,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
 
     private fun parseColumnSqlType(property: KSPropertyDeclaration): KSType {
         var sqlType = property.annotations
-            .filter { it.annotationType.resolve().getJvmName() == Column::class.jvmName }
+            .filter { it._annotationType.getJvmName() == Column::class.jvmName }
             .flatMap { it.arguments }
             .filter { it.name?.asString() == Column::sqlType.name }
             .map { it.value as KSType? }
@@ -184,7 +184,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
 
             val hasConstructor = declaration.getConstructors()
                 .filter { it.parameters.size == 1 }
-                .filter { it.parameters[0].type.resolve().getJvmName() == TypeReference::class.jvmName }
+                .filter { it.parameters[0]._type.getJvmName() == TypeReference::class.jvmName }
                 .any()
 
             if (!hasConstructor) {
@@ -214,7 +214,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
             )
         }
 
-        val refEntityClass = property.type.resolve().declaration as KSClassDeclaration
+        val refEntityClass = property._type.declaration as KSClassDeclaration
         table.checkCircularRef(refEntityClass)
 
         if (refEntityClass.classKind != INTERFACE) {
@@ -286,7 +286,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
         val refTable = ref.getAnnotationsByType(Table::class).firstOrNull()
         for (property in ref.getProperties(refTable?.ignoreProperties?.toSet() ?: emptySet())) {
             if (property.isAnnotationPresent(References::class)) {
-                val propType = property.type.resolve().declaration as KSClassDeclaration
+                val propType = property._type.declaration as KSClassDeclaration
                 checkCircularRef(propType, stack)
             }
         }

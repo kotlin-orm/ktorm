@@ -23,6 +23,24 @@ import com.google.devtools.ksp.visitor.KSValidateVisitor
 import kotlin.reflect.jvm.jvmName
 
 /**
+ * Return the resolved [KSType] of this property.
+ */
+@Suppress("ObjectPropertyName")
+internal val KSPropertyDeclaration._type: KSType get() = type.resolve()
+
+/**
+ * Return the resolved [KSType] of this annotation.
+ */
+@Suppress("ObjectPropertyName")
+internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve()
+
+/**
+ * Return the resolved [KSType] of this parameter.
+ */
+@Suppress("ObjectPropertyName")
+internal val KSValueParameter._type: KSType get() = type.resolve()
+
+/**
  * Check if the given symbol is valid.
  */
 internal fun KSNode.isValid(): Boolean {
@@ -99,7 +117,7 @@ internal fun KSType.isInline(): Boolean {
 }
 
 /**
- * Return the JVM class name of [this] type.
+ * Return the JVM class name of this type.
  */
 internal fun KSType.getJvmName(): String? {
     return declaration.qualifiedName?.asString()

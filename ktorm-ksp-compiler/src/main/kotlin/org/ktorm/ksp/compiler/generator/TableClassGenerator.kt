@@ -23,6 +23,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import org.ktorm.dsl.QueryRowSet
+import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.compiler.util.getKotlinType
 import org.ktorm.ksp.compiler.util.getRegisteringCodeBlock
 import org.ktorm.ksp.spi.TableMetadata
@@ -163,7 +164,7 @@ internal object TableClassGenerator {
 
             for (column in table.columns) {
                 val parameter = constructorParams[column.entityProperty.simpleName.asString()] ?: continue
-                if (parameter.type.resolve().isMarkedNullable) {
+                if (parameter._type.isMarkedNullable) {
                     add("%N·=·row[this.%N],", parameter.name!!.asString(), column.columnPropertyName)
                 } else {
                     add("%N·=·row[this.%N]!!,", parameter.name!!.asString(), column.columnPropertyName)
@@ -179,7 +180,7 @@ internal object TableClassGenerator {
                 continue
             }
 
-            if (column.entityProperty.type.resolve().isMarkedNullable) {
+            if (column.entityProperty._type.isMarkedNullable) {
                 addStatement("entity.%N·=·row[this.%N]", propName, column.columnPropertyName)
             } else {
                 addStatement("entity.%N·=·row[this.%N]!!", propName, column.columnPropertyName)

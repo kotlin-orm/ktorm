@@ -22,6 +22,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
+import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.spi.TableMetadata
 
 @OptIn(KotlinPoetKspPreview::class)
@@ -37,7 +38,7 @@ internal object ComponentFunctionGenerator {
                         table.entityClass.simpleName.asString(), prop.simpleName.asString())
                     .addModifiers(KModifier.OPERATOR)
                     .receiver(table.entityClass.toClassName())
-                    .returns(prop.type.resolve().toTypeName())
+                    .returns(prop._type.toTypeName())
                     .addCode("return·this.%N", prop.simpleName.asString())
                     .build()
             }

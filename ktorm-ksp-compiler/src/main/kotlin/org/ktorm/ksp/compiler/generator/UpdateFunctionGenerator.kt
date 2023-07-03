@@ -89,7 +89,7 @@ internal object UpdateFunctionGenerator {
                 }
 
                 val condition: String
-                if (column.entityProperty.type.resolve().isMarkedNullable) {
+                if (column.entityProperty._type.isMarkedNullable) {
                     condition = "sourceTable.%N·%M·entity.%N!!,"
                 } else {
                     condition = "sourceTable.%N·%M·entity.%N,"

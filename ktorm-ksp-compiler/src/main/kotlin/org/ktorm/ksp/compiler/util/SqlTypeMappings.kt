@@ -31,12 +31,11 @@ import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.schema.*
 
 internal fun KSPropertyDeclaration.getSqlType(resolver: Resolver): KSType? {
-    val propType = this.type.resolve()
-    if ((propType.declaration as KSClassDeclaration).classKind == ClassKind.ENUM_CLASS) {
+    if ((_type.declaration as KSClassDeclaration).classKind == ClassKind.ENUM_CLASS) {
         return resolver.getClassDeclarationByName<EnumSqlType<*>>()?.asType(emptyList())
     }
 
-    val sqlType = when (propType.getJvmName()) {
+    val sqlType = when (_type.getJvmName()) {
         "kotlin.Boolean" -> BooleanSqlType::class
         "kotlin.Int" -> IntSqlType::class
         "kotlin.Short" -> ShortSqlType::class
@@ -118,6 +117,6 @@ internal fun ColumnMetadata.getKotlinType(): TypeName {
     if (isReference) {
         return referenceTable!!.columns.single { it.isPrimaryKey }.getKotlinType()
     } else {
-        return entityProperty.type.resolve().makeNotNullable().toTypeName()
+        return entityProperty._type.makeNotNullable().toTypeName()
     }
 }

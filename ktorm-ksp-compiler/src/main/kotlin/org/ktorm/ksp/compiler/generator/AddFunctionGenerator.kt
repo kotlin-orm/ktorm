@@ -24,6 +24,7 @@ import org.ktorm.dsl.AliasRemover
 import org.ktorm.entity.EntitySequence
 import org.ktorm.expression.ColumnAssignmentExpression
 import org.ktorm.expression.InsertExpression
+import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.TableMetadata
 import org.ktorm.schema.Column
@@ -35,7 +36,7 @@ internal object AddFunctionGenerator {
         val primaryKeys = table.columns.filter { it.isPrimaryKey }
         val useGeneratedKey = primaryKeys.size == 1
             && primaryKeys[0].entityProperty.isMutable
-            && primaryKeys[0].entityProperty.type.resolve().isMarkedNullable
+            && primaryKeys[0].entityProperty._type.isMarkedNullable
 
         val entityClass = table.entityClass.toClassName()
         val tableClass = ClassName(table.entityClass.packageName.asString(), table.tableClassName)
@@ -117,7 +118,7 @@ internal object AddFunctionGenerator {
 
             for (column in table.columns) {
                 val forceDynamic = useGeneratedKey
-                    && column.isPrimaryKey && column.entityProperty.type.resolve().isMarkedNullable
+                    && column.isPrimaryKey && column.entityProperty._type.isMarkedNullable
 
                 addStatement(
                     "assignments.addVal(sourceTable.%N, entity.%N, %L)",

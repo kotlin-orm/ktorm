@@ -48,7 +48,7 @@ internal object PseudoConstructorFunctionGenerator {
             .filterNot { it.simpleName.asString() in setOf("entityClass", "properties") }
             .map { prop ->
                 val propName = prop.simpleName.asString()
-                val propType = prop.type.resolve().makeNullable().toTypeName()
+                val propType = prop._type.makeNullable().toTypeName()
 
                 ParameterSpec.builder(propName, propType)
                     .defaultValue("%T.of()", Undefined::class.asClassName())
@@ -68,19 +68,16 @@ internal object PseudoConstructorFunctionGenerator {
                 continue
             }
 
-            val propName = prop.simpleName.asString()
-            val propType = prop.type.resolve()
-            if (propType.isInline()) {
-                beginControlFlow(
-                    "if·((%N·as·Any?)·!==·(%T.of<%T>()·as·Any?))",
-                    propName, Undefined::class.asClassName(), propType.makeNotNullable().toTypeName()
-                )
+            val condition: String
+            if (prop._type.isInline()) {
+                condition = "if·((%N·as·Any?)·!==·(%T.of<%T>()·as·Any?))"
             } else {
-                beginControlFlow(
-                    "if·(%N·!==·%T.of<%T>())",
-                    propName, Undefined::class.asClassName(), propType.makeNotNullable().toTypeName()
-                )
+                condition = "if·(%N·!==·%T.of<%T>())"
             }
+
+            beginControlFlow(condition,
+                prop.simpleName.asString(), Undefined::class.asClassName(), prop._type.makeNotNullable().toTypeName()
+            )
 
             var statement: String
             if (prop.isMutable) {
@@ -89,11 +86,11 @@ internal object PseudoConstructorFunctionGenerator {
                 statement = "entity[%1S]·=·%1N"
             }
 
-            if (!propType.isMarkedNullable) {
+            if (!prop._type.isMarkedNullable) {
                 statement += "·?:·error(\"`%1L` should not be null.\")"
             }
 
-            addStatement(statement, propName)
+            addStatement(statement, prop.simpleName.asString())
             endControlFlow()
         }
 
