@@ -18,6 +18,7 @@ package org.ktorm.ksp.compiler.generator
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.ClassKind
+import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
@@ -127,51 +128,9 @@ internal object TableClassGenerator {
             .any { it.hasDefault }
 
         if (hasDefaultValues && options["ktorm.allowReflection"] == "true") {
-            addStatement(
-                "val constructor = %T::class.%M!!",
-                table.entityClass.toClassName(),
-                MemberName("kotlin.reflect.full", "primaryConstructor", true)
-            )
-
-            add("«val args = mapOf(")
-
-            for (column in table.columns) {
-                val propName = column.entityProperty.simpleName.asString()
-                if (propName in constructorParams) {
-                    add(
-                        "constructor.%M(%S)!! to row[this.%N],",
-                        MemberName("kotlin.reflect.full", "findParameterByName", true),
-                        propName,
-                        column.columnPropertyName
-                    )
-                }
-            }
-
-            add(")\n»")
-            addStatement("// Filter optional arguments out to make default values work.")
-
-            if (table.columns.all { it.entityProperty.simpleName.asString() in constructorParams }) {
-                addStatement("return constructor.callBy(args.filterNot { (k, v) -> k.isOptional && v == null })")
-            } else {
-                addStatement("val entity = constructor.callBy(args.filterNot { (k, v) -> k.isOptional && v == null })")
-            }
+            createEntityByReflection(table, constructorParams)
         } else {
-            if (table.columns.all { it.entityProperty.simpleName.asString() in constructorParams }) {
-                add("«return·%T(", table.entityClass.toClassName())
-            } else {
-                add("«val·entity·=·%T(", table.entityClass.toClassName())
-            }
-
-            for (column in table.columns) {
-                val parameter = constructorParams[column.entityProperty.simpleName.asString()] ?: continue
-                if (parameter._type.isMarkedNullable) {
-                    add("%N·=·row[this.%N],", parameter.name!!.asString(), column.columnPropertyName)
-                } else {
-                    add("%N·=·row[this.%N]!!,", parameter.name!!.asString(), column.columnPropertyName)
-                }
-            }
-
-            add(")\n»")
+            createEntityByConstructor(table, constructorParams)
         }
 
         for (column in table.columns) {
@@ -190,6 +149,60 @@ internal object TableClassGenerator {
         if (table.columns.any { it.entityProperty.simpleName.asString() !in constructorParams }) {
             addStatement("return·entity")
         }
+    }
+
+    private fun CodeBlock.Builder.createEntityByReflection(
+        table: TableMetadata, constructorParams: Map<String, KSValueParameter>
+    ) {
+        addStatement(
+            "val constructor = %T::class.%M!!",
+            table.entityClass.toClassName(),
+            MemberName("kotlin.reflect.full", "primaryConstructor", true)
+        )
+
+        add("«val args = mapOf(")
+
+        for (column in table.columns) {
+            val propName = column.entityProperty.simpleName.asString()
+            if (propName in constructorParams) {
+                add(
+                    "constructor.%M(%S)!! to row[this.%N],",
+                    MemberName("kotlin.reflect.full", "findParameterByName", true),
+                    propName,
+                    column.columnPropertyName
+                )
+            }
+        }
+
+        add(")\n»")
+        addStatement("// Filter optional arguments out to make default values work.")
+
+        if (table.columns.all { it.entityProperty.simpleName.asString() in constructorParams }) {
+            addStatement("return constructor.callBy(args.filterNot { (k, v) -> k.isOptional && v == null })")
+        } else {
+            addStatement("val entity = constructor.callBy(args.filterNot { (k, v) -> k.isOptional && v == null })")
+        }
+    }
+
+    private fun CodeBlock.Builder.createEntityByConstructor(
+        table: TableMetadata, constructorParams: Map<String, KSValueParameter>
+    ) {
+        if (table.columns.all { it.entityProperty.simpleName.asString() in constructorParams }) {
+            add("«return·%T(", table.entityClass.toClassName())
+        } else {
+            add("«val·entity·=·%T(", table.entityClass.toClassName())
+        }
+
+        for (column in table.columns) {
+            val parameter = constructorParams[column.entityProperty.simpleName.asString()] ?: continue
+            if (parameter._type.isMarkedNullable) {
+                add("%N·=·row[this.%N],", parameter.name!!.asString(), column.columnPropertyName)
+            } else {
+                add("%N·=·row[this.%N]!!,", parameter.name!!.asString(), column.columnPropertyName)
+            }
+        }
+
+        add(")\n»")
     }
 
     private fun TypeSpec.Builder.configureAliasedFunction(table: TableMetadata): TypeSpec.Builder {

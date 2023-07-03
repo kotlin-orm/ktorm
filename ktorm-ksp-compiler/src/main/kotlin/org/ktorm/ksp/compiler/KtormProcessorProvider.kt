@@ -30,6 +30,9 @@ import org.ktorm.ksp.compiler.util.isValid
 import org.ktorm.ksp.spi.TableMetadata
 import kotlin.reflect.jvm.jvmName
 
+/**
+ * Ktorm KSP symbol processor provider.
+ */
 public class KtormProcessorProvider : SymbolProcessorProvider {
 
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
