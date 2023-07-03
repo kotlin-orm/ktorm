@@ -34,15 +34,15 @@ import java.util.*
 import kotlin.reflect.jvm.jvmName
 
 @OptIn(KspExperimental::class)
-internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessorEnvironment) {
-    private val resolver = _resolver
-    private val options = _environment.options
-    private val databaseNamingStrategy = loadDatabaseNamingStrategy()
-    private val codingNamingStrategy = loadCodingNamingStrategy()
-    private val tablesCache = HashMap<String, TableMetadata>()
+internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEnvironment) {
+    private val _resolver = resolver
+    private val _options = environment.options
+    private val _databaseNamingStrategy = loadDatabaseNamingStrategy()
+    private val _codingNamingStrategy = loadCodingNamingStrategy()
+    private val _tablesCache = HashMap<String, TableMetadata>()
 
     private fun loadDatabaseNamingStrategy(): DatabaseNamingStrategy {
-        val name = options["ktorm.dbNamingStrategy"] ?: "lower-snake-case"
+        val name = _options["ktorm.dbNamingStrategy"] ?: "lower-snake-case"
         if (name == "lower-snake-case") {
             return LowerSnakeCaseDatabaseNamingStrategy
         }
@@ -59,7 +59,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
     }
 
     private fun loadCodingNamingStrategy(): CodingNamingStrategy {
-        val name = options["ktorm.codingNamingStrategy"] ?: return DefaultCodingNamingStrategy
+        val name = _options["ktorm.codingNamingStrategy"] ?: return DefaultCodingNamingStrategy
 
         try {
             val cls = Class.forName(name)
@@ -70,7 +70,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
     }
 
     fun parseTableMetadata(cls: KSClassDeclaration): TableMetadata {
-        val r = tablesCache[cls.qualifiedName!!.asString()]
+        val r = _tablesCache[cls.qualifiedName!!.asString()]
         if (r != null) {
             return r
         }
@@ -88,25 +88,26 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
         val table = cls.getAnnotationsByType(Table::class).first()
         val tableDef = TableMetadata(
             entityClass = cls,
-            name = table.name.ifEmpty { databaseNamingStrategy.getTableName(cls) },
+            name = table.name.ifEmpty { _databaseNamingStrategy.getTableName(cls) },
             alias = table.alias.takeIf { it.isNotEmpty() },
-            catalog = table.catalog.ifEmpty { options["ktorm.catalog"] }?.takeIf { it.isNotEmpty() },
-            schema = table.schema.ifEmpty { options["ktorm.schema"] }?.takeIf { it.isNotEmpty() },
-            tableClassName = table.className.ifEmpty { codingNamingStrategy.getTableClassName(cls) },
-            entitySequenceName = table.entitySequenceName.ifEmpty { codingNamingStrategy.getEntitySequenceName(cls) },
+            catalog = table.catalog.ifEmpty { _options["ktorm.catalog"] }?.takeIf { it.isNotEmpty() },
+            schema = table.schema.ifEmpty { _options["ktorm.schema"] }?.takeIf { it.isNotEmpty() },
+            tableClassName = table.className.ifEmpty { _codingNamingStrategy.getTableClassName(cls) },
+            entitySequenceName = table.entitySequenceName.ifEmpty { _codingNamingStrategy.getEntitySequenceName(cls) },
             ignoreProperties = table.ignoreProperties.toSet(),
             columns = ArrayList()
         )
 
+        val columns = tableDef.columns as MutableList
         for (property in cls.getProperties(tableDef.ignoreProperties)) {
             if (property.isAnnotationPresent(References::class)) {
-                (tableDef.columns as MutableList) += parseRefColumnMetadata(property, tableDef)
+                columns += parseRefColumnMetadata(property, tableDef)
             } else {
-                (tableDef.columns as MutableList) += parseColumnMetadata(property, tableDef)
+                columns += parseColumnMetadata(property, tableDef)
             }
         }
 
-        tablesCache[cls.qualifiedName!!.asString()] = tableDef
+        _tablesCache[cls.qualifiedName!!.asString()] = tableDef
         return tableDef
     }
 
@@ -130,12 +131,12 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
 
         var name = column?.name
         if (name.isNullOrEmpty()) {
-            name = databaseNamingStrategy.getColumnName(table.entityClass, property)
+            name = _databaseNamingStrategy.getColumnName(table.entityClass, property)
         }
 
         var propertyName = column?.propertyName
         if (propertyName.isNullOrEmpty()) {
-            propertyName = codingNamingStrategy.getColumnPropertyName(table.entityClass, property)
+            propertyName = _codingNamingStrategy.getColumnPropertyName(table.entityClass, property)
         }
 
         return ColumnMetadata(
@@ -163,7 +164,7 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
         }
 
         if (sqlType == null) {
-            sqlType = property.getSqlType(resolver)
+            sqlType = property.getSqlType(_resolver)
         }
 
         if (sqlType == null) {
@@ -250,12 +251,12 @@ internal class MetadataParser(_resolver: Resolver, _environment: SymbolProcessor
         val reference = property.getAnnotationsByType(References::class).first()
         var name = reference.name
         if (name.isEmpty()) {
-            name = databaseNamingStrategy.getRefColumnName(table.entityClass, property, referenceTable)
+            name = _databaseNamingStrategy.getRefColumnName(table.entityClass, property, referenceTable)
         }
 
         var propertyName = reference.propertyName
         if (propertyName.isEmpty()) {
-            propertyName = codingNamingStrategy.getRefColumnPropertyName(table.entityClass, property, referenceTable)
+            propertyName = _codingNamingStrategy.getRefColumnPropertyName(table.entityClass, property, referenceTable)
         }
 
         return ColumnMetadata(

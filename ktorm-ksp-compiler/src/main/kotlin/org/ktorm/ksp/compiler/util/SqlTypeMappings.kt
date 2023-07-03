@@ -108,8 +108,7 @@ internal fun ColumnMetadata.getRegisteringCodeBlock(): CodeBlock {
     if (declaration.classKind == ClassKind.OBJECT) {
         return CodeBlock.of("registerColumn(%S,·%T)", name, sqlType.toTypeName())
     } else {
-        // TODO: create SqlType by constructor
-        return CodeBlock.of("registerColumn(%S,·%T)", name, sqlType.toTypeName())
+        return CodeBlock.of("registerColumn(%S,·%T(TODO))", name, sqlType.toTypeName())
     }
 }
 
