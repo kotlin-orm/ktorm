@@ -108,35 +108,24 @@ class SqlTypeTest : BaseKspTest() {
             var id: Int,
             var username: String,
             var age: Int,
-            @Column(sqlType = IntEnumSqlType::class)
-            var gender: Gender
+            @Column(sqlType = ExSqlType::class)
+            var ex: Map<String, String>
         )
         
-        enum class Gender {
-            MALE,
-            FEMALE
-        }
-        
-        class IntEnumSqlType<E : Enum<E>>(val enumClass: Class<E>) : org.ktorm.schema.SqlType<E>(Types.INTEGER, "int") {
-            @Suppress("UNCHECKED_CAST")
-            constructor(typeRef: org.ktorm.schema.TypeReference<E>) : this(typeRef.referencedType as Class<E>)
-        
-            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: E) {
-                ps.setInt(index, parameter.ordinal)
+        class ExSqlType<C : Any>(val typeRef: org.ktorm.schema.TypeReference<C>) : org.ktorm.schema.SqlType<C>(Types.OTHER, "json") {
+            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: C) {
+                TODO("not implemented.")
             }
         
-            override fun doGetResult(rs: ResultSet, index: Int): E? {
-                return enumClass.enumConstants[rs.getInt(index)]
+            override fun doGetResult(rs: ResultSet, index: Int): C? {
+                TODO("not implemented.")
             }
         }
         
         fun run() {
-            assert(Users.gender.sqlType::class.simpleName == "IntEnumSqlType")
-            assert(Users.gender.sqlType.typeCode == Types.INTEGER)
-            assert(Users.gender.sqlType.typeName == "int")
-            
-            database.users.add(User(100, "Vincent", 28, Gender.MALE))
-            assert(database.users.first { it.id eq 100 } == User(100, "Vincent", 28, Gender.MALE))
+            assert(Users.ex.sqlType::class.simpleName == "ExSqlType")
+            assert(Users.ex.sqlType.typeCode == Types.OTHER)
+            assert(Users.ex.sqlType.typeName == "json")
         }
     """.trimIndent())
 }
