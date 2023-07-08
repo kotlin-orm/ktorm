@@ -124,6 +124,42 @@ class MetadataParserTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
+    fun testAbstractSqlType() = kspFailing("Parse sqlType error for property User.ex: the sqlType class cannot be abstract.", """
+        @Table
+        interface User : Entity<User> {
+            @PrimaryKey
+            var id: Int
+            var name: String
+            @Column(sqlType = ExSqlType::class)
+            var ex: Map<String, String>
+        }
+        
+        abstract class ExSqlType<C : Any> : org.ktorm.schema.SqlType<C>(Types.OTHER, "json")
+    """.trimIndent())
+
+    @Test
+    fun testSqlTypeWithoutConstructor() = kspFailing("Parse sqlType error for property User.ex: the sqlType must be a Kotlin singleton object or a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument.", """
+        @Table
+        interface User : Entity<User> {
+            @PrimaryKey
+            var id: Int
+            var name: String
+            @Column(sqlType = ExSqlType::class)
+            var ex: Map<String, String>
+        }
+        
+        class ExSqlType : org.ktorm.schema.SqlType<Any>(Types.OTHER, "json") {
+            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Any) {
+                TODO("not implemented.")
+            }
+        
+            override fun doGetResult(rs: ResultSet, index: Int): Any? {
+                TODO("not implemented.")
+            }
+        }
+    """.trimIndent())
+
+    @Test
     fun testReferencesWithColumn() = kspFailing("Parse ref column error for property User.profile: @Column and @References cannot be used together.", """
         @Table
         interface User : Entity<User> {
