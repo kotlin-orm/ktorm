@@ -71,7 +71,7 @@ abstract class BaseKspTest {
             import org.ktorm.database.*
             import org.ktorm.dsl.*
             import org.ktorm.entity.*
-            import org.ktorm.ksp.api.*
+            import org.ktorm.ksp.annotation.*
             
             lateinit var database: Database
             

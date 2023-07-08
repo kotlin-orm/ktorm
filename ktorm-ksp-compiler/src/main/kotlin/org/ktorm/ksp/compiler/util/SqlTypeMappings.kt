@@ -28,6 +28,7 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
+import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.schema.*
@@ -107,9 +108,14 @@ internal fun ColumnMetadata.getRegisteringCodeBlock(): CodeBlock {
 
     val declaration = sqlType.declaration as KSClassDeclaration
     if (declaration.classKind == ClassKind.OBJECT) {
-        return CodeBlock.of("registerColumn(%S,·%T)", name, sqlType.toTypeName())
+        return CodeBlock.of("registerColumn(%S,·%T)", name, declaration.toClassName())
     } else {
-        return CodeBlock.of("registerColumn(%S,·%T(TODO))", name, sqlType.toTypeName())
+        return CodeBlock.of("registerColumn(%S,·%T(%M<%T>()))",
+            name,
+            declaration.toClassName(),
+            MemberName("org.ktorm.schema", "typeRef"),
+            getKotlinType()
+        )
     }
 }
 

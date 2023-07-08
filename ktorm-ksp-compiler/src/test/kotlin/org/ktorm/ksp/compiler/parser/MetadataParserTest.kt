@@ -124,28 +124,6 @@ class MetadataParserTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
-    fun testSqlTypeShouldBeObject() = kspFailing("Parse sqlType error for property User.name: the sqlType class must be a Kotlin singleton object.", """
-        @Table
-        interface User : Entity<User> {
-            val id: Int
-            @Column(sqlType = org.ktorm.schema.EnumSqlType::class)
-            val name: String
-        }
-    """.trimIndent())
-
-    @Test
-    fun testSqlTypeShouldBeSqlType() = kspFailing("Parse sqlType error for property User.name: the sqlType class must be subtype of SqlType/SqlTypeFactory.", """
-        @Table
-        interface User : Entity<User> {
-            val id: Int
-            @Column(sqlType = Test::class)
-            val name: String
-        }
-        
-        object Test
-    """.trimIndent())
-
-    @Test
     fun testReferencesWithColumn() = kspFailing("Parse ref column error for property User.profile: @Column and @References cannot be used together.", """
         @Table
         interface User : Entity<User> {
@@ -163,7 +141,7 @@ class MetadataParserTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
-    fun testReferencesFromClassEntity() = kspFailing("Parse ref column error for property User.profile: @References can only be used in interface-based entities", """
+    fun testReferencesFromClassEntity() = kspFailing("Parse ref column error for property User.profile: @References only allowed in interface-based entities", """
         @Table
         class User(
             val id: Int,
@@ -195,7 +173,7 @@ class MetadataParserTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
-    fun testReferencesToNonTableClass() = kspFailing("Parse ref column error for property User.profile: the referenced entity class must be annotated with @Table", """
+    fun testReferencesToNonTableClass() = kspFailing("Parse ref column error for property User.profile: the referenced entity must be annotated with @Table", """
         @Table
         interface User : Entity<User> {
             val id: Int

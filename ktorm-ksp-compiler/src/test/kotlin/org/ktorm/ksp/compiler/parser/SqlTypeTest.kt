@@ -101,14 +101,14 @@ class SqlTypeTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
-    fun testCustomSqlTypeFactory() = runKotlin("""
+    fun testCustomSqlTypeWithConstructor() = runKotlin("""
         @Table
         data class User(
             @PrimaryKey
             var id: Int,
             var username: String,
             var age: Int,
-            @Column(sqlType = IntEnumSqlTypeFactory::class)
+            @Column(sqlType = IntEnumSqlType::class)
             var gender: Gender
         )
         
@@ -117,26 +117,16 @@ class SqlTypeTest : BaseKspTest() {
             FEMALE
         }
         
-        object IntEnumSqlTypeFactory : SqlTypeFactory {
-        
+        class IntEnumSqlType<E : Enum<E>>(val enumClass: Class<E>) : org.ktorm.schema.SqlType<E>(Types.INTEGER, "int") {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : Any> createSqlType(property: KProperty1<*, T?>): org.ktorm.schema.SqlType<T> {
-                val returnType = property.returnType.jvmErasure.java
-                if (returnType.isEnum) {
-                    return IntEnumSqlType(returnType as Class<out Enum<*>>) as org.ktorm.schema.SqlType<T>
-                } else {
-                    throw IllegalArgumentException("The property is required to be typed of enum but actually: ${"$"}returnType")
-                }
+            constructor(typeRef: org.ktorm.schema.TypeReference<E>) : this(typeRef.referencedType as Class<E>)
+        
+            override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: E) {
+                ps.setInt(index, parameter.ordinal)
             }
         
-            private class IntEnumSqlType<E : Enum<E>>(val enumClass: Class<E>) : org.ktorm.schema.SqlType<E>(Types.INTEGER, "int") {
-                override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: E) {
-                    ps.setInt(index, parameter.ordinal)
-                }
-        
-                override fun doGetResult(rs: ResultSet, index: Int): E? {
-                    return enumClass.enumConstants[rs.getInt(index)]
-                }
+            override fun doGetResult(rs: ResultSet, index: Int): E? {
+                return enumClass.enumConstants[rs.getInt(index)]
             }
         }
         
