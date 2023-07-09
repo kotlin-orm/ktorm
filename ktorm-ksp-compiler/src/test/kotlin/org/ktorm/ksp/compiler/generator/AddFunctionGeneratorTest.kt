@@ -24,7 +24,6 @@ class AddFunctionGeneratorTest : BaseKspTest() {
             assert(users[1] == User(id = 2, username = "lucy", age = 22))
             assert(users[2] == User(id = 3, username = "mike", age = 22))
             assert(users[3] == User(id = 4, username = "test", age = 100))
-            
         }
     """.trimIndent())
 

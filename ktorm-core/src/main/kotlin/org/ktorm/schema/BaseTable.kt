@@ -274,8 +274,9 @@ public abstract class BaseTable<E : Any>(
         stack.push(root.toString(withAlias = false))
 
         if (tableName == root.tableName && catalog == root.catalog && schema == root.schema) {
+            val route = stack.asReversed().joinToString(separator = " --> ")
             throw IllegalStateException(
-                "Circular reference detected, current table: '$this', reference route: ${stack.asReversed()}"
+                "Circular reference detected, current table: '$this', reference route: $route"
             )
         }
 
