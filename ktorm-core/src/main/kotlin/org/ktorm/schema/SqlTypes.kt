@@ -560,7 +560,7 @@ public object UuidSqlType : SqlType<UUID>(Types.OTHER, "uuid") {
 }
 
 /**
- * Define a column typed of [UuidSqlType].
+ * Define a column typed of [ArraySqlType].
  */
 public fun BaseTable<*>.array(name: String): Column<Array> {
     return registerColumn(name, ArraySqlType)
