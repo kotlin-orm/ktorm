@@ -155,6 +155,11 @@ publishing {
                         id.set("brohacz")
                         name.set("Michal Brosig")
                     }
+                    developer {
+                        id.set("csrawat")
+                        name.set("Chandra Shekhar Rawat")
+                        email.set("cs215100@gmail.com")
+                    }
                 }
             }
         }
