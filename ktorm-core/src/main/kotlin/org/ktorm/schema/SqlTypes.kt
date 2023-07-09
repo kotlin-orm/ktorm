@@ -18,6 +18,7 @@ package org.ktorm.schema
 
 import java.math.BigDecimal
 import java.sql.*
+import java.sql.Array
 import java.sql.Date
 import java.time.*
 import java.time.format.DateTimeFormatterBuilder
@@ -555,5 +556,26 @@ public object UuidSqlType : SqlType<UUID>(Types.OTHER, "uuid") {
 
     override fun doGetResult(rs: ResultSet, index: Int): UUID? {
         return rs.getObject(index) as UUID?
+    }
+}
+
+/**
+ * Define a column typed of [UuidSqlType].
+ */
+public fun BaseTable<*>.array(name: String): Column<Array> {
+    return registerColumn(name, ArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents `array` SQL type.
+ */
+public object ArraySqlType : SqlType<Array>(Types.OTHER, "array") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: Array) {
+        ps.setObject(index, parameter)
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): Array? {
+        return rs.getObject(index) as Array?
     }
 }
