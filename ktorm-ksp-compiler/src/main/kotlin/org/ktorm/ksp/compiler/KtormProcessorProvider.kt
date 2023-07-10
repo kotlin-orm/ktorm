@@ -96,7 +96,7 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
                 .replace(Regex(""",\s*\)"""), ")")
                 .replace(Regex("""\s*get\(\)\s="""), " get() =")
 
-             return ktLintRuleEngine.format(code)
+            return ktLintRuleEngine.format(code)
         } catch (e: Exception) {
             logger.exception(e)
             return fileSpec.toString()
