@@ -36,6 +36,11 @@ internal object FileGenerator {
             .addProperty(EntitySequencePropertyGenerator.generate(table))
 
         if (table.entityClass.classKind == ClassKind.INTERFACE) {
+            if (table.columns.any { it.isReference }) {
+                fileSpec.addProperty(RefsPropertyGenerator.generate(table))
+                fileSpec.addType(RefsClassGenerator.generate(table))
+            }
+
             fileSpec.addFunction(PseudoConstructorFunctionGenerator.generate(table))
             fileSpec.addFunction(CopyFunctionGenerator.generate(table))
 
