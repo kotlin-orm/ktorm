@@ -195,7 +195,7 @@ public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Ass
 /**
  * Get generated key from the row set.
  */
-internal fun <T : Any> CachedRowSet.getGeneratedKey(primaryKey: Column<T>): T? {
+public fun <T : Any> CachedRowSet.getGeneratedKey(primaryKey: Column<T>): T? {
     if (metaData.columnCount == 1) {
         return primaryKey.sqlType.getResult(this, 1)
     }

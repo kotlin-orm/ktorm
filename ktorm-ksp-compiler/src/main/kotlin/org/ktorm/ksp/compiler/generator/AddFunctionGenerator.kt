@@ -165,8 +165,7 @@ internal object AddFunctionGenerator {
                     format = """
                         val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
                         if (rowSet.next()) {
-                            // TODO: use CachedRowSet.getGeneratedKey
-                            val generatedKey = sourceTable.%columnName:N.sqlType.getResult(rowSet, 1)
+                            val generatedKey = rowSet.%getGeneratedKey:M(sourceTable.%columnName:N)
                             if (generatedKey != null) {
                                 if (database.logger.isDebugEnabled()) {
                                     database.logger.debug("Generated Key: ${'$'}generatedKey")
@@ -182,7 +181,8 @@ internal object AddFunctionGenerator {
 
                     arguments = mapOf(
                         "columnName" to primaryKeys[0].columnPropertyName,
-                        "propertyName" to primaryKeys[0].entityProperty.simpleName.asString()
+                        "propertyName" to primaryKeys[0].entityProperty.simpleName.asString(),
+                        "getGeneratedKey" to MemberName("org.ktorm.dsl", "getGeneratedKey", true)
                     )
                 )
 
