@@ -150,7 +150,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             isReference = false,
             referenceTable = null,
             columnPropertyName = propertyName,
-            columnPropertyNameForRefs = null
+            refTablePropertyName = null
         )
     }
 
@@ -230,8 +230,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             )
         }
 
-        val referenceTable = parseTableMetadata(refEntityClass)
-        val primaryKeys = referenceTable.columns.filter { it.isPrimaryKey }
+        val refTable = parseTableMetadata(refEntityClass)
+        val primaryKeys = refTable.columns.filter { it.isPrimaryKey }
         if (primaryKeys.isEmpty()) {
             throw IllegalStateException(
                 "Parse ref column error for property $propName: the referenced table doesn't have a primary key."
@@ -247,18 +247,17 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         val reference = property.getAnnotationsByType(References::class).first()
         var name = reference.name
         if (name.isEmpty()) {
-            name = _databaseNamingStrategy.getRefColumnName(table.entityClass, property, referenceTable)
+            name = _databaseNamingStrategy.getRefColumnName(table.entityClass, property, refTable)
         }
 
         var propertyName = reference.propertyName
         if (propertyName.isEmpty()) {
-            propertyName = _codingNamingStrategy.getRefColumnPropertyName(table.entityClass, property, referenceTable)
+            propertyName = _codingNamingStrategy.getRefColumnPropertyName(table.entityClass, property, refTable)
         }
 
-        var propertyNameForRefs = reference.propertyNameForRefs
-        if (propertyNameForRefs.isEmpty()) {
-            propertyNameForRefs = _codingNamingStrategy
-                .getRefColumnPropertyNameForRefs(table.entityClass, property, referenceTable)
+        var refTablePropertyName = reference.refTablePropertyName
+        if (refTablePropertyName.isEmpty()) {
+            refTablePropertyName = _codingNamingStrategy.getRefTablePropertyName(table.entityClass, property, refTable)
         }
 
         return ColumnMetadata(
@@ -268,9 +267,9 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             isPrimaryKey = property.isAnnotationPresent(PrimaryKey::class),
             sqlType = primaryKeys[0].sqlType,
             isReference = true,
-            referenceTable = referenceTable,
+            referenceTable = refTable,
             columnPropertyName = propertyName,
-            columnPropertyNameForRefs = propertyNameForRefs
+            refTablePropertyName = refTablePropertyName
         )
     }
 

@@ -76,7 +76,7 @@ internal object DefaultCodingNamingStrategy : CodingNamingStrategy {
         return prop.simpleName.asString() + pk.columnPropertyName.replaceFirstChar { it.uppercase() }
     }
 
-    override fun getRefColumnPropertyNameForRefs(
+    override fun getRefTablePropertyName(
         c: KSClassDeclaration, prop: KSPropertyDeclaration, ref: TableMetadata
     ): String {
         return prop.simpleName.asString()

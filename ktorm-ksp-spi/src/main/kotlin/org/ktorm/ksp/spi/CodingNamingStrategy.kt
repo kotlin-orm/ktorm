@@ -45,7 +45,7 @@ public interface CodingNamingStrategy {
     public fun getRefColumnPropertyName(c: KSClassDeclaration, prop: KSPropertyDeclaration, ref: TableMetadata): String
 
     /**
-     * Generate the property name in the Refs wrapper class.
+     * Generate the name of the referenced table property in the Refs wrapper class.
      */
-    public fun getRefColumnPropertyNameForRefs(c: KSClassDeclaration, prop: KSPropertyDeclaration, ref: TableMetadata): String
+    public fun getRefTablePropertyName(c: KSClassDeclaration, prop: KSPropertyDeclaration, ref: TableMetadata): String
 }

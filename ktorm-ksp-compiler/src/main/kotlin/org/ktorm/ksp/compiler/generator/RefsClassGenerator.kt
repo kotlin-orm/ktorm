@@ -16,11 +16,10 @@ internal object RefsClassGenerator {
             .primaryConstructor(FunSpec.constructorBuilder().addParameter("t", tableClass).build())
 
         for (column in table.columns) {
-            val propertyNameForRefs = column.columnPropertyNameForRefs ?: continue
             val refTable = column.referenceTable ?: continue
             val refTableClass = ClassName(refTable.entityClass.packageName.asString(), refTable.tableClassName)
 
-            val propertySpec = PropertySpec.builder(propertyNameForRefs, refTableClass)
+            val propertySpec = PropertySpec.builder(column.refTablePropertyName!!, refTableClass)
                 .addKdoc("Return the referenced table [${refTable.tableClassName}].")
                 .initializer(CodeBlock.of("t.%N.referenceTable as %T", column.columnPropertyName, refTableClass))
                 .build()
