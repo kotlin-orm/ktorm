@@ -172,17 +172,15 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         }
 
         if (sqlType == null) {
-            throw IllegalArgumentException(
-                "Parse sqlType error for property $propName: cannot infer sqlType, please specify manually."
-            )
+            val msg = "Parse sqlType error for property $propName: cannot infer sqlType, please specify manually."
+            throw IllegalArgumentException(msg)
         }
 
         val declaration = sqlType.declaration as KSClassDeclaration
         if (declaration.classKind != OBJECT) {
             if (declaration.isAbstract()) {
-                throw IllegalArgumentException(
-                    "Parse sqlType error for property $propName: the sqlType class cannot be abstract."
-                )
+                val msg = "Parse sqlType error for property $propName: the sqlType class cannot be abstract."
+                throw IllegalArgumentException(msg)
             }
 
             val hasConstructor = declaration.getConstructors()
@@ -204,44 +202,41 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     private fun parseRefColumnMetadata(property: KSPropertyDeclaration, table: TableMetadata): ColumnMetadata {
         val propName = property.qualifiedName?.asString()
         if (property.isAnnotationPresent(Column::class)) {
-            throw IllegalStateException(
-                "Parse ref column error for property $propName: @Column and @References cannot be used together."
-            )
+            val msg = "Parse ref column error for property $propName: @Column and @References cannot be used together."
+            throw IllegalStateException(msg)
         }
 
         if (table.entityClass.classKind != INTERFACE) {
-            throw IllegalStateException(
+            val msg =
                 "Parse ref column error for property $propName: @References only allowed in interface-based entities."
-            )
+            throw IllegalStateException(msg)
         }
 
         val refEntityClass = property._type.declaration as KSClassDeclaration
         table.checkCircularRef(refEntityClass)
 
         if (refEntityClass.classKind != INTERFACE) {
-            throw IllegalStateException(
-                "Parse ref column error for property $propName: the referenced entity class must be an interface."
-            )
+            val msg = "Parse ref column error for property $propName: the referenced entity class must be an interface."
+            throw IllegalStateException(msg)
         }
 
         if (!refEntityClass.isAnnotationPresent(Table::class)) {
-            throw IllegalStateException(
+            val msg =
                 "Parse ref column error for property $propName: the referenced entity must be annotated with @Table."
-            )
+            throw IllegalStateException(msg)
         }
 
         val refTable = parseTableMetadata(refEntityClass)
         val primaryKeys = refTable.columns.filter { it.isPrimaryKey }
         if (primaryKeys.isEmpty()) {
-            throw IllegalStateException(
-                "Parse ref column error for property $propName: the referenced table doesn't have a primary key."
-            )
+            val msg = "Parse ref column error for property $propName: the referenced table doesn't have a primary key."
+            throw IllegalStateException(msg)
         }
 
         if (primaryKeys.size > 1) {
-            throw IllegalStateException(
+            val msg =
                 "Parse ref column error for property $propName: the referenced table cannot have compound primary keys."
-            )
+            throw IllegalStateException(msg)
         }
 
         val reference = property.getAnnotationsByType(References::class).first()
@@ -281,9 +276,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
         if (className == refClassName) {
             val route = stack.asReversed().joinToString(separator = " --> ")
-            throw IllegalStateException(
-                "Circular reference is not allowed, current table: $className, reference route: $route."
-            )
+            val msg = "Circular reference is not allowed, current table: $className, reference route: $route."
+            throw IllegalStateException(msg)
         }
 
         val refTable = ref.getAnnotationsByType(Table::class).firstOrNull()
