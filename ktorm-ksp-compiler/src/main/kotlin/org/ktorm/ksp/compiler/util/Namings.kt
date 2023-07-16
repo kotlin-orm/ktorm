@@ -75,6 +75,12 @@ internal object DefaultCodingNamingStrategy : CodingNamingStrategy {
         val pk = ref.columns.single { it.isPrimaryKey }
         return prop.simpleName.asString() + pk.columnPropertyName.replaceFirstChar { it.uppercase() }
     }
+
+    override fun getRefColumnPropertyNameForRefs(
+        c: KSClassDeclaration, prop: KSPropertyDeclaration, ref: TableMetadata
+    ): String {
+        return prop.simpleName.asString()
+    }
 }
 
 internal object CamelCase {

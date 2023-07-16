@@ -80,5 +80,5 @@ public annotation class Table(
     /**
      * Specify properties that should be ignored for generating column definitions.
      */
-    val ignoreProperties: Array<String> = []
+    val ignoreProperties: Array<String> = [],
 )

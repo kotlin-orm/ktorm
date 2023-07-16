@@ -62,5 +62,10 @@ public data class ColumnMetadata(
     /**
      * The name of the corresponding column property in the generated table class.
      */
-    val columnPropertyName: String
+    val columnPropertyName: String,
+
+    /**
+     * The name of the corresponding property in the Refs wrapper class.
+     */
+    val columnPropertyNameForRefs: String?
 )

@@ -52,4 +52,13 @@ public annotation class References(
      * an implementation class name of `org.ktorm.ksp.spi.CodingNamingStrategy`.
      */
     val propertyName: String = "",
+
+    /**
+     * The name of the corresponding property in the Refs wrapper class.
+     *
+     * If not specified, the name will be the annotated property's name. This behavior can be configured by KSP option
+     * `ktorm.codingNamingStrategy`, which accepts an implementation class name of
+     * `org.ktorm.ksp.spi.CodingNamingStrategy`.
+     */
+    val propertyNameForRefs: String = "",
 )

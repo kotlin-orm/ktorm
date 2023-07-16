@@ -149,7 +149,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             sqlType = parseColumnSqlType(property),
             isReference = false,
             referenceTable = null,
-            columnPropertyName = propertyName
+            columnPropertyName = propertyName,
+            columnPropertyNameForRefs = null
         )
     }
 
@@ -254,6 +255,12 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             propertyName = _codingNamingStrategy.getRefColumnPropertyName(table.entityClass, property, referenceTable)
         }
 
+        var propertyNameForRefs = reference.propertyNameForRefs
+        if (propertyNameForRefs.isEmpty()) {
+            propertyNameForRefs = _codingNamingStrategy
+                .getRefColumnPropertyNameForRefs(table.entityClass, property, referenceTable)
+        }
+
         return ColumnMetadata(
             entityProperty = property,
             table = table,
@@ -262,7 +269,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             sqlType = primaryKeys[0].sqlType,
             isReference = true,
             referenceTable = referenceTable,
-            columnPropertyName = propertyName
+            columnPropertyName = propertyName,
+            columnPropertyNameForRefs = propertyNameForRefs
         )
     }
 
