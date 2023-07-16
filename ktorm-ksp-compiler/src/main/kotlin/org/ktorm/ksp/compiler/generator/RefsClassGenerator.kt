@@ -21,7 +21,7 @@ internal object RefsClassGenerator {
             val refTableClass = ClassName(refTable.entityClass.packageName.asString(), refTable.tableClassName)
 
             val propertySpec = PropertySpec.builder(column.refTablePropertyName!!, refTableClass)
-                .addKdoc("Return the referenced table [${refTable.tableClassName}].")
+                .addKdoc("Return the referenced table of [${table.tableClassName}.${column.columnPropertyName}].")
                 .initializer(CodeBlock.of("t.%N.referenceTable as %T", column.columnPropertyName, refTableClass))
                 .build()
 

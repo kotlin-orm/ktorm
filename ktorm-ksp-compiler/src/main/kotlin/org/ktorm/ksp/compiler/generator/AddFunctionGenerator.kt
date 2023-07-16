@@ -76,17 +76,16 @@ internal object AddFunctionGenerator {
 
     internal fun checkForDml(): CodeBlock {
         val code = """
-            val isModified =
-                expression.where != null ||
-                    expression.groupBy.isNotEmpty() ||
-                    expression.having != null ||
-                    expression.isDistinct ||
-                    expression.orderBy.isNotEmpty() ||
-                    expression.offset != null ||
-                    expression.limit != null
+            val isModified = expression.where != null
+                || expression.groupBy.isNotEmpty()
+                || expression.having != null
+                || expression.isDistinct
+                || expression.orderBy.isNotEmpty()
+                || expression.offset != null
+                || expression.limit != null
         
             if (isModified) {
-                val msg =
+                val msg = "" +
                     "Entity manipulation functions are not supported by this sequence object. " +
                     "Please call on the origin sequence returned from database.sequenceOf(table)"
                 throw UnsupportedOperationException(msg)
