@@ -15,7 +15,7 @@ internal object RefsPropertyGenerator {
         val refsClass = ClassName(table.entityClass.packageName.asString(), "${table.tableClassName}Refs")
 
         return PropertySpec.builder("refs", refsClass)
-            .addKdoc("Return the refs object that provides a convenient way to access reference tables.")
+            .addKdoc("Return the refs object that provides a convenient way to access referenced tables.")
             .receiver(tableClass)
             .getter(FunSpec.getterBuilder().addStatement("return·%T(this)", refsClass).build())
             .build()
