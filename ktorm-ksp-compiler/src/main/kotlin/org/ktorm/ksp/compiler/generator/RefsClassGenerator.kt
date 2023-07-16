@@ -2,6 +2,7 @@ package org.ktorm.ksp.compiler.generator
 
 import com.squareup.kotlinpoet.*
 import org.ktorm.ksp.spi.TableMetadata
+import org.ktorm.schema.Table
 
 /**
  * Created by vince at Jul 15, 2023.
@@ -27,6 +28,17 @@ internal object RefsClassGenerator {
             typeSpec.addProperty(propertySpec)
         }
 
+        val funSpec = FunSpec.builder("toList")
+            .addKdoc("Return all referenced tables as a list.")
+            .returns(typeNameOf<List<Table<*>>>())
+            .addCode("return·listOf(")
+
+        for (column in table.columns) {
+            val refTablePropertyName = column.refTablePropertyName ?: continue
+            funSpec.addCode("%N, ", refTablePropertyName)
+        }
+
+        typeSpec.addFunction(funSpec.addCode(")").build())
         return typeSpec.build()
     }
 }

@@ -95,6 +95,8 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
                 .replace(Regex(""",\s*"""), ", ")
                 .replace(Regex(""",\s*\)"""), ")")
                 .replace(Regex("""\s*get\(\)\s="""), " get() =")
+                .replace(Regex("""\s+=\s+"""), " = ")
+                .replace("import org.ktorm.ksp.`annotation`", "import org.ktorm.ksp.annotation")
 
             return ktLintRuleEngine.format(code)
         } catch (e: Exception) {
