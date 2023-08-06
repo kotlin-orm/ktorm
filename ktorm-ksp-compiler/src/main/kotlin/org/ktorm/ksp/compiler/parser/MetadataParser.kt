@@ -37,6 +37,7 @@ import kotlin.reflect.jvm.jvmName
 internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEnvironment) {
     private val _resolver = resolver
     private val _options = environment.options
+    private val _logger = environment.logger
     private val _databaseNamingStrategy = loadDatabaseNamingStrategy()
     private val _codingNamingStrategy = loadCodingNamingStrategy()
     private val _tablesCache = HashMap<String, TableMetadata>()
@@ -87,6 +88,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             throw IllegalStateException("$name must extends from org.ktorm.entity.Entity.")
         }
 
+        _logger.info("[ktorm-ksp-compiler] parse table metadata for entity: ${cls.qualifiedName!!.asString()}")
         val table = cls.getAnnotationsByType(Table::class).first()
         val tableDef = TableMetadata(
             entityClass = cls,
