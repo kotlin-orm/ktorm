@@ -25,7 +25,7 @@ import org.ktorm.ksp.spi.TableMetadata
 import java.util.*
 
 internal object FileGenerator {
-    val extCodeGenerators = ServiceLoader.load(ExtCodeGenerator::class.java).toList()
+    val extCodeGenerators = ServiceLoader.load(ExtCodeGenerator::class.java, javaClass.classLoader).toList()
 
     fun generate(table: TableMetadata, environment: SymbolProcessorEnvironment): FileSpec {
         val fileName = table.entityClass.packageName.asString().replace('.', '/') + table.tableClassName + ".kt"

@@ -21,8 +21,8 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import com.pinterest.ktlint.core.KtLintRuleEngine
+import com.pinterest.ktlint.core.RuleSetProviderV2
 import com.pinterest.ktlint.core.api.EditorConfigDefaults
-import com.pinterest.ktlint.ruleset.standard.StandardRuleSetProvider
 import com.squareup.kotlinpoet.FileSpec
 import org.ec4j.core.EditorConfigLoader
 import org.ec4j.core.Resource.Resources
@@ -39,8 +39,10 @@ import kotlin.reflect.jvm.jvmName
  */
 public class KtormProcessorProvider : SymbolProcessorProvider {
     private val ktLintRuleEngine = KtLintRuleEngine(
-        // ruleProviders = ServiceLoader.load(RuleSetProviderV2::class.java).flatMap { it.getRuleProviders() }.toSet(),
-        ruleProviders = StandardRuleSetProvider().getRuleProviders(),
+        ruleProviders = ServiceLoader
+            .load(RuleSetProviderV2::class.java, javaClass.classLoader)
+            .flatMap { it.getRuleProviders() }
+            .toSet(),
         editorConfigDefaults = EditorConfigDefaults(
             EditorConfigLoader.default_().load(
                 Resources.ofClassPath(javaClass.classLoader, "/ktorm-ksp-compiler/.editorconfig", Charsets.UTF_8)
