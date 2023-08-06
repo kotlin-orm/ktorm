@@ -88,7 +88,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             throw IllegalStateException("$name must extends from org.ktorm.entity.Entity.")
         }
 
-        _logger.info("[ktorm-ksp-compiler] parse table metadata for entity: ${cls.qualifiedName!!.asString()}")
+        _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: ${cls.qualifiedName!!.asString()}")
         val table = cls.getAnnotationsByType(Table::class).first()
         val tableDef = TableMetadata(
             entityClass = cls,

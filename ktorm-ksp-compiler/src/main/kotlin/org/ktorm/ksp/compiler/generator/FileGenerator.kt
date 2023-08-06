@@ -28,7 +28,7 @@ internal object FileGenerator {
     val extCodeGenerators = ServiceLoader.load(ExtCodeGenerator::class.java, javaClass.classLoader).toList()
 
     fun generate(table: TableMetadata, environment: SymbolProcessorEnvironment): FileSpec {
-        val fileName = table.entityClass.packageName.asString().replace('.', '/') + table.tableClassName + ".kt"
+        val fileName = table.entityClass.packageName.asString().replace('.', '/') + "/" + table.tableClassName + ".kt"
         environment.logger.info("[ktorm-ksp-compiler] generate file: $fileName")
 
         val fileSpec = FileSpec.builder(table.entityClass.packageName.asString(), table.tableClassName)
