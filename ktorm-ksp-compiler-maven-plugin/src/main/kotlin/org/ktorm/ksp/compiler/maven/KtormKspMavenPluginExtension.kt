@@ -1,5 +1,6 @@
 package org.ktorm.ksp.compiler.maven
 
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.plugin.MojoExecution
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.project.MavenProject
@@ -26,6 +27,11 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
     }
 
     override fun getPluginOptions(project: MavenProject, execution: MojoExecution): List<PluginOption> {
-        throw MojoExecutionException("test ktorm ksp")
+        val request = ArtifactResolutionRequest()
+        request.artifact = repositorySystem.createArtifactWithClassifier("com.pinterest", "ktlint", "0.50.0", "jar", "all")
+        request.remoteRepositories = project.remoteArtifactRepositories
+
+        val resolved = repositorySystem.resolve(request)
+        throw MojoExecutionException("test ktorm ksp: ${resolved.artifacts.map { it.file }}")
     }
 }

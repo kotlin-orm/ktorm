@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-set>
+    <components>
+        <component>
+            <role>org.jetbrains.kotlin.maven.KotlinMavenPluginExtension</role>
+            <role-hint>ksp</role-hint>
+            <implementation>org.ktorm.ksp.compiler.maven.KtormKspMavenPluginExtension</implementation>
+            <isolated-realm>false</isolated-realm>
+            <requirements>
+                <requirement>
+                    <role>org.apache.maven.repository.RepositorySystem</role>
+                    <field-name>repositorySystem</field-name>
+                </requirement>
+            </requirements>
+        </component>
+    </components>
+</component-set>
