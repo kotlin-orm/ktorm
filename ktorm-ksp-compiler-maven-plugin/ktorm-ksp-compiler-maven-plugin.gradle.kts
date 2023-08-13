@@ -8,5 +8,5 @@ plugins {
 dependencies {
     compileOnly(kotlin("maven-plugin"))
     compileOnly("org.apache.maven:maven-core:3.9.3")
-    implementation("com.google.devtools.ksp:symbol-processing:1.7.22-1.0.8")
+    implementation("com.google.devtools.ksp:symbol-processing-cmdline:1.7.22-1.0.8")
 }
