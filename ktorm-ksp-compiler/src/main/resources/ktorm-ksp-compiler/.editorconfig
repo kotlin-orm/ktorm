@@ -1,6 +1,6 @@
 # ktlint config used to format the generated code.
 [*.{kt,kts}]
-ktlint_code_style = official
+ktlint_code_style = ktlint_official
 indent_size = 4
 indent_style = space
 max_line_length = 120

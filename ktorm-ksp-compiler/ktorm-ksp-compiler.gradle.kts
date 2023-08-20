@@ -22,5 +22,5 @@ dependencies {
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.5.0")
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing-ksp:1.5.0")
     testImplementation("com.h2database:h2:1.4.198")
-    testImplementation("org.slf4j:slf4j-simple:1.7.25")
+    testImplementation("org.slf4j:slf4j-simple:2.0.3")
 }
