@@ -24,6 +24,11 @@ detekt {
     config.from("${project.rootDir}/detekt.yml")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 tasks {
     compileKotlin {
         kotlinOptions {
@@ -36,7 +41,6 @@ tasks {
     compileTestKotlin {
         kotlinOptions {
             jvmTarget = "1.8"
-            freeCompilerArgs = listOf("-Xjvm-default=all")
         }
     }
 
