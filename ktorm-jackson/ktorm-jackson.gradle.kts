@@ -13,7 +13,7 @@ dependencies {
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
 }
 
-val generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
+val generatedSourceDir = "${project.layout.buildDirectory.asFile.get()}/generated/source/main/kotlin"
 
 val generatePackageVersion by tasks.registering(Copy::class) {
     from("src/main/kotlin/org/ktorm/jackson/PackageVersion.kt.tmpl")

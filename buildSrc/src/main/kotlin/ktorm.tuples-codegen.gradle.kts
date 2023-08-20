@@ -3,7 +3,7 @@ plugins {
     id("kotlin")
 }
 
-val generatedSourceDir = "${project.buildDir.absolutePath}/generated/source/main/kotlin"
+val generatedSourceDir = "${project.layout.buildDirectory.asFile.get()}/generated/source/main/kotlin"
 val maxTupleNumber = 9
 
 fun generateTuple(writer: java.io.Writer, tupleNumber: Int) {

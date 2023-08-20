@@ -20,8 +20,8 @@ dependencies {
 }
 
 detekt {
-    source = files("src/main/kotlin")
-    config = files("${project.rootDir}/detekt.yml")
+    source.from("src/main/kotlin")
+    config.from("${project.rootDir}/detekt.yml")
 }
 
 tasks {

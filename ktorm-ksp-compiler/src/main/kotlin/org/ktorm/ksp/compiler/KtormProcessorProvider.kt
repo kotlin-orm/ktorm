@@ -20,9 +20,10 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
-import com.pinterest.ktlint.core.KtLintRuleEngine
-import com.pinterest.ktlint.core.RuleSetProviderV2
-import com.pinterest.ktlint.core.api.EditorConfigDefaults
+import com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3
+import com.pinterest.ktlint.rule.engine.api.Code
+import com.pinterest.ktlint.rule.engine.api.EditorConfigDefaults
+import com.pinterest.ktlint.rule.engine.api.KtLintRuleEngine
 import com.squareup.kotlinpoet.FileSpec
 import org.ec4j.core.EditorConfigLoader
 import org.ec4j.core.Resource.Resources
@@ -40,7 +41,7 @@ import kotlin.reflect.jvm.jvmName
 public class KtormProcessorProvider : SymbolProcessorProvider {
     private val ktLintRuleEngine = KtLintRuleEngine(
         ruleProviders = ServiceLoader
-            .load(RuleSetProviderV2::class.java, javaClass.classLoader)
+            .load(RuleSetProviderV3::class.java, javaClass.classLoader)
             .flatMap { it.getRuleProviders() }
             .toSet(),
         editorConfigDefaults = EditorConfigDefaults(
@@ -101,7 +102,7 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
                 .replace(Regex("""\s+=\s+"""), " = ")
                 .replace("import org.ktorm.ksp.`annotation`", "import org.ktorm.ksp.annotation")
 
-            return ktLintRuleEngine.format(code)
+            return ktLintRuleEngine.format(Code.fromSnippet(code))
         } catch (e: Exception) {
             logger.exception(e)
             return fileSpec.toString()
