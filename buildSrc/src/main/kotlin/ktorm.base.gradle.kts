@@ -20,8 +20,8 @@ dependencies {
 }
 
 detekt {
-    source.from("src/main/kotlin")
-    config.from("${project.rootDir}/detekt.yml")
+    source.setFrom("src/main/kotlin")
+    config.setFrom("${project.rootDir}/detekt.yml")
 }
 
 java {
