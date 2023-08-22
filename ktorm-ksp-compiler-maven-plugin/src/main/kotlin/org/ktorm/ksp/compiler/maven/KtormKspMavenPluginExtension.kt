@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.maven.PluginOption
 import java.io.File
 
 /**
- * Extension that enables KSP for the kotlin maven plugin
+ * Extension that enables KSP for the kotlin maven plugin.
  */
 @Component(role = KotlinMavenPluginExtension::class, hint = "ksp")
 public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
@@ -48,6 +48,7 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
         return options.map { (option, value) -> PluginOption("ksp", compilerPluginId, option.optionName, value) }
     }
 
+    @Suppress("UnusedPrivateMember")
     private fun parseUserOptions(execution: MojoExecution): Map<KspCliOption, List<String>> {
         val pluginOptions = execution.configuration.getChild("pluginOptions") ?: return emptyMap()
         val availableOptions = KspCliOption.values().associateBy { it.optionName }
