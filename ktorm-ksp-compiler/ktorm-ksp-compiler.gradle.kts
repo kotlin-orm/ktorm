@@ -24,3 +24,9 @@ dependencies {
     testImplementation("com.h2database:h2:1.4.198")
     testImplementation("org.slf4j:slf4j-simple:2.0.3")
 }
+
+if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
+    tasks.test {
+        jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+    }
+}
