@@ -41,7 +41,7 @@ abstract class BaseKspTest {
 
     protected fun kspFailing(message: String, @Language("kotlin") code: String, vararg options: Pair<String, String>) {
         val result = compile(code, mapOf(*options))
-        assert(result.exitCode == KotlinCompilation.ExitCode.OK)
+        assert(result.exitCode == KotlinCompilation.ExitCode.COMPILATION_ERROR)
         assert(result.messages.contains("e: Error occurred in KSP, check log for detail"))
         assert(result.messages.contains(message))
     }
