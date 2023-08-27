@@ -20,36 +20,19 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
-import com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3
-import com.pinterest.ktlint.rule.engine.api.Code
-import com.pinterest.ktlint.rule.engine.api.EditorConfigDefaults
-import com.pinterest.ktlint.rule.engine.api.KtLintRuleEngine
-import com.squareup.kotlinpoet.FileSpec
-import org.ec4j.core.EditorConfigLoader
-import org.ec4j.core.Resource.Resources
 import org.ktorm.ksp.annotation.Table
+import org.ktorm.ksp.compiler.formatter.CodeFormatter
+import org.ktorm.ksp.compiler.formatter.KtLintCodeFormatter
 import org.ktorm.ksp.compiler.generator.FileGenerator
 import org.ktorm.ksp.compiler.parser.MetadataParser
 import org.ktorm.ksp.compiler.util.isValid
 import org.ktorm.ksp.spi.TableMetadata
-import java.util.*
 import kotlin.reflect.jvm.jvmName
 
 /**
  * Ktorm KSP symbol processor provider.
  */
 public class KtormProcessorProvider : SymbolProcessorProvider {
-    private val ktLintRuleEngine = KtLintRuleEngine(
-        ruleProviders = ServiceLoader
-            .load(RuleSetProviderV3::class.java, javaClass.classLoader)
-            .flatMap { it.getRuleProviders() }
-            .toSet(),
-        editorConfigDefaults = EditorConfigDefaults(
-            EditorConfigLoader.default_().load(
-                Resources.ofClassPath(javaClass.classLoader, "/ktorm-ksp-compiler/.editorconfig", Charsets.UTF_8)
-            )
-        )
-    )
 
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
         for (generator in FileGenerator.extCodeGenerators) {
@@ -81,8 +64,8 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
         // Generate file spec by kotlinpoet.
         val fileSpec = FileGenerator.generate(table, environment)
 
-        // Beautify the generated code by ktlint.
-        val formattedCode = formatCode(fileSpec, environment.logger)
+        // Beautify the generated code.
+        val formattedCode = getCodeFormatter(environment).format(fileSpec.toString())
 
         // Output the formatted code.
         val dependencies = Dependencies(false, *table.getDependencyFiles().toTypedArray())
@@ -90,23 +73,14 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
         file.writer(Charsets.UTF_8).use { it.write(formattedCode) }
     }
 
-    private fun formatCode(fileSpec: FileSpec, logger: KSPLogger): String {
+    private fun getCodeFormatter(environment: SymbolProcessorEnvironment): CodeFormatter {
         try {
-            // Manually fix some code styles before formatting.
-            val code = fileSpec.toString()
-                .replace(Regex("""\(\s*"""), "(")
-                .replace(Regex("""\s*\)"""), ")")
-                .replace(Regex(""",\s*"""), ", ")
-                .replace(Regex(""",\s*\)"""), ")")
-                .replace(Regex("""\s+get\(\)\s="""), " get() =")
-                .replace(Regex("""\s+=\s+"""), " = ")
-                .replace("import org.ktorm.ksp.`annotation`", "import org.ktorm.ksp.annotation")
-
-            return ktLintRuleEngine.format(Code.fromSnippet(code))
-        } catch (e: Exception) {
-            logger.exception(e)
-            return fileSpec.toString()
+            return KtLintCodeFormatter(environment)
+        } catch (_: ClassNotFoundException) {
+        } catch (_: NoClassDefFoundError) {
         }
+
+        return CodeFormatter { code -> code }
     }
 
     private fun TableMetadata.getDependencyFiles(): List<KSFile> {
