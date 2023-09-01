@@ -44,20 +44,30 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
     }
 
     override fun getPluginOptions(project: MavenProject, execution: MojoExecution): List<PluginOption> {
-        val options = buildDefaultOptions(project, execution)
+        val userOptions = parseUserOptions(execution)
+        val options = buildDefaultOptions(project, execution).filterKeys { it !in userOptions }
+
+        for (key in listOf(KspCliOption.JAVA_OUTPUT_DIR_OPTION, KspCliOption.KOTLIN_OUTPUT_DIR_OPTION)) {
+            if (execution.mojoDescriptor.goal == "compile") {
+                project.addCompileSourceRoot(options[key] ?: userOptions[key]!![0])
+            }
+            if (execution.mojoDescriptor.goal == "test-compile") {
+                project.addTestCompileSourceRoot(options[key] ?: userOptions[key]!![0])
+            }
+        }
+
         return options.map { (option, value) -> PluginOption("ksp", compilerPluginId, option.optionName, value) }
     }
 
-    @Suppress("UnusedPrivateMember")
     private fun parseUserOptions(execution: MojoExecution): Map<KspCliOption, List<String>> {
         val pluginOptions = execution.configuration.getChild("pluginOptions") ?: return emptyMap()
-        val availableOptions = KspCliOption.values().associateBy { it.optionName }
+        val availableOptions = KspCliOption.entries.associateBy { it.optionName }
         val pattern = Regex("([^:]+):([^=]+)=(.*)")
 
         return pluginOptions.children
             .mapNotNull { pattern.matchEntire(it.value) }
             .map { it.destructured }
-            .filter { (plugin, key, _) -> plugin == "ksp" && key in availableOptions }
+            .filter { (plugin, key, value) -> plugin == "ksp" && key in availableOptions && value.isNotBlank() }
             .groupBy({ (_, key, _) -> availableOptions[key]!! }, { (_, _, value) -> value })
     }
 

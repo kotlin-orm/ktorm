@@ -103,7 +103,7 @@ public enum class TransactionIsolation(public val level: Int) {
          * Find an enum value by the specific isolation level.
          */
         public fun valueOf(level: Int): TransactionIsolation {
-            return values().first { it.level == level }
+            return entries.first { it.level == level }
         }
     }
 }
