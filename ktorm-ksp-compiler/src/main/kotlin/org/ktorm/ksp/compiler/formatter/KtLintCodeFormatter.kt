@@ -33,7 +33,7 @@ internal class KtLintCodeFormatter(val environment: SymbolProcessorEnvironment) 
             .toSet(),
         editorConfigDefaults = EditorConfigDefaults(
             EditorConfigLoader.default_().load(
-                Resources.ofClassPath(javaClass.classLoader, "ktorm-ksp-compiler/.editorconfig", Charsets.UTF_8)
+                Resources.ofClassPath(javaClass.classLoader, "/ktorm-ksp-compiler/.editorconfig", Charsets.UTF_8)
             )
         )
     )
