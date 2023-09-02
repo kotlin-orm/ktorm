@@ -49,18 +49,26 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
 
     override fun getPluginOptions(project: MavenProject, execution: MojoExecution): List<PluginOption> {
         val userOptions = parseUserOptions(execution)
-        val options = buildPluginOptions(project, execution, userOptions)
 
-        for (key in listOf(KspCliOption.JAVA_OUTPUT_DIR_OPTION, KspCliOption.KOTLIN_OUTPUT_DIR_OPTION)) {
-            if (execution.mojoDescriptor.goal == "compile") {
+        if (execution.mojoDescriptor.goal == "compile") {
+            val options = buildPluginOptions(project, execution, userOptions)
+            for (key in listOf(KspCliOption.JAVA_OUTPUT_DIR_OPTION, KspCliOption.KOTLIN_OUTPUT_DIR_OPTION)) {
                 project.addCompileSourceRoot(options[key] ?: userOptions[key]!![0])
             }
-            if (execution.mojoDescriptor.goal == "test-compile") {
-                project.addTestCompileSourceRoot(options[key] ?: userOptions[key]!![0])
-            }
+
+            return options.map { (option, value) -> PluginOption("ksp", compilerPluginId, option.optionName, value) }
         }
 
-        return options.map { (option, value) -> PluginOption("ksp", compilerPluginId, option.optionName, value) }
+        if (execution.mojoDescriptor.goal == "test-compile") {
+            val options = buildTestPluginOptions(project, execution, userOptions)
+            for (key in listOf(KspCliOption.JAVA_OUTPUT_DIR_OPTION, KspCliOption.KOTLIN_OUTPUT_DIR_OPTION)) {
+                project.addTestCompileSourceRoot(options[key] ?: userOptions[key]!![0])
+            }
+
+            return options.map { (option, value) -> PluginOption("ksp", compilerPluginId, option.optionName, value) }
+        }
+
+        return emptyList()
     }
 
     private fun parseUserOptions(execution: MojoExecution): Map<KspCliOption, List<String>> {
@@ -82,74 +90,80 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
         val buildDir = project.build.directory
         val options = LinkedHashMap<KspCliOption, String>()
 
-        if (execution.mojoDescriptor.goal == "compile") {
-            if (KspCliOption.CLASS_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.CLASS_OUTPUT_DIR_OPTION] = project.build.outputDirectory
-            }
-            if (KspCliOption.JAVA_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.JAVA_OUTPUT_DIR_OPTION] = path(buildDir, "generated-sources", "ksp-java")
-            }
-            if (KspCliOption.KOTLIN_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.KOTLIN_OUTPUT_DIR_OPTION] = path(buildDir, "generated-sources", "ksp")
-            }
-            if (KspCliOption.RESOURCE_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.RESOURCE_OUTPUT_DIR_OPTION] = project.build.outputDirectory
-            }
-            if (KspCliOption.CACHES_DIR_OPTION !in userOptions) {
-                options[KspCliOption.CACHES_DIR_OPTION] = path(buildDir, "ksp-caches")
-            }
-            if (KspCliOption.PROJECT_BASE_DIR_OPTION !in userOptions) {
-                options[KspCliOption.PROJECT_BASE_DIR_OPTION] = baseDir
-            }
-            if (KspCliOption.KSP_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.KSP_OUTPUT_DIR_OPTION] = path(buildDir, "ksp")
-            }
-            if (KspCliOption.PROCESSOR_CLASSPATH_OPTION !in userOptions) {
-                options[KspCliOption.PROCESSOR_CLASSPATH_OPTION] = processorClasspath(project, execution)
-            }
-            if (KspCliOption.WITH_COMPILATION_OPTION !in userOptions) {
-                options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
-            }
-
-            val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
-            if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
-                options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
-            }
+        if (KspCliOption.CLASS_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.CLASS_OUTPUT_DIR_OPTION] = project.build.outputDirectory
+        }
+        if (KspCliOption.JAVA_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.JAVA_OUTPUT_DIR_OPTION] = path(buildDir, "generated-sources", "ksp-java")
+        }
+        if (KspCliOption.KOTLIN_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.KOTLIN_OUTPUT_DIR_OPTION] = path(buildDir, "generated-sources", "ksp")
+        }
+        if (KspCliOption.RESOURCE_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.RESOURCE_OUTPUT_DIR_OPTION] = project.build.outputDirectory
+        }
+        if (KspCliOption.CACHES_DIR_OPTION !in userOptions) {
+            options[KspCliOption.CACHES_DIR_OPTION] = path(buildDir, "ksp-caches")
+        }
+        if (KspCliOption.PROJECT_BASE_DIR_OPTION !in userOptions) {
+            options[KspCliOption.PROJECT_BASE_DIR_OPTION] = baseDir
+        }
+        if (KspCliOption.KSP_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.KSP_OUTPUT_DIR_OPTION] = path(buildDir, "ksp")
+        }
+        if (KspCliOption.PROCESSOR_CLASSPATH_OPTION !in userOptions) {
+            options[KspCliOption.PROCESSOR_CLASSPATH_OPTION] = processorClasspath(project, execution)
+        }
+        if (KspCliOption.WITH_COMPILATION_OPTION !in userOptions) {
+            options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
         }
 
-        if (execution.mojoDescriptor.goal == "test-compile") {
-            if (KspCliOption.CLASS_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.CLASS_OUTPUT_DIR_OPTION] = project.build.testOutputDirectory
-            }
-            if (KspCliOption.JAVA_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.JAVA_OUTPUT_DIR_OPTION] = path(buildDir, "generated-test-sources", "ksp-java")
-            }
-            if (KspCliOption.KOTLIN_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.KOTLIN_OUTPUT_DIR_OPTION] = path(buildDir, "generated-test-sources", "ksp")
-            }
-            if (KspCliOption.RESOURCE_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.RESOURCE_OUTPUT_DIR_OPTION] = project.build.testOutputDirectory
-            }
-            if (KspCliOption.CACHES_DIR_OPTION !in userOptions) {
-                options[KspCliOption.CACHES_DIR_OPTION] = path(buildDir, "ksp-caches")
-            }
-            if (KspCliOption.PROJECT_BASE_DIR_OPTION !in userOptions) {
-                options[KspCliOption.PROJECT_BASE_DIR_OPTION] = baseDir
-            }
-            if (KspCliOption.KSP_OUTPUT_DIR_OPTION !in userOptions) {
-                options[KspCliOption.KSP_OUTPUT_DIR_OPTION] = path(buildDir, "ksp-test")
-            }
-            if (KspCliOption.PROCESSOR_CLASSPATH_OPTION !in userOptions) {
-                options[KspCliOption.PROCESSOR_CLASSPATH_OPTION] = processorClasspath(project, execution)
-            }
-            if (KspCliOption.WITH_COMPILATION_OPTION !in userOptions) {
-                options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
-            }
+        val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
+        if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
+            options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
+        }
 
-            val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
-            if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
-                options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
-            }
+        return options
+    }
+
+    private fun buildTestPluginOptions(
+        project: MavenProject, execution: MojoExecution, userOptions: Map<KspCliOption, List<String>>
+    ): Map<KspCliOption, String> {
+        val baseDir = project.basedir.path
+        val buildDir = project.build.directory
+        val options = LinkedHashMap<KspCliOption, String>()
+
+        if (KspCliOption.CLASS_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.CLASS_OUTPUT_DIR_OPTION] = project.build.testOutputDirectory
+        }
+        if (KspCliOption.JAVA_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.JAVA_OUTPUT_DIR_OPTION] = path(buildDir, "generated-test-sources", "ksp-java")
+        }
+        if (KspCliOption.KOTLIN_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.KOTLIN_OUTPUT_DIR_OPTION] = path(buildDir, "generated-test-sources", "ksp")
+        }
+        if (KspCliOption.RESOURCE_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.RESOURCE_OUTPUT_DIR_OPTION] = project.build.testOutputDirectory
+        }
+        if (KspCliOption.CACHES_DIR_OPTION !in userOptions) {
+            options[KspCliOption.CACHES_DIR_OPTION] = path(buildDir, "ksp-caches")
+        }
+        if (KspCliOption.PROJECT_BASE_DIR_OPTION !in userOptions) {
+            options[KspCliOption.PROJECT_BASE_DIR_OPTION] = baseDir
+        }
+        if (KspCliOption.KSP_OUTPUT_DIR_OPTION !in userOptions) {
+            options[KspCliOption.KSP_OUTPUT_DIR_OPTION] = path(buildDir, "ksp-test")
+        }
+        if (KspCliOption.PROCESSOR_CLASSPATH_OPTION !in userOptions) {
+            options[KspCliOption.PROCESSOR_CLASSPATH_OPTION] = processorClasspath(project, execution)
+        }
+        if (KspCliOption.WITH_COMPILATION_OPTION !in userOptions) {
+            options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
+        }
+
+        val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
+        if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
+            options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
         }
 
         return options

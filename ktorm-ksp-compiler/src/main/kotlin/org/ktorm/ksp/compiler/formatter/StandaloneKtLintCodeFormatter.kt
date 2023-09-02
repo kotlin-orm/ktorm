@@ -23,12 +23,12 @@ internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnv
     private val command = buildCommand()
 
     init {
-        environment.logger.info("[ktorm-ksp-compiler] init standalone ktlint code formatter with command: $command")
+        environment.logger.info("[ktorm-ksp-compiler] init ktlint formatter with command: ${command.joinToString(" ")}")
     }
 
     override fun format(code: String): String {
         try {
-            val p = Runtime.getRuntime().exec(command)
+            val p = ProcessBuilder(command).start()
             p.outputStream.bufferedWriter(Charsets.UTF_8).use { it.write(preprocessCode(code)) }
             p.waitFor()
 
@@ -45,20 +45,19 @@ internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnv
         }
     }
 
-    private fun buildCommand(): String {
-        val isJava8 =
-            try { Class.forName("java.lang.reflect.InaccessibleObjectException"); false }
-            catch (_: ClassNotFoundException) { true }
+    private fun buildCommand(): List<String> {
+        val n = "java.lang.reflect.InaccessibleObjectException"
+        val isJava8 = try { Class.forName(n); false } catch (_: ClassNotFoundException) { true }
 
         val java = findJavaExecutable()
         val ktlint = environment.options["ktorm.ktlintExecutable"]!!
         val config = createEditorConfigFile()
 
         if (isJava8) {
-            return "$java -jar $ktlint --format --stdin --log-level=none --editorconfig=$config"
+            return listOf(java, "-jar", ktlint, "-F", "--stdin", "--log-level=none", "--editorconfig=$config")
         } else {
-            val jvmArgs = "--add-opens java.base/java.lang=ALL-UNNAMED"
-            return "$java $jvmArgs -jar $ktlint --format --stdin --log-level=none --editorconfig=$config"
+            val jvmArgs = arrayOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+            return listOf(java, *jvmArgs, "-jar", ktlint, "-F", "--stdin", "--log-level=none", "--editorconfig=$config")
         }
     }
 
