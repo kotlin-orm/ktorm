@@ -11,6 +11,10 @@
                     <role>org.apache.maven.repository.RepositorySystem</role>
                     <field-name>repositorySystem</field-name>
                 </requirement>
+                <requirement>
+                    <role>org.apache.maven.execution.MavenSession</role>
+                    <field-name>mavenSession</field-name>
+                </requirement>
             </requirements>
         </component>
     </components>

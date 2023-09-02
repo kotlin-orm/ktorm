@@ -18,7 +18,9 @@ package org.ktorm.ksp.compiler.maven
 
 import com.google.devtools.ksp.KspCliOption
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
+import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.MojoExecution
+import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.project.MavenProject
 import org.apache.maven.repository.RepositorySystem
 import org.codehaus.plexus.component.annotations.Component
@@ -34,6 +36,8 @@ import java.io.File
 public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
     @Requirement
     private lateinit var repositorySystem: RepositorySystem
+    @Requirement
+    private lateinit var mavenSession: MavenSession
 
     override fun getCompilerPluginId(): String {
         return "com.google.devtools.ksp.symbol-processing"
@@ -45,7 +49,7 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
 
     override fun getPluginOptions(project: MavenProject, execution: MojoExecution): List<PluginOption> {
         val userOptions = parseUserOptions(execution)
-        val options = buildDefaultOptions(project, execution).filterKeys { it !in userOptions }
+        val options = buildPluginOptions(project, execution, userOptions)
 
         for (key in listOf(KspCliOption.JAVA_OUTPUT_DIR_OPTION, KspCliOption.KOTLIN_OUTPUT_DIR_OPTION)) {
             if (execution.mojoDescriptor.goal == "compile") {
@@ -71,59 +75,120 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
             .groupBy({ (_, key, _) -> availableOptions[key]!! }, { (_, _, value) -> value })
     }
 
-    private fun buildDefaultOptions(project: MavenProject, execution: MojoExecution): Map<KspCliOption, String> {
+    private fun buildPluginOptions(
+        project: MavenProject, execution: MojoExecution, userOptions: Map<KspCliOption, List<String>>
+    ): Map<KspCliOption, String> {
         val baseDir = project.basedir.path
         val buildDir = project.build.directory
+        val options = LinkedHashMap<KspCliOption, String>()
 
         if (execution.mojoDescriptor.goal == "compile") {
-            return mapOf(
-                KspCliOption.CLASS_OUTPUT_DIR_OPTION to project.build.outputDirectory,
-                KspCliOption.JAVA_OUTPUT_DIR_OPTION to path(buildDir, "generated-sources", "ksp-java"),
-                KspCliOption.KOTLIN_OUTPUT_DIR_OPTION to path(buildDir, "generated-sources", "ksp"),
-                KspCliOption.RESOURCE_OUTPUT_DIR_OPTION to project.build.outputDirectory,
-                KspCliOption.CACHES_DIR_OPTION to path(buildDir, "kspCaches"),
-                KspCliOption.PROJECT_BASE_DIR_OPTION to baseDir,
-                KspCliOption.KSP_OUTPUT_DIR_OPTION to path(buildDir, "ksp"),
-                KspCliOption.PROCESSOR_CLASSPATH_OPTION to buildProcessorClasspath(project, execution),
-                KspCliOption.WITH_COMPILATION_OPTION to "true"
-            )
+            if (KspCliOption.CLASS_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.CLASS_OUTPUT_DIR_OPTION] = project.build.outputDirectory
+            }
+            if (KspCliOption.JAVA_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.JAVA_OUTPUT_DIR_OPTION] = path(buildDir, "generated-sources", "ksp-java")
+            }
+            if (KspCliOption.KOTLIN_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.KOTLIN_OUTPUT_DIR_OPTION] = path(buildDir, "generated-sources", "ksp")
+            }
+            if (KspCliOption.RESOURCE_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.RESOURCE_OUTPUT_DIR_OPTION] = project.build.outputDirectory
+            }
+            if (KspCliOption.CACHES_DIR_OPTION !in userOptions) {
+                options[KspCliOption.CACHES_DIR_OPTION] = path(buildDir, "ksp-caches")
+            }
+            if (KspCliOption.PROJECT_BASE_DIR_OPTION !in userOptions) {
+                options[KspCliOption.PROJECT_BASE_DIR_OPTION] = baseDir
+            }
+            if (KspCliOption.KSP_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.KSP_OUTPUT_DIR_OPTION] = path(buildDir, "ksp")
+            }
+            if (KspCliOption.PROCESSOR_CLASSPATH_OPTION !in userOptions) {
+                options[KspCliOption.PROCESSOR_CLASSPATH_OPTION] = processorClasspath(project, execution)
+            }
+            if (KspCliOption.WITH_COMPILATION_OPTION !in userOptions) {
+                options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
+            }
+
+            val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
+            if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
+                options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
+            }
         }
 
         if (execution.mojoDescriptor.goal == "test-compile") {
-            return mapOf(
-                KspCliOption.CLASS_OUTPUT_DIR_OPTION to project.build.testOutputDirectory,
-                KspCliOption.JAVA_OUTPUT_DIR_OPTION to path(buildDir, "generated-test-sources", "ksp-java"),
-                KspCliOption.KOTLIN_OUTPUT_DIR_OPTION to path(buildDir, "generated-test-sources", "ksp"),
-                KspCliOption.RESOURCE_OUTPUT_DIR_OPTION to project.build.testOutputDirectory,
-                KspCliOption.CACHES_DIR_OPTION to path(buildDir, "kspCaches"),
-                KspCliOption.PROJECT_BASE_DIR_OPTION to baseDir,
-                KspCliOption.KSP_OUTPUT_DIR_OPTION to path(buildDir, "ksp-test"),
-                KspCliOption.PROCESSOR_CLASSPATH_OPTION to buildProcessorClasspath(project, execution),
-                KspCliOption.WITH_COMPILATION_OPTION to "true"
-            )
+            if (KspCliOption.CLASS_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.CLASS_OUTPUT_DIR_OPTION] = project.build.testOutputDirectory
+            }
+            if (KspCliOption.JAVA_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.JAVA_OUTPUT_DIR_OPTION] = path(buildDir, "generated-test-sources", "ksp-java")
+            }
+            if (KspCliOption.KOTLIN_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.KOTLIN_OUTPUT_DIR_OPTION] = path(buildDir, "generated-test-sources", "ksp")
+            }
+            if (KspCliOption.RESOURCE_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.RESOURCE_OUTPUT_DIR_OPTION] = project.build.testOutputDirectory
+            }
+            if (KspCliOption.CACHES_DIR_OPTION !in userOptions) {
+                options[KspCliOption.CACHES_DIR_OPTION] = path(buildDir, "ksp-caches")
+            }
+            if (KspCliOption.PROJECT_BASE_DIR_OPTION !in userOptions) {
+                options[KspCliOption.PROJECT_BASE_DIR_OPTION] = baseDir
+            }
+            if (KspCliOption.KSP_OUTPUT_DIR_OPTION !in userOptions) {
+                options[KspCliOption.KSP_OUTPUT_DIR_OPTION] = path(buildDir, "ksp-test")
+            }
+            if (KspCliOption.PROCESSOR_CLASSPATH_OPTION !in userOptions) {
+                options[KspCliOption.PROCESSOR_CLASSPATH_OPTION] = processorClasspath(project, execution)
+            }
+            if (KspCliOption.WITH_COMPILATION_OPTION !in userOptions) {
+                options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
+            }
+
+            val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
+            if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
+                options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
+            }
         }
 
-        return emptyMap()
+        return options
+    }
+
+    private fun processorClasspath(project: MavenProject, execution: MojoExecution): String {
+        val files = ArrayList<File>()
+        for (dependency in execution.plugin.dependencies) {
+            val r = ArtifactResolutionRequest()
+            r.artifact = repositorySystem.createDependencyArtifact(dependency)
+            r.localRepository = mavenSession.localRepository
+            r.remoteRepositories = project.pluginArtifactRepositories
+            r.isResolveTransitively = true
+
+            val resolved = repositorySystem.resolve(r)
+            files += resolved.artifacts.mapNotNull { it.file }.filter { it.exists() }
+        }
+
+        return files.joinToString(File.pathSeparator) { it.path }
+    }
+
+    private fun ktlintExecutable(project: MavenProject): String {
+        val r = ArtifactResolutionRequest()
+        r.artifact = repositorySystem.createArtifactWithClassifier("com.pinterest", "ktlint", "0.50.0", "jar", "all")
+        r.localRepository = mavenSession.localRepository
+        r.remoteRepositories = project.pluginArtifactRepositories
+        r.isResolveTransitively = false
+
+        val resolved = repositorySystem.resolve(r)
+        val file = resolved.artifacts.mapNotNull { it.file }.firstOrNull { it.exists() }
+        if (file != null) {
+            return file.path
+        } else {
+            throw MojoExecutionException("Resolve ktlint executable jar failed.")
+        }
     }
 
     private fun path(parent: String, vararg children: String): String {
         val file = children.fold(File(parent)) { acc, child -> File(acc, child) }
         return file.path
-    }
-
-    private fun buildProcessorClasspath(project: MavenProject, execution: MojoExecution): String {
-        val files = ArrayList<File>()
-        for (dependency in execution.plugin.dependencies) {
-            val request = ArtifactResolutionRequest()
-            request.artifact = repositorySystem.createDependencyArtifact(dependency)
-            request.localRepository = repositorySystem.createDefaultLocalRepository()
-            request.remoteRepositories = project.pluginArtifactRepositories
-            request.isResolveTransitively = true
-
-            val resolved = repositorySystem.resolve(request)
-            files += resolved.artifacts.mapNotNull { it.file }.filter { it.exists() }
-        }
-
-        return files.joinToString(File.pathSeparator) { it.path }
     }
 }
