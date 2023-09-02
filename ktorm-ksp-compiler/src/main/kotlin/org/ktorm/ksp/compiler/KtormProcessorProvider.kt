@@ -23,6 +23,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import org.ktorm.ksp.annotation.Table
 import org.ktorm.ksp.compiler.formatter.CodeFormatter
 import org.ktorm.ksp.compiler.formatter.KtLintCodeFormatter
+import org.ktorm.ksp.compiler.formatter.StandaloneKtLintCodeFormatter
 import org.ktorm.ksp.compiler.generator.FileGenerator
 import org.ktorm.ksp.compiler.parser.MetadataParser
 import org.ktorm.ksp.compiler.util.isValid
@@ -48,32 +49,39 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
 
     private fun doProcess(resolver: Resolver, environment: SymbolProcessorEnvironment): List<KSAnnotated> {
         val (symbols, deferral) = resolver.getSymbolsWithAnnotation(Table::class.jvmName).partition { it.isValid() }
+        if (symbols.isNotEmpty()) {
+            val parser = MetadataParser(resolver, environment)
+            val formatter = getCodeFormatter(environment)
 
-        val parser = MetadataParser(resolver, environment)
-        for (symbol in symbols) {
-            if (symbol is KSClassDeclaration) {
+            for (symbol in symbols) {
+                if (symbol !is KSClassDeclaration) {
+                    continue
+                }
+
+                // Parse table metadata from the symbol.
                 val table = parser.parseTableMetadata(symbol)
-                generateFile(table, environment)
+
+                // Generate file spec by kotlinpoet.
+                val fileSpec = FileGenerator.generate(table, environment)
+
+                // Beautify the generated code.
+                val formattedCode = formatter.format(fileSpec.toString())
+
+                // Output the formatted code.
+                val dependencies = Dependencies(false, *table.getDependencyFiles().toTypedArray())
+                val file = environment.codeGenerator.createNewFile(dependencies, fileSpec.packageName, fileSpec.name)
+                file.bufferedWriter(Charsets.UTF_8).use { it.write(formattedCode) }
             }
         }
 
         return deferral
     }
 
-    private fun generateFile(table: TableMetadata, environment: SymbolProcessorEnvironment) {
-        // Generate file spec by kotlinpoet.
-        val fileSpec = FileGenerator.generate(table, environment)
-
-        // Beautify the generated code.
-        val formattedCode = getCodeFormatter(environment).format(fileSpec.toString())
-
-        // Output the formatted code.
-        val dependencies = Dependencies(false, *table.getDependencyFiles().toTypedArray())
-        val file = environment.codeGenerator.createNewFile(dependencies, fileSpec.packageName, fileSpec.name)
-        file.writer(Charsets.UTF_8).use { it.write(formattedCode) }
-    }
-
     private fun getCodeFormatter(environment: SymbolProcessorEnvironment): CodeFormatter {
+        if (!environment.options["ktorm.ktlintExecutable"].isNullOrBlank()) {
+            return StandaloneKtLintCodeFormatter(environment)
+        }
+
         try {
             return KtLintCodeFormatter(environment)
         } catch (_: ClassNotFoundException) {
