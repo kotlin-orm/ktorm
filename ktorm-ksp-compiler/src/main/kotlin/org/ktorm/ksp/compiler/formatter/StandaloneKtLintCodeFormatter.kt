@@ -32,12 +32,20 @@ internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnv
             p.outputStream.bufferedWriter(Charsets.UTF_8).use { it.write(preprocessCode(code)) }
             p.waitFor()
 
+            val formattedCode = p.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
             if (p.exitValue() == 0) {
-                return p.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                // Exit normally.
+                return formattedCode
             } else {
-                val msg = p.errorStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-                environment.logger.error("[ktorm-ksp-compiler] ktlint exit with code: ${p.exitValue()}\n$msg")
-                return code
+                if (formattedCode.isNotBlank()) {
+                    // Some violations exist but the code is still formatted.
+                    return formattedCode
+                } else {
+                    // Exit exceptionally.
+                    val msg = p.errorStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    environment.logger.error("[ktorm-ksp-compiler] ktlint exit with code: ${p.exitValue()}\n$msg")
+                    return code
+                }
             }
         } catch (e: Throwable) {
             environment.logger.exception(e)
