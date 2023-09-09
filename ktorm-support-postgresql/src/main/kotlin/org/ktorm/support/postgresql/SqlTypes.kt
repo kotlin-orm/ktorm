@@ -25,6 +25,34 @@ import java.sql.ResultSet
 import java.sql.Types
 
 /**
+ * Define a column typed [LongArraySqlType].
+ */
+public fun BaseTable<*>.longArray(name: String): Column<LongArray> {
+    return registerColumn(name, LongArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `bigint[]` type.
+ */
+public object LongArraySqlType : SqlType<LongArray>(Types.ARRAY, "bigint[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: LongArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): LongArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Long }?.toLongArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
  * Represent values of PostgreSQL `text[]` SQL type.
  */
 public typealias TextArray = Array<String?>
