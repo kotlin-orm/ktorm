@@ -20,7 +20,53 @@ import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.FunctionExpression
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.IntSqlType
+import org.ktorm.schema.ShortSqlType
 import org.ktorm.schema.VarcharSqlType
+
+/**
+ * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
+ * If the third argument is given, the search begins at that subscript. The array must be one-dimensional.
+ *
+ * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
+ */
+public fun arrayPosition(
+    array: ColumnDeclaring<ShortArray>, value: ColumnDeclaring<Short>, offset: Int? = null
+): FunctionExpression<Int> {
+    // array_position(array, value[, offset])
+    return FunctionExpression(
+        functionName = "array_position",
+        arguments = listOfNotNull(
+            array.asExpression(),
+            value.asExpression(),
+            offset?.let { ArgumentExpression(it, IntSqlType) }
+        ),
+        sqlType = IntSqlType
+    )
+}
+
+/**
+ * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
+ * If the third argument is given, the search begins at that subscript. The array must be one-dimensional.
+ *
+ * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
+ */
+public fun arrayPosition(
+    array: ColumnDeclaring<ShortArray>, value: Short, offset: Int? = null
+): FunctionExpression<Int> {
+    return arrayPosition(array, ArgumentExpression(value, ShortSqlType), offset)
+}
+
+/**
+ * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
+ * If the third argument is given, the search begins at that subscript. The array must be one-dimensional.
+ *
+ * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
+ */
+public fun arrayPosition(
+    array: ShortArray, value: ColumnDeclaring<Short>, offset: Int? = null
+): FunctionExpression<Int> {
+    return arrayPosition(ArgumentExpression(array, ShortArraySqlType), value, offset)
+}
 
 /**
  * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
