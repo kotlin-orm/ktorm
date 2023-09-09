@@ -109,6 +109,34 @@ public object LongArraySqlType : SqlType<LongArray>(Types.ARRAY, "bigint[]") {
 }
 
 /**
+ * Define a column typed [DoubleArraySqlType].
+ */
+public fun BaseTable<*>.doubleArray(name: String): Column<DoubleArray> {
+    return registerColumn(name, DoubleArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `double[]` type.
+ */
+public object DoubleArraySqlType : SqlType<DoubleArray>(Types.ARRAY, "double[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: DoubleArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): DoubleArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Double }?.toDoubleArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
  * Represent values of PostgreSQL `text[]` SQL type.
  */
 public typealias TextArray = Array<String?>
