@@ -26,6 +26,7 @@ import org.ktorm.schema.*
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("shortArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<ShortArray>, value: ColumnDeclaring<Short>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -38,6 +39,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("shortArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<ShortArray>, value: Short, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -50,6 +52,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("shortArrayPosition")
 public fun arrayPosition(
     array: ShortArray, value: ColumnDeclaring<Short>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -62,6 +65,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("intArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<IntArray>, value: ColumnDeclaring<Int>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -74,6 +78,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("intArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<IntArray>, value: Int, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -86,6 +91,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("intArrayPosition")
 public fun arrayPosition(
     array: IntArray, value: ColumnDeclaring<Int>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -98,6 +104,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("longArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<LongArray>, value: ColumnDeclaring<Long>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -110,6 +117,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("longArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<LongArray>, value: Long, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -122,6 +130,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("longArrayPosition")
 public fun arrayPosition(
     array: LongArray, value: ColumnDeclaring<Long>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -134,6 +143,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("booleanArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<BooleanArray>, value: ColumnDeclaring<Boolean>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -146,6 +156,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("booleanArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<BooleanArray>, value: Boolean, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -158,6 +169,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("booleanArrayPosition")
 public fun arrayPosition(
     array: BooleanArray, value: ColumnDeclaring<Boolean>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -170,6 +182,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("textArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<TextArray>, value: ColumnDeclaring<String>, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -182,6 +195,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("textArrayPosition")
 public fun arrayPosition(
     array: ColumnDeclaring<TextArray>, value: String, offset: Int? = null
 ): FunctionExpression<Int> {
@@ -194,6 +208,7 @@ public fun arrayPosition(
  *
  * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
+@JvmName("textArrayPosition")
 public fun arrayPosition(
     array: TextArray, value: ColumnDeclaring<String>, offset: Int? = null
 ): FunctionExpression<Int> {

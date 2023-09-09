@@ -2,47 +2,53 @@ package org.ktorm.support.postgresql
 
 import org.junit.Test
 import org.ktorm.dsl.*
+import org.ktorm.entity.tupleOf
+import org.ktorm.schema.Table
+import org.ktorm.schema.int
 import kotlin.test.assertEquals
 
 class FunctionsTest : BasePostgreSqlTest() {
-    @Test
-    fun testArrayPositionEnumCollection() {
-        database.insert(TableWithEnum) {
-            set(it.current_mood, Mood.SAD)
-        }
-        database.insert(TableWithEnum) {
-            set(it.current_mood, Mood.HAPPY)
-        }
 
-        val moodsSorted = database
-            .from(TableWithEnum)
-            .select()
-            .orderBy(arrayPosition(listOf(Mood.SAD, Mood.HAPPY), TableWithEnum.current_mood).asc())
-            .map { row ->
-                row[TableWithEnum.current_mood]
-            }
-
-        assertEquals(listOf(Mood.SAD, Mood.HAPPY, Mood.HAPPY), moodsSorted)
+    object Arrays : Table<Nothing>("t_array") {
+        val id = int("id").primaryKey()
+        val shorts = shortArray("shorts")
+        val ints = intArray("ints")
+        val longs = longArray("longs")
+        val floats = floatArray("floats")
+        val doubles = doubleArray("doubles")
+        val booleans = booleanArray("booleans")
+        val texts = textArray("texts")
     }
 
     @Test
-    fun testArrayPositionEnumArray() {
-        database.insert(TableWithEnum) {
-            set(it.current_mood, Mood.SAD)
-        }
-        database.insert(TableWithEnum) {
-            set(it.current_mood, Mood.HAPPY)
+    fun testArrayPosition() {
+        database.insert(Arrays) {
+            set(it.shorts, shortArrayOf(1, 2, 3, 4))
+            set(it.ints, intArrayOf(1, 2, 3, 4))
+            set(it.longs, longArrayOf(1, 2, 3, 4))
+            set(it.floats, floatArrayOf(1.0F, 2.0F, 3.0F, 4.0F))
+            set(it.doubles, doubleArrayOf(1.0, 2.0, 3.0, 4.0))
+            set(it.booleans, booleanArrayOf(false, true))
+            set(it.texts, arrayOf("1", "2", "3", "4"))
         }
 
-        val moodsSorted = database
-            .from(TableWithEnum)
-            .select()
-            .orderBy(arrayPosition(arrayOf(Mood.SAD, Mood.HAPPY), TableWithEnum.current_mood).asc())
+        val results = database
+            .from(Arrays)
+            .select(
+                arrayPosition(Arrays.shorts, 2),
+                arrayPosition(Arrays.ints, 2, 1),
+                arrayPosition(Arrays.longs, 2),
+                arrayPosition(Arrays.booleans, true),
+                arrayPosition(Arrays.texts, "2")
+            )
+            .where(Arrays.id eq 1)
             .map { row ->
-                row[TableWithEnum.current_mood]
+                tupleOf(row.getInt(1), row.getInt(2), row.getInt(3), row.getInt(4), row.getInt(5))
             }
 
-        assertEquals(listOf(Mood.SAD, Mood.HAPPY, Mood.HAPPY), moodsSorted)
+        println(results)
+        assert(results.size == 1)
+        assert(results[0] == tupleOf(1, 1, 1, 1, 2)) // text[] is one-based, others are zero-based.
     }
 
     @Test
