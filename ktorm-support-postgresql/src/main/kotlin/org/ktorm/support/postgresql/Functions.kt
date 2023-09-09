@@ -29,16 +29,7 @@ import org.ktorm.schema.*
 public fun arrayPosition(
     array: ColumnDeclaring<ShortArray>, value: ColumnDeclaring<Short>, offset: Int? = null
 ): FunctionExpression<Int> {
-    // array_position(array, value[, offset])
-    return FunctionExpression(
-        functionName = "array_position",
-        arguments = listOfNotNull(
-            array.asExpression(),
-            value.asExpression(),
-            offset?.let { ArgumentExpression(it, IntSqlType) }
-        ),
-        sqlType = IntSqlType
-    )
+    return arrayPositionImpl(array, value, offset)
 }
 
 /**
@@ -50,7 +41,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<ShortArray>, value: Short, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(array, ArgumentExpression(value, ShortSqlType), offset)
+    return arrayPositionImpl(array, ArgumentExpression(value, ShortSqlType), offset)
 }
 
 /**
@@ -62,7 +53,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ShortArray, value: ColumnDeclaring<Short>, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(ArgumentExpression(array, ShortArraySqlType), value, offset)
+    return arrayPositionImpl(ArgumentExpression(array, ShortArraySqlType), value, offset)
 }
 
 /**
@@ -74,16 +65,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<IntArray>, value: ColumnDeclaring<Int>, offset: Int? = null
 ): FunctionExpression<Int> {
-    // array_position(array, value[, offset])
-    return FunctionExpression(
-        functionName = "array_position",
-        arguments = listOfNotNull(
-            array.asExpression(),
-            value.asExpression(),
-            offset?.let { ArgumentExpression(it, IntSqlType) }
-        ),
-        sqlType = IntSqlType
-    )
+    return arrayPositionImpl(array, value, offset)
 }
 
 /**
@@ -95,7 +77,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<IntArray>, value: Int, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(array, ArgumentExpression(value, IntSqlType), offset)
+    return arrayPositionImpl(array, ArgumentExpression(value, IntSqlType), offset)
 }
 
 /**
@@ -107,7 +89,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: IntArray, value: ColumnDeclaring<Int>, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(ArgumentExpression(array, IntArraySqlType), value, offset)
+    return arrayPositionImpl(ArgumentExpression(array, IntArraySqlType), value, offset)
 }
 
 /**
@@ -119,16 +101,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<LongArray>, value: ColumnDeclaring<Long>, offset: Int? = null
 ): FunctionExpression<Int> {
-    // array_position(array, value[, offset])
-    return FunctionExpression(
-        functionName = "array_position",
-        arguments = listOfNotNull(
-            array.asExpression(),
-            value.asExpression(),
-            offset?.let { ArgumentExpression(it, IntSqlType) }
-        ),
-        sqlType = IntSqlType
-    )
+    return arrayPositionImpl(array, value, offset)
 }
 
 /**
@@ -140,7 +113,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<LongArray>, value: Long, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(array, ArgumentExpression(value, LongSqlType), offset)
+    return arrayPositionImpl(array, ArgumentExpression(value, LongSqlType), offset)
 }
 
 /**
@@ -152,7 +125,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: LongArray, value: ColumnDeclaring<Long>, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(ArgumentExpression(array, LongArraySqlType), value, offset)
+    return arrayPositionImpl(ArgumentExpression(array, LongArraySqlType), value, offset)
 }
 
 /**
@@ -164,16 +137,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<BooleanArray>, value: ColumnDeclaring<Boolean>, offset: Int? = null
 ): FunctionExpression<Int> {
-    // array_position(array, value[, offset])
-    return FunctionExpression(
-        functionName = "array_position",
-        arguments = listOfNotNull(
-            array.asExpression(),
-            value.asExpression(),
-            offset?.let { ArgumentExpression(it, IntSqlType) }
-        ),
-        sqlType = IntSqlType
-    )
+    return arrayPositionImpl(array, value, offset)
 }
 
 /**
@@ -185,7 +149,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<BooleanArray>, value: Boolean, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(array, ArgumentExpression(value, BooleanSqlType), offset)
+    return arrayPositionImpl(array, ArgumentExpression(value, BooleanSqlType), offset)
 }
 
 /**
@@ -197,7 +161,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: BooleanArray, value: ColumnDeclaring<Boolean>, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(ArgumentExpression(array, BooleanArraySqlType), value, offset)
+    return arrayPositionImpl(ArgumentExpression(array, BooleanArraySqlType), value, offset)
 }
 
 /**
@@ -209,16 +173,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<TextArray>, value: ColumnDeclaring<String>, offset: Int? = null
 ): FunctionExpression<Int> {
-    // array_position(array, value[, offset])
-    return FunctionExpression(
-        functionName = "array_position",
-        arguments = listOfNotNull(
-            array.asExpression(),
-            value.asExpression(),
-            offset?.let { ArgumentExpression(it, IntSqlType) }
-        ),
-        sqlType = IntSqlType
-    )
+    return arrayPositionImpl(array, value, offset)
 }
 
 /**
@@ -230,7 +185,7 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: ColumnDeclaring<TextArray>, value: String, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(array, ArgumentExpression(value, VarcharSqlType), offset)
+    return arrayPositionImpl(array, ArgumentExpression(value, VarcharSqlType), offset)
 }
 
 /**
@@ -242,5 +197,23 @@ public fun arrayPosition(
 public fun arrayPosition(
     array: TextArray, value: ColumnDeclaring<String>, offset: Int? = null
 ): FunctionExpression<Int> {
-    return arrayPosition(ArgumentExpression(array, TextArraySqlType), value, offset)
+    return arrayPositionImpl(ArgumentExpression(array, TextArraySqlType), value, offset)
+}
+
+/**
+ * array_position implementation.
+ */
+private fun <T : Any, S : Any> arrayPositionImpl(
+    array: ColumnDeclaring<T>, value: ColumnDeclaring<S>, offset: Int? = null
+): FunctionExpression<Int> {
+    // array_position(array, value[, offset])
+    return FunctionExpression(
+        functionName = "array_position",
+        arguments = listOfNotNull(
+            array.asExpression(),
+            value.asExpression(),
+            offset?.let { ArgumentExpression(it, IntSqlType) }
+        ),
+        sqlType = IntSqlType
+    )
 }
