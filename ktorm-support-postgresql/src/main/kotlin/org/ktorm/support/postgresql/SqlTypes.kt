@@ -25,6 +25,34 @@ import java.sql.ResultSet
 import java.sql.Types
 
 /**
+ * Define a column typed [IntArraySqlType].
+ */
+public fun BaseTable<*>.intArray(name: String): Column<IntArray> {
+    return registerColumn(name, IntArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `integer[]` type.
+ */
+public object IntArraySqlType : SqlType<IntArray>(Types.ARRAY, "integer[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: IntArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): IntArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Int }?.toIntArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
  * Define a column typed [LongArraySqlType].
  */
 public fun BaseTable<*>.longArray(name: String): Column<LongArray> {
