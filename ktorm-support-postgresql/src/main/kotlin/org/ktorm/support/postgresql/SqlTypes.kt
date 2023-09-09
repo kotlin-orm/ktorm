@@ -165,6 +165,34 @@ public object DoubleArraySqlType : SqlType<DoubleArray>(Types.ARRAY, "double[]")
 }
 
 /**
+ * Define a column typed [BooleanArraySqlType].
+ */
+public fun BaseTable<*>.booleanArray(name: String): Column<BooleanArray> {
+    return registerColumn(name, BooleanArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `boolean[]` type.
+ */
+public object BooleanArraySqlType : SqlType<BooleanArray>(Types.ARRAY, "boolean[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: BooleanArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): BooleanArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Boolean }?.toBooleanArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
  * Represent values of PostgreSQL `text[]` SQL type.
  */
 public typealias TextArray = Array<String?>
