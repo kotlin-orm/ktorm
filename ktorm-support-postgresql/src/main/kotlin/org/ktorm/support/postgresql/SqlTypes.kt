@@ -109,6 +109,34 @@ public object LongArraySqlType : SqlType<LongArray>(Types.ARRAY, "bigint[]") {
 }
 
 /**
+ * Define a column typed [FloatArraySqlType].
+ */
+public fun BaseTable<*>.floatArray(name: String): Column<FloatArray> {
+    return registerColumn(name, FloatArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `real[]` type.
+ */
+public object FloatArraySqlType : SqlType<FloatArray>(Types.FLOAT, "real[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: FloatArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): FloatArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Float }?.toFloatArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
  * Define a column typed [DoubleArraySqlType].
  */
 public fun BaseTable<*>.doubleArray(name: String): Column<DoubleArray> {
