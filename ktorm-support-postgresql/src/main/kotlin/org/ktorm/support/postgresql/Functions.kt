@@ -16,47 +16,53 @@
 
 package org.ktorm.support.postgresql
 
-import org.ktorm.dsl.cast
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.FunctionExpression
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.IntSqlType
-import org.ktorm.schema.SqlType
-import org.ktorm.schema.TextSqlType
+import org.ktorm.schema.VarcharSqlType
 
 /**
- * PostgreSQL array_position function for enums, translated to `array_position(value, cast(column as text))`.
- * Uses the `name` attribute of the enums as actual value for the query.
+ * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
+ * If the third argument is given, the search begins at that subscript. The array must be one-dimensional.
+ *
+ * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
  */
-public fun <T : Enum<T>> arrayPosition(value: Array<T?>, column: ColumnDeclaring<T>): FunctionExpression<Int> =
-    arrayPosition(value.map { it?.name }.toTypedArray(), column.cast(TextSqlType))
-
-/**
- * PostgreSQL array_position function for enums, translated to `array_position(value, cast(column as text))`.
- * Uses the `name` attribute of the enums as actual value for the query.
- */
-public inline fun <reified T : Enum<T>> arrayPosition(
-    value: Collection<T?>,
-    column: ColumnDeclaring<T>
-): FunctionExpression<Int> =
-    arrayPosition(value.map { it?.name }.toTypedArray(), column.cast(TextSqlType))
-
-/**
- * PostgreSQL array_position function, translated to `array_position(value, column)`.
- */
-public fun arrayPosition(value: TextArray, column: ColumnDeclaring<String>): FunctionExpression<Int> =
-    arrayPosition(value, column, TextArraySqlType)
-
-/**
- * PostgreSQL array_position function, translated to `array_position(value, column)`.
- */
-public fun <T : Any> arrayPosition(
-    value: Array<T?>,
-    column: ColumnDeclaring<T>,
-    arraySqlType: SqlType<Array<T?>>
-): FunctionExpression<Int> =
-    FunctionExpression(
+public fun arrayPosition(
+    array: ColumnDeclaring<TextArray>, value: ColumnDeclaring<String>, offset: Int? = null
+): FunctionExpression<Int> {
+    // array_position(array, value[, offset])
+    return FunctionExpression(
         functionName = "array_position",
-        arguments = listOf(ArgumentExpression(value, arraySqlType), column.asExpression()),
+        arguments = listOfNotNull(
+            array.asExpression(),
+            value.asExpression(),
+            offset?.let { ArgumentExpression(it, IntSqlType) }
+        ),
         sqlType = IntSqlType
     )
+}
+
+/**
+ * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
+ * If the third argument is given, the search begins at that subscript. The array must be one-dimensional.
+ *
+ * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
+ */
+public fun arrayPosition(
+    array: ColumnDeclaring<TextArray>, value: String, offset: Int? = null
+): FunctionExpression<Int> {
+    return arrayPosition(array, ArgumentExpression(value, VarcharSqlType), offset)
+}
+
+/**
+ * Returns the subscript of the first occurrence of the second argument in the array, or NULL if it's not present.
+ * If the third argument is given, the search begins at that subscript. The array must be one-dimensional.
+ *
+ * array_position(ARRAY['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], 'mon') → 2
+ */
+public fun arrayPosition(
+    array: TextArray, value: ColumnDeclaring<String>, offset: Int? = null
+): FunctionExpression<Int> {
+    return arrayPosition(ArgumentExpression(array, TextArraySqlType), value, offset)
+}
