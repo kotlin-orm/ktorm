@@ -4,6 +4,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
 import org.ktorm.dsl.*
+import org.ktorm.entity.tupleOf
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
@@ -13,7 +14,6 @@ class HStoreTest : BasePostgreSqlTest() {
     object Metadatas : Table<Nothing>("t_metadata") {
         val id = int("id").primaryKey()
         val attributes = hstore("attrs")
-        val numbers = textArray("numbers")
     }
 
     @Test
@@ -147,27 +147,5 @@ class HStoreTest : BasePostgreSqlTest() {
 
         val updatedAttributes = get { it.attributes } ?: error("Cannot get the attributes!")
         MatcherAssert.assertThat(updatedAttributes, CoreMatchers.equalTo(emptyMap()))
-    }
-
-    @Test
-    fun testTextArray() {
-        database.update(Metadatas) {
-            set(it.numbers, arrayOf("a", "b"))
-            where { it.id eq 1 }
-        }
-
-        val numbers = get { it.numbers } ?: error("Cannot get the numbers!")
-        MatcherAssert.assertThat(numbers, CoreMatchers.equalTo(arrayOf<String?>("a", "b")))
-    }
-
-    @Test
-    fun testTextArrayIsNull() {
-        database.update(Metadatas) {
-            set(it.numbers, null)
-            where { it.id eq 1 }
-        }
-
-        val numbers = get { it.numbers }
-        MatcherAssert.assertThat(numbers, CoreMatchers.nullValue())
     }
 }

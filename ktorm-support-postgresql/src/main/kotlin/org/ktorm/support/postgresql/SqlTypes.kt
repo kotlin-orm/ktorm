@@ -146,7 +146,7 @@ public fun BaseTable<*>.doubleArray(name: String): Column<DoubleArray> {
 /**
  * [SqlType] implementation represents PostgreSQL `double[]` type.
  */
-public object DoubleArraySqlType : SqlType<DoubleArray>(Types.ARRAY, "double[]") {
+public object DoubleArraySqlType : SqlType<DoubleArray>(Types.ARRAY, "float8[]") {
 
     override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: DoubleArray) {
         ps.setObject(index, parameter)

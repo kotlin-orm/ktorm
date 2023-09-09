@@ -27,8 +27,18 @@ create table t_multi_generated_key(
 
 create table t_metadata(
   id serial primary key,
-  attrs hstore,
-  numbers text[]
+  attrs hstore
+);
+
+create table t_array(
+  id serial primary key,
+  shorts smallint[],
+  ints integer[],
+  longs bigint[],
+  floats real[],
+  doubles float8[],
+  booleans boolean[],
+  texts text[]
 );
 
 create type mood as enum ('SAD', 'HAPPY');
@@ -60,8 +70,8 @@ values ('tom', 'director', null, '2018-01-01', 200, 2);
 insert into t_employee(name, job, manager_id, hire_date, salary, department_id)
 values ('penny', 'assistant', 3, '2019-01-01', 100, 2);
 
-insert into t_metadata(attrs, numbers)
-values ('a=>1, b=>2, c=>NULL'::hstore, array['a', 'b', 'c']);
+insert into t_metadata(attrs)
+values ('a=>1, b=>2, c=>NULL'::hstore);
 
 insert into t_enum(current_mood)
 values ('HAPPY')
