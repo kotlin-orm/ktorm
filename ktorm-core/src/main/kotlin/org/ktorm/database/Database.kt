@@ -118,7 +118,7 @@ public class Database(
     /**
      * Function used to translate SQL exceptions to rethrow them to users.
      */
-    public val exceptionTranslator: ((SQLException) -> Throwable)? = null,
+    public val exceptionTranslator: ((SQLException) -> Throwable?)? = null,
 
     /**
      * Whether we need to always quote SQL identifiers in the generated SQLs.
