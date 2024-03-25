@@ -29,6 +29,12 @@ create table t_multi_generated_key(
     v varchar(128)
 );
 
+create table t_team(
+    id int not null primary key auto_increment,
+    name varchar(50),
+    unique key uni_name(name)
+);
+
 insert into t_department(name, location) values ('tech', 'Guangzhou');
 insert into t_department(name, location) values ('finance', 'Beijing');
 

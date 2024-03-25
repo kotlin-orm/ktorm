@@ -146,4 +146,18 @@ public open class MySqlFormatter(
         writeKeyword("default ")
         return expr
     }
+
+    override fun visitInsert(expr: InsertExpression): InsertExpression {
+        val modifier = expr.extraProperties[INSERT_MODIFIER_PROP_KEY] as InsertModifier?
+        if (modifier != null) {
+            writeKeyword("insert ${modifier.name.lowercase()} into ")
+        } else {
+            writeKeyword("insert into ")
+        }
+        visitTable(expr.table)
+        writeInsertColumnNames(expr.assignments.map { it.column })
+        writeKeyword("values ")
+        writeInsertValues(expr.assignments)
+        return expr
+    }
 }
