@@ -72,7 +72,7 @@ complexity:
     constructorThreshold: 6
     ignoreDefaultParameters: true
   MethodOverloading:
-    active: true
+    active: false
     threshold: 7
   NestedBlockDepth:
     active: true
