@@ -1,9 +1,9 @@
 package org.ktorm.support.oracle
 
+import org.junit.ClassRule
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
 import org.testcontainers.containers.OracleContainer
-import kotlin.concurrent.thread
 
 abstract class BaseOracleTest : BaseTest() {
 
@@ -32,17 +32,20 @@ abstract class BaseOracleTest : BaseTest() {
      *
      * See https://java.testcontainers.org/supported_docker_environment/#colima
      */
-    companion object : OracleContainer("gvenzl/oracle-xe:11.2.0.2") {
-        init {
-            // Configure the container.
-            usingSid()
-            withReuse(true)
-            withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize((1 * 1024 * 1024 * 1024).toLong()) }
+    companion object {
+        @JvmField
+        @ClassRule
+        val container: OracleContainer
+            = OracleContainer("gvenzl/oracle-xe:11.2.0.2")
+                .usingSid()
+                .withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize((1 * 1024 * 1024 * 1024).toLong()) }
 
-            // Start the container when it's first used.
-            start()
-            // Stop the container when the process exits.
-            Runtime.getRuntime().addShutdownHook(thread(start = false) { stop() })
-        }
+        val jdbcUrl: String get() = container.jdbcUrl
+
+        val driverClassName: String get() = container.driverClassName
+
+        val username: String get() = container.username
+
+        val password: String get() = container.password
     }
 }
