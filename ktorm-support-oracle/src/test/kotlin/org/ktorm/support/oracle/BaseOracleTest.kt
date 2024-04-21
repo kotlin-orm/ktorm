@@ -36,6 +36,7 @@ abstract class BaseOracleTest : BaseTest() {
         init {
             // Configure the container.
             usingSid()
+            withReuse(true)
             withCreateContainerCmdModifier { cmd -> cmd.hostConfig?.withShmSize((1 * 1024 * 1024 * 1024).toLong()) }
 
             // Start the container when it's first used.
