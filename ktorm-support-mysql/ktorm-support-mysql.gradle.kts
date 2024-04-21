@@ -10,6 +10,6 @@ dependencies {
     api(project(":ktorm-core"))
     testImplementation(project(":ktorm-core", configuration = "testOutput"))
     testImplementation(project(":ktorm-jackson"))
-    testImplementation("org.testcontainers:mysql:1.15.1")
+    testImplementation("org.testcontainers:mysql:1.19.7")
     testImplementation("mysql:mysql-connector-java:8.0.23")
 }
