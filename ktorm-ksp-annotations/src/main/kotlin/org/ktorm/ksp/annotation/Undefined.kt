@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("NoMultipleSpaces")
-
 package org.ktorm.ksp.annotation
 
 import sun.misc.Unsafe
@@ -147,7 +145,7 @@ public object Undefined {
             return defineClass(name, bytes, null)
         }
 
-        @Suppress("MagicNumber")
+        @Suppress("MagicNumber", "NoMultipleSpaces")
         private fun generateByteCode(className: ByteArray, superClassName: ByteArray): ByteBuffer {
             val buf = ByteBuffer.allocate(1024)
             buf.putInt(0xCAFEBABE.toInt())                          // magic
