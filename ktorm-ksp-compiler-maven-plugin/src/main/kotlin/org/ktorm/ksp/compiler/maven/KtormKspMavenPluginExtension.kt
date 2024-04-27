@@ -36,6 +36,7 @@ import java.io.File
 public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
     @Requirement
     private lateinit var repositorySystem: RepositorySystem
+
     @Requirement
     private lateinit var mavenSession: MavenSession
 
