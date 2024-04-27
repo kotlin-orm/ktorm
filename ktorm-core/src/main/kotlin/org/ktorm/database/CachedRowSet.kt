@@ -46,7 +46,7 @@ import javax.sql.rowset.serial.*
  *
  * @since 2.7
  */
-@Suppress("LargeClass", "MethodOverloading")
+@Suppress("LargeClass")
 public open class CachedRowSet(rs: ResultSet) : ResultSet {
     private val _typeMap = readTypeMap(rs)
     private val _metadata = readMetadata(rs)
