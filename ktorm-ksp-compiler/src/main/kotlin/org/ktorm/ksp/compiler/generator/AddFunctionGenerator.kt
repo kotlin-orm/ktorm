@@ -24,7 +24,6 @@ import org.ktorm.dsl.AliasRemover
 import org.ktorm.entity.EntitySequence
 import org.ktorm.expression.ColumnAssignmentExpression
 import org.ktorm.expression.InsertExpression
-import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.TableMetadata
 import org.ktorm.schema.Column
@@ -34,44 +33,59 @@ internal object AddFunctionGenerator {
 
     fun generate(table: TableMetadata): FunSpec {
         val primaryKeys = table.columns.filter { it.isPrimaryKey }
-        val useGeneratedKey = primaryKeys.size == 1
-            && primaryKeys[0].entityProperty.isMutable
-            && primaryKeys[0].entityProperty._type.isMarkedNullable
-
+        val useGeneratedKey = primaryKeys.size == 1 && primaryKeys[0].entityProperty.isMutable
         val entityClass = table.entityClass.toClassName()
         val tableClass = ClassName(table.entityClass.packageName.asString(), table.tableClassName)
 
         return FunSpec.builder("add")
             .addKdoc(kdoc(table, useGeneratedKey))
             .receiver(EntitySequence::class.asClassName().parameterizedBy(entityClass, tableClass))
-            .addParameter("entity", entityClass)
-            .addParameter(ParameterSpec.builder("isDynamic", typeNameOf<Boolean>()).defaultValue("false").build())
+            .addParameters(parameters(entityClass, useGeneratedKey))
             .returns(Int::class.asClassName())
             .addCode(checkForDml())
-            .addCode(addValFun())
-            .addCode(addAssignments(table, useGeneratedKey))
+            .addCode(addValFun(table, useGeneratedKey))
+            .addCode(addAssignments(table))
             .addCode(createExpression())
             .addCode(executeUpdate(useGeneratedKey, primaryKeys))
             .build()
     }
 
     private fun kdoc(table: TableMetadata, useGeneratedKey: Boolean): String {
-        var kdoc = "" +
-            "Insert the given entity into this sequence and return the affected record number. " +
-            "If [isDynamic] is set to true, the generated SQL will include only the non-null columns. "
-
         if (useGeneratedKey) {
             val pk = table.columns.single { it.isPrimaryKey }
             val pkName = table.entityClass.simpleName.asString() + "." + pk.entityProperty.simpleName.asString()
-
-            kdoc += "\n\n" +
-                "Note that this function will obtain the generated primary key from the database and fill it into " +
-                "the property [$pkName] after the insertion completes. But this requires us not to set " +
-                "the primary key’s value beforehand, otherwise, if you do that, the given value will be " +
-                "inserted into the database, and no keys generated."
+            return """
+                Insert the given entity into the table that the sequence object represents.
+                
+                @param entity the entity to be inserted.
+                @param isDynamic whether only non-null columns should be inserted.
+                @param useGeneratedKey whether to obtain the generated primary key value and fill it into the property [$pkName] after insertion.
+                @return the affected record number.
+            """.trimIndent()
+        } else {
+            return """
+                Insert the given entity into the table that the sequence object represents.
+                
+                @param entity the entity to be inserted.
+                @param isDynamic whether only non-null columns should be inserted.
+                @return the affected record number.
+            """.trimIndent()
         }
+    }
 
-        return kdoc
+    private fun parameters(entityClass: ClassName, useGeneratedKey: Boolean): List<ParameterSpec> {
+        if (useGeneratedKey) {
+            return listOf(
+                ParameterSpec.builder("entity", entityClass).build(),
+                ParameterSpec.builder("isDynamic", typeNameOf<Boolean>()).defaultValue("false").build(),
+                ParameterSpec.builder("useGeneratedKey", typeNameOf<Boolean>()).defaultValue("false").build()
+            )
+        } else {
+            return listOf(
+                ParameterSpec.builder("entity", entityClass).build(),
+                ParameterSpec.builder("isDynamic", typeNameOf<Boolean>()).defaultValue("false").build()
+            )
+        }
     }
 
     internal fun checkForDml(): CodeBlock {
@@ -83,7 +97,6 @@ internal object AddFunctionGenerator {
                 || expression.orderBy.isNotEmpty()
                 || expression.offset != null
                 || expression.limit != null
-        
             if (isModified) {
                 val msg = "" +
                     "Entity manipulation functions are not supported by this sequence object. " +
@@ -97,37 +110,57 @@ internal object AddFunctionGenerator {
         return CodeBlock.of(code)
     }
 
-    internal fun addValFun(): CodeBlock {
-        val code = """
-            fun <T : Any> MutableList<%1T<*>>.addVal(column: %2T<T>, value: T?, isDynamic: Boolean) {
-                if (!isDynamic || value != null) {
+    private fun addValFun(table: TableMetadata, useGeneratedKey: Boolean): CodeBlock {
+        if (useGeneratedKey) {
+            val pk = table.columns.single { it.isPrimaryKey }
+            val code = """
+                fun <T : Any> MutableList<%1T<*>>.addVal(column: %2T<T>, value: T?) {
+                    if (useGeneratedKey && column === sourceTable.%3N) {
+                        return
+                    }
+            
+                    if (isDynamic && value == null) {
+                        return
+                    }
+            
                     this += %1T(column.asExpression(), column.wrapArgument(value))
                 }
-            }
+                
+                
+            """.trimIndent()
+            return CodeBlock.of(
+                code,
+                ColumnAssignmentExpression::class.asClassName(),
+                Column::class.asClassName(),
+                pk.columnPropertyName
+            )
+        } else {
+            val code = """
+                fun <T : Any> MutableList<%1T<*>>.addVal(column: %2T<T>, value: T?) {
+                    if (isDynamic && value == null) {
+                        return
+                    }
             
-            
-        """.trimIndent()
-
-        return CodeBlock.of(code, ColumnAssignmentExpression::class.asClassName(), Column::class.asClassName())
+                    this += %1T(column.asExpression(), column.wrapArgument(value))
+                }
+                
+                
+            """.trimIndent()
+            return CodeBlock.of(code, ColumnAssignmentExpression::class.asClassName(), Column::class.asClassName())
+        }
     }
 
-    private fun addAssignments(table: TableMetadata, useGeneratedKey: Boolean): CodeBlock {
+    private fun addAssignments(table: TableMetadata): CodeBlock {
         return buildCodeBlock {
             addStatement("val assignments = ArrayList<%T<*>>()", ColumnAssignmentExpression::class.asClassName())
 
             for (column in table.columns) {
-                val forceDynamic = useGeneratedKey
-                    && column.isPrimaryKey && column.entityProperty._type.isMarkedNullable
-
                 addStatement(
-                    "assignments.addVal(sourceTable.%N, entity.%N, %L)",
+                    "assignments.addVal(sourceTable.%N, entity.%N)",
                     column.columnPropertyName,
-                    column.entityProperty.simpleName.asString(),
-                    if (forceDynamic) "isDynamic·=·true" else "isDynamic"
+                    column.entityProperty.simpleName.asString()
                 )
             }
-
-            add("\n")
 
             beginControlFlow("if (assignments.isEmpty())")
             addStatement("return 0")
@@ -138,15 +171,16 @@ internal object AddFunctionGenerator {
     }
 
     private fun createExpression(): CodeBlock {
-        val code = """
-            val expression = database.dialect.createExpressionVisitor(%T).visit(
-                %T(sourceTable.asExpression(), assignments)
+        return buildCodeBlock {
+            addStatement(
+                "val visitor = database.dialect.createExpressionVisitor(%T)",
+                AliasRemover::class.asClassName()
             )
-            
-              
-        """.trimIndent()
-
-        return CodeBlock.of(code, AliasRemover::class.asClassName(), InsertExpression::class.asClassName())
+            addStatement(
+                "val expression = visitor.visit(%T(sourceTable.asExpression(), assignments))",
+                InsertExpression::class.asClassName()
+            )
+        }
     }
 
     private fun executeUpdate(useGeneratedKey: Boolean, primaryKeys: List<ColumnMetadata>): CodeBlock {
@@ -154,17 +188,14 @@ internal object AddFunctionGenerator {
             if (!useGeneratedKey) {
                 addStatement("return database.executeUpdate(expression)")
             } else {
-                // If the primary key value is manually specified, not obtain the generated key.
-                beginControlFlow("if (entity.%N != null)", primaryKeys[0].entityProperty.simpleName.asString())
+                beginControlFlow("if (!useGeneratedKey)")
                 addStatement("return database.executeUpdate(expression)")
-
-                // Else obtain the generated key value.
                 nextControlFlow("else")
                 addNamed(
                     format = """
                         val (effects, rowSet) = database.executeUpdateAndRetrieveKeys(expression)
                         if (rowSet.next()) {
-                            val generatedKey = rowSet.%getGeneratedKey:M(sourceTable.%columnName:N)
+                            val generatedKey = rowSet.%getGeneratedKey:M(sourceTable.%columnPropertyName:N)
                             if (generatedKey != null) {
                                 if (database.logger.isDebugEnabled()) {
                                     database.logger.debug("Generated Key: ${'$'}generatedKey")
@@ -179,12 +210,11 @@ internal object AddFunctionGenerator {
                     """.trimIndent(),
 
                     arguments = mapOf(
-                        "columnName" to primaryKeys[0].columnPropertyName,
                         "propertyName" to primaryKeys[0].entityProperty.simpleName.asString(),
+                        "columnPropertyName" to primaryKeys[0].columnPropertyName,
                         "getGeneratedKey" to MemberName("org.ktorm.dsl", "getGeneratedKey", true)
                     )
                 )
-
                 endControlFlow()
             }
         }

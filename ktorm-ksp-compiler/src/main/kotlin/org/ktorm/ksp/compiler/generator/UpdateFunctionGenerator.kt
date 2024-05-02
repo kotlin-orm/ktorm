@@ -26,6 +26,7 @@ import org.ktorm.expression.ColumnAssignmentExpression
 import org.ktorm.expression.UpdateExpression
 import org.ktorm.ksp.compiler.util.*
 import org.ktorm.ksp.spi.TableMetadata
+import org.ktorm.schema.Column
 
 @OptIn(KotlinPoetKspPreview::class)
 internal object UpdateFunctionGenerator {
@@ -45,12 +46,26 @@ internal object UpdateFunctionGenerator {
             .addParameter(ParameterSpec.builder("isDynamic", typeNameOf<Boolean>()).defaultValue("false").build())
             .returns(Int::class.asClassName())
             .addCode(AddFunctionGenerator.checkForDml())
-            .addCode(AddFunctionGenerator.addValFun())
+            .addCode(addValFun())
             .addCode(addAssignments(table))
             .addCode(buildConditions(table))
             .addCode(createExpression())
             .addStatement("return database.executeUpdate(expression)")
             .build()
+    }
+
+    private fun addValFun(): CodeBlock {
+        val code = """
+            fun <T : Any> MutableList<%1T<*>>.addVal(column: %2T<T>, value: T?, isDynamic: Boolean) {
+                if (!isDynamic || value != null) {
+                    this += %1T(column.asExpression(), column.wrapArgument(value))
+                }
+            }
+            
+            
+        """.trimIndent()
+
+        return CodeBlock.of(code, ColumnAssignmentExpression::class.asClassName(), Column::class.asClassName())
     }
 
     private fun addAssignments(table: TableMetadata): CodeBlock {
