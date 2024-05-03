@@ -24,17 +24,20 @@ import org.ktorm.dsl.AliasRemover
 import org.ktorm.entity.EntitySequence
 import org.ktorm.expression.ColumnAssignmentExpression
 import org.ktorm.expression.UpdateExpression
-import org.ktorm.ksp.compiler.util.*
+import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.spi.TableMetadata
-import org.ktorm.schema.Column
 
 @OptIn(KotlinPoetKspPreview::class)
 internal object UpdateFunctionGenerator {
 
     fun generate(table: TableMetadata): FunSpec {
-        val kdoc = "" +
-            "Update the given entity to the database and return the affected record number. " +
-            "If [isDynamic] is set to true, the generated SQL will include only the non-null columns. "
+        val kdoc = """
+            Update the given entity to the database.
+            
+            @param entity the entity to be updated.
+            @param isDynamic whether only non-null columns should be updated.
+            @return the affected record number.
+        """.trimIndent()
 
         val entityClass = table.entityClass.toClassName()
         val tableClass = ClassName(table.entityClass.packageName.asString(), table.tableClassName)
@@ -46,26 +49,11 @@ internal object UpdateFunctionGenerator {
             .addParameter(ParameterSpec.builder("isDynamic", typeNameOf<Boolean>()).defaultValue("false").build())
             .returns(Int::class.asClassName())
             .addCode(AddFunctionGenerator.checkForDml())
-            .addCode(addValFun())
+            .addCode(AddFunctionGenerator.addValFun(table, useGeneratedKey = false))
             .addCode(addAssignments(table))
-            .addCode(buildConditions(table))
-            .addCode(createExpression())
+            .addCode(createExpression(table))
             .addStatement("return database.executeUpdate(expression)")
             .build()
-    }
-
-    private fun addValFun(): CodeBlock {
-        val code = """
-            fun <T : Any> MutableList<%1T<*>>.addVal(column: %2T<T>, value: T?, isDynamic: Boolean) {
-                if (!isDynamic || value != null) {
-                    this += %1T(column.asExpression(), column.wrapArgument(value))
-                }
-            }
-            
-            
-        """.trimIndent()
-
-        return CodeBlock.of(code, ColumnAssignmentExpression::class.asClassName(), Column::class.asClassName())
     }
 
     private fun addAssignments(table: TableMetadata): CodeBlock {
@@ -78,13 +66,11 @@ internal object UpdateFunctionGenerator {
                 }
 
                 addStatement(
-                    "assignments.addVal(sourceTable.%N, entity.%N, isDynamic)",
+                    "assignments.addVal(sourceTable.%N, entity.%N)",
                     column.columnPropertyName,
-                    column.entityProperty.simpleName.asString(),
+                    column.entityProperty.simpleName.asString()
                 )
             }
-
-            add("\n")
 
             beginControlFlow("if (assignments.isEmpty())")
             addStatement("return 0")
@@ -94,20 +80,22 @@ internal object UpdateFunctionGenerator {
         }
     }
 
-    private fun buildConditions(table: TableMetadata): CodeBlock {
+    private fun createExpression(table: TableMetadata): CodeBlock {
         return buildCodeBlock {
-            add("«val conditions = listOf(")
+            addStatement(
+                "val visitor = database.dialect.createExpressionVisitor(%T)",
+                AliasRemover::class.asClassName()
+            )
 
-            for (column in table.columns) {
-                if (!column.isPrimaryKey) {
-                    continue
-                }
+            add("«val conditions = ")
 
+            val primaryKeys = table.columns.filter { it.isPrimaryKey }
+            for ((i, column) in primaryKeys.withIndex()) {
                 val condition: String
                 if (column.entityProperty._type.isMarkedNullable) {
-                    condition = "sourceTable.%N·%M·entity.%N!!,"
+                    condition = "(sourceTable.%N·%M·entity.%N!!)"
                 } else {
-                    condition = "sourceTable.%N·%M·entity.%N,"
+                    condition = "(sourceTable.%N·%M·entity.%N)"
                 }
 
                 add(
@@ -116,26 +104,18 @@ internal object UpdateFunctionGenerator {
                     MemberName("org.ktorm.dsl", "eq", true),
                     column.entityProperty.simpleName.asString()
                 )
+
+                if (i < primaryKeys.lastIndex) {
+                    add("·%M·", MemberName("org.ktorm.dsl", "and", true))
+                }
             }
 
-            add(")\n»")
-        }
-    }
+            add("\n»")
 
-    private fun createExpression(): CodeBlock {
-        val code = """
-            val expression = database.dialect.createExpressionVisitor(%T).visit(
-                %T(sourceTable.asExpression(), assignments, conditions.%M().asExpression())
+            addStatement(
+                "val expression = visitor.visit(%T(sourceTable.asExpression(), assignments, conditions))",
+                UpdateExpression::class.asClassName()
             )
-            
-              
-        """.trimIndent()
-
-        return CodeBlock.of(
-            code,
-            AliasRemover::class.asClassName(),
-            UpdateExpression::class.asClassName(),
-            MemberName("org.ktorm.dsl", "combineConditions", true)
-        )
+        }
     }
 }

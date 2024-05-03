@@ -110,7 +110,7 @@ internal object AddFunctionGenerator {
         return CodeBlock.of(code)
     }
 
-    private fun addValFun(table: TableMetadata, useGeneratedKey: Boolean): CodeBlock {
+    internal fun addValFun(table: TableMetadata, useGeneratedKey: Boolean): CodeBlock {
         if (useGeneratedKey) {
             val pk = table.columns.single { it.isPrimaryKey }
             val code = """

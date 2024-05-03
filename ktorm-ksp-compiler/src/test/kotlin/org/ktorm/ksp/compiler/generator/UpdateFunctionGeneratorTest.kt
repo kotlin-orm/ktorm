@@ -10,7 +10,7 @@ class UpdateFunctionGeneratorTest : BaseKspTest() {
         @Table
         data class User(
             @PrimaryKey
-            var id: Int?,
+            var id: Int,
             var username: String,
             var age: Int,
         )
@@ -32,7 +32,7 @@ class UpdateFunctionGeneratorTest : BaseKspTest() {
         @Table
         data class User(
             @PrimaryKey
-            var id: Int?,
+            var id: Int,
             var username: String,
             var age: Int
         )
