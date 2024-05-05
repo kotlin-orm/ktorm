@@ -22,7 +22,6 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.visitor.KSValidateVisitor
-import kotlin.reflect.jvm.jvmName
 
 /**
  * Return the resolved [KSType] of this property.
@@ -54,7 +53,7 @@ internal fun KSType.isInline(): Boolean {
  * Check if this class is a subclass of [T].
  */
 internal inline fun <reified T : Any> KSClassDeclaration.isSubclassOf(): Boolean {
-    return findSuperTypeReference(T::class.jvmName) != null
+    return findSuperTypeReference(T::class.qualifiedName!!) != null
 }
 
 /**
