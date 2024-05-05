@@ -84,7 +84,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         }
 
         if (cls.classKind == INTERFACE && !cls.isSubclassOf<Entity<*>>()) {
-            throw IllegalStateException("$className must extend from org.ktorm.entity.Entity.")
+            throw IllegalStateException("$className should extend from org.ktorm.entity.Entity.")
         }
 
         if (cls.classKind == CLASS && cls.isAbstract()) {
