@@ -93,7 +93,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
         _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: $className")
         val table = cls.getAnnotationsByType(Table::class).first()
-        val tableDef = TableMetadata(
+        val tableMetadata = TableMetadata(
             entityClass = cls,
             name = table.name.ifEmpty { _databaseNamingStrategy.getTableName(cls) },
             alias = table.alias.takeIf { it.isNotEmpty() },
@@ -105,17 +105,17 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             columns = ArrayList()
         )
 
-        val columns = tableDef.columns as MutableList
-        for (property in cls.getProperties(tableDef.ignoreProperties)) {
+        val columns = tableMetadata.columns as MutableList
+        for (property in cls.getProperties(tableMetadata.ignoreProperties)) {
             if (property.isAnnotationPresent(References::class)) {
-                columns += parseRefColumnMetadata(property, tableDef)
+                columns += parseRefColumnMetadata(property, tableMetadata)
             } else {
-                columns += parseColumnMetadata(property, tableDef)
+                columns += parseColumnMetadata(property, tableMetadata)
             }
         }
 
-        _tablesCache[className] = tableDef
-        return tableDef
+        _tablesCache[className] = tableMetadata
+        return tableMetadata
     }
 
     private fun KSClassDeclaration.getProperties(ignoreProperties: Set<String>): Sequence<KSPropertyDeclaration> {
