@@ -147,7 +147,7 @@ class MetadataParserTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
-    fun testSqlTypeWithoutConstructor() = kspFailing("Parse sqlType error for property User.ex: the sqlType must be a Kotlin singleton object or a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument.", """
+    fun testSqlTypeWithoutConstructor() = kspFailing("Parse sqlType error for property User.ex: the sqlType should be a Kotlin singleton object or a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument.", """
         @Table
         interface User : Entity<User> {
             @PrimaryKey

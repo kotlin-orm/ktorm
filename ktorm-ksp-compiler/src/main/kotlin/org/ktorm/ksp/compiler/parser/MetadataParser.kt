@@ -134,6 +134,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     }
 
     private fun parseColumnMetadata(property: KSPropertyDeclaration, table: TableMetadata): ColumnMetadata {
+        // @Column annotation is optional.
         val column = property.getAnnotationsByType(Column::class).firstOrNull()
 
         var name = column?.name
@@ -195,7 +196,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
             if (!hasConstructor) {
                 val msg = "" +
-                    "Parse sqlType error for property $propName: the sqlType must be a Kotlin singleton object or " +
+                    "Parse sqlType error for property $propName: the sqlType should be a Kotlin singleton object or " +
                     "a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument."
                 throw IllegalArgumentException(msg)
             }
