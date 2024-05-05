@@ -15,7 +15,7 @@ class MetadataParserTest : BaseKspTest() {
     """.trimIndent())
 
     @Test
-    fun testInterfaceNotExtendingEntity() = kspFailing("User must extends from org.ktorm.entity.Entity.", """
+    fun testInterfaceNotExtendingEntity() = kspFailing("User must extend from org.ktorm.entity.Entity.", """
         @Table
         interface User { 
             val id: Int
