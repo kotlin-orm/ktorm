@@ -9,7 +9,7 @@ import org.ktorm.ksp.compiler.BaseKspTest
 class MetadataParserTest : BaseKspTest() {
 
     @Test
-    fun testEnumClass() = kspFailing("Gender is expected to be a class or interface but actually ENUM_CLASS.", """
+    fun testEnumClass() = kspFailing("Gender should be a class or interface but actually ENUM_CLASS.", """
         @Table
         enum class Gender { MALE, FEMALE }
     """.trimIndent())
@@ -20,6 +20,15 @@ class MetadataParserTest : BaseKspTest() {
         interface User { 
             val id: Int
             val name: String
+        }
+    """.trimIndent())
+
+    @Test
+    fun testAbstractClass() = kspFailing("User cannot be an abstract class.", """
+        @Table
+        abstract class User {
+            var id: Int = 0
+            var name: String = ""
         }
     """.trimIndent())
 

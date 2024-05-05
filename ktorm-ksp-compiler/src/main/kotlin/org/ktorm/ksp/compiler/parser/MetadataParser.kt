@@ -73,22 +73,25 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     }
 
     fun parseTableMetadata(cls: KSClassDeclaration): TableMetadata {
-        val r = _tablesCache[cls.qualifiedName!!.asString()]
+        val className = cls.qualifiedName!!.asString()
+        val r = _tablesCache[className]
         if (r != null) {
             return r
         }
 
         if (cls.classKind != CLASS && cls.classKind != INTERFACE) {
-            val name = cls.qualifiedName!!.asString()
-            throw IllegalStateException("$name is expected to be a class or interface but actually ${cls.classKind}.")
+            throw IllegalStateException("$className should be a class or interface but actually ${cls.classKind}.")
         }
 
         if (cls.classKind == INTERFACE && !cls.isSubclassOf<Entity<*>>()) {
-            val name = cls.qualifiedName!!.asString()
-            throw IllegalStateException("$name must extend from org.ktorm.entity.Entity.")
+            throw IllegalStateException("$className must extend from org.ktorm.entity.Entity.")
         }
 
-        _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: ${cls.qualifiedName!!.asString()}")
+        if (cls.classKind == CLASS && cls.isAbstract()) {
+            throw IllegalStateException("$className cannot be an abstract class.")
+        }
+
+        _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: $className")
         val table = cls.getAnnotationsByType(Table::class).first()
         val tableDef = TableMetadata(
             entityClass = cls,
@@ -111,7 +114,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             }
         }
 
-        _tablesCache[cls.qualifiedName!!.asString()] = tableDef
+        _tablesCache[className] = tableDef
         return tableDef
     }
 
