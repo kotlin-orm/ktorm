@@ -48,7 +48,9 @@ class FunctionsTest : BasePostgreSqlTest() {
 
         println(results)
         assert(results.size == 1)
-        assert(results[0] == tupleOf(1, 1, 1, 1, 2)) // text[] is one-based, others are zero-based.
+
+        // text[] is one-based, others are zero-based. See https://stackoverflow.com/questions/69649737/postgres-array-positionarray-element-sometimes-0-indexed
+        assert(results[0] == tupleOf(1, 1, 1, 1, 2))
     }
 
     @Test
