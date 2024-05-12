@@ -144,7 +144,7 @@ public fun BaseTable<*>.doubleArray(name: String): Column<DoubleArray> {
 }
 
 /**
- * [SqlType] implementation represents PostgreSQL `double[]` type.
+ * [SqlType] implementation represents PostgreSQL `float8[]` type.
  */
 public object DoubleArraySqlType : SqlType<DoubleArray>(Types.ARRAY, "float8[]") {
 
