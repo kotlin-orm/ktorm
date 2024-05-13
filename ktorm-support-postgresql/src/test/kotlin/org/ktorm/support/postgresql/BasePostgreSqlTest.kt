@@ -16,7 +16,7 @@ abstract class BasePostgreSqlTest : BaseTest() {
         execSqlScript("drop-postgresql-data.sql")
     }
 
-    companion object : PostgreSQLContainer<Companion>("postgres:13-alpine") {
+    companion object : PostgreSQLContainer<Companion>("postgres:14-alpine") {
         init {
             // Start the container when it's first used.
             start()

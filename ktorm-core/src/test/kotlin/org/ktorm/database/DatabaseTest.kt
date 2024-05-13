@@ -114,7 +114,7 @@ class DatabaseTest : BaseTest() {
 
         companion object {
             fun forCode(code: Int): Status {
-                return values().first { it.code == code }
+                return entries.first { it.code == code }
             }
         }
     }

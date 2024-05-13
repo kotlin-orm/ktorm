@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,174 @@ import java.lang.reflect.InvocationTargetException
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
+
+/**
+ * Define a column typed [ShortArraySqlType].
+ */
+public fun BaseTable<*>.shortArray(name: String): Column<ShortArray> {
+    return registerColumn(name, ShortArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `smallint[]` type.
+ */
+public object ShortArraySqlType : SqlType<ShortArray>(Types.ARRAY, "smallint[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: ShortArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): ShortArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Short }?.toShortArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed [IntArraySqlType].
+ */
+public fun BaseTable<*>.intArray(name: String): Column<IntArray> {
+    return registerColumn(name, IntArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `integer[]` type.
+ */
+public object IntArraySqlType : SqlType<IntArray>(Types.ARRAY, "integer[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: IntArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): IntArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Int }?.toIntArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed [LongArraySqlType].
+ */
+public fun BaseTable<*>.longArray(name: String): Column<LongArray> {
+    return registerColumn(name, LongArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `bigint[]` type.
+ */
+public object LongArraySqlType : SqlType<LongArray>(Types.ARRAY, "bigint[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: LongArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): LongArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Long }?.toLongArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed [FloatArraySqlType].
+ */
+public fun BaseTable<*>.floatArray(name: String): Column<FloatArray> {
+    return registerColumn(name, FloatArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `real[]` type.
+ */
+public object FloatArraySqlType : SqlType<FloatArray>(Types.FLOAT, "real[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: FloatArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): FloatArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Float }?.toFloatArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed [DoubleArraySqlType].
+ */
+public fun BaseTable<*>.doubleArray(name: String): Column<DoubleArray> {
+    return registerColumn(name, DoubleArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `float8[]` type.
+ */
+public object DoubleArraySqlType : SqlType<DoubleArray>(Types.ARRAY, "float8[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: DoubleArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): DoubleArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Double }?.toDoubleArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
+
+/**
+ * Define a column typed [BooleanArraySqlType].
+ */
+public fun BaseTable<*>.booleanArray(name: String): Column<BooleanArray> {
+    return registerColumn(name, BooleanArraySqlType)
+}
+
+/**
+ * [SqlType] implementation represents PostgreSQL `boolean[]` type.
+ */
+public object BooleanArraySqlType : SqlType<BooleanArray>(Types.ARRAY, "boolean[]") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: BooleanArray) {
+        ps.setObject(index, parameter)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun doGetResult(rs: ResultSet, index: Int): BooleanArray? {
+        val sqlArray = rs.getArray(index) ?: return null
+        try {
+            val objectArray = sqlArray.array as Array<Any>?
+            return objectArray?.map { it as Boolean }?.toBooleanArray()
+        } finally {
+            sqlArray.free()
+        }
+    }
+}
 
 /**
  * Represent values of PostgreSQL `text[]` SQL type.

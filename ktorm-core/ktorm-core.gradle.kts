@@ -1,6 +1,9 @@
 
 plugins {
-    id("ktorm.module")
+    id("ktorm.base")
+    id("ktorm.modularity")
+    id("ktorm.publish")
+    id("ktorm.source-header-check")
     id("ktorm.tuples-codegen")
 }
 
@@ -8,7 +11,7 @@ dependencies {
     compileOnly("org.springframework:spring-jdbc:5.0.10.RELEASE")
     compileOnly("org.springframework:spring-tx:5.0.10.RELEASE")
     testImplementation("com.h2database:h2:1.4.198")
-    testImplementation("org.slf4j:slf4j-simple:1.7.25")
+    testImplementation("org.slf4j:slf4j-simple:2.0.3")
 }
 
 val testOutput by configurations.creating {

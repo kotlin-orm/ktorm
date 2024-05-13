@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -274,8 +274,9 @@ public abstract class BaseTable<E : Any>(
         stack.push(root.toString(withAlias = false))
 
         if (tableName == root.tableName && catalog == root.catalog && schema == root.schema) {
+            val route = stack.asReversed().joinToString(separator = " --> ")
             throw IllegalStateException(
-                "Circular reference detected, current table: '$this', reference route: ${stack.asReversed()}"
+                "Circular reference detected, current table: '$this', reference route: $route"
             )
         }
 

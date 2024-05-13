@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.InputStream
 import java.io.Reader
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.net.URI
 import java.net.URL
 import java.sql.*
 import java.sql.Date
@@ -45,7 +46,7 @@ import javax.sql.rowset.serial.*
  *
  * @since 2.7
  */
-@Suppress("LargeClass", "MethodOverloading")
+@Suppress("LargeClass")
 public open class CachedRowSet(rs: ResultSet) : ResultSet {
     private val _typeMap = readTypeMap(rs)
     private val _metadata = readMetadata(rs)
@@ -1153,7 +1154,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
             is URL -> value
-            is String -> URL(value)
+            is String -> URI(value).toURL()
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to URL.")
         }
     }

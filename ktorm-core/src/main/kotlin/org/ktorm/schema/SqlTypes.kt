@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -504,6 +504,9 @@ public inline fun <reified C : Enum<C>> BaseTable<*>.enum(name: String): Column<
  * @property enumClass the enum class.
  */
 public class EnumSqlType<C : Enum<C>>(public val enumClass: Class<C>) : SqlType<C>(Types.OTHER, "enum") {
+    @Suppress("UNCHECKED_CAST")
+    public constructor(typeRef: TypeReference<C>) : this(typeRef.referencedType as Class<C>)
+
     private val pgStatementClass =
         try { Class.forName("org.postgresql.PGStatement") } catch (_: ClassNotFoundException) { null }
 
