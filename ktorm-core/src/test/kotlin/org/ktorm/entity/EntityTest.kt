@@ -48,6 +48,50 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testEntityChangedPropertiesInitializer() {
+        val employee = Employee { name = "walter" }
+        println(employee)
+
+        assert(employee.changedProperties.size == 1)
+        assert(employee.changedProperties.contains("name"))
+        assert(employee.changedProperties["name"] == null)
+    }
+
+    @Test
+    fun testEntityChangedPropertiesSetter() {
+        val employee = Employee { }
+        println(employee)
+
+        val oldChangedPropertiesIsEmpty = employee.changedProperties.isEmpty()
+
+        employee.name = "walter"
+        println(employee)
+
+        assert(oldChangedPropertiesIsEmpty)
+        assert(employee.changedProperties.size == 1)
+        assert(employee.changedProperties.contains("name"))
+        assert(employee.changedProperties["name"] == null)
+    }
+
+    @Test
+    fun testEntityChangedPropertiesMultiple() {
+        val employee = Employee { }.copy()
+        println(employee)
+
+        val oldChangedPropertiesIsEmpty = employee.changedProperties.isEmpty()
+
+        employee.name = "walter"
+        println(employee)
+        employee.name = "vince"
+        println(employee)
+
+        assert(oldChangedPropertiesIsEmpty)
+        assert(employee.changedProperties.size == 1)
+        assert(employee.changedProperties.containsKey("name"))
+        assert(employee.changedProperties["name"] == null)
+    }
+
+    @Test
     fun testDefaultMethod() {
         for (method in Employee::class.java.methods) {
             println(method)
