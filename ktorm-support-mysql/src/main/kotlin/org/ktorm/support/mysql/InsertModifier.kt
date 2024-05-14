@@ -11,7 +11,6 @@ internal const val INSERT_MODIFIER_PROP_KEY = "insert_modifier"
 /**
  * Enum class represents insert modifiers in MySQL `insert [ignore|delayed] into ...` expressions.
  * see https://dev.mysql.com/doc/refman/8.3/en/insert.html
- * @since 3.7.0
  */
 public enum class InsertModifier {
     LOW_PRIORITY,
@@ -41,7 +40,6 @@ public enum class InsertModifier {
  * }
  * ```
  *
- * @since 3.7
  * @param table the table to be inserted.
  * @param modifier the insert modifier
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
@@ -84,7 +82,6 @@ public fun <T : BaseTable<*>> Database.insertWithModifier(
  * }
  * ```
  *
- * @since 3.7
  * @param table the table to be inserted.
  * @param block the DSL block, an extension function of [AssignmentsBuilder], used to construct the expression.
  * @return the effected row count.
