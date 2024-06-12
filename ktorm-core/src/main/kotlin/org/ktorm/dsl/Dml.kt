@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,7 +195,7 @@ public fun <T : BaseTable<*>> Database.insertAndGenerateKey(table: T, block: Ass
 /**
  * Get generated key from the row set.
  */
-internal fun <T : Any> CachedRowSet.getGeneratedKey(primaryKey: Column<T>): T? {
+public fun <T : Any> CachedRowSet.getGeneratedKey(primaryKey: Column<T>): T? {
     if (metaData.columnCount == 1) {
         return primaryKey.sqlType.getResult(this, 1)
     }

@@ -148,7 +148,6 @@ class CommonTest : BasePostgreSqlTest() {
             println(e.message)
             assert("too long" in e.message!!)
         }
-
     }
 
     enum class Mood {

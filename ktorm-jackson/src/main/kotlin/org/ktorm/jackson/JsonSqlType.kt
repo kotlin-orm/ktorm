@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,12 @@ public class JsonSqlType<T : Any>(
     public val objectMapper: ObjectMapper,
     public val javaType: JavaType
 ) : SqlType<T>(Types.OTHER, "json") {
+    public constructor(typeRef: TypeReference<T>) : this(sharedObjectMapper, typeRef)
+    public constructor(
+        objectMapper: ObjectMapper,
+        typeRef: TypeReference<T>
+    ) : this(objectMapper, objectMapper.constructType(typeRef.referencedType))
+
     // Access postgresql API by reflection, because it is not a JDK 9 module,
     // we are not able to require it in module-info.java.
     private val pgStatementClass = loadClass("org.postgresql.PGStatement")

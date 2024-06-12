@@ -52,14 +52,14 @@ complexity:
     active: true
     threshold: 12
     includeStaticDeclarations: false
-  ComplexMethod:
+  CyclomaticComplexMethod:
     active: true
     threshold: 20
     ignoreSingleWhenExpression: true
     ignoreSimpleWhenEntries: true
   LabeledExpression:
     active: true
-    ignoredLabels: ""
+    ignoredLabels: []
   LargeClass:
     active: true
     threshold: 600
@@ -72,7 +72,7 @@ complexity:
     constructorThreshold: 6
     ignoreDefaultParameters: true
   MethodOverloading:
-    active: true
+    active: false
     threshold: 7
   NestedBlockDepth:
     active: true
@@ -131,7 +131,7 @@ exceptions:
   active: true
   ExceptionRaisedInUnexpectedLocation:
     active: true
-    methodNames: 'toString,hashCode,equals,finalize'
+    methodNames: ['toString', 'hashCode', 'equals', 'finalize']
   InstanceOfCheckForException:
     active: true
   NotImplementedDeclaration:
@@ -144,14 +144,14 @@ exceptions:
     active: true
   SwallowedException:
     active: true
-    ignoredExceptionTypes: 'InterruptedException,NumberFormatException,ParseException,MalformedURLException'
+    ignoredExceptionTypes: ['InterruptedException', 'NumberFormatException', 'ParseException', 'MalformedURLException']
   ThrowingExceptionFromFinally:
     active: true
   ThrowingExceptionInMain:
     active: true
   ThrowingExceptionsWithoutMessageOrCause:
     active: true
-    exceptions: 'IllegalArgumentException,IllegalStateException,IOException'
+    exceptions: ['IllegalArgumentException', 'IllegalStateException', 'IOException']
   ThrowingNewInstanceOfSameException:
     active: true
   TooGenericExceptionCaught:
@@ -195,7 +195,6 @@ formatting:
     active: true
     autoCorrect: false
     indentSize: 4
-    continuationIndentSize: 4
   MaximumLineLength:
     active: false
     maxLineLength: 120
@@ -284,7 +283,7 @@ naming:
     enumEntryPattern: '^[A-Z][_a-zA-Z0-9]*'
   ForbiddenClassName:
     active: false
-    forbiddenName: ''
+    forbiddenName: []
   FunctionMaxLength:
     active: true
     maximumFunctionNameLength: 64
@@ -295,12 +294,10 @@ naming:
     active: true
     functionPattern: '^([a-z$][a-zA-Z$0-9]*)|(`.*`)$'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
   FunctionParameterNaming:
     active: true
     parameterPattern: '[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
   MatchingDeclarationName:
     active: true
   MemberNameEqualsClassName:
@@ -330,7 +327,6 @@ naming:
     variablePattern: '[a-z][A-Za-z0-9]*'
     privateVariablePattern: '(_)?[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
-    ignoreOverridden: true
 
 performance:
   active: true
@@ -345,8 +341,6 @@ performance:
 
 potential-bugs:
   active: true
-  DuplicateCaseInWhenExpression:
-    active: true
   EqualsAlwaysReturnsTrueOrFalse:
     active: true
   EqualsWithHashCodeExist:
@@ -382,7 +376,7 @@ style:
     active: true
   DataClassContainsFunctions:
     active: false
-    conversionFunctionPrefix: 'as'
+    conversionFunctionPrefix: ['as']
   EqualsNullCall:
     active: true
   EqualsOnSignatureLine:
@@ -394,22 +388,22 @@ style:
     includeLineWrapping: false
   ForbiddenComment:
     active: true
-    values: 'TODO:,FIXME:,STOPSHIP:'
+    comments: ['FIXME:', 'STOPSHIP:', 'TODO:']
   ForbiddenImport:
     active: false
-    imports: ''
+    imports: []
   ForbiddenVoid:
     active: true
   FunctionOnlyReturningConstant:
     active: true
     ignoreOverridableFunction: true
-    excludedFunctions: 'describeContents'
+    excludedFunctions: ['describeContents']
   LoopWithTooManyJumpStatements:
     active: true
     maxJumpCount: 2
   MagicNumber:
     active: true
-    ignoreNumbers: '-1,0,1,2,3,60'
+    ignoreNumbers: ['-1', '0', '1', '2', '3', '60']
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false
     ignoreConstantDeclaration: true
@@ -417,8 +411,10 @@ style:
     ignoreAnnotation: false
     ignoreNamedArgument: true
     ignoreEnums: false
-  MandatoryBracesIfStatements:
+  BracesOnIfStatements:
     active: true
+    singleLine: 'never'
+    multiLine: 'always'
   MaxLineLength:
     active: true
     maxLineLength: 120
@@ -439,8 +435,10 @@ style:
     active: true
   OptionalUnit:
     active: true
-  OptionalWhenBraces:
+  BracesOnWhenStatements:
     active: false
+    singleLine: 'never'
+    multiLine: 'necessary'
   PreferToOverPairSyntax:
     active: false
   ProtectedMemberInFinalClass:
@@ -450,7 +448,7 @@ style:
   ReturnCount:
     active: false
     max: 2
-    excludedFunctions: "equals"
+    excludedFunctions: ["equals"]
     excludeLabeled: false
     excludeReturnFromLambda: true
   SafeCast:
@@ -496,4 +494,4 @@ style:
     active: true
   WildcardImport:
     active: false
-    excludeImports: 'java.util.*,kotlinx.android.synthetic.*'
+    excludeImports: ['java.util.*', 'kotlinx.android.synthetic.*']
