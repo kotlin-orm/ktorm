@@ -1,7 +1,9 @@
 package org.ktorm.ksp.compiler.generator
 
 import org.junit.Test
+import org.ktorm.entity.Entity
 import org.ktorm.ksp.compiler.BaseKspTest
+import kotlin.reflect.KClass
 
 class TableClassGeneratorTest : BaseKspTest() {
 
@@ -101,7 +103,7 @@ class TableClassGeneratorTest : BaseKspTest() {
             assert(user.username == "jack")
             assert(user.phone == "12345")
         }
-    """.trimIndent(), "ktorm.allowReflection" to "true")
+    """.trimIndent(), emptyList(), "ktorm.allowReflection" to "true")
 
     @Test
     fun `ignore properties`() = runKotlin("""
@@ -199,4 +201,29 @@ class TableClassGeneratorTest : BaseKspTest() {
             assert(Users.columns.map { it.name }.toSet() == setOf("id", "class", "operator"))
         }
     """.trimIndent())
+
+    @Test
+    fun `super class`() = runKotlin("""
+        @Table(superClass = CstmTable::class)
+        interface User: Entity<User> {
+            @PrimaryKey
+            var id: Int
+            var `class`: String
+            var operator: String
+        }
+
+        fun run() {
+            assert(CstmTable::class.isSubclassOf(CstmTable::class))
+        }
+    """.trimIndent(), listOf("org.ktorm.ksp.compiler.generator.CstmTable", "kotlin.reflect.full.*"))
 }
+
+abstract class CstmTable<E: Entity<E>>(
+    tableName: String,
+    alias: String? = null,
+    catalog: String? = null,
+    schema: String? = null,
+    entityClass: KClass<E>? = null
+) : org.ktorm.schema.Table<E>(
+    tableName, alias, catalog, schema, entityClass
+)

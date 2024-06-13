@@ -28,6 +28,7 @@ import org.ktorm.ksp.spi.CodingNamingStrategy
 import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.DatabaseNamingStrategy
 import org.ktorm.ksp.spi.TableMetadata
+import org.ktorm.schema.BaseTable
 import org.ktorm.schema.TypeReference
 import java.lang.reflect.InvocationTargetException
 import java.util.*
@@ -93,6 +94,9 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
         _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: $className")
         val table = cls.getAnnotationsByType(Table::class).first()
+        val superClass = table.superClass.takeIf { it != Nothing::class }
+            ?: if (cls.classKind == INTERFACE) org.ktorm.schema.Table::class else BaseTable::class
+
         val tableMetadata = TableMetadata(
             entityClass = cls,
             name = table.name.ifEmpty { _databaseNamingStrategy.getTableName(cls) },
@@ -102,7 +106,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             tableClassName = table.className.ifEmpty { _codingNamingStrategy.getTableClassName(cls) },
             entitySequenceName = table.entitySequenceName.ifEmpty { _codingNamingStrategy.getEntitySequenceName(cls) },
             ignoreProperties = table.ignoreProperties.toSet(),
-            columns = ArrayList()
+            columns = ArrayList(),
+            superClass = superClass
         )
 
         val columns = tableMetadata.columns as MutableList

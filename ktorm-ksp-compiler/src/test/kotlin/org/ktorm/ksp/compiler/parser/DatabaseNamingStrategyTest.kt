@@ -101,7 +101,7 @@ class DatabaseNamingStrategyTest : BaseKspTest() {
             assert(UserProfiles.tableName == "USER_PROFILE")
             assert(UserProfiles.columns.map { it.name }.toSet() == setOf("ID", "PUBLIC_EMAIL", "PROFILE_PICTURE", "COMPANY_ID"))
         }
-    """.trimIndent(), "ktorm.dbNamingStrategy" to "upper-snake-case")
+    """.trimIndent(), emptyList(), "ktorm.dbNamingStrategy" to "upper-snake-case")
 
     @Test
     fun testUpperCamelCaseNamingByClassName() = runKotlin("""
@@ -128,5 +128,5 @@ class DatabaseNamingStrategyTest : BaseKspTest() {
             assert(UserProfiles.tableName == "USER_PROFILE")
             assert(UserProfiles.columns.map { it.name }.toSet() == setOf("ID", "PUBLIC_EMAIL", "PROFILE_PICTURE", "COMPANY_ID"))
         }
-    """.trimIndent(), "ktorm.dbNamingStrategy" to "org.ktorm.ksp.compiler.util.UpperSnakeCaseDatabaseNamingStrategy")
+    """.trimIndent(), emptyList(), "ktorm.dbNamingStrategy" to "org.ktorm.ksp.compiler.util.UpperSnakeCaseDatabaseNamingStrategy")
 }

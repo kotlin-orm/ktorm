@@ -17,6 +17,7 @@
 package org.ktorm.ksp.spi
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import kotlin.reflect.KClass
 
 /**
  * Table definition metadata.
@@ -66,5 +67,10 @@ public data class TableMetadata(
     /**
      * Columns in the table.
      */
-    val columns: List<ColumnMetadata>
+    val columns: List<ColumnMetadata>,
+
+    /**
+     * The super class of the table class in the generated code.
+     */
+    val superClass: KClass<*>
 )

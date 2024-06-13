@@ -40,14 +40,14 @@ abstract class BaseKspTest {
     }
 
     protected fun kspFailing(message: String, @Language("kotlin") code: String, vararg options: Pair<String, String>) {
-        val result = compile(code, mapOf(*options))
+        val result = compile(code, emptyList(), mapOf(*options))
         assert(result.exitCode == KotlinCompilation.ExitCode.COMPILATION_ERROR)
         assert(result.messages.contains("e: Error occurred in KSP, check log for detail"))
         assert(result.messages.contains(message))
     }
 
-    protected fun runKotlin(@Language("kotlin") code: String, vararg options: Pair<String, String>) {
-        val result = compile(code, mapOf(*options))
+    protected fun runKotlin(@Language("kotlin") code: String, additionalImports: List<String> = emptyList(), vararg options: Pair<String, String>) {
+        val result = compile(code, additionalImports, mapOf(*options))
         assert(result.exitCode == KotlinCompilation.ExitCode.OK)
 
         try {
@@ -59,7 +59,7 @@ abstract class BaseKspTest {
         }
     }
 
-    private fun compile(@Language("kotlin") code: String, options: Map<String, String>): KotlinCompilation.Result {
+    private fun compile(@Language("kotlin") code: String, additionalImports: List<String>, options: Map<String, String>): KotlinCompilation.Result {
         @Language("kotlin")
         val header = """
             import java.math.*
@@ -72,6 +72,8 @@ abstract class BaseKspTest {
             import org.ktorm.dsl.*
             import org.ktorm.entity.*
             import org.ktorm.ksp.annotation.*
+
+            ${additionalImports.joinToString("\n") { "import $it" }}
             
             lateinit var database: Database
             

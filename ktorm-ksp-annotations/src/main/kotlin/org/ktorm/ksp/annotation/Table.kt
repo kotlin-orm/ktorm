@@ -16,6 +16,9 @@
 
 package org.ktorm.ksp.annotation
 
+import org.ktorm.schema.BaseTable
+import kotlin.reflect.KClass
+
 /**
  * Specify the table for an entity class.
  */
@@ -81,4 +84,12 @@ public annotation class Table(
      * Specify properties that should be ignored for generating column definitions.
      */
     val ignoreProperties: Array<String> = [],
+
+    /**
+     * The super class of the generated table class.
+     *
+     * If not specified, the super class will be determined based on the class kind of the entity:
+     * `org.ktorm.schema.BaseTable` for interfaces, and `org.ktorm.schema.Table` for classes.
+     */
+    val superClass: KClass<out BaseTable<out Any>> = Nothing::class
 )
