@@ -47,7 +47,7 @@ internal object TableClassGenerator {
     }
 
     private fun TypeSpec.Builder.configureSuperClass(table: TableMetadata): TypeSpec.Builder {
-        superclass(table.superClass.asClassName().parameterizedBy(table.entityClass.toClassName()))
+        superclass(table.superClassName.parameterizedBy(table.entityClass.toClassName()))
 
         addSuperclassConstructorParameter("%S", table.name)
         addSuperclassConstructorParameter("alias")

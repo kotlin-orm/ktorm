@@ -19,8 +19,14 @@ package org.ktorm.ksp.compiler.parser
 import com.google.devtools.ksp.*
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.symbol.ClassKind.*
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
+import com.squareup.kotlinpoet.ksp.toClassName
 import org.ktorm.entity.Entity
 import org.ktorm.ksp.annotation.*
 import org.ktorm.ksp.compiler.util.*
@@ -32,6 +38,7 @@ import org.ktorm.schema.BaseTable
 import org.ktorm.schema.TypeReference
 import java.lang.reflect.InvocationTargetException
 import java.util.*
+import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
 @OptIn(KspExperimental::class)
@@ -94,8 +101,19 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
         _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: $className")
         val table = cls.getAnnotationsByType(Table::class).first()
-        val superClass = table.superClass.takeIf { it != Nothing::class }
-            ?: if (cls.classKind == INTERFACE) org.ktorm.schema.Table::class else BaseTable::class
+
+        // due to the BUG of KSP, we cannot use `table.superClass` directly, so we use `parseAnnotationClassParameter` to get the value
+        // https://github.com/google/ksp/issues/1038
+        // TODO: remove the workaround after the bug is fixed
+        val annotationSuperClass = parseAnnotationClassParameter(table)
+        val superClass = if (annotationSuperClass != Nothing::class.asClassName()) {
+            annotationSuperClass
+        } else if(cls.classKind == INTERFACE) {
+            org.ktorm.schema.Table::class.asClassName()
+        }else {
+            BaseTable::class.asClassName()
+        }
+
 
         val tableMetadata = TableMetadata(
             entityClass = cls,
@@ -107,7 +125,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             entitySequenceName = table.entitySequenceName.ifEmpty { _codingNamingStrategy.getEntitySequenceName(cls) },
             ignoreProperties = table.ignoreProperties.toSet(),
             columns = ArrayList(),
-            superClass = superClass
+            superClassName = superClass
         )
 
         val columns = tableMetadata.columns as MutableList
@@ -300,5 +318,18 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         }
 
         stack.pop()
+    }
+
+    @OptIn(KspExperimental::class, KotlinPoetKspPreview::class)
+    private fun parseAnnotationClassParameter(table: Table): ClassName {
+        return try {
+            ClassName(table.superClass.java.`package`.name, table.superClass.simpleName.orEmpty())
+        } catch (e: KSTypeNotPresentException) {
+            if (e.ksType.declaration is KSClassDeclaration){
+                return (e.ksType.declaration as KSClassDeclaration).toClassName()
+            }else {
+                throw e
+            }
+        }
     }
 }
