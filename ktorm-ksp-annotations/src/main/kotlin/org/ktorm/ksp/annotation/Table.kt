@@ -89,7 +89,7 @@ public annotation class Table(
      * The super class of the generated table class.
      *
      * If not specified, the super class will be determined based on the class kind of the entity:
-     * `org.ktorm.schema.BaseTable` for interfaces, and `org.ktorm.schema.Table` for classes.
+     * `org.ktorm.schema.Table` for interfaces, and `org.ktorm.schema.BaseTable` for classes.
      */
     val superClass: KClass<out BaseTable<out Any>> = Nothing::class
 )
