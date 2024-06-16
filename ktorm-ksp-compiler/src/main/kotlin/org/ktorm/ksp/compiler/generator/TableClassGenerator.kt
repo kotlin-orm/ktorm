@@ -49,11 +49,7 @@ internal object TableClassGenerator {
     }
 
     private fun TypeSpec.Builder.configureSuperClass(table: TableMetadata): TypeSpec.Builder {
-        if (table.entityClass.classKind == ClassKind.INTERFACE) {
-            superclass(Table::class.asClassName().parameterizedBy(table.entityClass.toClassName()))
-        } else {
-            superclass(BaseTable::class.asClassName().parameterizedBy(table.entityClass.toClassName()))
-        }
+        superclass(table.superClass.parameterizedBy(table.entityClass.toClassName()))
 
         addSuperclassConstructorParameter("%S", table.name)
         addSuperclassConstructorParameter("alias")

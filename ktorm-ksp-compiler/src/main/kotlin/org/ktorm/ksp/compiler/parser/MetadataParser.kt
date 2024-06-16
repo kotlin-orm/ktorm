@@ -29,6 +29,10 @@ import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.DatabaseNamingStrategy
 import org.ktorm.ksp.spi.TableMetadata
 import org.ktorm.schema.TypeReference
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
+import com.squareup.kotlinpoet.ksp.toClassName
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.reflect.jvm.jvmName
@@ -93,6 +97,9 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
         _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: $className")
         val table = cls.getAnnotationsByType(Table::class).first()
+        val (superClass, superTableClasses) = parseSuperTableClass(cls)
+        val allPropertyNamesOfSuperTables = superTableClasses.flatMap { it.getProperties(emptySet()) }.map { it.simpleName.asString() }
+
         val tableMetadata = TableMetadata(
             entityClass = cls,
             name = table.name.ifEmpty { _databaseNamingStrategy.getTableName(cls) },
@@ -101,8 +108,9 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             schema = table.schema.ifEmpty { _options["ktorm.schema"] }?.takeIf { it.isNotEmpty() },
             tableClassName = table.className.ifEmpty { _codingNamingStrategy.getTableClassName(cls) },
             entitySequenceName = table.entitySequenceName.ifEmpty { _codingNamingStrategy.getEntitySequenceName(cls) },
-            ignoreProperties = table.ignoreProperties.toSet(),
-            columns = ArrayList()
+            ignoreProperties = table.ignoreProperties.toSet() + allPropertyNamesOfSuperTables, // ignore properties of super tables
+            columns = ArrayList(),
+            superClass = superClass
         )
 
         val columns = tableMetadata.columns as MutableList
@@ -272,6 +280,51 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             columnPropertyName = propertyName,
             refTablePropertyName = refTablePropertyName
         )
+    }
+
+    /**
+     * @return the super table class and all class be annotated with [SuperTableClass] in the inheritance hierarchy.
+     */
+    @OptIn(KotlinPoetKspPreview::class)
+    private fun parseSuperTableClass(cls: KSClassDeclaration): Pair<ClassName, Set<KSClassDeclaration>> {
+        val superTableClassAnnPair = cls.findAllAnnotationsInInheritanceHierarchy(SuperTableClass::class.qualifiedName!!)
+
+        // if there is no SuperTableClass annotation, return the default super table class based on the class kind.
+        if (superTableClassAnnPair.isEmpty()) {
+            return if (cls.classKind == INTERFACE) {
+                org.ktorm.schema.Table::class.asClassName() to emptySet()
+            } else {
+                org.ktorm.schema.BaseTable::class.asClassName() to emptySet()
+            }
+        }
+
+        // SuperTableClass annotation can only be used on interface
+        if (superTableClassAnnPair.map { it.first }.any { it.classKind != INTERFACE }) {
+            val msg = "SuperTableClass annotation can only be used on interface."
+            throw IllegalArgumentException(msg)
+        }
+
+        // find the last annotation in the inheritance hierarchy
+        val superTableClasses = superTableClassAnnPair
+            .map { it.second }
+            .map { it.arguments.single { it.name?.asString() == SuperTableClass::value.name } }
+            .map { it.value as KSType }
+            .map { it.declaration as KSClassDeclaration }
+
+        var lowestSubClass = superTableClasses.first()
+        for (i in 1 until superTableClasses.size) {
+            val cur = superTableClasses[i]
+            if (cur.isSubclassOf(lowestSubClass)) {
+                lowestSubClass = cur
+            } else if (!lowestSubClass.isSubclassOf(cur)) {
+                val msg =
+                    "There are multiple SuperTableClass annotations in the inheritance hierarchy of class ${cls.qualifiedName?.asString()}," +
+                            "but the values of annotation are not in the same inheritance hierarchy."
+                throw IllegalArgumentException(msg)
+            }
+        }
+        //TODO: to check All constructor parameters owned by `BaseTable` should also be owned by lowestSubClass.
+        return lowestSubClass.toClassName() to superTableClasses.toSet()
     }
 
     private fun TableMetadata.checkCircularRef(ref: KSClassDeclaration, stack: LinkedList<String> = LinkedList()) {

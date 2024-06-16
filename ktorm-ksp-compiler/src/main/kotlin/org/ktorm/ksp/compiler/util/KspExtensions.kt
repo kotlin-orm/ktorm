@@ -57,6 +57,13 @@ internal inline fun <reified T : Any> KSClassDeclaration.isSubclassOf(): Boolean
 }
 
 /**
+ * Check if this class is a subclass of declaration.
+ */
+internal fun KSClassDeclaration.isSubclassOf(declaration: KSClassDeclaration): Boolean {
+    return findSuperTypeReference(declaration.qualifiedName!!.asString()) != null
+}
+
+/**
  * Find the specific super type reference for this class.
  */
 internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeReference? {
@@ -75,6 +82,24 @@ internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeRefe
 
     return null
 }
+
+/**
+ * Find all annotations with the given name in the inheritance hierarchy of this class.
+ *
+ * @param name the qualified name of the annotation.
+ */
+internal fun KSClassDeclaration.findAllAnnotationsInInheritanceHierarchy(name: String): List<Pair<KSClassDeclaration, KSAnnotation>> {
+    val rst = mutableListOf<Pair<KSClassDeclaration, KSAnnotation>>()
+
+    fun KSClassDeclaration.collectAnnotations() {
+        rst += annotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() == name }.map { this to it }
+        superTypes.forEach { (it.resolve().declaration as KSClassDeclaration).collectAnnotations() }
+    }
+
+    collectAnnotations()
+    return rst
+}
+
 
 /**
  * Check if the given symbol is valid.

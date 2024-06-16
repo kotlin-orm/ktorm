@@ -61,7 +61,7 @@ abstract class BaseKspTest {
 
     private fun compile(@Language("kotlin") code: String, options: Map<String, String>): KotlinCompilation.Result {
         @Language("kotlin")
-        val header = """
+        val source = """
             import java.math.*
             import java.sql.*
             import java.time.*
@@ -73,12 +73,13 @@ abstract class BaseKspTest {
             import org.ktorm.entity.*
             import org.ktorm.ksp.annotation.*
             
+            $code
+            
             lateinit var database: Database
             
             
         """.trimIndent()
 
-        val source = header + code
         printFile(source, "Source.kt")
 
         val compilation = createCompilation(SourceFile.kotlin("Source.kt", source), options)
