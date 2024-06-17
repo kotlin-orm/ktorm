@@ -324,7 +324,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
                 throw IllegalArgumentException(msg)
             }
         }
-        //TODO: to check All constructor parameters owned by `BaseTable` should also be owned by lowestSubClass.
+
         return lowestSubClass.toClassName() to superTableClasses.toSet()
     }
 

@@ -46,7 +46,7 @@ class SuperTableClassTest : BaseKspTest() {
 
         @Table
         @SuperTableClass(UserBaseTable::class)
-        data class Department(
+        data class User(
             val id: Int,
             val name: String
         )
@@ -212,6 +212,59 @@ class SuperTableClassTest : BaseKspTest() {
         @Table(className = "CTable")
         interface CEntity : AEntity<CEntity>, BEntity<CEntity> {
             var c: Int
+        }
+    """.trimIndent()
+    )
+
+    @Test
+    fun minimumSuperTableClassParameter() = runKotlin(
+        """
+        import kotlin.reflect.full.isSubclassOf
+
+        abstract class UserBaseTable<E : Entity<E>>(
+            tableName: String,
+            alias: String? = null,
+        ) : org.ktorm.schema.Table<E>(
+            tableName, alias
+        )
+
+        @Table
+        @SuperTableClass(UserBaseTable::class)
+        interface User : Entity<User> {
+            var id: Int
+            var name: String
+        }
+
+        fun run() {
+            assert(Users::class.isSubclassOf(UserBaseTable::class))
+        }
+    """.trimIndent()
+    )
+
+    @Test
+    fun lackAliasParameter() = compileFailing(
+        "Too many arguments for public constructor", """
+        abstract class UserBaseTable<E : Entity<E>>(tableName: String) : org.ktorm.schema.Table<E>(tableName)
+
+        @Table
+        @SuperTableClass(UserBaseTable::class)
+        interface User : Entity<User> {
+            var id: Int
+            var name: String
+        }
+    """.trimIndent()
+    )
+
+    @Test
+    fun lackTableNameParameter() = compileFailing(
+        "Too many arguments for public constructor", """
+        abstract class UserBaseTable<E : Entity<E>>(alias: String?) : org.ktorm.schema.Table<E>(alias = alias)
+
+        @Table
+        @SuperTableClass(UserBaseTable::class)
+        interface User : Entity<User> {
+            var id: Int
+            var name: String
         }
     """.trimIndent()
     )
