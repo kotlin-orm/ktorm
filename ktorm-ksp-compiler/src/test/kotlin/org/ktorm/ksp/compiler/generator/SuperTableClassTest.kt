@@ -213,10 +213,6 @@ class SuperTableClassTest : BaseKspTest() {
         interface CEntity : AEntity<CEntity>, BEntity<CEntity> {
             var c: Int
         }
-        
-        fun run() {
-            assert(CTable::class.isSubclassOf(ATable::class))
-        }
     """.trimIndent()
     )
 

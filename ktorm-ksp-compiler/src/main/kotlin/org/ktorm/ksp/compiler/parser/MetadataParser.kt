@@ -97,8 +97,9 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
         _logger.info("[ktorm-ksp-compiler] parse table metadata from entity: $className")
         val table = cls.getAnnotationsByType(Table::class).first()
-        val (superClass, superTableClasses) = parseSuperTableClass(cls)
-        val allPropertyNamesOfSuperTables = superTableClasses.flatMap { it.getProperties(emptySet()) }.map { it.simpleName.asString() }
+
+        val (finalSuperClass, allSuperTableClasses) = parseSuperTableClass(cls)
+        val shouldIgnorePropertyNames = allSuperTableClasses.flatMap { it.getProperties(emptySet()) }.map { it.simpleName.asString() }
 
         val tableMetadata = TableMetadata(
             entityClass = cls,
@@ -108,9 +109,9 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             schema = table.schema.ifEmpty { _options["ktorm.schema"] }?.takeIf { it.isNotEmpty() },
             tableClassName = table.className.ifEmpty { _codingNamingStrategy.getTableClassName(cls) },
             entitySequenceName = table.entitySequenceName.ifEmpty { _codingNamingStrategy.getEntitySequenceName(cls) },
-            ignoreProperties = table.ignoreProperties.toSet() + allPropertyNamesOfSuperTables, // ignore properties of super tables
+            ignoreProperties = table.ignoreProperties.toSet() + shouldIgnorePropertyNames,
             columns = ArrayList(),
-            superClass = superClass
+            superClass = finalSuperClass
         )
 
         val columns = tableMetadata.columns as MutableList
@@ -283,14 +284,14 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     }
 
     /**
-     * @return the super table class and all class be annotated with [SuperTableClass] in the inheritance hierarchy.
+     * @return the final super table class and all super table classes in the inheritance hierarchy.
      */
     @OptIn(KotlinPoetKspPreview::class)
     private fun parseSuperTableClass(cls: KSClassDeclaration): Pair<ClassName, Set<KSClassDeclaration>> {
-        val superTableClassAnnPair = cls.findAllAnnotationsInInheritanceHierarchy(SuperTableClass::class.qualifiedName!!)
+        val entityAnnPairs = cls.findAnnotationsInHierarchy(SuperTableClass::class.qualifiedName!!)
 
         // if there is no SuperTableClass annotation, return the default super table class based on the class kind.
-        if (superTableClassAnnPair.isEmpty()) {
+        if (entityAnnPairs.isEmpty()) {
             return if (cls.classKind == INTERFACE) {
                 org.ktorm.schema.Table::class.asClassName() to emptySet()
             } else {
@@ -299,13 +300,13 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         }
 
         // SuperTableClass annotation can only be used on interface
-        if (superTableClassAnnPair.map { it.first }.any { it.classKind != INTERFACE }) {
+        if (entityAnnPairs.map { it.first }.any { it.classKind != INTERFACE }) {
             val msg = "SuperTableClass annotation can only be used on interface."
             throw IllegalArgumentException(msg)
         }
 
         // find the last annotation in the inheritance hierarchy
-        val superTableClasses = superTableClassAnnPair
+        val superTableClasses = entityAnnPairs
             .map { it.second }
             .map { it.arguments.single { it.name?.asString() == SuperTableClass::value.name } }
             .map { it.value as KSType }

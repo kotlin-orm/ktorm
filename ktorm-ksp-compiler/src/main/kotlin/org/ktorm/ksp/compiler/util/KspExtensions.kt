@@ -87,17 +87,18 @@ internal fun KSClassDeclaration.findSuperTypeReference(name: String): KSTypeRefe
  * Find all annotations with the given name in the inheritance hierarchy of this class.
  *
  * @param name the qualified name of the annotation.
+ * @return a list of pairs, each pair contains the class declaration and the annotation.
  */
-internal fun KSClassDeclaration.findAllAnnotationsInInheritanceHierarchy(name: String): List<Pair<KSClassDeclaration, KSAnnotation>> {
-    val rst = mutableListOf<Pair<KSClassDeclaration, KSAnnotation>>()
+internal fun KSClassDeclaration.findAnnotationsInHierarchy(name: String): List<Pair<KSClassDeclaration, KSAnnotation>> {
+    val pairs = mutableListOf<Pair<KSClassDeclaration, KSAnnotation>>()
 
     fun KSClassDeclaration.collectAnnotations() {
-        rst += annotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() == name }.map { this to it }
+        pairs += annotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() == name }.map { this to it }
         superTypes.forEach { (it.resolve().declaration as KSClassDeclaration).collectAnnotations() }
     }
 
     collectAnnotations()
-    return rst
+    return pairs
 }
 
 
