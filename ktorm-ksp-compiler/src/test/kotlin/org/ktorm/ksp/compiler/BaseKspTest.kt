@@ -39,12 +39,6 @@ abstract class BaseKspTest {
         }
     }
 
-    protected fun compileFailing(message: String, @Language("kotlin") code: String, vararg options: Pair<String, String>) {
-        val result = compile(code, mapOf(*options))
-        assert(result.exitCode == KotlinCompilation.ExitCode.COMPILATION_ERROR)
-        assert(result.messages.contains(message))
-    }
-
     protected fun kspFailing(message: String, @Language("kotlin") code: String, vararg options: Pair<String, String>) {
         val result = compile(code, mapOf(*options))
         assert(result.exitCode == KotlinCompilation.ExitCode.COMPILATION_ERROR)

@@ -21,6 +21,10 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.symbol.ClassKind.*
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.asClassName
+import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
+import com.squareup.kotlinpoet.ksp.toClassName
 import org.ktorm.entity.Entity
 import org.ktorm.ksp.annotation.*
 import org.ktorm.ksp.compiler.util.*
@@ -29,10 +33,6 @@ import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.DatabaseNamingStrategy
 import org.ktorm.ksp.spi.TableMetadata
 import org.ktorm.schema.TypeReference
-import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.asClassName
-import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
-import com.squareup.kotlinpoet.ksp.toClassName
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import kotlin.reflect.jvm.jvmName
@@ -99,7 +99,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         val table = cls.getAnnotationsByType(Table::class).first()
 
         val (finalSuperClass, allSuperTableClasses) = parseSuperTableClass(cls)
-        val shouldIgnorePropertyNames = allSuperTableClasses.flatMap { it.getProperties(emptySet()) }.map { it.simpleName.asString() }
+        val shouldIgnorePropertyNames =
+            allSuperTableClasses.flatMap { it.getProperties(emptySet()) }.map { it.simpleName.asString() }
 
         val tableMetadata = TableMetadata(
             entityClass = cls,
@@ -205,8 +206,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
 
             if (!hasConstructor) {
                 val msg = "" +
-                    "Parse sqlType error for property $propName: the sqlType should be a Kotlin singleton object or " +
-                    "a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument."
+                        "Parse sqlType error for property $propName: the sqlType should be a Kotlin singleton object or " +
+                        "a normal class with a constructor that accepts a single org.ktorm.schema.TypeReference argument."
                 throw IllegalArgumentException(msg)
             }
         }
@@ -305,13 +306,25 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             throw IllegalArgumentException(msg)
         }
 
-        // find the last annotation in the inheritance hierarchy
         val superTableClasses = entityAnnPairs
             .map { it.second }
             .map { it.arguments.single { it.name?.asString() == SuperTableClass::value.name } }
             .map { it.value as KSType }
             .map { it.declaration as KSClassDeclaration }
 
+        val lowestSubClass = findLowestSubClass(superTableClasses, cls)
+
+        validateSuperTableClassConstructor(lowestSubClass)
+
+        return lowestSubClass.toClassName() to superTableClasses.toSet()
+    }
+
+
+    // find the last annotation in the inheritance hierarchy
+    private fun findLowestSubClass(
+        superTableClasses: List<KSClassDeclaration>,
+        cls: KSClassDeclaration,
+    ): KSClassDeclaration {
         var lowestSubClass = superTableClasses.first()
         for (i in 1 until superTableClasses.size) {
             val cur = superTableClasses[i]
@@ -324,8 +337,22 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
                 throw IllegalArgumentException(msg)
             }
         }
+        return lowestSubClass
+    }
 
-        return lowestSubClass.toClassName() to superTableClasses.toSet()
+    private fun validateSuperTableClassConstructor(lowestSubClass: KSClassDeclaration) {
+        // validate the primary constructor of the super table class
+        if (lowestSubClass.primaryConstructor == null) {
+            val msg =
+                "The super table class ${lowestSubClass.qualifiedName?.asString()} should have a primary constructor."
+            throw IllegalArgumentException(msg)
+        }
+        val parameters = lowestSubClass.primaryConstructor!!.parameters
+        if (parameters.size < 2 || parameters[0].name!!.asString() != "tableName" || parameters[1].name!!.asString() != "alias") {
+            val msg =
+                "The super table class ${lowestSubClass.qualifiedName?.asString()} should have a primary constructor with parameters tableName and alias."
+            throw IllegalArgumentException(msg)
+        }
     }
 
     private fun TableMetadata.checkCircularRef(ref: KSClassDeclaration, stack: LinkedList<String> = LinkedList()) {

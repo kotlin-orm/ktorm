@@ -242,8 +242,22 @@ class SuperTableClassTest : BaseKspTest() {
     )
 
     @Test
-    fun lackAliasParameter() = compileFailing(
-        "Too many arguments for public constructor", """
+    fun lackPrimaryConstructor() = kspFailing(
+        "should have a primary constructor with parameters tableName and alias.", """
+        abstract class UserBaseTable<E : Entity<E>> : org.ktorm.schema.Table<E>("t_user")
+
+        @Table
+        @SuperTableClass(UserBaseTable::class)
+        interface User : Entity<User> {
+            var id: Int
+            var name: String
+        }
+    """.trimIndent()
+    )
+
+    @Test
+    fun lackAliasParameter() = kspFailing(
+        "should have a primary constructor with parameters tableName and alias.", """
         abstract class UserBaseTable<E : Entity<E>>(tableName: String) : org.ktorm.schema.Table<E>(tableName)
 
         @Table
@@ -256,8 +270,8 @@ class SuperTableClassTest : BaseKspTest() {
     )
 
     @Test
-    fun lackTableNameParameter() = compileFailing(
-        "Too many arguments for public constructor", """
+    fun lackTableNameParameter() = kspFailing(
+        "should have a primary constructor with parameters tableName and alias.", """
         abstract class UserBaseTable<E : Entity<E>>(alias: String?) : org.ktorm.schema.Table<E>(alias = alias)
 
         @Table
