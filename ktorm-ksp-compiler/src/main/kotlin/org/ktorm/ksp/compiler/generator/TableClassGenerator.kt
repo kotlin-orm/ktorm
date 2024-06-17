@@ -28,9 +28,7 @@ import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.compiler.util.getKotlinType
 import org.ktorm.ksp.compiler.util.getRegisteringCodeBlock
 import org.ktorm.ksp.spi.TableMetadata
-import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
-import org.ktorm.schema.Table
 
 @OptIn(KotlinPoetKspPreview::class)
 internal object TableClassGenerator {

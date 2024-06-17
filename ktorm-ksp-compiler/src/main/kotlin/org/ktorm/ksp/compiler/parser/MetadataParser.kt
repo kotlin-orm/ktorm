@@ -289,7 +289,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
      */
     @OptIn(KotlinPoetKspPreview::class)
     private fun parseSuperTableClass(cls: KSClassDeclaration): Pair<ClassName, Set<KSClassDeclaration>> {
-        val entityAnnPairs = cls.findAnnotationsInHierarchy(SuperTableClass::class.qualifiedName!!)
+        val entityAnnPairs =
+            cls.findAnnotationsInHierarchy(SuperTableClass::class.qualifiedName!!)
 
         // if there is no SuperTableClass annotation, return the default super table class based on the class kind.
         if (entityAnnPairs.isEmpty()) {
@@ -319,7 +320,6 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
         return lowestSubClass.toClassName() to superTableClasses.toSet()
     }
 
-
     // find the last annotation in the inheritance hierarchy
     private fun findLowestSubClass(
         superTableClasses: List<KSClassDeclaration>,
@@ -331,26 +331,33 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             if (cur.isSubclassOf(lowestSubClass)) {
                 lowestSubClass = cur
             } else if (!lowestSubClass.isSubclassOf(cur)) {
-                val msg =
-                    "There are multiple SuperTableClass annotations in the inheritance hierarchy of class ${cls.qualifiedName?.asString()}," +
-                            "but the values of annotation are not in the same inheritance hierarchy."
+                val msg = """
+                    There are multiple SuperTableClass annotations in the inheritance hierarchy 
+                    of class ${cls.qualifiedName?.asString()}.
+                    but the values of annotation are not in the same inheritance hierarchy.
+                """.trimIndent()
                 throw IllegalArgumentException(msg)
             }
         }
         return lowestSubClass
     }
 
-    private fun validateSuperTableClassConstructor(lowestSubClass: KSClassDeclaration) {
-        // validate the primary constructor of the super table class
-        if (lowestSubClass.primaryConstructor == null) {
+    // validate the primary constructor of the super table class
+    private fun validateSuperTableClassConstructor(superTableClass: KSClassDeclaration) {
+        if (superTableClass.primaryConstructor == null) {
             val msg =
-                "The super table class ${lowestSubClass.qualifiedName?.asString()} should have a primary constructor."
+                "The super table class ${superTableClass.qualifiedName?.asString()} should have a primary constructor."
             throw IllegalArgumentException(msg)
         }
-        val parameters = lowestSubClass.primaryConstructor!!.parameters
-        if (parameters.size < 2 || parameters[0].name!!.asString() != "tableName" || parameters[1].name!!.asString() != "alias") {
-            val msg =
-                "The super table class ${lowestSubClass.qualifiedName?.asString()} should have a primary constructor with parameters tableName and alias."
+
+        val parameters = superTableClass.primaryConstructor!!.parameters
+        if (parameters.size < 2 ||
+            parameters[0].name!!.asString() != "tableName" ||
+            parameters[1].name!!.asString() != "alias"
+        ) {
+            val msg = "" +
+                    "The super table class ${superTableClass.qualifiedName?.asString()} should have " +
+                    "a primary constructor with parameters tableName and alias."
             throw IllegalArgumentException(msg)
         }
     }

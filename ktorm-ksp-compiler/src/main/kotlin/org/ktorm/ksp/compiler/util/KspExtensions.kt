@@ -93,14 +93,15 @@ internal fun KSClassDeclaration.findAnnotationsInHierarchy(name: String): List<P
     val pairs = mutableListOf<Pair<KSClassDeclaration, KSAnnotation>>()
 
     fun KSClassDeclaration.collectAnnotations() {
-        pairs += annotations.filter { it.annotationType.resolve().declaration.qualifiedName?.asString() == name }.map { this to it }
+        pairs += annotations
+            .filter { it.annotationType.resolve().declaration.qualifiedName?.asString() == name }
+            .map { this to it }
         superTypes.forEach { (it.resolve().declaration as KSClassDeclaration).collectAnnotations() }
     }
 
     collectAnnotations()
     return pairs
 }
-
 
 /**
  * Check if the given symbol is valid.
