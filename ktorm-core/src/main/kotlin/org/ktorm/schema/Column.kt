@@ -118,7 +118,7 @@ public data class Column<T : Any>(
      *
      * @see ColumnDeclaringExpression
      */
-    val label: String get() = toString(separator = "_")
+    val label: String by lazy { toString(separator = "_") }
 
     /**
      * Return all the bindings of this column, including the primary [binding] and [extraBindings].
