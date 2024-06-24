@@ -372,7 +372,7 @@ public abstract class BaseTable<E : Any>(
     /**
      * Convert this table to a [TableExpression].
      */
-    public fun asExpression(): TableExpression {
+    public open fun asExpression(): TableExpression {
         return TableExpression(tableName, alias, catalog, schema)
     }
 
