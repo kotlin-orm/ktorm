@@ -29,7 +29,7 @@ import kotlin.reflect.KProperty1
 public sealed class ColumnBinding
 
 /**
- * Bind the column to nested properties, eg. `employee.manager.department.id`.
+ * Bind the column to nested properties, e.g. `employee.manager.department.id`.
  *
  * @property properties the nested properties, cannot be empty.
  */

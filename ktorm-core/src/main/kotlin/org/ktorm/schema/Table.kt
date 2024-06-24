@@ -56,7 +56,7 @@ public open class Table<E : Entity<E>>(
 ) : BaseTable<E>(tableName, alias, catalog, schema, entityClass) {
 
     /**
-     * Bind the column to nested properties, eg. `employee.manager.department.id`.
+     * Bind the column to nested properties, e.g. `employee.manager.department.id`.
      *
      * Note: Since [Column] is immutable, this function will create a new [Column] instance and replace the origin
      * registered one.

@@ -52,7 +52,7 @@ public abstract class SqlExpression {
 }
 
 /**
- * Base class of scalar expressions. An expression is "scalar" if it has a return value (eg. `a + 1`).
+ * Base class of scalar expressions. An expression is "scalar" if it has a return value (e.g. `a + 1`).
  *
  * @param T the return value's type of this scalar expression.
  */
@@ -85,7 +85,7 @@ public abstract class QuerySourceExpression : SqlExpression()
  * @property orderBy a list of order-by expressions, used in the `order by` clause of a query.
  * @property offset the offset of the first returned record.
  * @property limit max record numbers returned by the query.
- * @property tableAlias the alias when this query is nested in another query's source, eg. `select * from (...) alias`.
+ * @property tableAlias the alias when this query is nested in another query's source, e.g. `select * from (...) alias`.
  */
 public sealed class QueryExpression : QuerySourceExpression() {
     public abstract val orderBy: List<OrderByExpression>
@@ -151,7 +151,7 @@ public data class InsertExpression(
 ) : SqlExpression()
 
 /**
- * Insert-from-query expression, eg. `insert into tmp(num) select 1 from dual`.
+ * Insert-from-query expression, e.g. `insert into tmp(num) select 1 from dual`.
  *
  * @property table the table to be inserted.
  * @property columns the columns to be inserted.
