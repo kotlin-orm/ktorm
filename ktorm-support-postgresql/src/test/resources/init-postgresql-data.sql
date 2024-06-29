@@ -74,4 +74,9 @@ insert into t_metadata(attrs)
 values ('a=>1, b=>2, c=>NULL'::hstore);
 
 insert into t_enum(current_mood)
-values ('HAPPY')
+values ('HAPPY');
+
+create table t_offset_datetime(
+   id serial primary key,
+   created_at timestamptz not null
+);
