@@ -155,6 +155,11 @@ publishing {
                         id.set("brohacz")
                         name.set("Michal Brosig")
                     }
+                    developer {
+                        id.set("qumn")
+                        name.set("qumn")
+                        email.set("2476573497@qq.com")
+                    }
                 }
             }
         }
