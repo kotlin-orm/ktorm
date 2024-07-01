@@ -75,7 +75,9 @@ public data class InsertOrUpdateExpression(
  * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
- * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
  *
  * ```kotlin
  * database.insertOrUpdate(Employees) {
@@ -90,6 +92,7 @@ public data class InsertOrUpdateExpression(
  *     }
  * }
  * ```
+ *
  * Generated SQL:
  *
  * ```sql
@@ -138,10 +141,13 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  * on conflict (id) do update set salary = t_employee.salary + ?
  * returning id
  * ```
- * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ *
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
  *
  * ```kotlin
- * database.insertOrUpdate(Employees) {
+ * val id = database.insertOrUpdateReturning(Employees, Employees.id) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -153,12 +159,14 @@ public fun <T : BaseTable<*>> Database.insertOrUpdate(
  *     }
  * }
  * ```
+ *
  * Generated SQL:
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?)
  * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * returning id
  * ```
  *
  * @since 3.4.0
@@ -207,10 +215,12 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
  * returning id, job
  * ```
  *
- * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
  *
  * ```kotlin
- * database.insertOrUpdate(Employees) {
+ * val (id, job) = database.insertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -222,12 +232,14 @@ public fun <T : BaseTable<*>, C : Any> Database.insertOrUpdateReturning(
  *     }
  * }
  * ```
+ *
  * Generated SQL:
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?)
  * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * returning id, job
  * ```
  *
  * @since 3.4.0
@@ -278,10 +290,13 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
  * returning id, job, salary
  * ```
  *
- * By default, the column used into the `on conflict` statement is the primary key you already defined in the schema definition. If you want, you can specify one or more columns for the `on conflict` statement like in the following example:
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
  *
  * ```kotlin
- * database.insertOrUpdate(Employees) {
+ * val (id, job, salary) =
+ * database.insertOrUpdateReturning(Employees, Triple(Employees.id, Employees.job, Employees.salary)) {
  *     set(it.id, 1)
  *     set(it.name, "vince")
  *     set(it.job, "engineer")
@@ -293,12 +308,14 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.insertOrUpdateReturni
  *     }
  * }
  * ```
+ *
  * Generated SQL:
  *
  * ```sql
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?)
  * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * returning id, job, salary
  * ```
  *
  * @since 3.4.0
