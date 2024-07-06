@@ -144,6 +144,14 @@ public interface Entity<E : Entity<E>> : Serializable {
     public val properties: Map<String, Any?>
 
     /**
+     * Return the immutable view of the original values for this entity's changed properties.
+     *
+     * Properties are set as changed when constructing an entity with non-default values or when setting a property.
+     * If the property is set to the same value it is still marked as changed.
+     */
+    public val changedProperties: Map<String, Any?>
+
+    /**
      * Update the property changes of this entity into the database and return the affected record number.
      *
      * Using this function, we need to note that:
