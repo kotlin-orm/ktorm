@@ -128,7 +128,7 @@ import kotlin.reflect.jvm.jvmErasure
  * refer to their documentation for more details.
  *
  * Besides of JDK serialization, the ktorm-jackson module also supports serializing entities in JSON format. This
- * module provides an extension for Jackson, the famous JSON framework in Java word. It supports serializing entity
+ * module provides an extension for Jackson, the famous JSON framework in Java world. It supports serializing entity
  * objects into JSON format and parsing JSONs as entity objects. More details can be found in its documentation.
  */
 public interface Entity<E : Entity<E>> : Serializable {
