@@ -69,12 +69,12 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * - For [Boolean] type, the default value is `false`.
  * - For [Char] type, the default value is `\u0000`.
- * - For number types (such as [Int], [Long], [Double], etc), the default value is zero.
+ * - For number types (such as [Int], [Long], [Double], etc.), the default value is zero.
  * - For [String] type, the default value is an empty string.
  * - For entity types, the default value is a new-created entity object which is empty.
  * - For enum types, the default value is the first value of the enum, whose ordinal is 0.
  * - For array types, the default value is a new-created empty array.
- * - For collection types (such as [Set], [List], [Map], etc), the default value is a new created mutable collection
+ * - For collection types (such as [Set], [List], [Map], etc.), the default value is a new created mutable collection
  * of the concrete type.
  * - For any other types, the default value is an instance created by its no-args constructor. If the constructor
  * doesn't exist, an exception is thrown.
@@ -156,7 +156,7 @@ public interface Entity<E : Entity<E>> : Serializable {
      * `fromDatabase` references point to the database they are obtained from. For entity objects created by
      * [Entity.create] or [Entity.Factory], their `fromDatabase` references are `null` initially, so we can not call
      * [flushChanges] on them. But once we use them with [add] or [update] function, `fromDatabase` will be modified
-     * to the current database, so we will be able to call [flushChanges] on them afterwards.
+     * to the current database, so we will be able to call [flushChanges] on them afterward.
      *
      * @see add
      * @see update
