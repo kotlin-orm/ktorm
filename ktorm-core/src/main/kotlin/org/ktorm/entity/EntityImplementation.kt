@@ -151,9 +151,11 @@ internal class EntityImplementation(
             throw UnsupportedOperationException(msg)
         }
 
-        // Map#putIfAbsent treats null as absent, but null is a valid entity value
-        if (!changedProperties.containsKey(name))
-            changedProperties[name] = this.values.getOrDefault(name, null)
+        // Save property changes and original values.
+        if (name !in changedProperties) {
+            changedProperties[name] = values[name]
+        }
+
         values[name] = value
     }
 
