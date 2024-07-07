@@ -22,7 +22,7 @@ import org.ktorm.expression.*
 import org.ktorm.schema.*
 
 /**
- * Insert the given entity into this sequence and return the affected record number.
+ * Insert the given entity into the table and return the affected record number.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
  * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the

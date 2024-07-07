@@ -144,10 +144,7 @@ public interface Entity<E : Entity<E>> : Serializable {
     public val properties: Map<String, Any?>
 
     /**
-     * Return the immutable view of the original values for this entity's changed properties.
-     *
-     * Properties are set as changed when constructing an entity with non-default values or when setting a property.
-     * If the property is set to the same value it is still marked as changed.
+     * Return the immutable view of this entity's changed properties and their original values.
      */
     public val changedProperties: Map<String, Any?>
 
@@ -174,8 +171,7 @@ public interface Entity<E : Entity<E>> : Serializable {
     /**
      * Clear the tracked property changes of this entity.
      *
-     * After calling this function, the [flushChanges] doesn't do anything anymore because the property changes
-     * are discarded.
+     * After calling this function, [flushChanges] will do nothing because property changes are discarded.
      */
     public fun discardChanges()
 
@@ -199,7 +195,7 @@ public interface Entity<E : Entity<E>> : Serializable {
      * Obtain a property's value by its name.
      *
      * Note that this function doesn't follow the rules of default values discussed in the class level documentation.
-     * If the value doesn't exist, we will return `null` simply.
+     * If the value doesn't exist, it will simply return `null`.
      */
     public operator fun get(name: String): Any?
 
@@ -229,8 +225,8 @@ public interface Entity<E : Entity<E>> : Serializable {
     public override fun hashCode(): Int
 
     /**
-     * Return a string representation of this table.
-     * The format is like `Employee{id=1, name=Eric, job=contributor, hireDate=2021-05-05, salary=50}`.
+     * Return a string representation of this entity.
+     * The format is like `Employee(id=1, name=Eric, job=contributor, hireDate=2021-05-05, salary=50)`.
      */
     public override fun toString(): String
 
