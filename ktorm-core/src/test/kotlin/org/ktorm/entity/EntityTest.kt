@@ -315,10 +315,41 @@ class EntityTest : BaseTest() {
         companion object : Entity.Factory<GrandChild>()
         var id: Int?
         var name: String?
+        var job: String?
     }
 
     object Parents : Table<Parent>("t_employee") {
         val id = int("id").primaryKey().bindTo { it.child?.grandChild?.id }
+        val name = varchar("name").bindTo { it.child?.grandChild?.name }
+        val job = varchar("job").bindTo { it.child?.grandChild?.job }
+    }
+
+    @Test
+    fun testInternalChangedPropertiesForNestedBinding1() {
+        val p1 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p1.child?.grandChild?.job = "Senior Engineer"
+        p1.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p1.implementation.changedProperties.size == 0)
+        assert(p1.child?.implementation?.changedProperties?.size == 0)
+        assert(p1.child?.grandChild?.implementation?.changedProperties?.size == 1)
+        assert(p1.child?.grandChild?.implementation?.changedProperties?.get("job") == "engineer")
+        assert(p1.flushChanges() == 1)
+    }
+
+    @Test
+    fun testInternalChangedPropertiesForNestedBinding2() {
+        val p2 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p2.child?.grandChild?.name = "Vincent"
+        p2.child?.grandChild?.job = "Senior Engineer"
+        p2.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p2.implementation.changedProperties.size == 0)
+        assert(p2.child?.implementation?.changedProperties?.size == 0)
+        assert(p2.child?.grandChild?.implementation?.changedProperties?.size == 2)
+        assert(p2.child?.grandChild?.implementation?.changedProperties?.get("name") == "vince")
+        assert(p2.child?.grandChild?.implementation?.changedProperties?.get("job") == "engineer")
+        assert(p2.flushChanges() == 1)
     }
 
     @Test
