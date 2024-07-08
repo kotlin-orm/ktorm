@@ -353,6 +353,29 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testChangedPropertiesForNestedBinding1() {
+        val p1 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p1.child?.grandChild?.job = "Senior Engineer"
+        p1.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p1.changedProperties.size == 1)
+        assert(p1.changedProperties["child"].toString() == "Child(grandChild=GrandChild(job=engineer))")
+        assert(p1.flushChanges() == 1)
+    }
+
+    @Test
+    fun testChangedPropertiesForNestedBinding2() {
+        val p2 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p2.child?.grandChild?.name = "Vincent"
+        p2.child?.grandChild?.job = "Senior Engineer"
+        p2.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p2.changedProperties.size == 1)
+        assert(p2.changedProperties["child"].toString() == "Child(grandChild=GrandChild(name=vince, job=engineer))")
+        assert(p2.flushChanges() == 1)
+    }
+
+    @Test
     fun testHasColumnValue() {
         val p1 = Parent()
         assert(!p1.implementation.hasColumnValue(Parents.id.binding!!))
