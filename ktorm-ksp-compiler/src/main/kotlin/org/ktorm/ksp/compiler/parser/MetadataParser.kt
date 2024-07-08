@@ -31,6 +31,7 @@ import org.ktorm.ksp.spi.TableMetadata
 import org.ktorm.schema.TypeReference
 import java.lang.reflect.InvocationTargetException
 import java.util.*
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmName
 
 @OptIn(KspExperimental::class)
@@ -119,6 +120,8 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
     }
 
     private fun KSClassDeclaration.getProperties(ignoreProperties: Set<String>): Sequence<KSPropertyDeclaration> {
+        val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
+
         val constructorParams = HashSet<String>()
         if (classKind == CLASS) {
             primaryConstructor?.parameters?.mapTo(constructorParams) { it.name!!.asString() }
@@ -129,7 +132,7 @@ internal class MetadataParser(resolver: Resolver, environment: SymbolProcessorEn
             .filterNot { it.isAnnotationPresent(Ignore::class) }
             .filterNot { classKind == CLASS && !it.hasBackingField }
             .filterNot { classKind == INTERFACE && !it.isAbstract() }
-            .filterNot { classKind == INTERFACE && it.simpleName.asString() in setOf("entityClass", "properties") }
+            .filterNot { classKind == INTERFACE && it.simpleName.asString() in skipNames }
             .sortedByDescending { it.simpleName.asString() in constructorParams }
     }
 

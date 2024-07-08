@@ -62,10 +62,11 @@ internal class EntitySerializers : SimpleSerializers() {
         }
 
         private fun findReadableProperties(entity: Entity<*>): Map<String, KProperty1<*, *>> {
+            val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
             return entity.entityClass.memberProperties
                 .asSequence()
                 .filter { it.isAbstract }
-                .filter { it.name != "entityClass" && it.name != "properties" }
+                .filter { it.name !in skipNames }
                 .filter { it.findAnnotationForSerialization<JsonIgnore>() == null }
                 .filter { prop ->
                     val jsonProperty = prop.findAnnotationForSerialization<JsonProperty>()

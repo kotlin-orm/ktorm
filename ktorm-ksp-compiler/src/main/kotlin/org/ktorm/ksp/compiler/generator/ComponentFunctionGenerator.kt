@@ -22,16 +22,19 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
+import org.ktorm.entity.Entity
 import org.ktorm.ksp.compiler.util._type
 import org.ktorm.ksp.spi.TableMetadata
+import kotlin.reflect.full.memberProperties
 
 @OptIn(KotlinPoetKspPreview::class)
 internal object ComponentFunctionGenerator {
 
     fun generate(table: TableMetadata): Sequence<FunSpec> {
+        val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
         return table.entityClass.getAllProperties()
             .filter { it.isAbstract() }
-            .filterNot { it.simpleName.asString() in setOf("entityClass", "properties") }
+            .filterNot { it.simpleName.asString() in skipNames }
             .mapIndexed { i, prop ->
                 FunSpec.builder("component${i + 1}")
                     .addKdoc("Return the value of [%L.%L]. ",
