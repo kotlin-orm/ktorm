@@ -50,4 +50,14 @@ public class EntityExtensionsApi {
     public fun Entity<*>.setColumnValue(binding: ColumnBinding, value: Any?) {
         implementation.setColumnValue(binding, value)
     }
+
+    /**
+     * Check if this entity is attached to the database.
+     *
+     * @since 4.1.0
+     */
+    public fun Entity<*>.isAttached(): Boolean {
+        val impl = this.implementation
+        return impl.fromDatabase != null && impl.fromTable != null && impl.parent == null
+    }
 }

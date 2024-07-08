@@ -145,6 +145,8 @@ public interface Entity<E : Entity<E>> : Serializable {
 
     /**
      * Return the immutable view of this entity's changed properties and their original values.
+     *
+     * @since 4.1.0
      */
     public val changedProperties: Map<String, Any?>
 
