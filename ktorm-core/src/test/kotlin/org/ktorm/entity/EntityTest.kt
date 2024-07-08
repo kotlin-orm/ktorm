@@ -376,6 +376,28 @@ class EntityTest : BaseTest() {
     }
 
     @Test
+    fun testChangedPropertiesForReferenceBinding() {
+        val e = database.employees.find { it.id eq 1 } ?: throw AssertionError()
+        e.name = "Vincent"
+        e.job = "Senior Engineer"
+        e.job = "Expert Engineer"
+        e.manager = database.employees.find { it.id eq 2 }
+        e.manager = database.employees.find { it.id eq 2 }
+        e.salary = 999999
+        e.department = database.departments.find { it.id eq 2 } ?: throw AssertionError()
+        e.department = database.departments.find { it.id eq 2 } ?: throw AssertionError()
+
+        val changed = e.changedProperties
+        assert(changed.size == 5)
+        assert(changed["name"] == "vince")
+        assert(changed["job"] == "engineer")
+        assert(changed["manager"].toString() == "Employee(id=null)")
+        assert(changed["salary"] == 100L)
+        assert(changed["department"].toString() == "Department(id=1)")
+        assert(e.flushChanges() == 1)
+    }
+
+    @Test
     fun testHasColumnValue() {
         val p1 = Parent()
         assert(!p1.implementation.hasColumnValue(Parents.id.binding!!))
