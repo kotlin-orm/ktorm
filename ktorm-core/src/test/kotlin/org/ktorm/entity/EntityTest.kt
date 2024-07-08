@@ -1,5 +1,6 @@
 package org.ktorm.entity
 
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
@@ -395,6 +396,19 @@ class EntityTest : BaseTest() {
         assert(changed["salary"] == 100L)
         assert(changed["department"].toString() == "Department(id=1)")
         assert(e.flushChanges() == 1)
+    }
+
+    @Test
+    fun testExceptionThrowsByProxy() {
+        try {
+            val e = database.employees.find { it.id eq 1 } ?: throw AssertionError()
+            e.department = Department()
+            e.flushChanges()
+
+            throw AssertionError("failed")
+        } catch (e: JdbcSQLIntegrityConstraintViolationException) {
+            assert(e.message!!.contains("NULL not allowed for column \"department_id\""))
+        }
     }
 
     @Test
