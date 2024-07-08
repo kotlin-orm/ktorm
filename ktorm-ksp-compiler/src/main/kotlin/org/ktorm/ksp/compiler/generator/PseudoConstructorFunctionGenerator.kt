@@ -47,7 +47,7 @@ internal object PseudoConstructorFunctionGenerator {
         val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
         return table.entityClass.getAllProperties()
             .filter { it.isAbstract() }
-            .filterNot { it.simpleName.asString() in skipNames }
+            .filter { it.simpleName.asString() !in skipNames }
             .map { prop ->
                 val propName = prop.simpleName.asString()
                 val propType = prop._type.makeNullable().toTypeName()

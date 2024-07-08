@@ -34,7 +34,7 @@ internal object ComponentFunctionGenerator {
         val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
         return table.entityClass.getAllProperties()
             .filter { it.isAbstract() }
-            .filterNot { it.simpleName.asString() in skipNames }
+            .filter { it.simpleName.asString() !in skipNames }
             .mapIndexed { i, prop ->
                 FunSpec.builder("component${i + 1}")
                     .addKdoc("Return the value of [%L.%L]. ",
