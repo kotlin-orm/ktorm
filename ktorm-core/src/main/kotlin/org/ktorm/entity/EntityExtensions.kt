@@ -92,6 +92,7 @@ internal fun EntityImplementation.getColumnValue(binding: ColumnBinding): Any? {
                     curr = child?.implementation
                 }
             }
+
             return curr?.getProperty(binding.properties.last())
         }
     }
@@ -127,6 +128,7 @@ internal fun EntityImplementation.setColumnValue(binding: ColumnBinding, value: 
                     fromDatabase = this.fromDatabase,
                     fromTable = binding.referenceTable as Table<*>
                 )
+
                 this.setProperty(binding.onProperty, child, forceSet)
             }
 

@@ -54,7 +54,7 @@ internal class EntityImplementation(
                 when (method.name) {
                     "getEntityClass" -> this.entityClass
                     "getProperties" -> Collections.unmodifiableMap(this.values)
-                    "getChangedProperties" -> Collections.unmodifiableMap(this.changedProperties)
+                    "getChangedProperties" -> this.findChangedProperties()
                     "flushChanges" -> this.doFlushChanges()
                     "discardChanges" -> this.doDiscardChanges()
                     "delete" -> this.doDelete()
