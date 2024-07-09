@@ -44,6 +44,7 @@ internal val Method.kotlinProperty: Pair<KProperty1<*, *>, Boolean>? get() {
             return Pair(prop, false)
         }
     }
+
     return null
 }
 
