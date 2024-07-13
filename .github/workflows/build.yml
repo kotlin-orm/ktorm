@@ -47,8 +47,6 @@ jobs:
             ktorm-jackson/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-ksp-annotations/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-ksp-compiler/build/reports/jacoco/test/jacocoTestReport.csv
-            ktorm-ksp-compiler-maven-plugin/build/reports/jacoco/test/jacocoTestReport.csv
-            ktorm-ksp-spi/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-mysql/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-oracle/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-postgresql/build/reports/jacoco/test/jacocoTestReport.csv
