@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":ktorm-core"))
     implementation(project(":ktorm-ksp-annotations"))
     implementation(project(":ktorm-ksp-spi"))
-    implementation("com.google.devtools.ksp:symbol-processing-api:1.9.0-1.0.13")
+    implementation("com.google.devtools.ksp:symbol-processing-api:1.9.23-1.0.20")
     implementation("com.squareup:kotlinpoet-ksp:1.11.0")
     implementation("org.atteo:evo-inflector:1.3")
     implementation("com.pinterest.ktlint:ktlint-rule-engine:0.50.0") {
