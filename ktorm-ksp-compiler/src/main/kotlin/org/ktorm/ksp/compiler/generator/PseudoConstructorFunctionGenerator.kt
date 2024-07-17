@@ -25,6 +25,7 @@ import org.ktorm.entity.Entity
 import org.ktorm.ksp.annotation.Undefined
 import org.ktorm.ksp.compiler.util.*
 import org.ktorm.ksp.spi.TableMetadata
+import kotlin.reflect.full.memberProperties
 
 @OptIn(KotlinPoetKspPreview::class)
 internal object PseudoConstructorFunctionGenerator {
@@ -43,9 +44,10 @@ internal object PseudoConstructorFunctionGenerator {
     }
 
     internal fun buildParameters(table: TableMetadata): Sequence<ParameterSpec> {
+        val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
         return table.entityClass.getAllProperties()
             .filter { it.isAbstract() }
-            .filterNot { it.simpleName.asString() in setOf("entityClass", "properties") }
+            .filter { it.simpleName.asString() !in skipNames }
             .map { prop ->
                 val propName = prop.simpleName.asString()
                 val propType = prop._type.makeNullable().toTypeName()
@@ -63,8 +65,9 @@ internal object PseudoConstructorFunctionGenerator {
             addStatement("val·entity·=·%T.create<%T>()", Entity::class.asClassName(), table.entityClass.toClassName())
         }
 
+        val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
         for (prop in table.entityClass.getAllProperties()) {
-            if (!prop.isAbstract() || prop.simpleName.asString() in setOf("entityClass", "properties")) {
+            if (!prop.isAbstract() || prop.simpleName.asString() in skipNames) {
                 continue
             }
 

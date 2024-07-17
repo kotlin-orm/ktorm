@@ -29,7 +29,7 @@ import kotlin.reflect.KProperty1
 public sealed class ColumnBinding
 
 /**
- * Bind the column to nested properties, eg. `employee.manager.department.id`.
+ * Bind the column to nested properties, e.g. `employee.manager.department.id`.
  *
  * @property properties the nested properties, cannot be empty.
  */
@@ -118,19 +118,19 @@ public data class Column<T : Any>(
      *
      * @see ColumnDeclaringExpression
      */
-    val label: String get() = toString(separator = "_")
+    val label: String = toString(separator = "_")
 
     /**
      * Return all the bindings of this column, including the primary [binding] and [extraBindings].
      */
-    val allBindings: List<ColumnBinding> get() = binding?.let { listOf(it) + extraBindings } ?: emptyList()
+    val allBindings: List<ColumnBinding> = binding?.let { listOf(it) + extraBindings } ?: emptyList()
 
     /**
      * If the column is bound to a reference table, return the table, otherwise return null.
      *
      * Shortcut for `(binding as? ReferenceBinding)?.referenceTable`.
      */
-    val referenceTable: BaseTable<*>? get() = (binding as? ReferenceBinding)?.referenceTable
+    val referenceTable: BaseTable<*>? = (binding as? ReferenceBinding)?.referenceTable
 
     /**
      * Convert this column to a [ColumnExpression].

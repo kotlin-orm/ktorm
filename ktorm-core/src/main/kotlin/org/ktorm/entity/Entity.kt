@@ -23,6 +23,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 import java.lang.reflect.Proxy
+import java.sql.SQLException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -69,12 +70,12 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * - For [Boolean] type, the default value is `false`.
  * - For [Char] type, the default value is `\u0000`.
- * - For number types (such as [Int], [Long], [Double], etc), the default value is zero.
+ * - For number types (such as [Int], [Long], [Double], etc.), the default value is zero.
  * - For [String] type, the default value is an empty string.
  * - For entity types, the default value is a new-created entity object which is empty.
  * - For enum types, the default value is the first value of the enum, whose ordinal is 0.
  * - For array types, the default value is a new-created empty array.
- * - For collection types (such as [Set], [List], [Map], etc), the default value is a new created mutable collection
+ * - For collection types (such as [Set], [List], [Map], etc.), the default value is a new created mutable collection
  * of the concrete type.
  * - For any other types, the default value is an instance created by its no-args constructor. If the constructor
  * doesn't exist, an exception is thrown.
@@ -128,7 +129,7 @@ import kotlin.reflect.jvm.jvmErasure
  * refer to their documentation for more details.
  *
  * Besides of JDK serialization, the ktorm-jackson module also supports serializing entities in JSON format. This
- * module provides an extension for Jackson, the famous JSON framework in Java word. It supports serializing entity
+ * module provides an extension for Jackson, the famous JSON framework in Java world. It supports serializing entity
  * objects into JSON format and parsing JSONs as entity objects. More details can be found in its documentation.
  */
 public interface Entity<E : Entity<E>> : Serializable {
@@ -144,6 +145,13 @@ public interface Entity<E : Entity<E>> : Serializable {
     public val properties: Map<String, Any?>
 
     /**
+     * Return the immutable view of this entity's changed properties and their original values.
+     *
+     * @since 4.1.0
+     */
+    public val changedProperties: Map<String, Any?>
+
+    /**
      * Update the property changes of this entity into the database and return the affected record number.
      *
      * Using this function, we need to note that:
@@ -156,18 +164,18 @@ public interface Entity<E : Entity<E>> : Serializable {
      * `fromDatabase` references point to the database they are obtained from. For entity objects created by
      * [Entity.create] or [Entity.Factory], their `fromDatabase` references are `null` initially, so we can not call
      * [flushChanges] on them. But once we use them with [add] or [update] function, `fromDatabase` will be modified
-     * to the current database, so we will be able to call [flushChanges] on them afterwards.
+     * to the current database, so we will be able to call [flushChanges] on them afterward.
      *
      * @see add
      * @see update
      */
+    @Throws(SQLException::class)
     public fun flushChanges(): Int
 
     /**
      * Clear the tracked property changes of this entity.
      *
-     * After calling this function, the [flushChanges] doesn't do anything anymore because the property changes
-     * are discarded.
+     * After calling this function, [flushChanges] will do nothing because property changes are discarded.
      */
     public fun discardChanges()
 
@@ -185,13 +193,14 @@ public interface Entity<E : Entity<E>> : Serializable {
      * @see update
      * @see flushChanges
      */
+    @Throws(SQLException::class)
     public fun delete(): Int
 
     /**
      * Obtain a property's value by its name.
      *
      * Note that this function doesn't follow the rules of default values discussed in the class level documentation.
-     * If the value doesn't exist, we will return `null` simply.
+     * If the value doesn't exist, it will simply return `null`.
      */
     public operator fun get(name: String): Any?
 
@@ -221,8 +230,8 @@ public interface Entity<E : Entity<E>> : Serializable {
     public override fun hashCode(): Int
 
     /**
-     * Return a string representation of this table.
-     * The format is like `Employee{id=1, name=Eric, job=contributor, hireDate=2021-05-05, salary=50}`.
+     * Return a string representation of this entity.
+     * The format is like `Employee(id=1, name=Eric, job=contributor, hireDate=2021-05-05, salary=50)`.
      */
     public override fun toString(): String
 

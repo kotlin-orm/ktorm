@@ -17,12 +17,11 @@
 package org.ktorm.entity
 
 import org.ktorm.dsl.*
-import org.ktorm.dsl.AliasRemover
 import org.ktorm.expression.*
 import org.ktorm.schema.*
 
 /**
- * Insert the given entity into this sequence and return the affected record number.
+ * Insert the given entity into the table and return the affected record number.
  *
  * If we use an auto-increment key in our table, we need to tell Ktorm which is the primary key by calling
  * [Table.primaryKey] while registering columns, then this function will obtain the generated key from the
@@ -233,7 +232,6 @@ private fun EntitySequence<*, *>.checkForDml() {
  */
 private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
-
     for (column in table.columns) {
         if (column.binding != null && implementation.hasColumnValue(column.binding)) {
             assignments[column] = implementation.getColumnValue(column.binding)
@@ -246,10 +244,9 @@ private fun Entity<*>.findInsertColumns(table: Table<*>): Map<Column<*>, Any?> {
 /**
  * Return columns associated with their values for update.
  */
+@Suppress("ConvertArgumentToSet")
 private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
-
-    @Suppress("ConvertArgumentToSet")
     for (column in table.columns - table.primaryKeys) {
         if (column.binding != null && implementation.hasColumnValue(column.binding)) {
             assignments[column] = implementation.getColumnValue(column.binding)
@@ -264,7 +261,6 @@ private fun Entity<*>.findUpdateColumns(table: Table<*>): Map<Column<*>, Any?> {
  */
 private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Column<*>, Any?> {
     val assignments = LinkedHashMap<Column<*>, Any?>()
-
     for (column in fromTable.columns) {
         val binding = column.binding ?: continue
 
@@ -286,11 +282,13 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
 
                     check(curr is EntityImplementation?)
 
-                    if (curr != null && prop.name in curr.changedProperties) {
-                        anyChanged = true
-                    }
+                    if (curr != null) {
+                        if (prop.name in curr.changedProperties) {
+                            anyChanged = true
+                        }
 
-                    curr = curr?.getProperty(prop)
+                        curr = curr.getProperty(prop)
+                    }
                 }
 
                 if (anyChanged) {
@@ -301,6 +299,57 @@ private fun EntityImplementation.findChangedColumns(fromTable: Table<*>): Map<Co
     }
 
     return assignments
+}
+
+/**
+ * Return changed properties associated with their original values.
+ */
+internal fun EntityImplementation.findChangedProperties(): Map<String, Any?> {
+    check(parent == null) { "The entity is not attached to any database yet." }
+    val fromTable = fromTable ?: error("The entity is not attached to any database yet.")
+
+    // Create an empty entity object to collect changed properties.
+    val result = Entity.create(entityClass, parent, fromDatabase, fromTable)
+    for (column in fromTable.columns) {
+        val binding = column.binding ?: continue
+
+        when (binding) {
+            is ReferenceBinding -> {
+                if (binding.onProperty.name in changedProperties) {
+                    val origin = changedProperties[binding.onProperty.name] as Entity<*>?
+                    val originId = origin?.implementation?.getPrimaryKeyValue(binding.referenceTable as Table<*>)
+                    result.implementation.setColumnValue(binding, originId)
+                }
+            }
+            is NestedBinding -> {
+                var anyChanged = false
+                var curr: Any? = this
+
+                for (prop in binding.properties) {
+                    if (curr is Entity<*>) {
+                        curr = curr.implementation
+                    }
+
+                    check(curr is EntityImplementation?)
+
+                    if (curr != null) {
+                        if (prop.name in curr.changedProperties) {
+                            curr = curr.changedProperties[prop.name]
+                            anyChanged = true
+                        } else {
+                            curr = curr.getProperty(prop)
+                        }
+                    }
+                }
+
+                if (anyChanged) {
+                    result.implementation.setColumnValue(binding, curr)
+                }
+            }
+        }
+    }
+
+    return result.properties
 }
 
 /**

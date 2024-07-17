@@ -1,5 +1,6 @@
 package org.ktorm.entity
 
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException
 import org.junit.Test
 import org.ktorm.BaseTest
 import org.ktorm.database.Database
@@ -271,10 +272,99 @@ class EntityTest : BaseTest() {
         companion object : Entity.Factory<GrandChild>()
         var id: Int?
         var name: String?
+        var job: String?
     }
 
     object Parents : Table<Parent>("t_employee") {
         val id = int("id").primaryKey().bindTo { it.child?.grandChild?.id }
+        val name = varchar("name").bindTo { it.child?.grandChild?.name }
+        val job = varchar("job").bindTo { it.child?.grandChild?.job }
+    }
+
+    @Test
+    fun testInternalChangedPropertiesForNestedBinding1() {
+        val p1 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p1.child?.grandChild?.job = "Senior Engineer"
+        p1.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p1.implementation.changedProperties.size == 0)
+        assert(p1.child?.implementation?.changedProperties?.size == 0)
+        assert(p1.child?.grandChild?.implementation?.changedProperties?.size == 1)
+        assert(p1.child?.grandChild?.implementation?.changedProperties?.get("job") == "engineer")
+        assert(p1.flushChanges() == 1)
+    }
+
+    @Test
+    fun testInternalChangedPropertiesForNestedBinding2() {
+        val p2 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p2.child?.grandChild?.name = "Vincent"
+        p2.child?.grandChild?.job = "Senior Engineer"
+        p2.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p2.implementation.changedProperties.size == 0)
+        assert(p2.child?.implementation?.changedProperties?.size == 0)
+        assert(p2.child?.grandChild?.implementation?.changedProperties?.size == 2)
+        assert(p2.child?.grandChild?.implementation?.changedProperties?.get("name") == "vince")
+        assert(p2.child?.grandChild?.implementation?.changedProperties?.get("job") == "engineer")
+        assert(p2.flushChanges() == 1)
+    }
+
+    @Test
+    fun testChangedPropertiesForNestedBinding1() {
+        val p1 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p1.child?.grandChild?.job = "Senior Engineer"
+        p1.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p1.changedProperties.size == 1)
+        assert(p1.changedProperties["child"].toString() == "Child(grandChild=GrandChild(job=engineer))")
+        assert(p1.flushChanges() == 1)
+    }
+
+    @Test
+    fun testChangedPropertiesForNestedBinding2() {
+        val p2 = database.sequenceOf(Parents).find { it.id eq 1 } ?: throw AssertionError()
+        p2.child?.grandChild?.name = "Vincent"
+        p2.child?.grandChild?.job = "Senior Engineer"
+        p2.child?.grandChild?.job = "Expert Engineer"
+
+        assert(p2.changedProperties.size == 1)
+        assert(p2.changedProperties["child"].toString() == "Child(grandChild=GrandChild(name=vince, job=engineer))")
+        assert(p2.flushChanges() == 1)
+    }
+
+    @Test
+    fun testChangedPropertiesForReferenceBinding() {
+        val e = database.employees.find { it.id eq 1 } ?: throw AssertionError()
+        e.name = "Vincent"
+        e.job = "Senior Engineer"
+        e.job = "Expert Engineer"
+        e.manager = database.employees.find { it.id eq 2 }
+        e.manager = database.employees.find { it.id eq 2 }
+        e.salary = 999999
+        e.department = database.departments.find { it.id eq 2 } ?: throw AssertionError()
+        e.department = database.departments.find { it.id eq 2 } ?: throw AssertionError()
+
+        val changed = e.changedProperties
+        assert(changed.size == 5)
+        assert(changed["name"] == "vince")
+        assert(changed["job"] == "engineer")
+        assert(changed["manager"].toString() == "Employee(id=null)")
+        assert(changed["salary"] == 100L)
+        assert(changed["department"].toString() == "Department(id=1)")
+        assert(e.flushChanges() == 1)
+    }
+
+    @Test
+    fun testExceptionThrowsByProxy() {
+        try {
+            val e = database.employees.find { it.id eq 1 } ?: throw AssertionError()
+            e.department = Department()
+            e.flushChanges()
+
+            throw AssertionError("failed")
+        } catch (e: JdbcSQLIntegrityConstraintViolationException) {
+            assert(e.message!!.contains("NULL not allowed for column \"department_id\""))
+        }
     }
 
     @Test

@@ -311,6 +311,42 @@ private fun <T : BaseTable<*>> Database.buildBulkInsertExpression(
  * on conflict (id) do update set salary = t_employee.salary + ?
  * ```
  *
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdate(Employees) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * ```
+ *
  * @param table the table to be inserted.
  * @param block the DSL block used to construct the expression.
  * @return the effected row count.
@@ -358,6 +394,43 @@ public fun <T : BaseTable<*>> Database.bulkInsertOrUpdate(
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id
+ * ```
+ *
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdateReturning(Employees, Employees.id) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
  * returning id
  * ```
  *
@@ -414,6 +487,43 @@ public fun <T : BaseTable<*>, C : Any> Database.bulkInsertOrUpdateReturning(
  * returning id, job
  * ```
  *
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdateReturning(Employees, Pair(Employees.id, Employees.job)) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
+ * returning id, job
+ * ```
+ *
  * @since 3.6.0
  * @param table the table to be inserted.
  * @param returning the columns to return
@@ -465,6 +575,43 @@ public fun <T : BaseTable<*>, C1 : Any, C2 : Any> Database.bulkInsertOrUpdateRet
  * insert into t_employee (id, name, job, salary, hire_date, department_id)
  * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
  * on conflict (id) do update set salary = t_employee.salary + ?
+ * returning id, job, salary
+ * ```
+ *
+ * By default, the column used in the `on conflict` statement is the primary key you already defined in
+ * the schema definition. If you want, you can specify one or more columns for the `on conflict` statement
+ * as belows:
+ *
+ * ```kotlin
+ * database.bulkInsertOrUpdateReturning(Employees, Triple(Employees.id, Employees.job, Employees.salary)) {
+ *     item {
+ *         set(it.id, 1)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     item {
+ *         set(it.id, 5)
+ *         set(it.name, "vince")
+ *         set(it.job, "engineer")
+ *         set(it.salary, 1000)
+ *         set(it.hireDate, LocalDate.now())
+ *         set(it.departmentId, 1)
+ *     }
+ *     onConflict(it.name, it.job) {
+ *         set(it.salary, it.salary + 900)
+ *     }
+ * }
+ * ```
+ *
+ * Generated SQL:
+ *
+ * ```sql
+ * insert into t_employee (id, name, job, salary, hire_date, department_id)
+ * values (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
+ * on conflict (name, job) do update set salary = t_employee.salary + ?
  * returning id, job, salary
  * ```
  *

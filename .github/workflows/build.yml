@@ -14,19 +14,19 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        java: [8, 11, 17, 20]
+        java: [8, 11, 17, 21]
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: ${{ matrix.java }}
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Assemble the Project
         run: ./gradlew assemble
@@ -45,6 +45,8 @@ jobs:
             ktorm-core/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-global/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-jackson/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-ksp-annotations/build/reports/jacoco/test/jacocoTestReport.csv
+            ktorm-ksp-compiler/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-mysql/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-oracle/build/reports/jacoco/test/jacocoTestReport.csv
             ktorm-support-postgresql/build/reports/jacoco/test/jacocoTestReport.csv
@@ -78,16 +80,16 @@ jobs:
     needs: build
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: 8
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Assemble the Project
         run: ./gradlew assemble

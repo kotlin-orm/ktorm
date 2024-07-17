@@ -147,7 +147,7 @@ public class Database(
     public val name: String
 
     /**
-     * The name of the connected database product, eg. MySQL, H2.
+     * The name of the connected database product, e.g. MySQL, H2.
      */
     public val productName: String
 

@@ -63,10 +63,11 @@ internal class EntityDeserializers : SimpleDeserializers() {
             parser: JsonParser,
             ctx: DeserializationContext
         ): Map<String, KProperty1<*, *>> {
+            val skipNames = Entity::class.memberProperties.map { it.name }.toSet()
             return entityClass.memberProperties
                 .asSequence()
                 .filter { it.isAbstract }
-                .filter { it.name != "entityClass" && it.name != "properties" }
+                .filter { it.name !in skipNames }
                 .filter { it.findAnnotationForDeserialization<JsonIgnore>() == null }
                 .filter { prop ->
                     val jsonProperty = prop.findAnnotationForDeserialization<JsonProperty>()

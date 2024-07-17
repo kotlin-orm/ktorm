@@ -19,7 +19,7 @@ package org.ktorm.jackson
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.kotlinModule
 import org.ktorm.schema.*
 import java.lang.reflect.InvocationTargetException
 import java.sql.PreparedStatement
@@ -31,7 +31,7 @@ import java.sql.Types
  */
 public val sharedObjectMapper: ObjectMapper = ObjectMapper()
     .registerModule(KtormModule())
-    .registerModule(KotlinModule())
+    .registerModule(kotlinModule())
     .registerModule(JavaTimeModule())
 
 /**

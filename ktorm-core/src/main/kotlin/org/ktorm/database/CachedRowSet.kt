@@ -609,6 +609,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
                 return index
             }
         }
+
         throw SQLException("Invalid column name: $columnLabel")
     }
 

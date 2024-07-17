@@ -155,6 +155,11 @@ publishing {
                         id.set("brohacz")
                         name.set("Michal Brosig")
                     }
+                    developer {
+                        id.set("hc224")
+                        name.set("hc224")
+                        email.set("hc224@pm.me")
+                    }
                 }
             }
         }

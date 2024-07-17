@@ -38,7 +38,7 @@ internal class EntityImplementation(
     @Transient var fromDatabase: Database? = fromDatabase
     @Transient var fromTable: Table<*>? = fromTable
     @Transient var parent: EntityImplementation? = parent
-    @Transient var changedProperties = LinkedHashSet<String>()
+    @Transient var changedProperties = LinkedHashMap<String, Any?>()
 
     override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any? {
         return when (method.declaringClass.kotlin) {
@@ -54,6 +54,7 @@ internal class EntityImplementation(
                 when (method.name) {
                     "getEntityClass" -> this.entityClass
                     "getProperties" -> Collections.unmodifiableMap(this.values)
+                    "getChangedProperties" -> this.findChangedProperties()
                     "flushChanges" -> this.doFlushChanges()
                     "discardChanges" -> this.doDiscardChanges()
                     "delete" -> this.doDelete()
@@ -150,13 +151,17 @@ internal class EntityImplementation(
             throw UnsupportedOperationException(msg)
         }
 
+        // Save property changes and original values.
+        if (name !in changedProperties) {
+            changedProperties[name] = values[name]
+        }
+
         values[name] = value
-        changedProperties.add(name)
     }
 
     private fun copy(): Entity<*> {
         val entity = Entity.create(entityClass, parent, fromDatabase, fromTable)
-        entity.implementation.changedProperties.addAll(changedProperties)
+        entity.implementation.changedProperties.putAll(changedProperties)
 
         for ((name, value) in values) {
             if (value is Entity<*>) {
@@ -204,7 +209,7 @@ internal class EntityImplementation(
         val javaClass = Class.forName(input.readUTF(), true, Thread.currentThread().contextClassLoader)
         entityClass = javaClass.kotlin
         values = input.readObject() as LinkedHashMap<String, Any?>
-        changedProperties = LinkedHashSet()
+        changedProperties = LinkedHashMap()
     }
 
     override fun equals(other: Any?): Boolean {
