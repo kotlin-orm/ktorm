@@ -29,6 +29,9 @@ tasks {
     "jarSources" {
         dependsOn(generatePackageVersion)
     }
+    dokkaJavadoc {
+        dependsOn(generatePackageVersion)
+    }
 }
 
 sourceSets.main {
