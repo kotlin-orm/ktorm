@@ -22,7 +22,11 @@ import org.ktorm.schema.SqlType
 import java.lang.reflect.InvocationTargetException
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.Timestamp
 import java.sql.Types
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 /**
  * Define a column typed [ShortArraySqlType].
@@ -364,5 +368,29 @@ public object EarthSqlType : SqlType<Earth>(Types.OTHER, "earth") {
                 throw e.targetException
             }
         }
+    }
+}
+
+/**
+ * Define a column typed [OffsetDateTime].
+ */
+public fun BaseTable<*>.datetimeOffset(name: String): Column<OffsetDateTime> {
+    return registerColumn(name, OffsetDateTimeSqlType)
+}
+
+public object OffsetDateTimeSqlType : SqlType<OffsetDateTime>(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz") {
+
+    override fun doSetParameter(ps: PreparedStatement, index: Int, parameter: OffsetDateTime) {
+        ps.setTimestamp(index, Timestamp.from(parameter.toInstant()))
+    }
+
+    override fun doGetResult(rs: ResultSet, index: Int): OffsetDateTime? {
+        val value = rs.getTimestamp(index)
+        if (rs.wasNull()) {
+            return null
+        }
+        val systemZoneId = ZoneId.systemDefault()
+        val systemZoneOffset = systemZoneId.rules.getOffset(value.toInstant())
+        return value.toInstant().atOffset(systemZoneOffset)
     }
 }
