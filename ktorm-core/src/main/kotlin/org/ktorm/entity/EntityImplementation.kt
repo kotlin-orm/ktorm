@@ -152,7 +152,7 @@ internal class EntityImplementation(
         }
 
         // Save property changes and original values.
-        if (name !in changedProperties) {
+        if (name !in changedProperties && value != values[name]) {
             changedProperties[name] = values[name]
         }
 
