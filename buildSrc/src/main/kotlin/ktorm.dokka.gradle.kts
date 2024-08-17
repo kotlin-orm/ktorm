@@ -15,7 +15,17 @@ tasks.named<org.jetbrains.dokka.gradle.DokkaMultiModuleTask>("dokkaHtmlMultiModu
 subprojects {
     apply(plugin = "org.jetbrains.dokka")
 
+    tasks.dokkaJavadoc {
+        dependsOn("codegen")
+
+        dokkaSourceSets.named("main") {
+            suppressGeneratedFiles.set(false)
+        }
+    }
+
     tasks.named<org.jetbrains.dokka.gradle.DokkaTaskPartial>("dokkaHtmlPartial") {
+        dependsOn("codegen")
+
         dokkaSourceSets.named("main") {
             suppressGeneratedFiles.set(false)
             sourceLink {

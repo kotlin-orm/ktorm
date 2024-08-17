@@ -7,6 +7,7 @@ plugins {
 }
 
 val jarSources by tasks.registering(Jar::class) {
+    dependsOn("codegen")
     from(sourceSets.main.map { it.allSource })
     archiveClassifier.set("sources")
 }
