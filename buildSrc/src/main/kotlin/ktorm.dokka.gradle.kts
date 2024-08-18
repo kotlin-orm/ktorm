@@ -4,7 +4,7 @@ plugins {
 }
 
 tasks.named<org.jetbrains.dokka.gradle.DokkaMultiModuleTask>("dokkaHtmlMultiModule") {
-    val tmplDir = System.getenv("DOKKA_TEMPLATES_DIR")
+    val tmplDir = System.getProperty("dokka.templatesDir")
     if (!tmplDir.isNullOrEmpty()) {
         pluginConfiguration<org.jetbrains.dokka.base.DokkaBase, org.jetbrains.dokka.base.DokkaBaseConfiguration> {
             templatesDir = File(tmplDir)
