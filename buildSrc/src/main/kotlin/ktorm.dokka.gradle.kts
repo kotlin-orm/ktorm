@@ -26,6 +26,13 @@ subprojects {
     tasks.named<org.jetbrains.dokka.gradle.DokkaTaskPartial>("dokkaHtmlPartial") {
         dependsOn("codegen")
 
+        val tmplDir = System.getProperty("dokka.templatesDir")
+        if (!tmplDir.isNullOrEmpty()) {
+            pluginConfiguration<org.jetbrains.dokka.base.DokkaBase, org.jetbrains.dokka.base.DokkaBaseConfiguration> {
+                templatesDir = File(tmplDir)
+            }
+        }
+
         dokkaSourceSets.named("main") {
             suppressGeneratedFiles.set(false)
             sourceLink {
