@@ -24,5 +24,5 @@ internal fun interface CodeFormatter {
     /**
      * Format the generated code to the community recommended coding style.
      */
-    fun format(code: String): String
+    fun format(fileName: String, code: String): String
 }
