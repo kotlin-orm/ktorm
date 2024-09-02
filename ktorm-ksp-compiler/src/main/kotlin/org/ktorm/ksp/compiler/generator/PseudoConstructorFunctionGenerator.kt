@@ -90,7 +90,7 @@ internal object PseudoConstructorFunctionGenerator {
             }
 
             if (!prop._type.isMarkedNullable) {
-                statement += "·?:·error(\"`%1L` should not be null.\")"
+                statement += "·?:·error(\"`%1L`·should·not·be·null.\")"
             }
 
             addStatement(statement, prop.simpleName.asString())
