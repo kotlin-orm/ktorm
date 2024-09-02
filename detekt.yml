@@ -402,7 +402,7 @@ style:
     active: true
     maxJumpCount: 2
   MagicNumber:
-    active: true
+    active: false
     ignoreNumbers: ['-1', '0', '1', '2', '3', '60']
     ignoreHashCodeFunction: true
     ignorePropertyDeclaration: false

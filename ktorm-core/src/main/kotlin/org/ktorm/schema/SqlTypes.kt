@@ -450,7 +450,6 @@ public fun BaseTable<*>.yearMonth(name: String): Column<YearMonth> {
 /**
  * [SqlType] implementation used to save [YearMonth] instances, formatting them to strings with pattern `yyyy-MM`.
  */
-@Suppress("MagicNumber")
 public object YearMonthSqlType : SqlType<YearMonth>(Types.VARCHAR, "varchar") {
     private val formatter = DateTimeFormatterBuilder()
         .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
