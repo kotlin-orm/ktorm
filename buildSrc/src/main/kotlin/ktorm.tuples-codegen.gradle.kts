@@ -1,7 +1,6 @@
 
 plugins {
     id("kotlin")
-    id("org.jetbrains.dokka")
 }
 
 val generatedSourceDir = "${project.layout.buildDirectory.asFile.get()}/generated/source/main/kotlin"
