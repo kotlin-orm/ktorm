@@ -1,6 +1,6 @@
 
 plugins {
-    id("com.gradle.enterprise") version("3.14.1")
+    id("com.gradle.enterprise") version "3.14.1"
 }
 
 include("ktorm-core")

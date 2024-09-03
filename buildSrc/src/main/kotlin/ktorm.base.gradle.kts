@@ -30,7 +30,12 @@ java {
 }
 
 tasks {
+    // Lifecycle task for code generation.
+    val codegen by registering { /* do nothing */ }
+
     compileKotlin {
+        dependsOn(codegen)
+
         kotlinOptions {
             jvmTarget = "1.8"
             allWarningsAsErrors = true

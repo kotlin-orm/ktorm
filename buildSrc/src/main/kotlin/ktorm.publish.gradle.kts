@@ -3,14 +3,18 @@ plugins {
     id("kotlin")
     id("signing")
     id("maven-publish")
+    id("org.jetbrains.dokka")
 }
 
 val jarSources by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
+    dependsOn("codegen")
     from(sourceSets.main.map { it.allSource })
+    archiveClassifier.set("sources")
 }
 
 val jarJavadoc by tasks.registering(Jar::class) {
+    dependsOn(tasks.dokkaJavadoc)
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
     archiveClassifier.set("javadoc")
 }
 

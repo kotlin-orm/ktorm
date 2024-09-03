@@ -145,7 +145,7 @@ public object Undefined {
             return defineClass(name, bytes, null)
         }
 
-        @Suppress("MagicNumber", "NoMultipleSpaces")
+        @Suppress("NoMultipleSpaces")
         private fun generateByteCode(className: ByteArray, superClassName: ByteArray): ByteBuffer {
             val buf = ByteBuffer.allocate(1024)
             buf.putInt(0xCAFEBABE.toInt())                          // magic

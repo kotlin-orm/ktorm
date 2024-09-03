@@ -23,10 +23,7 @@ val generatePackageVersion by tasks.registering(Copy::class) {
 }
 
 tasks {
-    compileKotlin {
-        dependsOn(generatePackageVersion)
-    }
-    "jarSources" {
+    codegen {
         dependsOn(generatePackageVersion)
     }
 }

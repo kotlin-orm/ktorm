@@ -348,10 +348,7 @@ val generateTuples by tasks.registering {
 }
 
 tasks {
-    compileKotlin {
-        dependsOn(generateTuples)
-    }
-    "jarSources" {
+    "codegen" {
         dependsOn(generateTuples)
     }
 }

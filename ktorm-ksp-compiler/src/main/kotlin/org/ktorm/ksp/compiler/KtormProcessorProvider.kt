@@ -65,7 +65,8 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
                 val fileSpec = FileGenerator.generate(table, environment)
 
                 // Beautify the generated code.
-                val formattedCode = formatter.format(fileSpec.toString())
+                val fileName = fileSpec.packageName.replace('.', '/') + "/" + fileSpec.name + ".kt"
+                val formattedCode = formatter.format(fileName, fileSpec.toString())
 
                 // Output the formatted code.
                 val dependencies = Dependencies(false, *table.getDependencyFiles().toTypedArray())
@@ -88,7 +89,7 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
         } catch (_: NoClassDefFoundError) {
         }
 
-        return CodeFormatter { code -> code }
+        return CodeFormatter { _, code -> code }
     }
 
     private fun TableMetadata.getDependencyFiles(): List<KSFile> {

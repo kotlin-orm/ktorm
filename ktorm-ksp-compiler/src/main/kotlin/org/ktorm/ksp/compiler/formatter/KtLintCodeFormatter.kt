@@ -38,7 +38,7 @@ internal class KtLintCodeFormatter(val environment: SymbolProcessorEnvironment) 
         )
     )
 
-    override fun format(code: String): String {
+    override fun format(fileName: String, code: String): String {
         try {
             // Manually fix some code styles before formatting.
             val snippet = code
