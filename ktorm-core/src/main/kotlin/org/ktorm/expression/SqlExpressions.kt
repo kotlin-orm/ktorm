@@ -475,7 +475,17 @@ public enum class BinaryExpressionType(private val value: String) {
     /**
      * Not-equal operator, translated to `<>` in SQL.
      */
-    NOT_EQUAL("<>");
+    NOT_EQUAL("<>"),
+
+    /**
+     * bit-and operator, translated to `&` in SQL.
+     */
+    BIT_AND("&"),
+
+    /**
+     * bit-or operator, translated to `|` in SQL.
+     */
+    BIT_OR("|");
 
     override fun toString(): String {
         return value
