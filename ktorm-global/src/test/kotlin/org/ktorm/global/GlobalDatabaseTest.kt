@@ -3,7 +3,6 @@ package org.ktorm.global
 import org.junit.Test
 import org.ktorm.database.Database
 import org.ktorm.database.asIterable
-import org.ktorm.database.use
 import org.ktorm.dsl.eq
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar

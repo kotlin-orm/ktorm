@@ -3,7 +3,6 @@ package org.ktorm.support.postgresql
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.schema.Table

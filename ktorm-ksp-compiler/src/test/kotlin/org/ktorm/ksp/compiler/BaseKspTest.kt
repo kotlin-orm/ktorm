@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.After
 import org.junit.Before
 import org.ktorm.database.Database
-import org.ktorm.database.use
 import java.lang.reflect.InvocationTargetException
 
 @OptIn(ExperimentalCompilerApi::class)

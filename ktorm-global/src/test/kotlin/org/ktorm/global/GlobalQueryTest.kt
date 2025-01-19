@@ -2,7 +2,6 @@ package org.ktorm.global
 
 import org.junit.Test
 import org.ktorm.database.DialectFeatureNotSupportedException
-import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.expression.ScalarExpression
 import org.ktorm.schema.TextSqlType

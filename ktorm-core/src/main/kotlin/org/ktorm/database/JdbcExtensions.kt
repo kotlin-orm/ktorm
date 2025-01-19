@@ -33,6 +33,7 @@ import kotlin.contracts.contract
  */
 @OptIn(ExperimentalContracts::class)
 @Suppress("ConvertTryFinallyToUseCall")
+@Deprecated("Use kotlin.use in stdlib.")
 public inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
