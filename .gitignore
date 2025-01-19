@@ -4,6 +4,7 @@ build/
 out/
 logs/
 .DS_Store
+.kotlin
 
 ### STS ###
 .apt_generated
