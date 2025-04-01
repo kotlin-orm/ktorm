@@ -164,6 +164,11 @@ publishing {
                         name.set("hc224")
                         email.set("hc224@pm.me")
                     }
+                    developer {
+                        id.set("dmitchell")
+                        name.set("Don Mitchell")
+                        email.set("dhmitchell23@gmail.com")
+                    }
                 }
             }
         }

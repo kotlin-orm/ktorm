@@ -1,6 +1,7 @@
 
 plugins {
     id("com.gradle.enterprise") version "3.14.1"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 include("ktorm-core")
@@ -13,6 +14,7 @@ include("ktorm-ksp-spi")
 include("ktorm-support-mysql")
 include("ktorm-support-oracle")
 include("ktorm-support-postgresql")
+include("ktorm-support-snowflake")
 include("ktorm-support-sqlite")
 include("ktorm-support-sqlserver")
 
@@ -30,3 +32,4 @@ gradleEnterprise {
         }
     }
 }
+include("ktorm-support-snowflake")

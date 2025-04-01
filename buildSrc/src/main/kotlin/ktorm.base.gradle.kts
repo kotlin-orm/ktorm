@@ -25,8 +25,8 @@ detekt {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 tasks {
@@ -37,7 +37,7 @@ tasks {
         dependsOn(codegen)
 
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = "11"
             allWarningsAsErrors = true
             freeCompilerArgs = listOf("-Xexplicit-api=strict")
         }
@@ -45,7 +45,7 @@ tasks {
 
     compileTestKotlin {
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = "11"
         }
     }
 
