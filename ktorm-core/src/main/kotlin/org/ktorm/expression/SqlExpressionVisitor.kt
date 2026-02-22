@@ -68,6 +68,7 @@ public interface SqlExpressionVisitor {
         val result = when (expr) {
             is ColumnExpression -> visitColumn(expr)
             is ColumnDeclaringExpression -> visitColumnDeclaring(expr)
+            is ColumnSubqueryExpression -> visitColumnSubquery(expr)
             is UnaryExpression -> visitUnary(expr)
             is BinaryExpression -> visitBinary(expr)
             is ArgumentExpression -> visitArgument(expr)
@@ -283,6 +284,16 @@ public interface SqlExpressionVisitor {
             return expr
         } else {
             return expr.copy(expression = expression)
+        }
+    }
+
+    public fun <T: Any> visitColumnSubquery(expr: ColumnSubqueryExpression<T>): ColumnSubqueryExpression<T> {
+        val query = visitQuery(expr.query)
+
+        if (query === expr.query) {
+            return expr
+        } else {
+            return expr.copy(query = query)
         }
     }
 
