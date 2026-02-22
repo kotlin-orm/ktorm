@@ -300,7 +300,7 @@ public data class ColumnDeclaringExpression<T : Any>(
 /**
  * Column subquery expression, represents a subquery as a selected column in a [SelectExpression].
  *
- * For example, `select a.name, (select count(*) from dual) as total_names from dual`, `(select count(*) from dual) as total_names` is the subquery as a selected column.
+ * For example, `select a.name, (select count(*) from b where b.a_id = a.id) as total_names from a`, `(select count(*) from b where b.a_id = a.id) as total_names` is the subquery as a selected column.
  *
  */
 public data class ColumnSubqueryExpression<T: Any>(
