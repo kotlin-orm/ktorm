@@ -19,8 +19,8 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler-embeddable")
     }
 
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.5.0")
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing-ksp:1.5.0")
+    testImplementation("dev.zacsweers.kctfork:core:0.6.0")
+    testImplementation("dev.zacsweers.kctfork:ksp:0.6.0")
     testImplementation("com.h2database:h2:1.4.198")
     testImplementation("org.slf4j:slf4j-simple:2.0.3")
 }

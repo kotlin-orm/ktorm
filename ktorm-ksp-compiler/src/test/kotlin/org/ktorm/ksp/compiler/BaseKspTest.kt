@@ -2,12 +2,14 @@ package org.ktorm.ksp.compiler
 
 import com.tschuchort.compiletesting.*
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.After
 import org.junit.Before
 import org.ktorm.database.Database
 import org.ktorm.database.use
 import java.lang.reflect.InvocationTargetException
 
+@OptIn(ExperimentalCompilerApi::class)
 abstract class BaseKspTest {
     lateinit var database: Database
 
@@ -59,7 +61,7 @@ abstract class BaseKspTest {
         }
     }
 
-    private fun compile(@Language("kotlin") code: String, options: Map<String, String>): KotlinCompilation.Result {
+    private fun compile(@Language("kotlin") code: String, options: Map<String, String>): JvmCompilationResult {
         @Language("kotlin")
         val header = """
             import java.math.*
@@ -100,10 +102,10 @@ abstract class BaseKspTest {
             messageOutputStream = System.out
             inheritClassPath = true
             allWarningsAsErrors = true
-            symbolProcessorProviders = listOf(KtormProcessorProvider())
+            symbolProcessorProviders += KtormProcessorProvider()
             kspIncremental = true
             kspWithCompilation = true
-            kspArgs += options
+            kspProcessorOptions += options
         }
     }
 
