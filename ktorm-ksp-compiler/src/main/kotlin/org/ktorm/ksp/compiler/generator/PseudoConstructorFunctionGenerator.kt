@@ -72,7 +72,7 @@ internal object PseudoConstructorFunctionGenerator {
             }
 
             val condition: String
-            if (prop._type.isInline()) {
+            if (prop._type.isPrimitiveType() || prop._type.isInline()) {
                 condition = "if·((%N·as·Any?)·!==·(%T.of<%T>()·as·Any?))"
             } else {
                 condition = "if·(%N·!==·%T.of<%T>())"

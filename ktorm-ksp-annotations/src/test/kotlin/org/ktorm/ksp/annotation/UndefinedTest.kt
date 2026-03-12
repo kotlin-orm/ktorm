@@ -23,9 +23,9 @@ class UndefinedTest {
         println("Undefined Class Name: " + undefined!!.javaClass.name)
 
         if (haveValue) {
-            assert(value !== undefined)
+            assert((value as Any?) !== (undefined as Any?))
         } else {
-            assert(value === undefined)
+            assert((value as Any?) === (undefined as Any?))
         }
     }
 

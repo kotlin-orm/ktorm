@@ -42,6 +42,21 @@ internal val KSValueParameter._type: KSType get() = type.resolve()
 internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve()
 
 /**
+ * Check if this type is JVM primitive type.
+ */
+internal fun KSType.isPrimitiveType(): Boolean {
+    val typeName = declaration.qualifiedName?.asString()
+    return typeName == "kotlin.Int"
+        || typeName == "kotlin.Byte"
+        || typeName == "kotlin.Short"
+        || typeName == "kotlin.Long"
+        || typeName == "kotlin.Float"
+        || typeName == "kotlin.Double"
+        || typeName == "kotlin.Boolean"
+        || typeName == "kotlin.Char"
+}
+
+/**
  * Check if this type is an inline class.
  */
 internal fun KSType.isInline(): Boolean {
