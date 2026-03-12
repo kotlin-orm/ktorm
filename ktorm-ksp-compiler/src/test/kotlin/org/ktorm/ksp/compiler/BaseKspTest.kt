@@ -102,10 +102,13 @@ abstract class BaseKspTest {
             messageOutputStream = System.out
             inheritClassPath = true
             allWarningsAsErrors = true
-            symbolProcessorProviders += KtormProcessorProvider()
-            kspIncremental = true
-            kspWithCompilation = true
-            kspProcessorOptions += options
+
+            configureKsp(useKsp2 = true) {
+                symbolProcessorProviders += KtormProcessorProvider()
+                incremental = true
+                withCompilation = true
+                processorOptions += options
+            }
         }
     }
 
