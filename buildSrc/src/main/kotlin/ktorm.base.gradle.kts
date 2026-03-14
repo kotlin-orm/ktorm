@@ -36,16 +36,10 @@ tasks {
     compileKotlin {
         dependsOn(codegen)
 
-        kotlinOptions {
-            jvmTarget = "1.8"
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
             allWarningsAsErrors = true
             freeCompilerArgs = listOf("-Xexplicit-api=strict")
-        }
-    }
-
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
         }
     }
 

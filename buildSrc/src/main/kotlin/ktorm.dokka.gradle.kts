@@ -37,7 +37,7 @@ subprojects {
             suppressGeneratedFiles.set(false)
             sourceLink {
                 localDirectory.set(file("src/main/kotlin"))
-                remoteUrl.set(java.net.URL("https://github.com/kotlin-orm/ktorm/blob/master/${project.name}/src/main/kotlin"))
+                remoteUrl.set(uri("https://github.com/kotlin-orm/ktorm/blob/master/${project.name}/src/main/kotlin").toURL())
                 remoteLineSuffix.set("#L")
             }
         }
