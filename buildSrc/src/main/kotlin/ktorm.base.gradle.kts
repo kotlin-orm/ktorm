@@ -43,6 +43,12 @@ tasks {
         }
     }
 
+    compileTestKotlin {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+        }
+    }
+
     jacocoTestReport {
         reports {
             csv.required.set(true)
