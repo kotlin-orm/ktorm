@@ -171,7 +171,7 @@ publishing {
         repositories {
             maven {
                 name = "central"
-                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
                 credentials {
                     username = System.getenv("OSSRH_USER")
                     password = System.getenv("OSSRH_PASSWORD")
@@ -179,7 +179,7 @@ publishing {
             }
             maven {
                 name = "snapshot"
-                url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+                url = uri("https://central.sonatype.com/repository/maven-snapshots/")
                 credentials {
                     username = System.getenv("OSSRH_USER")
                     password = System.getenv("OSSRH_PASSWORD")
