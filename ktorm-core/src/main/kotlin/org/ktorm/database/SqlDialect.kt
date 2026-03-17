@@ -19,6 +19,7 @@ package org.ktorm.database
 import org.ktorm.expression.*
 import java.sql.Statement
 import java.util.ServiceLoader
+import kotlin.use
 
 /**
  * Representation of a SQL dialect.

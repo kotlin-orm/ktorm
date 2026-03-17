@@ -30,6 +30,7 @@ import javax.sql.DataSource
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.use
 
 /**
  * The entry class of Ktorm, represents a physical database, used to manage connections and transactions.
