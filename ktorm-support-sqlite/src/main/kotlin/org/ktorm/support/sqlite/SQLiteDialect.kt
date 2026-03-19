@@ -18,6 +18,7 @@ package org.ktorm.support.sqlite
 
 import org.ktorm.database.*
 import org.ktorm.expression.*
+import kotlin.use
 
 /**
  * [SqlDialect] implementation for SQLite database.
