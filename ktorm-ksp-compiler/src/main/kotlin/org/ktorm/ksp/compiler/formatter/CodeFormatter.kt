@@ -16,13 +16,45 @@
 
 package org.ktorm.ksp.compiler.formatter
 
+import java.io.File
+
 /**
- * Code formatter interface.
+ * Code formatter.
  */
-internal fun interface CodeFormatter {
+internal abstract class CodeFormatter {
 
     /**
      * Format the generated code to the community recommended coding style.
      */
-    fun format(fileName: String, code: String): String
+    abstract fun format(fileName: String, code: String): String
+
+    /**
+     * Manually fix some style issues before formatting.
+     */
+    protected fun preformat(code: String): String {
+        return code
+            .replace(Regex("""\(\s*"""), "(")
+            .replace(Regex("""\s*\)"""), ")")
+            .replace(Regex(""",\s*"""), ", ")
+            .replace(Regex(""",\s*\)"""), ")")
+            .replace(Regex("""\s+get\(\)\s="""), " get() =")
+            .replace(Regex("""\s+=\s+"""), " = ")
+            .replace("import org.ktorm.ksp.`annotation`", "import org.ktorm.ksp.annotation")
+    }
+
+    /**
+     * Create a temp editor config file.
+     */
+    protected fun createEditorConfigFile(): File {
+        val file = File.createTempFile("ktlint", ".editorconfig")
+        file.deleteOnExit()
+
+        file.outputStream().use { output ->
+            javaClass.classLoader.getResourceAsStream("ktorm-ksp-compiler/.editorconfig")!!.use { input ->
+                input.copyTo(output)
+            }
+        }
+
+        return file
+    }
 }

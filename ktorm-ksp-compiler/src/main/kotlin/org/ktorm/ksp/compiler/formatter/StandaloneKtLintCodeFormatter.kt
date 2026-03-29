@@ -20,7 +20,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnvironment) : CodeFormatter {
+internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnvironment) : CodeFormatter() {
     private val logger = environment.logger
     private val command = buildCommand()
 
@@ -31,7 +31,7 @@ internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnv
     override fun format(fileName: String, code: String): String {
         try {
             val p = ProcessBuilder(command).start()
-            p.outputStream.bufferedWriter(Charsets.UTF_8).use { it.write(preprocessCode(code)) }
+            p.outputStream.bufferedWriter(Charsets.UTF_8).use { it.write(preformat(code)) }
 
             if (!p.waitFor(30, TimeUnit.SECONDS)) {
                 logger.info("[ktorm-ksp-compiler] ktlint execution timeout, skip code formatting for file: $fileName")
@@ -86,29 +86,5 @@ internal class StandaloneKtLintCodeFormatter(val environment: SymbolProcessorEnv
         } else {
             throw IllegalStateException("Could not find java executable.")
         }
-    }
-
-    private fun createEditorConfigFile(): String {
-        val file = File.createTempFile("ktlint", ".editorconfig")
-        file.deleteOnExit()
-
-        file.outputStream().use { output ->
-            javaClass.classLoader.getResourceAsStream("ktorm-ksp-compiler/.editorconfig")!!.use { input ->
-                input.copyTo(output)
-            }
-        }
-
-        return file.path
-    }
-
-    private fun preprocessCode(code: String): String {
-        return code
-            .replace(Regex("""\(\s*"""), "(")
-            .replace(Regex("""\s*\)"""), ")")
-            .replace(Regex(""",\s*"""), ", ")
-            .replace(Regex(""",\s*\)"""), ")")
-            .replace(Regex("""\s+get\(\)\s="""), " get() =")
-            .replace(Regex("""\s+=\s+"""), " = ")
-            .replace("import org.ktorm.ksp.`annotation`", "import org.ktorm.ksp.annotation")
     }
 }

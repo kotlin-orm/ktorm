@@ -81,15 +81,9 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
     private fun getCodeFormatter(environment: SymbolProcessorEnvironment): CodeFormatter {
         if (!environment.options["ktorm.ktlintExecutable"].isNullOrBlank()) {
             return StandaloneKtLintCodeFormatter(environment)
-        }
-
-        try {
+        } else {
             return KtLintCodeFormatter(environment)
-        } catch (_: ClassNotFoundException) {
-        } catch (_: NoClassDefFoundError) {
         }
-
-        return CodeFormatter { _, code -> code }
     }
 
     private fun TableMetadata.getDependencyFiles(): List<KSFile> {

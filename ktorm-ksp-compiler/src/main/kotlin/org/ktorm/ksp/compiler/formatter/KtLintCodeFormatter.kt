@@ -21,36 +21,41 @@ import com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3
 import com.pinterest.ktlint.rule.engine.api.Code
 import com.pinterest.ktlint.rule.engine.api.EditorConfigDefaults
 import com.pinterest.ktlint.rule.engine.api.KtLintRuleEngine
-import org.ec4j.core.EditorConfigLoader
-import org.ec4j.core.Resource.Resources
+import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
+import com.pinterest.ktlint.rule.engine.core.api.propertyTypes
 import java.util.*
 
-internal class KtLintCodeFormatter(val environment: SymbolProcessorEnvironment) : CodeFormatter {
-    private val ktLintRuleEngine = KtLintRuleEngine(
-        ruleProviders = ServiceLoader
-            .load(RuleSetProviderV3::class.java, javaClass.classLoader)
-            .flatMap { it.getRuleProviders() }
-            .toSet(),
-        editorConfigDefaults = EditorConfigDefaults(
-            EditorConfigLoader.default_().load(
-                Resources.ofClassPath(javaClass.classLoader, "/ktorm-ksp-compiler/.editorconfig", Charsets.UTF_8)
+internal class KtLintCodeFormatter(val environment: SymbolProcessorEnvironment) : CodeFormatter() {
+    private val ktLintRuleEngine = initRuleEngine()
+
+    private fun initRuleEngine(): KtLintRuleEngine? {
+        try {
+            val ruleProviders = ServiceLoader
+                .load(RuleSetProviderV3::class.java, javaClass.classLoader)
+                .flatMap { it.getRuleProviders() }
+                .toSet()
+
+            val configFile = createEditorConfigFile()
+            val editorConfig = EditorConfigDefaults.load(configFile.toPath(), ruleProviders.propertyTypes())
+
+            return KtLintRuleEngine(
+                ruleProviders = ruleProviders,
+                editorConfigDefaults = editorConfig
             )
-        )
-    )
+        } catch (e: Throwable) {
+            environment.logger.exception(e)
+            return null
+        }
+    }
 
     override fun format(fileName: String, code: String): String {
-        try {
-            // Manually fix some code styles before formatting.
-            val snippet = code
-                .replace(Regex("""\(\s*"""), "(")
-                .replace(Regex("""\s*\)"""), ")")
-                .replace(Regex(""",\s*"""), ", ")
-                .replace(Regex(""",\s*\)"""), ")")
-                .replace(Regex("""\s+get\(\)\s="""), " get() =")
-                .replace(Regex("""\s+=\s+"""), " = ")
-                .replace("import org.ktorm.ksp.`annotation`", "import org.ktorm.ksp.annotation")
+        if (ktLintRuleEngine == null) {
+            return code
+        }
 
-            return ktLintRuleEngine.format(Code.fromSnippet(snippet))
+        try {
+            var snippet = Code.fromSnippet(preformat(code))
+            return ktLintRuleEngine.format(snippet) { _ -> AutocorrectDecision.ALLOW_AUTOCORRECT }
         } catch (e: Throwable) {
             environment.logger.exception(e)
             return code

@@ -188,7 +188,7 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
 
     private fun ktlintExecutable(project: MavenProject): String {
         val r = ArtifactResolutionRequest()
-        r.artifact = repositorySystem.createArtifactWithClassifier("com.pinterest", "ktlint", "0.50.0", "jar", "all")
+        r.artifact = repositorySystem.createArtifactWithClassifier("com.pinterest", "ktlint", "1.4.1", "jar", "all")
         r.localRepository = mavenSession.localRepository
         r.remoteRepositories = project.pluginArtifactRepositories
         r.isResolveTransitively = false
