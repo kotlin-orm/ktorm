@@ -19,10 +19,12 @@ dependencies {
         exclude(group = "org.jetbrains.kotlin", module = "kotlin-compiler-embeddable")
     }
 
+    // Logging dependency for ktlint.
+    implementation("org.slf4j:slf4j-simple:2.0.3")
+
     testImplementation("dev.zacsweers.kctfork:core:0.6.0")
     testImplementation("dev.zacsweers.kctfork:ksp:0.6.0")
     testImplementation("com.h2database:h2:1.4.198")
-    testImplementation("org.slf4j:slf4j-simple:2.0.3")
 }
 
 if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
