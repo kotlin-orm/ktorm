@@ -22,7 +22,6 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import org.ktorm.ksp.annotation.Table
 import org.ktorm.ksp.compiler.formatter.CodeFormatter
-import org.ktorm.ksp.compiler.formatter.KtLintCodeFormatter
 import org.ktorm.ksp.compiler.formatter.StandaloneKtLintCodeFormatter
 import org.ktorm.ksp.compiler.generator.FileGenerator
 import org.ktorm.ksp.compiler.parser.MetadataParser
@@ -82,7 +81,11 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
         if (!environment.options["ktorm.ktlintExecutable"].isNullOrBlank()) {
             return StandaloneKtLintCodeFormatter(environment)
         } else {
-            return KtLintCodeFormatter(environment)
+            return object : CodeFormatter() {
+                override fun format(fileName: String, code: String): String {
+                    return code
+                }
+            }
         }
     }
 
