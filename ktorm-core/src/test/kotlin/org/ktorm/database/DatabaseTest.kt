@@ -8,6 +8,7 @@ import org.ktorm.entity.defaultValue
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import kotlin.use
 
 /**
  * Created by vince on Dec 02, 2018.
