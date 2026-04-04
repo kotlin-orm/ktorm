@@ -10,8 +10,5 @@ dependencies {
     compileOnly(kotlin("compiler"))
     compileOnly("org.apache.maven:maven-core:3.9.3")
     implementation("com.google.devtools.ksp:symbol-processing-cmdline:2.0.21-1.0.28")
-    implementation(project(":ktorm-ksp-compiler")) {
-        exclude(group = "com.pinterest.ktlint", module = "ktlint-rule-engine")
-        exclude(group = "com.pinterest.ktlint", module = "ktlint-ruleset-standard")
-    }
+    implementation(project(":ktorm-ksp-compiler"))
 }

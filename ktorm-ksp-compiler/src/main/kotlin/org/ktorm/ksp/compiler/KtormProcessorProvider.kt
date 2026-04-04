@@ -22,11 +22,12 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import org.ktorm.ksp.annotation.Table
 import org.ktorm.ksp.compiler.formatter.CodeFormatter
-import org.ktorm.ksp.compiler.formatter.StandaloneKtLintCodeFormatter
+import org.ktorm.ksp.compiler.formatter.SimpleCodeFormatter
 import org.ktorm.ksp.compiler.generator.FileGenerator
 import org.ktorm.ksp.compiler.parser.MetadataParser
 import org.ktorm.ksp.compiler.util.isValid
 import org.ktorm.ksp.spi.TableMetadata
+import java.lang.IllegalArgumentException
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -78,14 +79,11 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
     }
 
     private fun getCodeFormatter(environment: SymbolProcessorEnvironment): CodeFormatter {
-        if (!environment.options["ktorm.ktlintExecutable"].isNullOrBlank()) {
-            return StandaloneKtLintCodeFormatter(environment)
+        val name = environment.options["ktorm.codeFormatter"] ?: "simple"
+        if (name == "simple") {
+            return SimpleCodeFormatter()
         } else {
-            return object : CodeFormatter() {
-                override fun format(fileName: String, code: String): String {
-                    return code
-                }
-            }
+            throw IllegalArgumentException("Unknown code formatter: $name")
         }
     }
 

@@ -20,7 +20,6 @@ import com.google.devtools.ksp.KspCliOption
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.MojoExecution
-import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.project.MavenProject
 import org.apache.maven.repository.RepositorySystem
 import org.codehaus.plexus.component.annotations.Component
@@ -119,11 +118,6 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
             options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
         }
 
-        val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
-        if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
-            options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
-        }
-
         return options
     }
 
@@ -162,11 +156,6 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
             options[KspCliOption.WITH_COMPILATION_OPTION] = "true"
         }
 
-        val apOptions = userOptions[KspCliOption.PROCESSING_OPTIONS_OPTION] ?: emptyList()
-        if (apOptions.none { it.startsWith("ktorm.ktlintExecutable=") }) {
-            options[KspCliOption.PROCESSING_OPTIONS_OPTION] = "ktorm.ktlintExecutable=${ktlintExecutable(project)}"
-        }
-
         return options
     }
 
@@ -184,22 +173,6 @@ public class KtormKspMavenPluginExtension : KotlinMavenPluginExtension {
         }
 
         return files.joinToString(File.pathSeparator) { it.path }
-    }
-
-    private fun ktlintExecutable(project: MavenProject): String {
-        val r = ArtifactResolutionRequest()
-        r.artifact = repositorySystem.createArtifactWithClassifier("com.pinterest", "ktlint", "1.4.1", "jar", "all")
-        r.localRepository = mavenSession.localRepository
-        r.remoteRepositories = project.pluginArtifactRepositories
-        r.isResolveTransitively = false
-
-        val resolved = repositorySystem.resolve(r)
-        val file = resolved.artifacts.mapNotNull { it.file }.firstOrNull { it.exists() }
-        if (file != null) {
-            return file.path
-        } else {
-            throw MojoExecutionException("Resolve ktlint executable jar failed.")
-        }
     }
 
     private fun path(parent: String, vararg children: String): String {
