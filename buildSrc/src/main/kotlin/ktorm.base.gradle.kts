@@ -33,6 +33,11 @@ tasks {
     // Lifecycle task for code generation.
     val codegen by registering { /* do nothing */ }
 
+    compileJava {
+        // Suppress warning for Java 8 deprecation.
+        options.compilerArgs.add("-Xlint:-options")
+    }
+
     compileKotlin {
         dependsOn(codegen)
 

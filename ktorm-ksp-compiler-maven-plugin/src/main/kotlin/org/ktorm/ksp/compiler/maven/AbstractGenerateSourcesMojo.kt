@@ -26,25 +26,19 @@ import com.google.devtools.ksp.symbol.NonExistLocation
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
-import org.apache.maven.plugins.annotations.LifecyclePhase
-import org.apache.maven.plugins.annotations.Mojo
-import org.apache.maven.plugins.annotations.Parameter
-import org.apache.maven.plugins.annotations.ResolutionScope
 import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.util.xml.Xpp3Dom
 import org.ktorm.ksp.compiler.KtormProcessorProvider
 import java.io.File
 
 /**
- * Maven plugin MOJO that handles Ktorm KSP code generation.
+ * Abstract maven plugin MOJO that handles Ktorm KSP code generation.
  */
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class GenerateSourcesMojo : AbstractMojo() {
-    @Parameter(defaultValue = "\${project}", readonly = true, required = true)
-    private lateinit var project: MavenProject
+public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
 
-    @Parameter
-    private lateinit var processorOptions: Map<String, String>
+    protected abstract val project: MavenProject
+
+    protected abstract val processorOptions: Map<String, String>
 
     override fun execute() {
         val config = buildKspConfig()
