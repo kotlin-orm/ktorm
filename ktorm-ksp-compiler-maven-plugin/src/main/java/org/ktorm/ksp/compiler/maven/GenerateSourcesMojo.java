@@ -16,10 +16,7 @@
 
 package org.ktorm.ksp.compiler.maven;
 
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +26,11 @@ import java.util.Map;
 /**
  * Maven plugin MOJO that handles Ktorm KSP code generation.
  */
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(
+    name = "generate-sources",
+    defaultPhase = LifecyclePhase.GENERATE_SOURCES,
+    requiresDependencyResolution = ResolutionScope.COMPILE
+)
 public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;

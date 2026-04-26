@@ -76,8 +76,8 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
             classOutputDir = outputDir,
             kotlinOutputDir = kspSrcDir,
             resourceOutputDir = outputDir,
-            incremental = true,
-            incrementalLog = true,
+            incremental = false,
+            incrementalLog = false,
             modifiedSources = emptyList(),
             removedSources = emptyList(),
             changedClasses = emptyList(),
@@ -108,13 +108,13 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
         }
 
         override fun exception(e: Throwable) {
-            log.error("[ktorm-ksp-compiler] ${e.message}", e)
+            log.error(e)
         }
 
         private fun format(message: String, symbol: KSNode?) =
             when (val location = symbol?.location) {
-                is FileLocation -> "[ktorm-ksp-compiler] ${location.filePath}:${location.lineNumber}: $message"
-                is NonExistLocation, null -> "[ktorm-ksp-compiler] $message"
+                is FileLocation -> "[${location.filePath}:${location.lineNumber}] $message"
+                is NonExistLocation, null -> message
             }
     }
 
