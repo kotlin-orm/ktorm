@@ -24,6 +24,7 @@ import com.google.devtools.ksp.symbol.FileLocation
 import com.google.devtools.ksp.symbol.KSNode
 import com.google.devtools.ksp.symbol.NonExistLocation
 import org.apache.maven.plugin.AbstractMojo
+import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
 import org.apache.maven.project.MavenProject
@@ -40,47 +41,56 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
 
     protected abstract val processorOptions: Map<String, String>
 
-    override fun execute() {
-        val config = buildKspConfig()
+    protected abstract val sourceRoots: List<File>
 
+    protected abstract val libraries: List<File>
+
+    protected abstract val sourceOutputDirectory: File
+
+    protected abstract val outputDirectory: File
+
+    protected abstract val cachesDirectory: File
+
+    @Throws(MojoExecutionException::class, MojoFailureException::class)
+    override fun execute() {
         try {
+            val config = buildKspConfig()
+            if (log.isDebugEnabled) {
+                log.debug("[ktorm-ksp-compiler] ksp config: $config")
+            }
+
             val code = KotlinSymbolProcessing(config, listOf(KtormProcessorProvider()), log.toKspLogger()).execute()
             if (code != ExitCode.OK) {
-                throw MojoFailureException("KSP failed with exit code: $code")
+                throw MojoExecutionException("KSP failed with exit code: $code")
             }
-        } finally {
-            project.addCompileSourceRoot(config.kotlinOutputDir.path)
+        } catch (e: Throwable) {
+            throw MojoFailureException("KSP failed with unexpected exception.", e)
         }
     }
 
     private fun buildKspConfig(): KSPJvmConfig {
-        val buildDir = File(project.build.directory)
-        val outputDir = File(project.build.outputDirectory)
-        val kspSrcDir = File(buildDir, "generated-sources", "ksp")
-        val kspCachesDir = File(buildDir, "ksp-caches")
-
         return KSPJvmConfig(
             javaSourceRoots = emptyList(),
-            javaOutputDir = kspSrcDir,
+            javaOutputDir = sourceOutputDirectory,
             jdkHome = jdkHome(),
             jvmTarget = jvmTarget(),
             jvmDefaultMode = "enable",
             moduleName = project.artifactId,
-            sourceRoots = project.compileSourceRoots.map { File(it) },
+            sourceRoots = sourceRoots,
             commonSourceRoots = emptyList(),
-            libraries = project.compileClasspathElements.map { File(it) },
+            libraries = libraries,
             processorOptions = processorOptions,
             projectBaseDir = project.basedir,
-            outputBaseDir = File(project.build.outputDirectory),
-            cachesDir = kspCachesDir,
-            classOutputDir = outputDir,
-            kotlinOutputDir = kspSrcDir,
-            resourceOutputDir = outputDir,
+            outputBaseDir = outputDirectory,
+            cachesDir = cachesDirectory,
+            classOutputDir = outputDirectory,
+            kotlinOutputDir = sourceOutputDirectory,
+            resourceOutputDir = outputDirectory,
             incremental = false,
             incrementalLog = false,
-            modifiedSources = emptyList(),
-            removedSources = emptyList(),
-            changedClasses = emptyList(),
+            modifiedSources = ArrayList(),
+            removedSources = ArrayList(),
+            changedClasses = ArrayList(),
             languageVersion = languageVersion(),
             apiVersion = apiVersion(),
             allWarningsAsErrors = allWarningsAsErrors(),
@@ -92,23 +102,33 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
         private val log = this@toKspLogger
 
         override fun logging(message: String, symbol: KSNode?) {
-            log.debug(format(message, symbol))
+            if (log.isDebugEnabled) {
+                log.debug(format(message, symbol))
+            }
         }
 
         override fun info(message: String, symbol: KSNode?) {
-            log.info(format(message, symbol))
+            if (log.isInfoEnabled) {
+                log.info(format(message, symbol))
+            }
         }
 
         override fun warn(message: String, symbol: KSNode?) {
-            log.warn(format(message, symbol))
+            if (log.isWarnEnabled) {
+                log.warn(format(message, symbol))
+            }
         }
 
         override fun error(message: String, symbol: KSNode?) {
-            log.error(format(message, symbol))
+            if (log.isErrorEnabled) {
+                log.error(format(message, symbol))
+            }
         }
 
         override fun exception(e: Throwable) {
-            log.error(e)
+            if (log.isErrorEnabled) {
+                log.error(e)
+            }
         }
 
         private fun format(message: String, symbol: KSNode?) =
@@ -116,10 +136,6 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
                 is FileLocation -> "[${location.filePath}:${location.lineNumber}] $message"
                 is NonExistLocation, null -> message
             }
-    }
-
-    private fun File(parent: File, vararg children: String): File {
-        return children.fold(parent) { acc, child -> java.io.File(acc, child) }
     }
 
     private fun kotlinPluginConfig(name: String): String? {

@@ -34,14 +34,14 @@ import java.util.Map;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Maven plugin MOJO that handles Ktorm KSP code generation.
+ * Maven plugin MOJO that handles Ktorm KSP test code generation.
  */
 @Mojo(
-    name = "generate-sources",
-    defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-    requiresDependencyResolution = ResolutionScope.COMPILE
+    name = "generate-test-sources",
+    defaultPhase = LifecyclePhase.GENERATE_TEST_SOURCES,
+    requiresDependencyResolution = ResolutionScope.TEST
 )
-public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
+public class GenerateTestSourcesMojo extends AbstractGenerateSourcesMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
@@ -63,14 +63,14 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
     @NotNull
     @Override
     protected List<File> getSourceRoots() {
-        return project.getCompileSourceRoots().stream().map(File::new).collect(toList());
+        return project.getTestCompileSourceRoots().stream().map(File::new).collect(toList());
     }
 
     @NotNull
     @Override
     protected List<File> getLibraries() {
         try {
-            return project.getCompileClasspathElements().stream().map(File::new).collect(toList());
+            return project.getTestClasspathElements().stream().map(File::new).collect(toList());
         } catch (DependencyResolutionRequiredException e) {
             throw new IllegalStateException(e);
         }
@@ -79,19 +79,19 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
     @NotNull
     @Override
     protected File getSourceOutputDirectory() {
-        return new File(new File(project.getBuild().getDirectory(), "generated-sources"), "ktorm");
+        return new File(new File(project.getBuild().getDirectory(), "generated-test-sources"), "ktorm");
     }
 
     @NotNull
     @Override
     protected File getOutputDirectory() {
-        return new File(project.getBuild().getOutputDirectory());
+        return new File(project.getBuild().getTestOutputDirectory());
     }
 
     @NotNull
     @Override
     protected File getCachesDirectory() {
-        return new File(new File(project.getBuild().getDirectory(), "ktorm"), "ksp-caches");
+        return new File(new File(project.getBuild().getDirectory(), "ktorm"), "ksp-test-caches");
     }
 
     @Override
@@ -99,7 +99,7 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
         try {
             super.execute();
         } finally {
-            project.addCompileSourceRoot(getSourceOutputDirectory().getPath());
+            project.addTestCompileSourceRoot(getSourceOutputDirectory().getPath());
         }
     }
 }
