@@ -29,6 +29,7 @@ import org.apache.maven.plugin.MojoFailureException
 import org.apache.maven.plugin.logging.Log
 import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.util.xml.Xpp3Dom
+import org.ktorm.jackson.sharedObjectMapper
 import org.ktorm.ksp.compiler.KtormProcessorProvider
 import java.io.File
 
@@ -56,7 +57,7 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
         try {
             val config = buildKspConfig()
             if (log.isDebugEnabled) {
-                log.debug("[ktorm-ksp-compiler] ksp config: $config")
+                log.debug("[ktorm-ksp-compiler] ksp config: ${sharedObjectMapper.writeValueAsString(config)}")
             }
 
             val code = KotlinSymbolProcessing(config, listOf(KtormProcessorProvider()), log.toKspLogger()).execute()
