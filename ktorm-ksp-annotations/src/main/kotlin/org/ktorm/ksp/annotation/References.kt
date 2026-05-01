@@ -22,7 +22,6 @@ package org.ktorm.ksp.annotation
  * all references (recursively) by default.
  */
 @Target(AnnotationTarget.PROPERTY)
-@Retention(AnnotationRetention.SOURCE)
 public annotation class References(
 
     /**

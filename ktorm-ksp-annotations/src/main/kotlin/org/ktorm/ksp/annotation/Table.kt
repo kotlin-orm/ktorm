@@ -20,7 +20,6 @@ package org.ktorm.ksp.annotation
  * Specify the table for an entity class.
  */
 @Target(AnnotationTarget.CLASS)
-@Retention(AnnotationRetention.SOURCE)
 public annotation class Table(
 
     /**

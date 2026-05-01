@@ -20,5 +20,4 @@ package org.ktorm.ksp.annotation
  * Mark the annotated column as a primary key.
  */
 @Target(AnnotationTarget.PROPERTY)
-@Retention(AnnotationRetention.SOURCE)
 public annotation class PrimaryKey

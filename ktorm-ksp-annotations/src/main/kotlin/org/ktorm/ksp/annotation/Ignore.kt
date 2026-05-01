@@ -20,5 +20,4 @@ package org.ktorm.ksp.annotation
  * Ignore the annotated property, not generating the column definition.
  */
 @Target(AnnotationTarget.PROPERTY)
-@Retention(AnnotationRetention.SOURCE)
 public annotation class Ignore

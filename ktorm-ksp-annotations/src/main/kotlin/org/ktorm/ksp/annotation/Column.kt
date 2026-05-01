@@ -23,7 +23,6 @@ import kotlin.reflect.KClass
  * Specify the mapped column for an entity property. If no `@Column` annotation is specified, the default values apply.
  */
 @Target(AnnotationTarget.PROPERTY)
-@Retention(AnnotationRetention.SOURCE)
 public annotation class Column(
 
     /**
