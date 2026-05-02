@@ -19,14 +19,9 @@ package org.ktorm.ksp.compiler.maven
 import com.google.devtools.ksp.impl.KotlinSymbolProcessing
 import com.google.devtools.ksp.impl.KotlinSymbolProcessing.ExitCode
 import com.google.devtools.ksp.processing.KSPJvmConfig
-import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.FileLocation
-import com.google.devtools.ksp.symbol.KSNode
-import com.google.devtools.ksp.symbol.NonExistLocation
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugin.MojoFailureException
-import org.apache.maven.plugin.logging.Log
 import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.util.xml.Xpp3Dom
 import org.ktorm.jackson.sharedObjectMapper
@@ -60,7 +55,7 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
                 log.debug("[ktorm-ksp-compiler] ksp config: ${sharedObjectMapper.writeValueAsString(config)}")
             }
 
-            val code = KotlinSymbolProcessing(config, listOf(KtormProcessorProvider()), log.toKspLogger()).execute()
+            val code = KotlinSymbolProcessing(config, listOf(KtormProcessorProvider()), KspMavenLogger(log)).execute()
             if (code != ExitCode.OK) {
                 throw MojoExecutionException("KSP failed with exit code: $code")
             }
@@ -99,46 +94,6 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
         )
     }
 
-    private fun Log.toKspLogger() = object : KSPLogger {
-        private val log = this@toKspLogger
-
-        override fun logging(message: String, symbol: KSNode?) {
-            if (log.isDebugEnabled) {
-                log.debug(format(message, symbol))
-            }
-        }
-
-        override fun info(message: String, symbol: KSNode?) {
-            if (log.isInfoEnabled) {
-                log.info(format(message, symbol))
-            }
-        }
-
-        override fun warn(message: String, symbol: KSNode?) {
-            if (log.isWarnEnabled) {
-                log.warn(format(message, symbol))
-            }
-        }
-
-        override fun error(message: String, symbol: KSNode?) {
-            if (log.isErrorEnabled) {
-                log.error(format(message, symbol))
-            }
-        }
-
-        override fun exception(e: Throwable) {
-            if (log.isErrorEnabled) {
-                log.error(e)
-            }
-        }
-
-        private fun format(message: String, symbol: KSNode?) =
-            when (val location = symbol?.location) {
-                is FileLocation -> "[${location.filePath}:${location.lineNumber}] $message"
-                is NonExistLocation, null -> message
-            }
-    }
-
     private fun kotlinPluginConfig(name: String): String? {
         val plugin = project.build.pluginsAsMap["org.jetbrains.kotlin:kotlin-maven-plugin"]
         val config = (plugin?.configuration as? Xpp3Dom)?.getChild(name)
@@ -170,7 +125,7 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
         val arr = version.split(".")
         return if (arr.size >= 2) "${arr[0]}.${arr[1]}" else version
     }
-    
+
     private fun apiVersion(): String {
         val version = kotlinPluginConfig("apiVersion")
             ?: project.properties.getProperty("kotlin.compiler.apiVersion")
