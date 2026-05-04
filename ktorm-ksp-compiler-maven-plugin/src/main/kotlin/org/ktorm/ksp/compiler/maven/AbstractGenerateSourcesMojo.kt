@@ -113,14 +113,15 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
             ?: project.properties.getProperty("kotlin.compiler.jvmTarget")
             ?: project.properties.getProperty("maven.compiler.release")
             ?: project.properties.getProperty("maven.compiler.target")
-            ?: "1.8"
+            ?: System.getProperty("java.version")
     }
 
     private fun languageVersion(): String {
         val version = kotlinPluginConfig("languageVersion")
             ?: project.properties.getProperty("kotlin.compiler.languageVersion")
             ?: project.properties.getProperty("kotlin.version")
-            ?: "2.0.21"
+            ?: project.build.pluginsAsMap["org.jetbrains.kotlin:kotlin-maven-plugin"]?.version
+            ?: KotlinVersion.CURRENT.toString()
 
         val arr = version.split(".")
         return if (arr.size >= 2) "${arr[0]}.${arr[1]}" else version
