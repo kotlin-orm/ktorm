@@ -47,9 +47,13 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
 
     protected abstract val cachesDirectory: File
 
+    protected abstract val compileMojoConfiguration: Xpp3Dom?
+
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun execute() {
         try {
+            log.info(compileMojoConfiguration?.toString())
+            
             val config = buildKspConfig()
             if (log.isDebugEnabled) {
                 log.debug("[ktorm-ksp-compiler] ksp config: ${sharedObjectMapper.writeValueAsString(config)}")

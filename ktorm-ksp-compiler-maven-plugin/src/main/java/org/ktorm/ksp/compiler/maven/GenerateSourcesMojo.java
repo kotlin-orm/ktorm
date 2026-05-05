@@ -17,6 +17,8 @@
 package org.ktorm.ksp.compiler.maven;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -24,7 +26,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -92,6 +96,24 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
     @Override
     protected File getCachesDirectory() {
         return new File(new File(project.getBuild().getDirectory(), "ktorm"), "ksp-caches");
+    }
+
+    @Nullable
+    @Override
+    protected Xpp3Dom getCompileMojoConfiguration() {
+        Plugin plugin = project.getBuild().getPluginsAsMap().get("org.jetbrains.kotlin:kotlin-maven-plugin");
+        if (plugin == null) {
+            return null;
+        }
+
+        Xpp3Dom configuration = null;
+        for (PluginExecution execution : plugin.getExecutions()) {
+            if (execution.getPhase().equals("compile")) {
+                configuration = Xpp3Dom.mergeXpp3Dom((Xpp3Dom) execution.getConfiguration(), configuration);
+            }
+        }
+
+        return configuration;
     }
 
     @Override
