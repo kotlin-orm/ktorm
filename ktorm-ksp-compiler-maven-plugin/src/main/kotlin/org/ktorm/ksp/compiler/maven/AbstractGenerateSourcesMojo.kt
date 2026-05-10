@@ -50,9 +50,44 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
     protected abstract val kotlinCompileMojoConfiguration: Xpp3Dom?
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
-    override fun execute() {
+    protected fun generateSources(): List<File> {
         try {
-            val config = buildKspConfig()
+            val kotlinCompileMojoConfiguration = this.kotlinCompileMojoConfiguration
+            val sourceDirs = sourceDirs(kotlinCompileMojoConfiguration)
+
+            val sourceRoots = (this.sourceRoots + sourceDirs).distinct()
+            val libraries = this.libraries
+            val sourceOutputDirectory = this.sourceOutputDirectory
+            val outputDirectory = this.outputDirectory
+
+            val config = KSPJvmConfig(
+                javaSourceRoots = sourceRoots,
+                javaOutputDir = sourceOutputDirectory,
+                jdkHome = jdkHome(kotlinCompileMojoConfiguration),
+                jvmTarget = jvmTarget(kotlinCompileMojoConfiguration),
+                jvmDefaultMode = "enable",
+                moduleName = project.artifactId,
+                sourceRoots = sourceRoots,
+                commonSourceRoots = emptyList(),
+                libraries = libraries,
+                processorOptions = processorOptions,
+                projectBaseDir = project.basedir,
+                outputBaseDir = outputDirectory,
+                cachesDir = cachesDirectory,
+                classOutputDir = outputDirectory,
+                kotlinOutputDir = sourceOutputDirectory,
+                resourceOutputDir = outputDirectory,
+                incremental = false,
+                incrementalLog = false,
+                modifiedSources = ArrayList(),
+                removedSources = ArrayList(),
+                changedClasses = ArrayList(),
+                languageVersion = languageVersion(kotlinCompileMojoConfiguration),
+                apiVersion = apiVersion(kotlinCompileMojoConfiguration),
+                allWarningsAsErrors = allWarningsAsErrors(kotlinCompileMojoConfiguration),
+                mapAnnotationArgumentsInJava = false
+            )
+
             if (log.isDebugEnabled) {
                 log.debug("[ktorm-ksp-compiler] ksp config: ${sharedObjectMapper.writeValueAsString(config)}")
             }
@@ -61,45 +96,18 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
             if (code != ExitCode.OK) {
                 throw MojoExecutionException("KSP failed with exit code: $code")
             }
+
+            return (sourceDirs + sourceOutputDirectory).distinct()
         } catch (e: Throwable) {
             throw MojoFailureException("KSP failed with unexpected exception.", e)
         }
     }
 
-    private fun buildKspConfig(): KSPJvmConfig {
-        val sourceRoots = this.sourceRoots
-        val libraries = this.libraries
-        val sourceOutputDirectory = this.sourceOutputDirectory
-        val outputDirectory = this.outputDirectory
-        val kotlinCompileMojoConfiguration = this.kotlinCompileMojoConfiguration
-
-        return KSPJvmConfig(
-            javaSourceRoots = emptyList(),
-            javaOutputDir = sourceOutputDirectory,
-            jdkHome = jdkHome(kotlinCompileMojoConfiguration),
-            jvmTarget = jvmTarget(kotlinCompileMojoConfiguration),
-            jvmDefaultMode = "enable",
-            moduleName = project.artifactId,
-            sourceRoots = sourceRoots,
-            commonSourceRoots = emptyList(),
-            libraries = libraries,
-            processorOptions = processorOptions,
-            projectBaseDir = project.basedir,
-            outputBaseDir = outputDirectory,
-            cachesDir = cachesDirectory,
-            classOutputDir = outputDirectory,
-            kotlinOutputDir = sourceOutputDirectory,
-            resourceOutputDir = outputDirectory,
-            incremental = false,
-            incrementalLog = false,
-            modifiedSources = ArrayList(),
-            removedSources = ArrayList(),
-            changedClasses = ArrayList(),
-            languageVersion = languageVersion(kotlinCompileMojoConfiguration),
-            apiVersion = apiVersion(kotlinCompileMojoConfiguration),
-            allWarningsAsErrors = allWarningsAsErrors(kotlinCompileMojoConfiguration),
-            mapAnnotationArgumentsInJava = false
-        )
+    private fun sourceDirs(configuration: Xpp3Dom?): List<File> {
+        return configuration?.getChild("sourceDirs")?.getChildren("sourceDir")
+            ?.map { File(it.value) }
+            ?.map { if (it.isAbsolute) it else File(project.basedir, it.path) }
+            ?: emptyList()
     }
 
     private fun jdkHome(configuration: Xpp3Dom?): File {

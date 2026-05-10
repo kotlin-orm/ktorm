@@ -118,10 +118,9 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        try {
-            super.execute();
-        } finally {
-            project.addCompileSourceRoot(getSourceOutputDirectory().getPath());
+        List<File> sourceDirs = generateSources();
+        for (File sourceDir : sourceDirs) {
+            project.addCompileSourceRoot(sourceDir.getPath());
         }
     }
 }
