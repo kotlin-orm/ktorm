@@ -100,7 +100,7 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
 
     @Nullable
     @Override
-    protected Xpp3Dom getCompileMojoConfiguration() {
+    protected Xpp3Dom getKotlinCompileMojoConfiguration() {
         Plugin plugin = project.getBuild().getPluginsAsMap().get("org.jetbrains.kotlin:kotlin-maven-plugin");
         if (plugin == null) {
             return null;

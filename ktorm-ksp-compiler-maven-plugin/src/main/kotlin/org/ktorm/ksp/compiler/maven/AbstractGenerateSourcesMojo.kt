@@ -47,13 +47,11 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
 
     protected abstract val cachesDirectory: File
 
-    protected abstract val compileMojoConfiguration: Xpp3Dom?
+    protected abstract val kotlinCompileMojoConfiguration: Xpp3Dom?
 
     @Throws(MojoExecutionException::class, MojoFailureException::class)
     override fun execute() {
         try {
-            log.info(compileMojoConfiguration?.toString())
-            
             val config = buildKspConfig()
             if (log.isDebugEnabled) {
                 log.debug("[ktorm-ksp-compiler] ksp config: ${sharedObjectMapper.writeValueAsString(config)}")
@@ -69,11 +67,17 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
     }
 
     private fun buildKspConfig(): KSPJvmConfig {
+        val sourceRoots = this.sourceRoots
+        val libraries = this.libraries
+        val sourceOutputDirectory = this.sourceOutputDirectory
+        val outputDirectory = this.outputDirectory
+        val kotlinCompileMojoConfiguration = this.kotlinCompileMojoConfiguration
+
         return KSPJvmConfig(
             javaSourceRoots = emptyList(),
             javaOutputDir = sourceOutputDirectory,
-            jdkHome = jdkHome(),
-            jvmTarget = jvmTarget(),
+            jdkHome = jdkHome(kotlinCompileMojoConfiguration),
+            jvmTarget = jvmTarget(kotlinCompileMojoConfiguration),
             jvmDefaultMode = "enable",
             moduleName = project.artifactId,
             sourceRoots = sourceRoots,
@@ -91,37 +95,31 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
             modifiedSources = ArrayList(),
             removedSources = ArrayList(),
             changedClasses = ArrayList(),
-            languageVersion = languageVersion(),
-            apiVersion = apiVersion(),
-            allWarningsAsErrors = allWarningsAsErrors(),
+            languageVersion = languageVersion(kotlinCompileMojoConfiguration),
+            apiVersion = apiVersion(kotlinCompileMojoConfiguration),
+            allWarningsAsErrors = allWarningsAsErrors(kotlinCompileMojoConfiguration),
             mapAnnotationArgumentsInJava = false
         )
     }
 
-    private fun kotlinPluginConfig(name: String): String? {
-        val plugin = project.build.pluginsAsMap["org.jetbrains.kotlin:kotlin-maven-plugin"]
-        val config = (plugin?.configuration as? Xpp3Dom)?.getChild(name)
-        return config?.value
-    }
-
-    private fun jdkHome(): File {
-        val jdkHome = kotlinPluginConfig("jdkHome")
+    private fun jdkHome(configuration: Xpp3Dom?): File {
+        val jdkHome = configuration?.getChildValue("jdkHome")
             ?: project.properties.getProperty("kotlin.compiler.jdkHome")
             ?: System.getProperty("java.home")
 
         return File(jdkHome)
     }
 
-    private fun jvmTarget(): String {
-        return kotlinPluginConfig("jvmTarget")
+    private fun jvmTarget(configuration: Xpp3Dom?): String {
+        return configuration?.getChildValue("jvmTarget")
             ?: project.properties.getProperty("kotlin.compiler.jvmTarget")
             ?: project.properties.getProperty("maven.compiler.release")
             ?: project.properties.getProperty("maven.compiler.target")
             ?: System.getProperty("java.version")
     }
 
-    private fun languageVersion(): String {
-        val version = kotlinPluginConfig("languageVersion")
+    private fun languageVersion(configuration: Xpp3Dom?): String {
+        val version = configuration?.getChildValue("languageVersion")
             ?: project.properties.getProperty("kotlin.compiler.languageVersion")
             ?: project.properties.getProperty("kotlin.version")
             ?: project.build.pluginsAsMap["org.jetbrains.kotlin:kotlin-maven-plugin"]?.version
@@ -131,19 +129,24 @@ public abstract class AbstractGenerateSourcesMojo : AbstractMojo() {
         return if (arr.size >= 2) "${arr[0]}.${arr[1]}" else version
     }
 
-    private fun apiVersion(): String {
-        val version = kotlinPluginConfig("apiVersion")
+    private fun apiVersion(configuration: Xpp3Dom?): String {
+        val version = configuration?.getChildValue("apiVersion")
             ?: project.properties.getProperty("kotlin.compiler.apiVersion")
-            ?: languageVersion()
+            ?: languageVersion(configuration)
 
         val arr = version.split(".")
         return if (arr.size >= 2) "${arr[0]}.${arr[1]}" else version
     }
 
-    private fun allWarningsAsErrors(): Boolean {
-        val flag = kotlinPluginConfig("allWarningsAsErrors")
+    private fun allWarningsAsErrors(configuration: Xpp3Dom?): Boolean {
+        val flag = configuration?.getChildValue("allWarningsAsErrors")
             ?: project.properties.getProperty("kotlin.compiler.allWarningsAsErrors")
 
         return flag?.toBoolean() == true
+    }
+
+    private fun Xpp3Dom.getChildValue(name: String): String? {
+        val child = getChild(name)
+        return child?.value
     }
 }
