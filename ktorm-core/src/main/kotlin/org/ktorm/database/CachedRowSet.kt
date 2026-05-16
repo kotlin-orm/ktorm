@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,13 @@ import java.math.BigInteger
 import java.net.URI
 import java.net.URL
 import java.sql.*
+import java.sql.Array as SqlArray
 import java.sql.Date
 import java.sql.ResultSet.*
 import java.time.*
 import java.util.*
 import javax.sql.rowset.serial.*
+import kotlin.use
 
 /**
  * Special implementation of [ResultSet], used to hold the query results for Ktorm.
@@ -245,7 +247,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
                         is SQLData -> SerialStruct(obj, _typeMap)
                         is Blob -> try { MemoryBlob(obj) } finally { obj.free() }
                         is Clob -> try { MemoryClob(obj) } finally { obj.free() }
-                        is java.sql.Array -> try { MemoryArray(obj, _typeMap) } finally { obj.free() }
+                        is SqlArray -> try { MemoryArray(obj, _typeMap) } finally { obj.free() }
                         else -> obj
                     }
                 }
@@ -276,9 +278,9 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     }
 
     private class MemoryArray(
-        array: java.sql.Array,
+        array: SqlArray,
         typeMap: Map<String, Class<*>>?
-    ) : java.sql.Array by if (typeMap != null) SerialArray(array, typeMap) else SerialArray(array) {
+    ) : SqlArray by if (typeMap != null) SerialArray(array, typeMap) else SerialArray(array) {
 
         override fun free() {
             // no-op
@@ -396,7 +398,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     override fun getBytes(columnIndex: Int): ByteArray? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is ByteArray -> Arrays.copyOf(value, value.size)
+            is ByteArray -> value.copyOf(value.size)
             is Blob -> value.binaryStream.use { it.readBytes() }
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to byte[].")
         }
@@ -1076,10 +1078,10 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         }
     }
 
-    override fun getArray(columnIndex: Int): java.sql.Array? {
+    override fun getArray(columnIndex: Int): SqlArray? {
         return when (val value = getColumnValue(columnIndex)) {
             null -> null
-            is java.sql.Array -> value
+            is SqlArray -> value
             else -> throw SQLException("Cannot convert ${value.javaClass.name} value to Array.")
         }
     }
@@ -1100,7 +1102,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
         return getClob(findColumn(columnLabel))
     }
 
-    override fun getArray(columnLabel: String): java.sql.Array? {
+    override fun getArray(columnLabel: String): SqlArray? {
         return getArray(findColumn(columnLabel))
     }
 
@@ -1195,12 +1197,12 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
     }
 
     @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
-    override fun updateArray(columnIndex: Int, x: java.sql.Array?): Nothing {
+    override fun updateArray(columnIndex: Int, x: SqlArray?): Nothing {
         throw SQLFeatureNotSupportedException("The result set is not updatable.")
     }
 
     @Deprecated("The result set is not updatable.", level = DeprecationLevel.ERROR)
-    override fun updateArray(columnLabel: String?, x: java.sql.Array?): Nothing {
+    override fun updateArray(columnLabel: String?, x: SqlArray?): Nothing {
         throw SQLFeatureNotSupportedException("The result set is not updatable.")
     }
 
@@ -1460,7 +1462,7 @@ public open class CachedRowSet(rs: ResultSet) : ResultSet {
             Instant::class -> getInstant(columnIndex)
             Blob::class -> getBlob(columnIndex)
             Clob::class -> getClob(columnIndex)
-            java.sql.Array::class -> getArray(columnIndex)
+            SqlArray::class -> getArray(columnIndex)
             Ref::class -> getRef(columnIndex)
             URL::class -> getURL(columnIndex)
             else -> getObject(columnIndex)

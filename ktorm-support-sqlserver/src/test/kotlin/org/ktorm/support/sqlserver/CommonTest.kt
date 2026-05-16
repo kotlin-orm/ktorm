@@ -1,7 +1,6 @@
 package org.ktorm.support.sqlserver
 
 import org.junit.Test
-import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.entity.count
 import org.ktorm.entity.filter

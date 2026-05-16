@@ -3,7 +3,6 @@ package org.ktorm
 import org.junit.After
 import org.junit.Before
 import org.ktorm.database.Database
-import org.ktorm.database.use
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.*

@@ -1,7 +1,6 @@
 package org.ktorm.support.postgresql
 
 import org.junit.Test
-import org.ktorm.database.use
 import org.ktorm.dsl.*
 import org.ktorm.schema.TextSqlType
 import java.sql.Clob

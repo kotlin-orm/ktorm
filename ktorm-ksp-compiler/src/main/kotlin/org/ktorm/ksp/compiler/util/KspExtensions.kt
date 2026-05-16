@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,21 @@ internal val KSValueParameter._type: KSType get() = type.resolve()
  */
 @Suppress("ObjectPropertyName", "TopLevelPropertyNaming")
 internal val KSAnnotation._annotationType: KSType get() = annotationType.resolve()
+
+/**
+ * Check if this type is JVM primitive type.
+ */
+internal fun KSType.isPrimitiveType(): Boolean {
+    val typeName = declaration.qualifiedName?.asString()
+    return typeName == "kotlin.Int"
+        || typeName == "kotlin.Byte"
+        || typeName == "kotlin.Short"
+        || typeName == "kotlin.Long"
+        || typeName == "kotlin.Float"
+        || typeName == "kotlin.Double"
+        || typeName == "kotlin.Boolean"
+        || typeName == "kotlin.Char"
+}
 
 /**
  * Check if this type is an inline class.

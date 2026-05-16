@@ -2,7 +2,6 @@ package org.ktorm.entity
 
 import org.junit.Test
 import org.ktorm.BaseTest
-import org.ktorm.database.use
 import org.ktorm.dsl.from
 import org.ktorm.dsl.insert
 import org.ktorm.dsl.map

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2024 the original author or authors.
+ * Copyright 2018-2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import org.ktorm.ksp.annotation.Table
 import org.ktorm.ksp.compiler.formatter.CodeFormatter
-import org.ktorm.ksp.compiler.formatter.KtLintCodeFormatter
-import org.ktorm.ksp.compiler.formatter.StandaloneKtLintCodeFormatter
+import org.ktorm.ksp.compiler.formatter.SimpleCodeFormatter
 import org.ktorm.ksp.compiler.generator.FileGenerator
 import org.ktorm.ksp.compiler.parser.MetadataParser
 import org.ktorm.ksp.compiler.util.isValid
 import org.ktorm.ksp.spi.TableMetadata
+import java.lang.IllegalArgumentException
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -79,17 +79,12 @@ public class KtormProcessorProvider : SymbolProcessorProvider {
     }
 
     private fun getCodeFormatter(environment: SymbolProcessorEnvironment): CodeFormatter {
-        if (!environment.options["ktorm.ktlintExecutable"].isNullOrBlank()) {
-            return StandaloneKtLintCodeFormatter(environment)
+        val name = environment.options["ktorm.codeFormatter"] ?: "simple"
+        if (name == "simple") {
+            return SimpleCodeFormatter()
+        } else {
+            throw IllegalArgumentException("Unknown code formatter: $name")
         }
-
-        try {
-            return KtLintCodeFormatter(environment)
-        } catch (_: ClassNotFoundException) {
-        } catch (_: NoClassDefFoundError) {
-        }
-
-        return CodeFormatter { _, code -> code }
     }
 
     private fun TableMetadata.getDependencyFiles(): List<KSFile> {

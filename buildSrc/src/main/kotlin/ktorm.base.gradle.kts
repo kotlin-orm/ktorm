@@ -33,19 +33,24 @@ tasks {
     // Lifecycle task for code generation.
     val codegen by registering { /* do nothing */ }
 
+    compileJava {
+        // Suppress warning for Java 8 deprecation.
+        options.compilerArgs.add("-Xlint:-options")
+    }
+
     compileKotlin {
         dependsOn(codegen)
 
-        kotlinOptions {
-            jvmTarget = "1.8"
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
             allWarningsAsErrors = true
             freeCompilerArgs = listOf("-Xexplicit-api=strict")
         }
     }
 
     compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
         }
     }
 
