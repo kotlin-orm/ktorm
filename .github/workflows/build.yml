@@ -101,7 +101,7 @@ jobs:
           else
             if [[ $GITHUB_EVENT_NAME == "release" ]] ; then
               ./gradlew publishDistPublicationToCentralRepository
-              curl -v -X POST -u "$OSSRH_USER:$OSSRH_PASSWORD" https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/org.ktorm
+              curl -X POST -u "$OSSRH_USER:$OSSRH_PASSWORD" https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/org.ktorm
             else
               echo "Skip release publication because this is not a release event"
             fi
