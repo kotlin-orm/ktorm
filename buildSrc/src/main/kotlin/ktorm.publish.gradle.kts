@@ -164,6 +164,11 @@ publishing {
                         name.set("hc224")
                         email.set("hc224@pm.me")
                     }
+                    developer {
+                        id.set("sasa-b")
+                        name.set("Sasa Blagojevic")
+                        email.set("sasa.blagojevic@mail.com")
+                    }
                 }
             }
         }

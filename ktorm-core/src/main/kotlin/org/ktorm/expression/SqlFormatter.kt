@@ -216,6 +216,16 @@ public abstract class SqlFormatter(
         return expr
     }
 
+    override fun <T : Any> visitColumnSubquery(expr: ColumnSubqueryExpression<T>): ColumnSubqueryExpression<T> {
+        write("(")
+        newLine(Indentation.INNER)
+        visit(expr.query)
+        removeLastBlank()
+        newLine(Indentation.OUTER)
+        write(") ")
+        return expr
+    }
+
     override fun visitSelect(expr: SelectExpression): SelectExpression {
         writeKeyword("select ")
         if (expr.isDistinct) {
