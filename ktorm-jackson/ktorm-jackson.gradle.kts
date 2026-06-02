@@ -8,9 +8,9 @@ plugins {
 
 dependencies {
     api(project(":ktorm-core"))
-    api("com.fasterxml.jackson.core:jackson-databind:2.12.3")
-    api("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.3")
-    api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
+    api("com.fasterxml.jackson.core:jackson-databind:2.21.2")
+    api("com.fasterxml.jackson.module:jackson-module-kotlin:2.21.2")
+    api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.2")
 }
 
 val generatedSourceDir = "${project.layout.buildDirectory.asFile.get()}/generated/source/main/kotlin"

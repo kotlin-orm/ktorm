@@ -92,7 +92,7 @@ internal class EntityDeserializers : SimpleDeserializers() {
                     ctxt.reportWrongTokenException(entityClass.java, JsonToken.FIELD_NAME, null)
                 }
 
-                val prop = properties[parser.currentName]
+                val prop = properties[parser.currentName()]
 
                 parser.nextToken() // skip to field value
 

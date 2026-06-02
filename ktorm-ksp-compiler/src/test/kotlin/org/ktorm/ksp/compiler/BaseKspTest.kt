@@ -42,8 +42,14 @@ abstract class BaseKspTest {
 
     protected fun kspFailing(message: String, @Language("kotlin") code: String, vararg options: Pair<String, String>) {
         val result = compile(code, mapOf(*options))
-        assert(result.exitCode != KotlinCompilation.ExitCode.OK)
-        assert(result.messages.contains(message))
+
+        // thrown exceptions leads to internal error, so we also accept internal error here.
+        assert(result.exitCode in listOf(KotlinCompilation.ExitCode.COMPILATION_ERROR, KotlinCompilation.ExitCode.INTERNAL_ERROR)) {
+            "Expected compilation error but actually ${result.exitCode} with messages ${result.messages}"
+        }
+        assert(result.messages.contains(message)) {
+            "Expected error message '$message' but actually ${result.messages}"
+        }
     }
 
     protected fun runKotlin(@Language("kotlin") code: String, vararg options: Pair<String, String>) {
@@ -60,7 +66,6 @@ abstract class BaseKspTest {
     }
 
     private fun compile(@Language("kotlin") code: String, options: Map<String, String>): JvmCompilationResult {
-        @Language("kotlin")
         val header = """
             import java.math.*
             import java.sql.*
@@ -101,11 +106,13 @@ abstract class BaseKspTest {
             inheritClassPath = true
             allWarningsAsErrors = true
 
-            configureKsp(useKsp2 = true) {
+            configureKsp {
                 symbolProcessorProviders += KtormProcessorProvider()
                 incremental = true
                 withCompilation = true
                 processorOptions += options
+                // suppress Identity equality warning
+                kotlincArguments += listOf("-Xwarning-level=IDENTITY_SENSITIVE_OPERATIONS_WITH_VALUE_TYPE:disabled")
             }
         }
     }

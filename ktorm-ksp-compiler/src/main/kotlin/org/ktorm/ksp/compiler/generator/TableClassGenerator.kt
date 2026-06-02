@@ -21,7 +21,6 @@ import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import org.ktorm.dsl.QueryRowSet
 import org.ktorm.ksp.compiler.util._type
@@ -32,7 +31,6 @@ import org.ktorm.schema.BaseTable
 import org.ktorm.schema.Column
 import org.ktorm.schema.Table
 
-@OptIn(KotlinPoetKspPreview::class)
 internal object TableClassGenerator {
 
     fun generate(table: TableMetadata, environment: SymbolProcessorEnvironment): TypeSpec {

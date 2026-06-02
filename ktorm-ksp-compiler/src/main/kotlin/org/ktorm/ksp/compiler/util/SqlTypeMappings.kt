@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:OptIn(KotlinPoetKspPreview::class)
-
 package org.ktorm.ksp.compiler.util
 
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -27,7 +25,6 @@ import com.google.devtools.ksp.symbol.KSType
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import org.ktorm.ksp.spi.ColumnMetadata

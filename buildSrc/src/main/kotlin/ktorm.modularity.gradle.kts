@@ -10,7 +10,7 @@ val moditect by tasks.registering {
         val outputDir = file("build/moditect").apply { mkdirs() }.toPath()
         val moduleInfo = file("src/main/moditect/module-info.java").readText()
         val version = project.version.toString()
-        org.moditect.commands.AddModuleInfo(moduleInfo, null, version, inputJar, outputDir, "9", true).run()
+        org.moditect.commands.AddModuleInfo(moduleInfo, null, version, inputJar, outputDir, "9", true, null).run()
 
         // Replace the original jar with the modulized jar.
         copy {
