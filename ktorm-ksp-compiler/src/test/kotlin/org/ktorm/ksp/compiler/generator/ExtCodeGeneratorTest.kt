@@ -4,7 +4,6 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.typeNameOf
 import org.ktorm.ksp.spi.ExtCodeGenerator
@@ -13,7 +12,6 @@ import org.ktorm.ksp.spi.TableMetadata
 /**
  * Created by vince at May 27, 2023.
  */
-@OptIn(KotlinPoetKspPreview::class)
 class ExtCodeGeneratorTest : ExtCodeGenerator {
 
     override fun generateTypes(table: TableMetadata, environment: SymbolProcessorEnvironment): List<TypeSpec> {

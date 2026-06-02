@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 group = rootProject.group
 version = rootProject.version
@@ -42,15 +44,14 @@ tasks {
         dependsOn(codegen)
 
         compilerOptions {
-            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
-            allWarningsAsErrors = true
-            freeCompilerArgs = listOf("-Xexplicit-api=strict")
+            allWarningsAsErrors.set(true)
+            freeCompilerArgs.add("-Xexplicit-api=strict")
         }
     }
 
-    compileTestKotlin {
+    withType<KotlinJvmCompile>().configureEach {
         compilerOptions {
-            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+            jvmTarget.set(JvmTarget.JVM_1_8)
         }
     }
 

@@ -18,7 +18,6 @@ package org.ktorm.ksp.compiler.generator
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
-import com.squareup.kotlinpoet.ksp.KotlinPoetKspPreview
 import com.squareup.kotlinpoet.ksp.toClassName
 import org.ktorm.dsl.AliasRemover
 import org.ktorm.entity.EntitySequence
@@ -28,7 +27,6 @@ import org.ktorm.ksp.spi.ColumnMetadata
 import org.ktorm.ksp.spi.TableMetadata
 import org.ktorm.schema.Column
 
-@OptIn(KotlinPoetKspPreview::class)
 internal object AddFunctionGenerator {
 
     fun generate(table: TableMetadata): FunSpec {
