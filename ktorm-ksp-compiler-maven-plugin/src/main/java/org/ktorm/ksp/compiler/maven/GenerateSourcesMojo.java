@@ -108,7 +108,10 @@ public class GenerateSourcesMojo extends AbstractGenerateSourcesMojo {
 
         Xpp3Dom configuration = null;
         for (PluginExecution execution : plugin.getExecutions()) {
-            if (execution.getPhase().equals("compile")) {
+            String phase = execution.getPhase();
+            List<String> goals = execution.getGoals();
+
+            if (phase != null && phase.equals("compile") || goals != null && goals.contains("compile")) {
                 configuration = Xpp3Dom.mergeXpp3Dom((Xpp3Dom) execution.getConfiguration(), configuration);
             }
         }
