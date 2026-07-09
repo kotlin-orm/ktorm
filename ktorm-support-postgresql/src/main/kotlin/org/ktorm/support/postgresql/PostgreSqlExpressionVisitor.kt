@@ -48,6 +48,7 @@ public interface PostgreSqlExpressionVisitor : SqlExpressionVisitor {
             is HStoreExpression -> visitHStore(expr)
             is CubeExpression -> visitCube(expr)
             is DefaultValueExpression -> visitDefaultValue(expr)
+            is TextSearchExpression -> visitTextSearch(expr)
             else -> super.visitScalar(expr)
         }
 
@@ -181,5 +182,21 @@ public interface PostgreSqlExpressionVisitor : SqlExpressionVisitor {
      */
     public fun <T : Any> visitDefaultValue(expr: DefaultValueExpression<T>): DefaultValueExpression<T> {
         return expr
+    }
+
+    /**
+     * Function that visits a [TextSearchExpression].
+     */
+    public fun <T : Any> visitTextSearch(expr: TextSearchExpression<T>): TextSearchExpression<T> {
+        val left = expr.left?.let {
+            visitScalar(it)
+        }
+        val right = visitScalar(expr.right)
+
+        if (left === expr.left && right === expr.right) {
+            return expr
+        } else {
+            return expr.copy(left = left, right = right)
+        }
     }
 }
