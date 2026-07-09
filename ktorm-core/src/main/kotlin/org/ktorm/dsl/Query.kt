@@ -22,6 +22,7 @@ import org.ktorm.expression.*
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.Column
 import org.ktorm.schema.ColumnDeclaring
+import org.ktorm.schema.SqlType
 import java.sql.ResultSet
 
 /**
@@ -445,6 +446,20 @@ public fun Query.union(right: Query): Query {
  */
 public fun Query.unionAll(right: Query): Query {
     return this.withExpression(UnionExpression(left = expression, right = right.expression, isUnionAll = true))
+}
+
+/**
+ * Wrap this query as a column [ColumnSubqueryExpression].
+ */
+public fun <T: Any> Query.asSubquery(sqlType: SqlType<T>): ColumnSubqueryExpression<T> {
+    return ColumnSubqueryExpression(expression, sqlType = sqlType, isLeafNode = false)
+}
+
+/**
+ * Wrap this query as a column [ColumnDeclaringExpression].
+ */
+public fun <T: Any> Query.asSubquery(sqlType: SqlType<T>, label: String): ColumnDeclaringExpression<T> {
+    return ColumnSubqueryExpression(expression, sqlType = sqlType, isLeafNode = false).aliased(label)
 }
 
 /**

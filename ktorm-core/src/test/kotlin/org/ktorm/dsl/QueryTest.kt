@@ -2,7 +2,9 @@ package org.ktorm.dsl
 
 import org.junit.Test
 import org.ktorm.BaseTest
+import org.ktorm.expression.ColumnSubqueryExpression
 import org.ktorm.expression.ScalarExpression
+import org.ktorm.schema.LongSqlType
 import org.ktorm.schema.TextSqlType
 import java.sql.Clob
 import kotlin.random.Random
@@ -243,6 +245,42 @@ class QueryTest : BaseTest() {
             .where { Employees.departmentId inList departmentIds }
 
         assert(query.rowSet.size() == 4)
+
+        println(query.sql)
+    }
+
+    @Test
+    fun testColumnCorrelatedSubquery() {
+        val employeesCount = database.from(Employees)
+            .select(count())
+            .where { Departments.id eq Employees.departmentId }
+            .asSubquery(LongSqlType)
+
+        val query = database
+            .from(Departments)
+            .select(Departments.id, employeesCount)
+
+        assert(query.rowSet.size() == 2)
+        val results = query.joinToString { row -> row.getLong(2).toString() }
+        assertEquals("2, 2", results)
+
+        println(query.sql)
+    }
+
+    @Test
+    fun testColumnCorrelatedSubqueryWithAlias() {
+        val employeesInDepartmentCount = database.from(Employees)
+            .select(count())
+            .where { Departments.id eq Employees.departmentId }
+            .asSubquery(LongSqlType, "employee_count")
+
+        val query = database
+            .from(Departments)
+            .select(Departments.columns + employeesInDepartmentCount)
+
+        assert(query.rowSet.size() == 2)
+        val results = query.joinToString { row -> row.getLong("employee_count").toString() }
+        assertEquals("2, 2", results)
 
         println(query.sql)
     }

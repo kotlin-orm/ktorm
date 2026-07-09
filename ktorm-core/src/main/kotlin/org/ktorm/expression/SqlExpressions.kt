@@ -298,6 +298,19 @@ public data class ColumnDeclaringExpression<T : Any>(
 }
 
 /**
+ * Column subquery expression, represents a subquery as a selected column in a [SelectExpression].
+ *
+ * For example, `select a.name, (select count(*) from b where b.a_id = a.id) as total_names from a`, `(select count(*) from b where b.a_id = a.id) as total_names` is the subquery as a selected column.
+ *
+ */
+public data class ColumnSubqueryExpression<T: Any>(
+    val query: QueryExpression,
+    override val sqlType: SqlType<T>,
+    override val isLeafNode: Boolean = false,
+    override val extraProperties: Map<String, Any> = emptyMap()
+) : ScalarExpression<T>()
+
+/**
  * Column assignment expression, represents a column assignment for insert or update statements.
  *
  * @property column the left value of the assignment.
