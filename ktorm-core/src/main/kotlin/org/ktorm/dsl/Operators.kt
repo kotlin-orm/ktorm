@@ -696,3 +696,49 @@ public fun ColumnDeclaring<Boolean>.toInt(): CastingExpression<Int> {
 public fun <T : Any> ColumnDeclaring<*>.cast(sqlType: SqlType<T>): CastingExpression<T> {
     return CastingExpression(asExpression(), sqlType)
 }
+
+// --------- bit And ------------
+
+/**
+ * And operator, translated to the `&` keyword in SQL.
+ */
+public infix fun ColumnDeclaring<Int>.bitAnd(expr: ColumnDeclaring<Int>): BinaryExpression<Int> {
+    return BinaryExpression(BinaryExpressionType.BIT_AND, asExpression(), expr.asExpression(), IntSqlType)
+}
+
+/**
+ * And operator, translated to the `&` keyword in SQL.
+ */
+public infix fun ColumnDeclaring<Int>.bitAnd(value: Int): BinaryExpression<Int> {
+    return this bitAnd wrapArgument(value)
+}
+
+/**
+ * And operator, translated to the `&` keyword in SQL.
+ */
+public infix fun Int.bitAnd(expr: ColumnDeclaring<Int>): BinaryExpression<Int> {
+    return expr.wrapArgument(this) bitAnd expr
+}
+
+// --------- bit Or ------------
+
+/**
+ * And operator, translated to the `|` keyword in SQL.
+ */
+public infix fun ColumnDeclaring<Int>.bitOr(expr: ColumnDeclaring<Int>): BinaryExpression<Int> {
+    return BinaryExpression(BinaryExpressionType.BIT_AND, asExpression(), expr.asExpression(), IntSqlType)
+}
+
+/**
+ * And operator, translated to the `|` keyword in SQL.
+ */
+public infix fun ColumnDeclaring<Int>.bitOr(value: Int): BinaryExpression<Int> {
+    return this bitOr wrapArgument(value)
+}
+
+/**
+ * And operator, translated to the `|` keyword in SQL.
+ */
+public infix fun Int.bitOr(expr: ColumnDeclaring<Int>): BinaryExpression<Int> {
+    return expr.wrapArgument(this) bitOr expr
+}
